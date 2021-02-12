@@ -73,11 +73,12 @@ class assertWarns(warnings.catch_warnings):
         The test case from which this is being called, almost always
         ``self`` (so the :meth:`~unittest.TestCase.fail` method is available).
 
-    action : {None, 'default', 'error', 'ignore', 'always', 'module', 'once'}
-        If specified (i.e. not ``None``), a warning filter matching the
-        specified warning will be added to the filter before executing the
-        block. ``always`` is generally recommended to make sure the tested
-        warning will be raised. If ``always`` is specified, on Python 2 the log
+    action : {'always', ``None``, 'default', 'error', 'ignore', 'module',
+              'once'}
+        Unless ``None``, a warning filter matching the specified warning will
+        be added to the filter before executing the block. 'always'
+        (default) is generally recommended to make sure the tested
+        warning will be raised. If 'always' is specified, on Python 2 the log
         of previously-issued warnings will be edited to work around a
         `Python bug <https://stackoverflow.com/questions/56821539/>`_. In this
         case using ``module`` is strongly recommended to minimize the impact
@@ -119,7 +120,7 @@ class assertWarns(warnings.catch_warnings):
     requireWarning = True
     """If True, requires that the matching warning be issued (i.e. fail
        if the warning isn't issued.) If False, fail if warning is issued."""
-    def __init__(self, test, action=None, message='', category=Warning,
+    def __init__(self, test, action='always', message='', category=Warning,
                  module='', lineno=0):
         self._filterspec = (action, message, category, module, lineno)
         self._testcase = test
