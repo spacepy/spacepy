@@ -7,6 +7,8 @@ time
  - Fix warning for out-of-date leapseconds.
 toolbox
  - Fix bootHisto passing of kwargs to histogram and bar.
+pycdf
+ - Add support for Sparse Records variables.
 
 Changes in Version 0.2.2 (2020-12-29)
 =====================================
