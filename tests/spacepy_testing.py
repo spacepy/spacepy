@@ -61,11 +61,12 @@ class assertWarns(warnings.catch_warnings):
     warnings will be skipped (test failure will not be issued), and all
     warnings shown before the exception propagates up the stack.
 
-    The parameters determining which warning to match refer to the code that
-    actually issues the warning, not the code being warned. E.g. if code
-    calls a deprecated function, and the deprecated function issues a
-    ``DeprecationWarning``, what is matched is the code in the deprecated
-    function, not the caller.
+    The parameters determining which warning to match are for the code
+    referenced in the warning, not necessarily the code being warned.
+    E.g. if code calls a deprecated function, and the deprecated function
+    issues a ``DeprecationWarning``, what is matched may be the code in the
+    deprecated function, not the caller; see the ``stacklevel`` parameter
+    to :func:`~warnings.warn` for how this may be changed.
 
     Parameters
     ----------
