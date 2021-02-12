@@ -2752,6 +2752,32 @@ class ChangeCDF(ChangeCDFBase):
         zVar.rv(True)
         self.assertTrue(zVar.rv())
 
+    def testChangeSparseRecordsPrev(self):
+        """Change sparse records mode to PREV"""
+        zVar = self.cdf.new('newvarSR', dims=[], type=const.CDF_INT4)
+        self.assertEqual(zVar.sparse_records(), const.NO_SPARSERECORDS)
+        zVar.sparse_records(const.PREV_SPARSERECORDS)
+        self.assertEqual(zVar.sparse_records(), const.PREV_SPARSERECORDS)
+        zVar[0] = 1;
+        zVar[3] = 2;
+        self.assertEqual(zVar[1], 1);
+        self.assertEqual(zVar[2], 1);
+    
+    def testChangeSparseRecordsPad(self):
+        """Change sparse records mode to PAD"""
+        zVar = self.cdf.new('newvarSRPad', dims=[], type=const.CDF_INT4)
+        zVar.sparse_records(const.PAD_SPARSERECORDS)
+        self.assertEqual(zVar.sparse_records(), const.PAD_SPARSERECORDS)
+        zVar[0] = 1;
+        zVar[3] = 2;
+        pad = zVar.pad_value()
+        self.assertEqual(zVar[1], pad);
+        self.assertEqual(zVar[2], pad);
+        pad = zVar.pad_value(123)
+        self.assertEqual(zVar[1], pad);
+        self.assertEqual(zVar[2], pad);
+
+
     def testChecksum(self):
         """Change checksumming on the CDF"""
         self.cdf.checksum(True)
