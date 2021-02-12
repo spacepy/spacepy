@@ -133,7 +133,7 @@ class TimeFunctionTests(unittest.TestCase):
                     [0, 59, 59])
         with spacepy_testing.assertWarns(
                 self, 'always',
-                'Number of seconds > seconds in day\. Try days keyword\.$',
+                r'Number of seconds > seconds in day\. Try days keyword\.$',
                 UserWarning, r'spacepy\.time$'):
             for i, val in enumerate(inval):
                 ans = t.sec2hms(*val)
