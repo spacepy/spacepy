@@ -3106,8 +3106,13 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         result = hslice.create_array()
         if hslice.counts[0] != 0:
             hslice.select()
-            lib.call(const.GET_, const.zVAR_HYPERDATA_,
-                     result.ctypes.data_as(ctypes.c_void_p))
+            if self.sparse_records != const.NO_SPARSERECORDS:
+                lib.call(const.GET_, const.zVAR_HYPERDATA_,
+                         result.ctypes.data_as(ctypes.c_void_p),
+                         ignore=(const.VIRTUAL_RECORD_DATA,))
+            else:
+                lib.call(const.GET_, const.zVAR_HYPERDATA_,
+                         result.ctypes.data_as(ctypes.c_void_p))
         return hslice.convert_input_array(result)
 
     def __delitem__(self, key):
@@ -3175,20 +3180,15 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
                 lib.call(const.DELETE_, const.zVAR_RECORDS_,
                          ctypes.c_long(recno), ctypes.c_long(recno))
 
-    def __setitem__(self, key, data):
-        """Puts a slice into the data array. Details under :py:class:`pycdf.Var`.
 
-        @param key: index or slice to store
-        @type key: int or slice
+    def _prepare(self, data):
+        """Convert data to CDF data formats.
+        
         @param data: data to store
         @type data: numpy.array
-        @raise IndexError: if L{key} is out of range, mismatches dimensions,
-                           or simply unparseable. IndexError will
-        @raise CDFError: for errors from the CDF library
+        @return prepared data
+        @rtype numpy.array 
         """
-        hslice = _Hyperslice(self, key)
-        n_recs = hslice.counts[0]
-        hslice.expand(data)
         cdf_type = self.type()
         if cdf_type == const.CDF_EPOCH16.value:
             if not self._raw:
@@ -3217,6 +3217,24 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         else:
              data = numpy.require(data, requirements=('C', 'A', 'W'),
                                   dtype=self._np_type())
+        return data
+
+    def __setitem__(self, key, data):
+        """Puts a slice into the data array. Details under :py:class:`pycdf.Var`.
+
+        @param key: index or slice to store
+        @type key: int or slice
+        @param data: data to store
+        @type data: numpy.array
+        @raise IndexError: if L{key} is out of range, mismatches dimensions,
+                           or simply unparseable. IndexError will
+        @raise CDFError: for errors from the CDF library
+        """
+        hslice = _Hyperslice(self, key)
+        n_recs = hslice.counts[0]
+        hslice.expand(data)
+        cdf_type = self.type()
+        data = self._prepare(data)
         if cdf_type == const.CDF_EPOCH16.value:
             datashape = data.shape[:-1]
         else:
@@ -3470,20 +3488,40 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
 
         Other Parameters
         ================
-        new_sr : int
+        new_sr : ctypes.c_long
             If specified, should be a sparse record mode from
             :mod:`~spacepy.pycdf.const`.
 
         Returns
         =======
-        out : int
+        out : ctypes.c_long
             Sparse record mode for this variable.
         """
-        if new_sr != None:
+        valid_sr = [
+            const.NO_SPARSERECORDS, 
+            const.PREV_SPARSERECORDS,
+            const.PAD_SPARSERECORDS
+        ]
+        if new_sr is not None:
+            if new_sr not in valid_sr:
+                raise ValueError("Invalid sparse records mode") 
             self._call(const.PUT_, const.zVAR_SPARSERECORDS_, new_sr)
         sr = ctypes.c_long(0)
         self._call(const.GET_, const.zVAR_SPARSERECORDS_, ctypes.byref(sr))
-        return sr
+        values = {v.value : v for v in valid_sr}
+        return values[sr.value]
+
+    def pad_value(self, new_value=None):
+        if new_value is not None:
+            data = self._prepare([new_value])
+            self._call(const.PUT_, const.zVAR_PADVALUE_, 
+                    data.ctypes.data_as(ctypes.c_void_p))
+
+        hslice = _Hyperslice(self, (0,)*(self._n_dims() + 1))
+        result = hslice.create_array()
+        self._call(const.GET_, const.zVAR_PADVALUE_,
+                     result.ctypes.data_as(ctypes.c_void_p))
+        return hslice.convert_input_array(result)
 
     def dv(self, new_dv=None):
         """
@@ -3967,6 +4005,7 @@ class _Hyperslice(object):
 
         self.zvar = zvar
         self.rv = self.zvar.rv()
+        self.no_sr = self.zvar.sparse_records() == const.NO_SPARSERECORDS
         #dim of records, + 1 record dim (NRV always is record 0)
         self.dims = zvar._n_dims() + 1
         self.dimsizes = [len(zvar)] + \
@@ -4005,7 +4044,9 @@ class _Hyperslice(object):
                 else: #Single degenerate value
                     if idx < 0:
                         idx += self.dimsizes[i]
-                    if idx != 0 and ((idx >= self.dimsizes[i] and i > 0) or idx < 0):
+                    out_of_range = (idx >=  self.dimsizes[i] or idx < 0)\
+                            if self.no_sr else (idx < 0)
+                    if idx != 0 and out_of_range:
                         raise IndexError('list index out of range')
                     self.starts[i] = idx
                     self.degen[i] = True
