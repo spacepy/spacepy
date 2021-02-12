@@ -1080,7 +1080,7 @@ class VarBundleChecks(VarBundleChecksBase):
         bundle.slice(1, [2, 3, 5])
         with spacepy_testing.assertDoesntWarn(
                 self, 'always',
-                'Using a non-tuple sequence for multidimensional indexing',
+                r'Using a non-tuple sequence for multidimensional indexing',
                 FutureWarning, r'spacepy\.pycdf\.istp$'):
             bundle.output(self.outcdf)
         numpy.testing.assert_array_equal(
