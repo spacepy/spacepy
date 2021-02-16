@@ -3016,6 +3016,8 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
        zAttributes for this zVariable in a dict-like format.
        See :class:`zAttrList` for details.
     .. automethod:: compress
+    .. automethod:: sparse
+    .. automethod:: pad
     .. automethod:: copy
     .. autoattribute:: dtype
     .. automethod:: dv
@@ -3106,13 +3108,8 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         result = hslice.create_array()
         if hslice.counts[0] != 0:
             hslice.select()
-            if self.sparse_records != const.NO_SPARSERECORDS:
-                lib.call(const.GET_, const.zVAR_HYPERDATA_,
-                         result.ctypes.data_as(ctypes.c_void_p),
-                         ignore=(const.VIRTUAL_RECORD_DATA,))
-            else:
-                lib.call(const.GET_, const.zVAR_HYPERDATA_,
-                         result.ctypes.data_as(ctypes.c_void_p))
+            lib.call(const.GET_, const.zVAR_HYPERDATA_,
+                    result.ctypes.data_as(ctypes.c_void_p))
         return hslice.convert_input_array(result)
 
     def __delitem__(self, key):
@@ -3179,7 +3176,6 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
                                start - 1, -1 * interval):
                 lib.call(const.DELETE_, const.zVAR_RECORDS_,
                          ctypes.c_long(recno), ctypes.c_long(recno))
-
 
     def _prepare(self, data):
         """Convert data to CDF data formats.
@@ -3482,15 +3478,23 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         self._call(const.GET_, const.zVAR_RECVARY_, ctypes.byref(vary))
         return vary.value != const.NOVARY.value
 
-    def sparse_records(self, new_sr=None):
+    def sparse(self, sparsetype=None):
         """
         Gets or sets this variable sparse records mode.
 
+        Sparse records mode may not be changeable on variables with data
+        already written; even deleting the data may not permit the change.
+
+        See section 2.3.12 of the CDF user's guide for more information on
+        sparse records.
+
+
         Other Parameters
         ================
-        new_sr : ctypes.c_long
+        sparsetype : ctypes.c_long
             If specified, should be a sparse record mode from
-            :mod:`~spacepy.pycdf.const`.
+            :mod:`~spacepy.pycdf.const`. If not specified, the sparse record
+            mode for this variable will not change.
 
         Returns
         =======
@@ -3502,18 +3506,35 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
             const.PREV_SPARSERECORDS,
             const.PAD_SPARSERECORDS
         ]
-        if new_sr is not None:
-            if new_sr not in valid_sr:
-                raise ValueError("Invalid sparse records mode") 
-            self._call(const.PUT_, const.zVAR_SPARSERECORDS_, new_sr)
+        if sparsetype is not None:
+            if sparsetype not in valid_sr:
+                raise CDFError(const.UNKNOWN_SPARSENESS)
+            self._call(const.PUT_, const.zVAR_SPARSERECORDS_, sparsetype)
         sr = ctypes.c_long(0)
         self._call(const.GET_, const.zVAR_SPARSERECORDS_, ctypes.byref(sr))
         values = {v.value : v for v in valid_sr}
         return values[sr.value]
 
-    def pad_value(self, new_value=None):
-        if new_value is not None:
-            data = self._prepare([new_value])
+    def pad(self, value=None):
+        """
+        Gets or sets this variable pad value.
+
+        See section 2.3.20 of the CDF user's guide for more information on
+        pad values.
+
+        Other Parameters
+        ================
+        value : 
+            If specified, should be an appropriate pad value. If not
+            specified, the pad value will not change.
+
+        Returns
+        =======
+        out : 
+            Current pad value for this variable.
+        """
+        if value is not None:
+            data = self._prepare([value])
             self._call(const.PUT_, const.zVAR_PADVALUE_, 
                     data.ctypes.data_as(ctypes.c_void_p))
 
@@ -4005,7 +4026,7 @@ class _Hyperslice(object):
 
         self.zvar = zvar
         self.rv = self.zvar.rv()
-        self.no_sr = self.zvar.sparse_records() == const.NO_SPARSERECORDS
+        self.no_sr = self.zvar.sparse() == const.NO_SPARSERECORDS
         #dim of records, + 1 record dim (NRV always is record 0)
         self.dims = zvar._n_dims() + 1
         self.dimsizes = [len(zvar)] + \
@@ -4044,8 +4065,8 @@ class _Hyperslice(object):
                 else: #Single degenerate value
                     if idx < 0:
                         idx += self.dimsizes[i]
-                    out_of_range = (idx >=  self.dimsizes[i] or idx < 0)\
-                            if self.no_sr else (idx < 0)
+                    out_of_range = idx < 0 or \
+                        (idx >= self.dimsizes[i] and self.no_sr)
                     if idx != 0 and out_of_range:
                         raise IndexError('list index out of range')
                     self.starts[i] = idx

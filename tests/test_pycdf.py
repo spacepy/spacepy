@@ -2755,28 +2755,40 @@ class ChangeCDF(ChangeCDFBase):
     def testChangeSparseRecordsPrev(self):
         """Change sparse records mode to PREV"""
         zVar = self.cdf.new('newvarSR', dims=[], type=const.CDF_INT4)
-        self.assertEqual(zVar.sparse_records(), const.NO_SPARSERECORDS)
-        zVar.sparse_records(const.PREV_SPARSERECORDS)
-        self.assertEqual(zVar.sparse_records(), const.PREV_SPARSERECORDS)
+        self.assertEqual(zVar.sparse(), const.NO_SPARSERECORDS)
+        zVar.sparse(const.PREV_SPARSERECORDS)
+        self.assertEqual(zVar.sparse(), const.PREV_SPARSERECORDS)
         zVar[0] = 1;
         zVar[3] = 2;
-        self.assertEqual(zVar[1], 1);
-        self.assertEqual(zVar[2], 1);
+        with warnings.catch_warnings(record=True) as w:
+            warnings.filterwarnings('always', 'VIRTUAL_RECORD_DATA',
+                                    cdf.CDFWarning, '^spacepy\\.pycdf')
+            self.assertEqual(zVar[1], 1);
+            self.assertEqual(zVar[2], 1);
+
+        self.assertEqual(len(w), 2)
     
     def testChangeSparseRecordsPad(self):
         """Change sparse records mode to PAD"""
         zVar = self.cdf.new('newvarSRPad', dims=[], type=const.CDF_INT4)
-        zVar.sparse_records(const.PAD_SPARSERECORDS)
-        self.assertEqual(zVar.sparse_records(), const.PAD_SPARSERECORDS)
+        zVar.sparse(const.PAD_SPARSERECORDS)
+        self.assertEqual(zVar.sparse(), const.PAD_SPARSERECORDS)
         zVar[0] = 1;
         zVar[3] = 2;
-        pad = zVar.pad_value()
-        self.assertEqual(zVar[1], pad);
-        self.assertEqual(zVar[2], pad);
-        pad = zVar.pad_value(123)
-        self.assertEqual(zVar[1], pad);
-        self.assertEqual(zVar[2], pad);
-
+        pad = zVar.pad()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.filterwarnings('always', 'VIRTUAL_RECORD_DATA',
+                                    cdf.CDFWarning, '^spacepy\\.pycdf')
+            self.assertEqual(zVar[1], pad);
+            self.assertEqual(zVar[2], pad);
+        self.assertEqual(len(w), 2)
+        pad = zVar.pad(123)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.filterwarnings('always', 'VIRTUAL_RECORD_DATA',
+                                    cdf.CDFWarning, '^spacepy\\.pycdf')
+            self.assertEqual(zVar[1], pad);
+            self.assertEqual(zVar[2], pad);
+        self.assertEqual(len(w), 2)
 
     def testChecksum(self):
         """Change checksumming on the CDF"""
