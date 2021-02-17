@@ -62,12 +62,11 @@ class TestProbeIdlFile(unittest.TestCase):
     Test the function :func:`spacepy.pybats._probe_idlfile` across many
     different compatible files.
     '''
-    pth = os.path.dirname(os.path.abspath(__file__))
 
-    filelist = [os.path.join(pth, 'data', 'pybats_test', 'y0_binary.out'),
-                os.path.join(pth, 'data', 'pybats_test', 'y0_ascii.out'),
-                os.path.join(pth, 'data', 'pybats_test', 'mag_grid_binary.out'),
-                os.path.join(pth, 'data', 'pybats_test', 'mag_grid_ascii.out')]
+    filelist = [os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_binary.out'),
+                os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_ascii.out'),
+                os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'),
+                os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out')]
     
     knownResponses = [('bin', '<', np.dtype('int32'), np.dtype('float32')),
                       ('asc', False, False, False),
@@ -87,15 +86,21 @@ class TestScanBinHeader(unittest.TestCase):
     '''
     Test to ensure _scan_bin_header is properly working.
     '''
-    pth = os.path.dirname(os.path.abspath(__file__))
 
     # Files that have a single frame:
-    files_single = [os.path.join(pth, 'data', 'pybats_test', 'y0_binary.out'),
-                    os.path.join(pth, 'data', 'pybats_test', 'mag_grid_binary.out')]
+    files_single = [os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_binary.out'),
+                    os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out')]
+    # File that has multiple frames:
+    file_multi = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                              'y=0_mhd_1_e20140410-000000-000_20140410-000200-000.outs')
     
     # Responses from single-frame files:
     knownSingle = [{'iter':68, 'runtime':10., 'ndim':2, 'nvar':15, 'end':175288},
                    {'iter':0,  'runtime':10., 'ndim':2, 'nvar':15, 'end':2416}]
+
+    # Responses from multi-frame file:
+    knownMulti = [{'start': 0, 'iter':2500, 'runtime':0.0, 'ndim':2, 'nvar':11, 'end':4512},
+                  {'start': 4512, 'iter':2512, 'runtime': 120.0, 'ndim':2, 'nvar':11, 'end':9024}]
 
     def testOneFrame(self):
         '''Test files that only have one epoch frame.'''
@@ -109,6 +114,19 @@ class TestScanBinHeader(unittest.TestCase):
                 for key in known:
                     self.assertEqual(info[key], known[key])
 
+    def testMultiFrame(self):
+        '''Test files that have more than one epoch frame.'''
+
+        # Test the only two frames in the file.
+        # The ability to scan the number of entries in a file is
+        # located within the IdlBin class.
+        props = pb._probe_idlfile(self.file_multi)
+        with open(self.file_multi, 'rb') as data:
+            for known in self.knownMulti:
+                info = pb._scan_bin_header(data, *props[1:])
+                for key in known:
+                    self.assertEqual(info[key], known[key])
+                    
 class TestIdlFile(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.IdlFile` for different output
@@ -132,6 +150,13 @@ class TestIdlFile(unittest.TestCase):
     knownTimeRng1  = [dt.datetime(2014, 4, 10, 0, 0), dt.datetime(2014, 4, 10, 0, 2)]
     knownTimeRng2  = [dt.datetime(2014, 4, 10, 0, 0), dt.datetime(2014, 4, 10, 0, 2)]
 
+    knownMax1 = {"Rho":14.871581077575684, "Ux":-1093.626953125,
+                 "Bz":4.795100212097168, "P":2.5764927864074707,
+                 "jy":0.0006453984533436596}
+    knownMax2 = {"Rho":14.71767520904541,"Ux":-1107.3873291015625,
+                 "Bz":4.878035068511963,"P":2.2604243755340576,
+                 "jy":0.0007115363841876388}
+    
     def testBinary(self):
         # Open file:
         mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir,
@@ -176,8 +201,31 @@ class TestIdlFile(unittest.TestCase):
 
     def testSwitchFrame(self):
         '''Test our ability to open on arbitrary frame and change frame'''
-        pass
-    
+
+        # Start with y=0 slice MHD outs file, but start on 2nd frame:
+        f = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                         'y=0_mhd_1_e20140410-000000-000_20140410-000200-000.outs')
+        mhd = pb.IdlFile(f, iframe=1)
+
+        # Check against 2nd frame info:
+        self.assertEqual(self.knownIterRng2[1],  mhd.attrs['iter'])
+        self.assertEqual(self.knownRtimeRng2[1], mhd.attrs['runtime'])
+        self.assertEqual(self.knownTimeRng2[1],  mhd.attrs['time'])
+
+        # Check against 2nd frame data:
+        for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
+            self.assertAlmostEqual(self.knownMax2[v], mhd[v].max(), places=14)
+        
+        # Switch frames, check for successful update of attributes:
+        mhd.switch_frame(0)
+        self.assertEqual(self.knownIterRng1[0],  mhd.attrs['iter'])
+        self.assertEqual(self.knownRtimeRng1[0], mhd.attrs['runtime'])
+        self.assertEqual(self.knownTimeRng1[0],  mhd.attrs['time'])
+         
+        # Check against 1st frame data:
+        for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
+            self.assertAlmostEqual(self.knownMax1[v], mhd[v].max(), places=14)
+            
 class TestRim(unittest.TestCase):
 
     # Solutions for calc_I:
@@ -321,8 +369,8 @@ class TestMagGrid(unittest.TestCase):
         # Open both binary and ascii versions of same data.
         # Ensure expected values are loaded.
 
-        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'))
-        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
+        m1 = pbs.MagGridFile(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -346,8 +394,8 @@ class TestMagGrid(unittest.TestCase):
     def testCalc(self):
         # Open both binary and ascii versions of same data.
         # Ensure calculations give expected values.
-        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'))
-        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
+        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'))
 
         # Calculation of H-component:
         m1.calc_h()
