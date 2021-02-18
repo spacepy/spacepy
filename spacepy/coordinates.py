@@ -392,8 +392,12 @@ class Coords(object):
                     carsph = 'sph'
                     units = [self.units[0], 'deg', 'deg']
                     data = car2sph(self.data)
-                return Coords(data, self.dtype, carsph, units, self.ticks,
-                              use_irbem=self.use_irbem)
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+                                            category=DeprecationWarning,
+                                            module=r'spacepy.coordinates$')
+                    return Coords(data, self.dtype, carsph, units, self.ticks,
+                                  use_irbem=self.use_irbem)
 
         # check the length of ticks and do the more complex conversions
         if self.ticks and (len(self.ticks) != len(self)):
@@ -419,7 +423,9 @@ class Coords(object):
             # irbempy.coord_trans needs the passed Coords object to have the "from" dtype
             with warnings.catch_warnings():
                 # No need to warn on conversion
-                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+                                        category=DeprecationWarning,
+                                        module=r'spacepy.coordinates$')
                 NewCoords = Coords(data, self.dtype, carsph, units, self.ticks,
                                    use_irbem=self.use_irbem)
         else:
@@ -509,7 +515,11 @@ class Coords(object):
         data = list(self.data)
         otherdata = other.convert(self.dtype, self.carsph)
         data.extend(list(otherdata.data))
-        newobj = Coords(data, dtype=self.dtype, carsph=self.carsph, use_irbem=self.use_irbem)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+                                    category=DeprecationWarning,
+                                    module=r'spacepy.coordinates$')
+            newobj = Coords(data, dtype=self.dtype, carsph=self.carsph, use_irbem=self.use_irbem)
         return newobj
 
     # -----------------------------------------------

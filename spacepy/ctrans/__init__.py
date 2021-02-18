@@ -886,7 +886,7 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
 
     References
     ----------
-    .. [#Heikkinen] Heikkinen, M., "Geschlossene formeln zur berechnung räumlicher geodätischer
+    .. [#Heikkinen] Heikkinen, M., "Geschlossene formeln zur berechnung raumlicher geodatischer
             koordinaten aus rechtwinkligen koordinaten", Z. Vermess., vol. 107, pp. 207-211,
             1982.
     .. [#Zhu] J. Zhu, "Conversion of Earth-centered Earth-fixed coordinates to geodetic
