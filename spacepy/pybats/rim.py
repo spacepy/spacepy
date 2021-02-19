@@ -251,7 +251,7 @@ class Iono(PbData):
         namevar = []
         units   = {}
         for j in range(i+1,i+self.attrs['nvars']+1):
-            match = re.match('\s*\d+\s+([\w\s\W]+)\[([\w\s\W]+)\]',raw[j])
+            match = re.match(r'\s*\d+\s+([\w\s\W]+)\[([\w\s\W]+)\]',raw[j])
             if match:
                 name = (match.group(1).strip()).lower()
                 namevar.append(name)

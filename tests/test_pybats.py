@@ -393,8 +393,8 @@ class TestMagGrid(unittest.TestCase):
         # Open both binary and ascii versions of same data.
         # Ensure expected values are loaded.
 
-        m1 = pbs.MagGridFile(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out'))
-        m2 = pbs.MagGridFile(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'))
+        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
