@@ -298,13 +298,37 @@ class TestBats2d(unittest.TestCase):
     '''
     Test functionality of Bats2d objects.
     '''
+
+    knownMax1 = {'jx':1.4496836229227483e-05, 'jbz':7.309692051649108e-08,
+                 'wy':0.0, 'u':1285.6114501953125}
+    knownMax2 = {'jx': 1.680669083725661e-05, 'jbz': 8.276679608343329e-08,
+                 'wy': 0.0, 'u': 1285.6114501953125}
+    
     def setUp(self):
         self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_binary.out'))
+        self.outs = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                        'y=0_mhd_1_e20140410-000000-000_20140410-000200-000.outs'))
     
     def testCalc(self):
         # Test all calculations:
         self.mhd.calc_all()
-        
+
+    def testSwitchFrame(self):
+        '''Test switching frames and associated calculations'''
+        # Perform some calculations on the first data frame:
+        self.outs.calc_utotal()
+        self.outs.calc_jxb()
+        self.outs.calc_vort(conv=0) # Test maintaing kwargs between frames
+
+        # Check initial calculated max values against reference:
+        for k in self.knownMax1:
+            self.assertAlmostEqual(self.outs[k].max(), self.knownMax1[k])
+
+        # Switch frames and ensure that values update:
+        self.outs.switch_frame(1)
+        for k in self.knownMax2:
+            self.assertAlmostEqual(self.outs[k].max(), self.knownMax2[k])
+                               
     def testMultispecies(self):
         # Open file:
         mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',

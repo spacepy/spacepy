@@ -114,11 +114,40 @@ __contact__ = 'Dan Welling, daniel.welling@uta.edu'
 
 # Global imports (used ubiquitously throughout this module.
 import os.path
+from functools import wraps
 
 from spacepy.datamodel import dmarray, SpaceData
 import spacepy.plot.apionly
 import spacepy.plot as spu
 import numpy as np
+
+# Pybats-related decorators:
+def calc_wrapper(meth):
+    '''
+    This is a decorator for `self.calc_*` object methods.  It establishes
+    `self._calcs`, a list of calcuation functions that have been called, and
+    adds the called function to that list to keep track of which calculations
+    have already been performed for the object.  If a calculation has already
+    been performed, it is skipped in order to reduce effort.
+    '''
+
+    @wraps(meth)
+    
+    def wrapped(self, *args, **kwargs):
+        # Establish list of calculations:
+        if not hasattr(self, '_calcs'): self._calcs={}
+
+        # Check to see if we're in the list, return if true.
+        if meth.__name__ in self._calcs: return
+        
+        # If not, add to list and stash args/kwargs:
+        self._calcs[meth.__name__] = [args, kwargs]
+
+        # call method:
+        return meth(self, *args, **kwargs)
+
+    # Return decorated function:
+    return wrapped
 
 # Some common, global functions.
 def parse_filename_time(filename):
@@ -1081,6 +1110,38 @@ class IdlFile(PbData):
     these files, but only one data frame can be made available at a time.  This
     prevents very large memory requirements.
 
+    These files are opened and handled similarly to regular IDL-formatted 
+    files  with some important differences.  Upon instantiation, the user
+    may select which data frame to open with the *iframe* kwarg.  The default
+    action is to open the first frame.  The user may learn more about the 
+    number of frames within the file and their associated epoch/iteration 
+    information by examining the top level *attrs* (see below.)
+    The user may switch to any arbitrary frame using the `switch_frame(iframe)`
+    object method.  This will load the relevant data from disk into the
+    object, overwriting the previous contents.
+
+    If the user has created any new variables using the data from a certain
+    data frame, those new values will not be updated automatically.  An 
+    exception is for any *self.calc_* type methods that are set to update
+    automatically.
+
+    Top Level Attributes
+    --------------------
+    Critical file information can be found via the top-level object attributes
+    (e.g., accessing the dictionary `self.attrs`).  All IdlFile objects and
+    child classes begin with at least these attributes:
+
+    | Attribute Name       | Description                                        |
+    | -------------------- | -------------------------------------------------- |
+    | file                 | Path/name of file represented by object            |
+    | iter/time/runtime    | Iteration/datetime/runtime of the current frame    |
+    | iters/times/runtimes | Lists of all iterations/times of each data frame   |
+    | *_range              | The range of iterations/epochs covered in the file |
+    | ndim                 | Number of spatial dimensions covered by the data   |
+    | nframe               | The total number of data frames within the file    |
+    | iframe               | The current frame loaded (zero-based)              |
+    | format               | The format of the file, either binary or ascii     |
+    | header               | The raw string header of the file                  |
 
     Notes
     -----
@@ -1240,7 +1301,18 @@ class IdlFile(PbData):
         time = self.attrs['runtime'] # Convenience variable.
         self.attrs['strtime']= "{:04.0f}h{:02.0f}m{:06.3f}s".format(
             np.floor(time//3600), np.floor(time%3600//60.0),time%60.0)
-        
+
+        # Re-do calculations if any have been done.
+        if hasattr(self, '_calcs'):
+            # Get dictionary of name-method pairs for called calculations:
+            calcs = self._calcs
+            # Reset dict of called calculations:
+            self._calcs = {}
+            # Call all calculation methods:
+            for name in calcs:
+                args, kwargs = calcs[name]
+                getattr(self, name)(*args, **kwargs)
+                
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
 

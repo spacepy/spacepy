@@ -21,7 +21,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
 import sys
 
 import numpy as np
-from spacepy.pybats import PbData, IdlFile, LogFile
+from spacepy.pybats import PbData, IdlFile, LogFile, calc_wrapper
 import spacepy.plot.apionly
 from spacepy.plot import set_target, applySmartTimeTicks
 from spacepy.datamodel import dmarray
@@ -86,6 +86,7 @@ def _calc_ndens(obj):
     rho = 'Rho'*('Rho' in obj) + 'rho'*('rho' in obj)
     
     # Find all species: the variable names end or begin with "rho".
+    # Take care not to double-count.
     for k in obj:
         # Ends with rho?
         if (k[-3:] == rho) and (k!=rho) and (k[:-3]+'N' not in obj):
@@ -653,7 +654,81 @@ class Stream(Extraction):
 
 class Bats2d(IdlFile):
     '''
-    A child class of :class:`~pybats.IdlFile` tailored to BATS-R-US output.
+    A child class of :class:`~pybats.IdlFile` tailored to 2D BATS-R-US output.
+
+    Calculations
+    ------------
+    
+    New values can be added via the addition of new keys.  For example, 
+    a user could add radial distance to an equatorial Bats2d object as follows:
+
+    >>> import numpy as np
+    >>> from spacepy.pybats import bats
+    >>> mhd = bats.Bats2d('z=0_example.out')
+    >>> mhd['rad'] = np.sqrt( mhd['x']**2 + mhd['y']**2 )
+
+    Note, however, that if the user switches the data frame in a *.outs file
+    to access data from a different epoch, these values will need to be
+    updated.
+
+    An exception to this is built-in `calc_*` methods, which perform common
+    MHD/fluid dynamic calculations (i.e., Alfven wave speed, vorticity, and 
+    more.)  These values are updated when the data frame is switched (see the 
+    `switch_frame` method).
+
+    Plotting
+    --------
+
+    While users can employ Matplotlib to plot values, a set of built-in
+    methods are available to expedite plotting.  These are the 
+    `add_<plot type>` methods.  These methods always have the following
+    keyword arguments that allow users to optionally build more complicated
+    plots: *target* and *loc*.  The *target* kwarg tells the plotting method
+    where to place the plot and can either be a Matplotlib figure or axes 
+    object.  If it's an axes object, *loc* sets the subplot location using
+    the typical matplotlib syntax (e.g., `loc=121`).  The default behavior is
+    to create a new figure and axes object.
+
+    This approach allows a user to over-plot contours, field lines, and
+    other plot artists as well as combine different subplots onto a single
+    figure.  Continuing with our example above, let's plot the grid layout
+    for our file as well as equatorial pressure and flow streamlines:
+
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.Figure(figsize=(8,6))
+    >>> mhd.add_grid_plot(target=fig, loc=121)
+    >>> mhd.add_contour('x','y','p', target=fig, loc=122)
+    >>> mhd.add_stream_scatter('ux', 'uy', target=fig, loc=122)
+
+    Useful plotting methods include the following:
+
+    | Plot Method        | Description                                    |
+    | ------------------ | ---------------------------------------------- |
+    | add_grid_plot      | Create a quick-look diagram of the grid layout |
+    | add_contour        | Create a contour plot of a given variable      |
+    | add_pcolor         | Add a p-color (no-interpolation contour) plot  |
+    | add_stream_scatter | Scatter stream traces (any vector field)       |
+    | add_b_magsphere    | Add magnetic field lines for X-Z plane cuts    |
+    | add_planet         | Add a simple black/white planet at the origin  |
+    | add_body           | Add an inner boundary at the origin            |
+
+    Extracting and Stream Tracing
+    -----------------------------
+
+    Extracting values via interpolation to arbitrary points and creating
+    stream traces through any vector field (e.g., velocity or magnetic field)
+    are aided via the use of the following object methods:
+
+    | Method     | Description                                        |
+    | ---------- | -------------------------------------------------- |
+    | extract    | Interpolate to arbitrary points and extract values |
+    | get_stream | Integrate stream lines through vector fields       |
+
+
+    Be sure to read the docstring information of :class:`~pybats.IdlFile` to
+    see how to handle multi-frame files (*.outs) and for a list of critical
+    attributes.
+    
     '''
     # Init by calling IdlFile init and then building qotree, etc.
     def __init__(self, filename, *args, **kwargs):
@@ -711,6 +786,7 @@ class Bats2d(IdlFile):
     # CALCULATIONS
     ####################
 
+    @calc_wrapper
     def calc_temp(self, units='eV'):
         '''
         Calculate plasma temperature for each fluid.  Number density is
@@ -748,6 +824,7 @@ class Bats2d(IdlFile):
                 conv[units] * self[key[:-1]+'p']/self[key],
                 attrs = {'units':units})
 
+    @calc_wrapper
     def calc_b(self):
         '''
         Calculates total B-field strength using all three B components.
@@ -767,6 +844,7 @@ class Bats2d(IdlFile):
         self['by_hat'].attrs={'units':'unitless'}
         self['bz_hat'].attrs={'units':'unitless'}
 
+    @calc_wrapper
     def calc_j(self):
         '''
         Calculates total current density strength using all three J components.
@@ -804,6 +882,7 @@ class Bats2d(IdlFile):
         # Total magnitude.
         self['E'] = np.sqrt(self['Ex']**2+self['Ey']**2+self['Ez']**2)
         
+    @calc_wrapper
     def calc_ndens(self):
         '''
         Calculate number densities for each fluid.  Species mass is ascertained 
@@ -818,7 +897,8 @@ class Bats2d(IdlFile):
 
         # Use shared function.
         _calc_ndens(self)
-                                
+
+    @calc_wrapper
     def calc_beta(self):
         '''
         Calculates plasma beta (ratio of plasma to magnetic pressure, 
@@ -842,6 +922,7 @@ class Bats2d(IdlFile):
         self['beta']=temp_beta
         self['beta'].attrs={'units':'unitless'}
 
+    @calc_wrapper    
     def calc_jxb(self):
         '''
         Calculates the JxB force assuming:
@@ -864,6 +945,7 @@ class Bats2d(IdlFile):
                                   self['jby']**2 +
                                   self['jbz']**2), {'units':'nN/m^3'})
 
+    @calc_wrapper    
     def calc_alfven(self):
         '''
         Calculate the Alfven speed, B/(mu*rho)^(1/2) in km/s.  This is performed
@@ -890,7 +972,7 @@ class Bats2d(IdlFile):
             self[k[:-3]+'alfven'] = dmarray(self['b']*1E-12 / 
                                             sqrt(mu_naught*self[k]),
                                             attrs={'units':'km/s'})
-
+    @calc_wrapper
     def _calc_divmomen(self):
         '''
         Calculate the divergence of momentum, i.e. 
@@ -930,6 +1012,7 @@ class Bats2d(IdlFile):
         self['divmomx']*=self['rho']*c1*c2*c3
         self['divmomz']*=self['rho']*c1*c2*c3
 
+    @calc_wrapper
     def calc_vort(self, conv=1000./RE):
         '''
         Calculate the vorticity (curl of bulk velocity) for the direction
@@ -993,7 +1076,7 @@ class Bats2d(IdlFile):
             # Calculate curl
             self[w][leaf.locs] = conv * (dx1(u1, leaf.dx) - dx2(u2, leaf.dx))
         
-        
+    @calc_wrapper
     def calc_gradP(self):
         '''
         Calculate the pressure gradient force.
@@ -1038,6 +1121,7 @@ class Bats2d(IdlFile):
             self['gradP'] += self['gradP_'+d]**2
         self['gradP'] = np.sqrt(self['gradP'])
 
+    @calc_wrapper
     def calc_utotal(self):
         '''
         Calculate bulk velocity magnitude: $u^2 = u_X^2 + u_Y^2 + u_Z^2$.
@@ -1062,6 +1146,7 @@ class Bats2d(IdlFile):
                                         self[s+'uz']**2), 
                                   attrs={'units':units})
 
+    @calc_wrapper
     def _calc_Ekin(self, units='eV'):
         '''
         Calculate average kinetic energy per particle using 
@@ -1093,7 +1178,7 @@ class Bats2d(IdlFile):
                                      * conv * mass[s.lower()],
                                      attrs={'units':units})
 
-
+    
     def calc_all(self, exclude=[]):
         '''
         Perform all variable calculations (e.g. calculations that
