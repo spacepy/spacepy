@@ -16,6 +16,12 @@ contains more detail.
 0.2.3 (2021-xx-xx)
 ------------------
 
+New features
+************
+:mod:`~spacepy.pycdf` now supports variables with sparse records, including
+enabling/disabling sparse records (:meth:`~spacepy.pycdf.Var.sparse`) and
+setting the pad value (:meth:`~spacepy.pycdf.Var.pad`). Thanks Antoine Brunet.
+
 Major bugfixes
 **************
 The passing of keyword arguments from :func:`~spacepy.toolbox.bootHisto`
