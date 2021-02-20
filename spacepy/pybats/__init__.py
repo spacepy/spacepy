@@ -1226,7 +1226,8 @@ class IdlFile(PbData):
         offset = [] # Byte offset from beginning of file of each frame.
 
         with open(self.attrs['file'], 'rb') as f:
-            file_size = f.seek(0,2) # Get number of bytes in file.
+            f.seek(0,2) # Jump to end of file (in Py3, this returns location)
+            file_size = f.tell() # Get number of bytes in file.
             f.seek(0) # Rewind to file start.
 
             # Loop over all data frames and collect information:
