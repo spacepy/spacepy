@@ -3490,13 +3490,13 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         See section 2.3.12 of the CDF user's guide for more information on
         sparse records.
 
-
         Other Parameters
         ================
         sparsetype : ctypes.c_long
             If specified, should be a sparse record mode from
-            :mod:`~spacepy.pycdf.const`. If not specified, the sparse record
-            mode for this variable will not change.
+            :mod:`~spacepy.pycdf.const`; see also CDF C reference manual
+            section 4.11.1. If not specified, the sparse record mode for this
+            variable will not change.
 
         Returns
         =======
