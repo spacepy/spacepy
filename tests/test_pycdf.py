@@ -501,7 +501,7 @@ class NoCDF(unittest.TestCase):
                    -1 * 2 ** 31,
                    numpy.array([5, 6, 7], dtype=numpy.uint8),
                    [4611686018427387904],
-                   numpy.array([1], dtype=numpy.object),
+                   numpy.array([1], dtype=object),
                    ]
         type8 = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
@@ -2846,7 +2846,7 @@ class ChangeCDF(ChangeCDFBase):
         self.cdf['ATC'] = []
         data = self.cdf['ATC'][...]
         self.assertEqual((0,), data.shape)
-        self.assertEqual(numpy.object, data.dtype)
+        self.assertEqual(object, data.dtype)
 
     def testCopyVariable(self):
         """Copy one variable to another"""

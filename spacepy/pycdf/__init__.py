@@ -4037,8 +4037,8 @@ class _Hyperslice(object):
         self.counts = numpy.empty((self.dims,), dtype=numpy.int32)
         self.counts.fill(1)
         self.intervals = [1] * self.dims
-        self.degen = numpy.zeros(self.dims, dtype=numpy.bool)
-        self.rev = numpy.zeros(self.dims, dtype=numpy.bool)
+        self.degen = numpy.zeros(self.dims, dtype=bool)
+        self.rev = numpy.zeros(self.dims, dtype=bool)
         #key is:
         #1. a single value (integer or slice object) if called 1D
         #2. a tuple (of integers and/or slice objects) if called nD
@@ -4282,7 +4282,7 @@ class _Hyperslice(object):
     def check_well_formed(data):
         """Checks if input data is well-formed, regular array"""
         d = numpy.asanyarray(data)
-        if d.dtype == numpy.object: #this is probably going to be bad
+        if d.dtype == object: #this is probably going to be bad
             if d.shape != () and not len(d):
                 #Completely empty, so "well-formed" enough
                 return
