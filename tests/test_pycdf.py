@@ -2760,13 +2760,13 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual(zVar.sparse(), const.PREV_SPARSERECORDS)
         zVar[0] = 1;
         zVar[3] = 2;
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings('always', 'VIRTUAL_RECORD_DATA',
-                                    cdf.CDFWarning, '^spacepy\\.pycdf')
+        # Arguments to use for assertWarngs, since used a lot....
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+                   r'spacepy\.pycdf$')
+        with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[1], 1);
+        with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[2], 1);
-
-        self.assertEqual(len(w), 2)
     
     def testChangeSparseRecordsPad(self):
         """Change sparse records mode to PAD"""
@@ -2776,19 +2776,18 @@ class ChangeCDF(ChangeCDFBase):
         zVar[0] = 1;
         zVar[3] = 2;
         pad = zVar.pad()
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings('always', 'VIRTUAL_RECORD_DATA',
-                                    cdf.CDFWarning, '^spacepy\\.pycdf')
+        # Arguments to use for assertWarngs, since used a lot....
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+                   r'spacepy\.pycdf$')
+        with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[1], pad);
+        with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[2], pad);
-        self.assertEqual(len(w), 2)
         pad = zVar.pad(123)
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings('always', 'VIRTUAL_RECORD_DATA',
-                                    cdf.CDFWarning, '^spacepy\\.pycdf')
+        with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[1], pad);
+        with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[2], pad);
-        self.assertEqual(len(w), 2)
 
     def testChecksum(self):
         """Change checksumming on the CDF"""
