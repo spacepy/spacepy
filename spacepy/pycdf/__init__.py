@@ -3007,26 +3007,28 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         ~Var.insert
         ~Var.name
         ~Var.nelems
+        ~Var.pad
         ~Var.rename
         ~Var.rv
         ~Var.shape
+        ~Var.sparse
         ~Var.type
     .. attribute:: Var.attrs
 
        zAttributes for this zVariable in a dict-like format.
        See :class:`zAttrList` for details.
     .. automethod:: compress
-    .. automethod:: sparse
-    .. automethod:: pad
     .. automethod:: copy
     .. autoattribute:: dtype
     .. automethod:: dv
     .. automethod:: insert
     .. automethod:: name
     .. automethod:: nelems
+    .. automethod:: pad
     .. automethod:: rename
     .. automethod:: rv
     .. autoattribute:: shape
+    .. automethod:: sparse
     .. automethod:: type
     """
     def __init__(self, cdf_file, var_name, *args):
