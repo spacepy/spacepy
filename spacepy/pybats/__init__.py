@@ -1286,7 +1286,7 @@ class IdlFile(PbData):
         '''
 
         # Ensure that given frame exists within object:
-        if iframe<0 or iframe>=self.attrs['nframe']:
+        if iframe<-self.attrs['nframe'] or iframe>=self.attrs['nframe']:
             raise IndexError("iframe {} is outside range of [0,{})".format(
                 iframe, self.attrs['nframe']))
         
