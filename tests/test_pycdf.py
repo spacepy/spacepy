@@ -2768,6 +2768,20 @@ class ChangeCDF(ChangeCDFBase):
         with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[2], 1);
     
+    def testSparseRecordsReadAll(self):
+        """Read all records from a sparse variable"""
+        zVar = self.cdf.new('newvarSR', type=const.CDF_INT4)
+        zVar.sparse(const.PREV_SPARSERECORDS)
+        zVar[0] = 1;
+        zVar[3] = 2;
+        self.assertEqual(4, len(zVar))
+        # Arguments to use for assertWarngs, since used a lot....
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+                   r'spacepy\.pycdf$')
+        with spacepy_testing.assertWarns(*aw_args):
+            numpy.testing.assert_array_equal(zVar[...],
+                                             [1, 1, 1, 2]);
+
     def testChangeSparseRecordsPad(self):
         """Change sparse records mode to PAD"""
         zVar = self.cdf.new('newvarSRPad', dims=[], type=const.CDF_INT4)
@@ -2788,6 +2802,77 @@ class ChangeCDF(ChangeCDFBase):
             self.assertEqual(zVar[1], pad);
         with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[2], pad);
+
+    def testSparsePrevInsert(self):
+        """Insert records in sparse records previous mode"""
+        zVar = self.cdf.new('newvarSR', type=const.CDF_INT4)
+        zVar.sparse(const.PREV_SPARSERECORDS)
+        zVar[0] = 1;
+        zVar[3] = 2;
+        with self.assertRaises(NotImplementedError) as cm:
+            zVar.insert(2, 99)
+        self.assertEqual('Sparse records do not support insertion.',
+                         str(cm.exception))
+        # Following is test for if this did work
+        # Arguments to use for assertWarngs, since used a lot....
+        #aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+        #           r'spacepy\.pycdf$')
+        #with spacepy_testing.assertWarns(*aw_args):
+        #    numpy.testing.assert_array_equal(zVar[0:5],
+        #                                     [1, 1, 99, 99, 2])
+
+    def testSparsePrevSingle(self):
+        """Delete one record in sparse records previous mode"""
+        zVar = self.cdf.new('newvarSR', type=const.CDF_INT4)
+        zVar.sparse(const.PREV_SPARSERECORDS)
+        zVar[0] = 1;
+        zVar[3] = 2;
+        zVar[5] = 3;
+        del zVar[3]
+        # Arguments to use for assertWarngs, since used a lot....
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+                   r'spacepy\.pycdf$')
+        with spacepy_testing.assertWarns(*aw_args):
+            numpy.testing.assert_array_equal(zVar[0:6],
+                                             [1, 1, 1, 1, 1, 3])
+
+    def testSparsePrevDelete(self):
+        """Delete records in sparse records previous mode"""
+        zVar = self.cdf.new('newvarSR', type=const.CDF_INT4)
+        zVar.sparse(const.PREV_SPARSERECORDS)
+        zVar[0] = 1;
+        zVar[3] = 2;
+        zVar[5] = 3;
+        with self.assertRaises(NotImplementedError) as cm:
+            del zVar[3:5]
+        self.assertEqual('Sparse records do not support multi-record delete.',
+                         str(cm.exception))
+        # Following is test for if this did work
+        # Arguments to use for assertWarngs, since used a lot....
+        #aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+        #           r'spacepy\.pycdf$')
+        #with spacepy_testing.assertWarns(*aw_args):
+        #    numpy.testing.assert_array_equal(zVar[0:4],
+        #                                     [1, 1, 1, 3])
+
+    def testSparsePrevTruncate(self):
+        """Truncate records in sparse records previous mode"""
+        zVar = self.cdf.new('newvarSR', type=const.CDF_INT4)
+        zVar.sparse(const.PREV_SPARSERECORDS)
+        zVar[0] = 1;
+        zVar[3] = 2;
+        zVar[4] = 3;
+        with self.assertRaises(NotImplementedError) as cm:
+            zVar[0:] = [100, 101, 102]
+        self.assertEqual('Sparse records do not support truncation on write.',
+                         str(cm.exception))
+        # Following is test for if this did work
+        # Arguments to use for assertWarngs, since used a lot....
+        #aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+        #           r'spacepy\.pycdf$')
+        #with spacepy_testing.assertWarns(*aw_args):
+        #    numpy.testing.assert_array_equal(zVar[0:4],
+        #                                     [1000, 101, 102, 3])
 
     def testChecksum(self):
         """Change checksumming on the CDF"""
