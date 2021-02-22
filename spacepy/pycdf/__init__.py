@@ -2884,11 +2884,12 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         The C CDF library allows reading records which have not been
         written to a file, returning a pad value. pycdf checks the
         size of a variable and will raise `IndexError` for most
-        attempts to read past the end. If these checks fail, a value
-        is returned with a warning ``VIRTUAL_RECORD_DATA``. Please
-        `open an issue
+        attempts to read past the end, except for variables with sparse
+        records. If these checks fail, a value is returned with a warning
+        ``VIRTUAL_RECORD_DATA``. Please `open an issue
         <https://github.com/spacepy/spacepy/issues/new>`_ if this
-        occurs. See pg. 39 and following of the `CDF User's Guide
+        occurs for variables without sparse records. See pg. 39 and
+        following of the `CDF User's Guide
         <https://cdf.gsfc.nasa.gov/html/cdf_docs.html>`_ for more on
         virtual records.
 
