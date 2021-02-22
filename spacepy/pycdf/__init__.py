@@ -2992,6 +2992,12 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
     >>> del Flux[...]
 
     .. note::
+        Variables using sparse records do not support insertion and only
+        support deletion of a single record at a time. See
+        :meth:`~Var.sparse` and section 2.3.12 of the CDF user's guide for
+        more information on sparse records.
+
+    .. note::
         Although this interface only directly supports zVariables, zMode is
         set on opening the CDF so rVars appear as zVars. See p.24 of the
         CDF user's guide; pyCDF uses zMode 2.
@@ -3140,6 +3146,9 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
             raise TypeError('Can only delete entire records.')
         if hslice.counts[0] == 0:
             return
+        if not hslice.no_sr and not hslice.degen[0]:
+            raise NotImplementedError(
+                'Sparse records do not support multi-record delete.')
         start = hslice.starts[0]
         count = hslice.counts[0]
         interval = hslice.intervals[0]
@@ -3248,12 +3257,18 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         if hslice.counts[0] > n_recs and \
                hslice.starts[0] + n_recs < hslice.dimsizes[0]:
             #Specified slice ends before last record, so insert in middle
+            if not hslice.no_sr:
+                raise NotImplementedError(
+                    'Sparse records do not support insertion.')
             saved_data = self[hslice.starts[0] + n_recs:]
         if hslice.counts[0] > 0:
             hslice.select()
             lib.call(const.PUT_, const.zVAR_HYPERDATA_,
                      data.ctypes.data_as(ctypes.c_void_p))
         if hslice.counts[0] < n_recs:
+            if not hslice.no_sr:
+                raise NotImplementedError(
+                    'Sparse records do not support truncation on write.')
             first_rec = hslice.starts[0] + hslice.counts[0]
             last_rec = hslice.dimsizes[0] - 1
             lib.call(const.DELETE_, const.zVAR_RECORDS_,
