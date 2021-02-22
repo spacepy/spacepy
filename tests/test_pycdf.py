@@ -2768,6 +2768,20 @@ class ChangeCDF(ChangeCDFBase):
         with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[2], 1);
     
+    def testSparseMultidimPrev(self):
+        """test multi-dimensional sparse record variables, PREV"""
+        zVar = self.cdf.new('sr', dims=[2], type=const.CDF_INT4)
+        zVar.sparse(const.PREV_SPARSERECORDS)
+        zVar[0] = [1, 2];
+        zVar[3] = [3, 4];
+        # Arguments to use for assertWarngs, since used a lot....
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+                   r'spacepy\.pycdf$')
+        with spacepy_testing.assertWarns(*aw_args):
+            numpy.testing.assert_array_equal(
+                [[1, 2], [1, 2], [1, 2], [3, 4]],
+                zVar[...])
+
     def testSparseRecordsReadAll(self):
         """Read all records from a sparse variable"""
         zVar = self.cdf.new('newvarSR', type=const.CDF_INT4)
@@ -2802,6 +2816,21 @@ class ChangeCDF(ChangeCDFBase):
             self.assertEqual(zVar[1], pad);
         with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[2], pad);
+
+    def testSparseMultidimPad(self):
+        """test multi-dimensional sparse record variables, PAD"""
+        zVar = self.cdf.new('sr', dims=[2], type=const.CDF_INT4)
+        zVar.sparse(const.PAD_SPARSERECORDS)
+        zVar[0] = [1, 2];
+        zVar[3] = [3, 4];
+        pad = zVar.pad(20)
+        # Arguments to use for assertWarngs, since used a lot....
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+                   r'spacepy\.pycdf$')
+        with spacepy_testing.assertWarns(*aw_args):
+            numpy.testing.assert_array_equal(
+                [[1, 2], [20, 20], [20, 20], [3, 4]],
+                zVar[...])
 
     def testSparsePrevInsert(self):
         """Insert records in sparse records previous mode"""
