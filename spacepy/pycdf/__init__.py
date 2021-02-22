@@ -3552,10 +3552,12 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
             Current pad value for this variable.
         """
         if value is not None:
-            data = self._prepare([value])
+            data = self._prepare(value)
             self._call(const.PUT_, const.zVAR_PADVALUE_, 
                     data.ctypes.data_as(ctypes.c_void_p))
 
+        # Prepare buffer for return, to get array of correct type
+        # pretend it's [0, 0, 0, 0...] of the variable
         hslice = _Hyperslice(self, (0,)*(self._n_dims() + 1))
         result = hslice.create_array()
         self._call(const.GET_, const.zVAR_PADVALUE_,
