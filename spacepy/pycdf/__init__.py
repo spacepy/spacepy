@@ -2235,7 +2235,8 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         return _compress(self, comptype, param)
 
     def new(self, name, data=None, type=None, recVary=None, dimVarys=None,
-            dims=None, n_elements=None, compress=None, compress_param=None):
+            dims=None, n_elements=None, compress=None, compress_param=None,
+            sparse=None, pad=None):
         """Create a new zVariable in this CDF
 
         .. note::
@@ -2281,6 +2282,12 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         compress_param : ctypes.c_long
             Compression parameter if compression used; reasonable default
             is chosen. See :py:meth:`Var.compress`.
+        sparse : ctypes.c_long
+            Sparse records type for this variable, default None (no sparse
+            records). See :meth:`Var.sparse`.
+        pad :
+            Pad value for this variable, default None (do not set). See
+            :meth:`Var.pad`.
 
         Returns
         =======
@@ -2348,6 +2355,10 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
                     compress = c
                 if compress_param is None:
                     compress_param = cp
+        if hasattr(data, 'sparse') and sparse is None:
+            sparse = data.sparse()
+        if hasattr(data, 'pad') and pad is None:
+            pad = data.pad()
         #Get defaults from VarCopy if data looks like a VarCopy
         if recVary is None:
             recVary = data.rv() if hasattr(data, 'rv') else True
@@ -2412,6 +2423,10 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
         if compress != None:
             new_var.compress(compress, compress_param)
+        if sparse != None:
+            new_var.sparse(sparse)
+        if pad != None:
+            new_var.pad(pad)
         if data is not None:
             new_var[...] = data
             if hasattr(data, 'attrs'):
@@ -3864,8 +3879,10 @@ class VarCopy(spacepy.datamodel.dmarray):
         compress
         dv
         nelems
+        pad
         rv
         set
+        sparse
         type
 
     .. attribute:: attrs
@@ -3875,8 +3892,10 @@ class VarCopy(spacepy.datamodel.dmarray):
     .. automethod:: compress
     .. automethod:: dv
     .. automethod:: nelems
+    .. automethod:: pad
     .. automethod:: rv
     .. automethod:: set
+    .. automethod:: sparse
     .. automethod:: type
 
     """
@@ -3890,13 +3909,9 @@ class VarCopy(spacepy.datamodel.dmarray):
         @type zVar: :py:class:`pycdf.Var`
         """
         obj = super(VarCopy, cls).__new__(cls, zVar[...], zVar.attrs.copy())
-        obj._cdf_meta = {
-            'compress': zVar.compress(),
-            'dv': zVar.dv(),
-            'nelems': zVar.nelems(),
-            'rv': zVar.rv(),
-            'type': zVar.type(),
-            }
+        obj._cdf_meta = { k: getattr(zVar, k)() for k in (
+            'compress', 'dv', 'nelems', 'rv', 'sparse', 'type') }
+        obj._cdf_meta['pad'] = zVar.pad() if obj._cdf_meta['rv'] else None
         return obj
 
     def compress(self, *args, **kwargs):
@@ -3946,6 +3961,22 @@ class VarCopy(spacepy.datamodel.dmarray):
         """
         return self._cdf_meta['nelems']
 
+    def pad(self):
+        """Gets pad value of the variable this was copied from.
+
+        This copy does *not* preserve which records were written, i.e.
+        the entire copy is read, including pad values, and the pad values
+        are treated as real data (if, e.g. writing to another CDF).
+
+        For details on padding, see :meth:`spacepy.pycdf.Var.pad`.
+
+        Returns
+        =======
+        various
+            Pad value, matching type of the variable.
+        """
+        return self._cdf_meta['pad']
+
     def rv(self):
         """Gets record variance of the variable this was copied from.
 
@@ -3977,6 +4008,22 @@ class VarCopy(spacepy.datamodel.dmarray):
         if key not in self._cdf_meta:
             raise KeyError('Invalid CDF metadata key {}'.format(key))
         self._cdf_meta[key] = value
+
+    def sparse(self):
+        """Gets sparse records mode of the variable this was copied from.
+
+        This copy does *not* preserve which records were written, i.e.
+        the entire copy is read, including pad values, and the pad values
+        are treated as real data (if, e.g. writing to another CDF).
+
+        For details on sparse records, see :meth:`spacepy.pycdf.Var.sparse`.
+
+        Returns
+        =======
+        ctypes.c_long
+            Sparse record type
+        """
+        return self._cdf_meta['sparse']
 
     def type(self):
         """Returns CDF type of the variable this was copied from.
