@@ -24,8 +24,8 @@ Many output files in the SWMF share a common format.  Objects to handle broad
 formats like these are found in the base module.  The base module has classes
 to handle SWMF *input* files, as well.
 
-The rest of the classes are organized by code, i.e. classes and functions 
-specifically relevant to BATS-R-US can be found in 
+The rest of the classes are organized by code, i.e. classes and functions
+specifically relevant to BATS-R-US can be found in
 :mod:`spacepy.pybats.bats`.  Whenever a certain code included in the SWMF
 requires a independent class or a subclass from the PyBats base module, it
 will receive its own submodule.
@@ -57,7 +57,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 
 Submodules
 ----------
-		
+
 There are submodules for most models included within the SWMF.  The classes
 and methods contained within are code-specific, yielding power and
 convenience at the cost of flexibility.  A few of the submodules are helper
@@ -117,8 +117,6 @@ import os.path
 from functools import wraps
 
 from spacepy.datamodel import dmarray, SpaceData
-import spacepy.plot.apionly
-import spacepy.plot as spu
 import numpy as np
 
 # Pybats-related decorators:
@@ -132,14 +130,14 @@ def calc_wrapper(meth):
     '''
 
     @wraps(meth)
-    
+
     def wrapped(self, *args, **kwargs):
         # Establish list of calculations:
         if not hasattr(self, '_calcs'): self._calcs={}
 
         # Check to see if we're in the list, return if true.
         if meth.__name__ in self._calcs: return
-        
+
         # If not, add to list and stash args/kwargs:
         self._calcs[meth.__name__] = [args, kwargs]
 
@@ -152,21 +150,20 @@ def calc_wrapper(meth):
 # Some common, global functions.
 def parse_filename_time(filename):
     '''
-    Given an SWMF file whose name follows the usual standards (see below), 
+    Given an SWMF file whose name follows the usual standards (see below),
     attempt to parse the file name to extract information about the iteration,
     runtime and date/time at which the file was written.  All three are
-    returned to the caller in that order.  If any cannot be found in the 
+    returned to the caller in that order.  If any cannot be found in the
     file name, "None" is returned in its place.
 
-    For *.outs files, ranges of times and iterations can be given in the 
-    file names.  If this is the case, a list of values will be returned 
+    For *.outs files, ranges of times and iterations can be given in the
+    file names.  If this is the case, a list of values will be returned
     for that entry (see third example below).
 
     Information on the format of time strings contained within SWMF output
-    file names can be found in the `SWMF User Manual 
+    file names can be found in the `SWMF User Manual
     <http://herot.engin.umich.edu/~gtoth/SWMF/doc/HTML/SWMF/node225.html>`_.
 
-    
     Parameters
     ==========
     filename : string
@@ -200,7 +197,6 @@ def parse_filename_time(filename):
     '''
 
     from dateutil.parser import parse
-    from datetime import timedelta
     import re
 
     filename = os.path.basename(filename)
@@ -210,7 +206,7 @@ def parse_filename_time(filename):
         subname = re.search('_e((\d{8}\-\d{6}(\-\d{3})?\_?)+)', filename).groups()[0]
         t_string = re.findall('(\d{8}\-\d{6})', subname)
         time = [parse(x) for x in t_string]
-        if len(time)==1: time=time[0] # Reduce to scalar if necessary.
+        if len(time) == 1: time = time[0] # Reduce to scalar if necessary.
     else:
         time = None
 
@@ -221,14 +217,14 @@ def parse_filename_time(filename):
         # start of simultion or new style which are date/time strings.  Look
         # at number of digits to tell difference.
         groups = re.findall('\d+', subname)
-        if len(groups[0])==14:
+        if len(groups[0]) == 14:
             time = [parse(x) for x in groups]
-            if len(time)==1 : time=time[0]
+            if len(time) == 1: time = time[0]
             runtime = None
         else:
             runtime = [3600*float(x[:-4])+60*float(x[-4:-2])+float(x[-2:]) 
                        for x in groups]
-            if len(runtime)==1: runtime=runtime[0]
+            if len(runtime) == 1: runtime = runtime[0]
     else:
         runtime = None
 
@@ -236,13 +232,12 @@ def parse_filename_time(filename):
     if '_n' in filename:
         subname = re.search('_n((\d+\_?)+)', filename).groups()[0]
         i_iter = [int(x) for x in re.findall('\d+', subname)]
-        if len(i_iter)==1: i_iter=i_iter[0]  # Reduce to scalar if necessary.
+        if len(i_iter) == 1: i_iter = i_iter[0]  # Reduce to scalar if necessary.
     else:
         i_iter = None
 
     return i_iter, runtime, time
 
-        
 def mhdname_to_tex(varname):
     '''
     Convert common MHD variable and unit names into LaTeX-formated strings.
@@ -258,19 +253,19 @@ def mhdname_to_tex(varname):
     elif varname.lower() == 'nt':
         out = '$nT$'
     elif varname[:2] == 'dB':
-        subscript=varname[2]+', '*(len(varname)>3)+varname[3:]
+        subscript = varname[2]+', '*(len(varname)>3)+varname[3:]
         out = r'$\Delta B _{'+subscript+'}$'
     elif varname.lower()[-1] == 'p':
         out = '$P_{'+varname[:-1]+'}$'
     elif match_u:
         out = '$U_{'+match_u.group(2)+', '*bool(match_u.group(1)) \
-              +match_u.group(1)+'}$'
+              + match_u.group(1)+'}$'
     elif match_b:
         out = '$'+match_b.group(1).upper()+'_{'+match_b.group(2)+'}$'
     elif 'j' == varname[0].lower():
         out = '$J_{'+varname[1:]+'}$'
     else:
-        out=varname
+        out = varname
 
     return out
 
@@ -308,19 +303,18 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, zorder=1000,
     using the *ax* keyword, the patch is added to the plot.
     
     Unlike the add_body method, the circle is colored half white (dayside)
-    and half black (nightside) to coincide with the direction of the 
+    and half black (nightside) to coincide with the direction of the
     sun. Additionally, because the size of the planet is not intrinsically
     known to the MHD file, the kwarg "rad", defaulting to 1.0, sets the
     size of the planet.  *add_night* can turn off this behavior.
     
     Extra keywords are handed to the Ellipse generator function.
 
-    
     Parameters
     ==========
     ax : Matplotlib Axes object
        Set the axes on which to place planet.
-        
+    
     Other Parameters
     ================
     rad : float
@@ -348,7 +342,7 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, zorder=1000,
 
     return body, arch
 
-def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True, 
+def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
              ang=0.0, add_night=True, zorder=1000, **extra_kwargs):
     '''
     Creates a circle of radius=self.attrs['rbody'] and returns the
@@ -404,7 +398,7 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     Load a SWMF IDL ascii output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`.
 
-    The input object must have the name of the file to be opened and read 
+    The input object must have the name of the file to be opened and read
     stored in its attributes list and named 'file'.
 
     The kwarg *header* dictates how the header line will be handled.  In some
@@ -455,23 +449,23 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     grid = [int(x) for x in infile.readline().split()]
     pbdat['grid'] = dmarray(grid)
 
-    # Data from generalized (structured but irregular) grids can be 
+    # Data from generalized (structured but irregular) grids can be
     # detected by a negative ndim value.  Unstructured grids (e.g.
     # BATS, AMRVAC) are signified by negative ndim values AND
     # the grid size is always [x, 1(, 1)]
-    # Here, we set the grid type attribute to either Regular, 
+    # Here, we set the grid type attribute to either Regular,
     # Generalized, or Unstructured.  Let's set that here.
     pbdat['grid'].attrs['gtype'] = 'Regular'
     pbdat['grid'].attrs['npoints']  = abs(pbdat['grid'].prod())
-    if pbdat.attrs['ndim'] < 0: 
-        if any(pbdat['grid'][1:] > 1): 
+    if pbdat.attrs['ndim'] < 0:
+        if any(pbdat['grid'][1:] > 1):
             pbdat['grid'].attrs['gtype'] = 'Generalized'
         else:
-            pbdat['grid'].attrs['gtype']   = 'Unstructured'
+            pbdat['grid'].attrs['gtype'] = 'Unstructured'
             pbdat['grid'].attrs['npoints'] = pbdat['grid'][0]
     pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
 
-        # Quick ref vars:
+    # Quick ref vars:
     time=pbdat.attrs['runtime']
     gtyp=pbdat['grid'].attrs['gtype']
     npts=pbdat['grid'].attrs['npoints']
@@ -546,6 +540,7 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
 
+
 def readarray(f, dtype=np.float32, inttype=np.int32):
     '''
     Read an array from an unformatted binary file written out by a 
@@ -572,21 +567,21 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
     '''
 
     if dtype is str:
-        dtype_size_bytes=1
+        dtype_size_bytes = 1
     else:
-        dtype_size_bytes=dtype.itemsize
+        dtype_size_bytes = dtype.itemsize
 
     # Get the record length
-    rec_len=np.fromfile(f,dtype=inttype,count=1)
+    rec_len = np.fromfile(f, dtype=inttype, count=1)
 
     # Check that the record length is consistent with the data type
-    if rec_len%dtype_size_bytes!=0:
-        raise ValueError('Read error: Data type inconsistent with record' +
-                         ' length (data type size is {0:d} bytes, record' +
-                         ' length is {1:d} bytes'.format(
-                             int(dtype_size_bytes),int(n)))
+    if rec_len % dtype_size_bytes != 0:
+        raise ValueError(
+            'Read error: Data type inconsistent with record length (data ' + 
+            'type size is {0:d} bytes, record length is {1:d} bytes'.format(
+                int(dtype_size_bytes), int(rec_len)))
 
-    if len(rec_len)==0:
+    if len(rec_len) == 0:
         # Zero-length record...file may be truncated
         raise EOFError('Zero-length read at start marker')
 
@@ -602,35 +597,36 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
         if endpos - startpos < (int(rec_len[0]) + np.dtype(inttype).itemsize):
             raise EOFError('File is shorter than expected data')
         f.seek(startpos + int(rec_len[0]), 0)
-        rec_len_end = np.fromfile(f,dtype=inttype,count=1)
+        rec_len_end = np.fromfile(f, dtype=inttype, count=1)
         f.seek(startpos, 0)
         if rec_len_end != rec_len:
             raise ValueError((
                 'Read error: End marker length ({0:d}) does not match start '
-                'marker length ({1:d}).').format(rec_len[0], rec_len_end[0]) + 
+                'marker length ({1:d}).').format(rec_len[0], rec_len_end[0]) +
                 'This indicates incorrect endiannes, wrong file type, '
                 'or file is corrupt.')
     # Read the data
     if dtype is str:
-        A=f.read(rec_len[0])
+        A = f.read(rec_len[0])
     else:
-        A=np.fromfile(f,dtype=dtype,count=int(rec_len[0]/dtype_size_bytes))
+        A = np.fromfile(f, dtype=dtype, count=int(rec_len[0]/dtype_size_bytes))
 
     # Check the record length marker at the end
-    rec_len_end=np.fromfile(f,dtype=inttype,count=1)
-    if len(rec_len_end)==0:
+    rec_len_end = np.fromfile(f, dtype=inttype, count=1)
+    if len(rec_len_end) == 0:
         # Couldn't read, file may be truncated
         raise EOFError('Zero-length read at end marker')
 
-    if rec_len_end!=rec_len:
+    if rec_len_end != rec_len:
         # End marker is inconsistent with start marker. Something is wrong.
         raise ValueError(
-            'Read error: End marker does not match start marker '+
-            '(start marker says record length is {0:d} bytes, end marker says {1:d} bytes).'.format(int(rec_len),int(rec_len_end)) +
-            'This indicates incorrect endiannes, wrong file type, '+
-            'or file is corrupt'.format(int(rec_len),int(rec_len_end)))
+            'Read error: End marker does not match start marker ' +
+            '({0:d} vs. {1:d} bytes).'.format(int(rec_len), int(rec_len_end)) +
+            '  This indicates incorrect endiannes, wrong file type, ' +
+            'or file is corrupt')
 
     return A
+
 
 def _skip_entry(f, inttype):
     '''
@@ -650,18 +646,19 @@ def _skip_entry(f, inttype):
         entry with the correct endianess.
     '''
     # Read preceding entry size, in bytes:
-    rec_len = np.fromfile(f,dtype=inttype,count=1)[0]
+    rec_len = np.fromfile(f, dtype=inttype, count=1)[0]
 
     # Fast-forward over the entry:
     f.seek(rec_len, 1)
 
     # Read the trailing entry size, check for match:
-    rec_len_end = np.fromfile(f,dtype=inttype,count=1)[0]
-    if rec_len_end != rec_len: 
+    rec_len_end = np.fromfile(f, dtype=inttype, count=1)[0]
+    if rec_len_end != rec_len:
         raise IOError('Record length mismatch.')
 
     # Return total number of bytes skipped:
     return rec_len+2*inttype.itemsize
+
 
 def _scan_bin_header(f, endchar, inttype, floattype):
     '''
@@ -700,38 +697,37 @@ def _scan_bin_header(f, endchar, inttype, floattype):
     info = {'start':rec_start}
 
     # Read initial header:
-    headline=readarray(f,str,inttype)
-    headline=headline.decode('utf-8')
-        
+    headline = readarray(f, str, inttype)
+    headline = headline.decode('utf-8')
+    
     # Construct size of header entries:
-    header_fields_dtype=np.dtype([
-        ('it',np.int32),('t',floattype),('ndim',np.int32),
-        ('npar',np.int32),('nvar',np.int32)])
+    header_fields_dtype = np.dtype([
+        ('it', np.int32), ('t', floattype), ('ndim', np.int32),
+        ('npar', np.int32), ('nvar', np.int32)])
     header_fields_dtype.newbyteorder(endchar)
 
     # From header, get iteration, runtime (seconds), number of dimensions,
     # number of parameters, and number of variables in that order.
     # Stash relevant values into the "info" dict:
     vals = readarray(f, dtype=header_fields_dtype, inttype=inttype)[0]
-    for v, x in zip(['iter','runtime','ndim','nparam','nvar'], vals):
+    for v, x in zip(['iter', 'runtime', 'ndim', 'nparam', 'nvar'], vals):
         info[v] = x
 
     # Dimensionality may be negative to indicate non-uniform grid:
     info['ndim'] = abs(info['ndim'])
 
     # Get gridsize:
-    grid=dmarray(readarray(f,inttype,inttype))
+    grid = dmarray(readarray(f, inttype, inttype))
     npoints = abs(grid.prod())
 
     # Set the size of floating points in bytes:
     nbytes = floattype.itemsize
 
     # Skip the rest of the header:
-    if info['nparam']>0: 
+    if info['nparam'] > 0:
         _skip_entry(f, inttype)  # Skip parameters.
     _skip_entry(f, inttype)      # Skip variable names.
-    #parsize = nbytes*info['npar']
-    #infile.seek(headsize,whence=1)
+
     # Get header size in bytes:
     head_size = f.tell() - rec_start
 
@@ -745,6 +741,7 @@ def _scan_bin_header(f, endchar, inttype, floattype):
     f.seek(info['end'], 0)
 
     return info
+
 
 def _probe_idlfile(filename):
     '''
@@ -776,7 +773,7 @@ def _probe_idlfile(filename):
 
     floattype : numpy.dtype
         A numpy data type representing the size of the file's floating point
-        values with the appropriate byte ordering.  Returns None for ASCII 
+        values with the appropriate byte ordering.  Returns None for ASCII
         files.
 
     '''
@@ -793,31 +790,32 @@ def _probe_idlfile(filename):
 
         try:
             # Try to parse with little endian byte ordering:
-            headline=readarray(f,str,np.int32)
-        except (ValueError,EOFError):
+            headline = readarray(f, str, np.int32)
+        except (ValueError, EOFError):
             # On fail, rewind and try with big endian byte ordering:
-            endian='>'
+            endian = '>'
             inttype.newbyteorder(endian)
             f.seek(0)
             # Attempt to read and parse the header line again:
             # If we fail here, almost certainly an ascii file.
             try:
-                headline=readarray(f,str,)
-                headline=headline.decode('utf-8')
-            except (ValueError,EOFError):
+                headline = readarray(f, str,)
+                headline = headline.decode('utf-8')
+            except (ValueError, EOFError):
                 return 'asc', False, False, False
 
         # detect double-precision file.
-        pos=f.tell()
-        RecLen=np.fromfile(f,dtype=inttype,count=1)
+        pos = f.tell()
+        RecLen = np.fromfile(f, dtype=inttype, count=1)
         f.seek(pos)
 
         # Set data types
         if RecLen > 20:
-            floattype=np.dtype(np.float64)
+            floattype = np.dtype(np.float64)
         floattype.newbyteorder(endian)
 
     return 'bin', endian, inttype, floattype
+
 
 def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
                   headeronly=False):
@@ -827,7 +825,7 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
     include information on endianess and size of integers & floating point
     values.
 
-    The input object must have the name of the file to be opened and read 
+    The input object must have the name of the file to be opened and read
     stored in its attributes list and named 'file'.
 
     The kwarg *header* dictates how the header line will be handled.  In some
@@ -864,7 +862,6 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
     # Some convenience variables:
     endchar, inttype, floattype = pbdat._endchar, pbdat._int, pbdat._float
 
-    
     # Open, read, and parse the file into numpy arrays.
     # Note that Fortran writes integer buffers around records, so
     # we must parse those as well.
@@ -873,13 +870,13 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
         infile.seek(start_loc, 0)
         
         # Read header information.
-        headline=readarray(infile,str,inttype)
-        headline=headline.decode('utf-8')
+        headline = readarray(infile, str, inttype)
+        headline = headline.decode('utf-8')
         
         # Parse rest of header
-        header_fields_dtype=np.dtype([
-            ('it',np.int32),('t',floattype),('ndim',np.int32),
-            ('npar',np.int32),('nvar',np.int32)])
+        header_fields_dtype = np.dtype([
+            ('it', np.int32), ('t', floattype), ('ndim', np.int32),
+            ('npar', np.int32), ('nvar', np.int32)])
         header_fields_dtype.newbyteorder(endchar)
 
         (pbdat.attrs['iter'], pbdat.attrs['runtime'],
@@ -889,7 +886,7 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
                       inttype=inttype)[0]
 
         # Get gridsize
-        pbdat['grid']=dmarray(readarray(infile,inttype,inttype))
+        pbdat['grid'] = dmarray(readarray(infile, inttype, inttype))
 
         # Data from generalized (structured but irregular) grids can be
         # detected by a negative ndim value.  Unstructured grids (e.g.
@@ -898,29 +895,28 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
         # Here, we set the grid type attribute to either Regular,
         # Generalized, or Unstructured.  Let's set that here.
         pbdat['grid'].attrs['gtype'] = 'Regular'
-        pbdat['grid'].attrs['npoints']  = abs(pbdat['grid'].prod())
+        pbdat['grid'].attrs['npoints'] = abs(pbdat['grid'].prod())
         if pbdat.attrs['ndim'] < 0:
             if any(pbdat['grid'][1:] > 1):
                 pbdat['grid'].attrs['gtype'] = 'Generalized'
             else:
-                pbdat['grid'].attrs['gtype']   = 'Unstructured'
+                pbdat['grid'].attrs['gtype'] = 'Unstructured'
                 pbdat['grid'].attrs['npoints'] = pbdat['grid'][0]
         pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
 
         # Quick ref vars:
-        time=pbdat.attrs['runtime']
-        gtyp=pbdat['grid'].attrs['gtype']
-        npts=pbdat['grid'].attrs['npoints']
-        ndim=pbdat['grid'].size
-        nvar=pbdat.attrs['nvar']
-        npar=pbdat.attrs['nparam']
+        gtyp = pbdat['grid'].attrs['gtype']
+        npts = pbdat['grid'].attrs['npoints']
+        ndim = pbdat['grid'].size
+        nvar = pbdat.attrs['nvar']
+        npar = pbdat.attrs['nparam']
 
         # Read parameters stored in file.
         para  = np.zeros(npar)
-        if npar>0:
-            para[:] = readarray(infile,floattype,inttype)
+        if npar > 0:
+            para[:] = readarray(infile, floattype, inttype)
 
-        names = readarray(infile,str,inttype).decode('utf-8')
+        names = readarray(infile, str, inttype).decode('utf-8')
 
         # Preserve or destroy original case of variable names:
         if not keep_case: names = names.lower()
@@ -930,33 +926,33 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
 
         # Now that we know the number of variables, we can properly handle
         # the headline and units based on the kwarg *header*:
-        pbdat.attrs['header']=headline
+        pbdat.attrs['header'] = headline
         if header == 'units':
             # If headline is just units:
             units = headline.split()
         else:
             # If headline is NOT just units, create blank units:
-            units = [''] * (len(names)-npar)
+            units = [''] * (len(names) - npar)
         
         # For some reason, there are often more units than variables
         # in these files.  It looks as if there are more grid units
         # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
         # in file but only X and Y are present.)  Let's try to work
         # around this curiousity:
-        nSkip = len(units)+npar-len(names)
-        if nSkip<0: nSkip = 0
+        nSkip = len(units) + npar - len(names)
+        if nSkip < 0: nSkip = 0
         
         # Save grid names (e.g. 'x' or 'r') and save associated params.
-        pbdat['grid'].attrs['dims']=tuple(names[0:ndim])
+        pbdat['grid'].attrs['dims'] = tuple(names[0:ndim])
         for name, para in zip(names[(nvar+ndim):], para):
-            pbdat.attrs[name]=para
+            pbdat.attrs[name] = para
                 
         # Get the grid points...
         prod = [1] + pbdat['grid'].cumprod().tolist()
 
         # Read the data into a temporary array
-        griddata = readarray(infile,floattype,inttype)
-        for i in range(0,ndim):
+        griddata = readarray(infile, floattype, inttype)
+        for i in range(0, ndim):
             # Get the grid coordinates for this dimension
             tempgrid = griddata[npts*i:npts*(i+1)]
 
@@ -978,9 +974,9 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
             if units: pbdat[names[i]].attrs['units'] = units.pop(nSkip)
 
         # Get the actual data and sort.
-        for i in range(ndim,nvar+ndim):
-            pbdat[names[i]] = dmarray(readarray(infile,floattype,inttype))
-            if units: pbdat[names[i]].attrs['units']=units.pop(nSkip)
+        for i in range(ndim, nvar+ndim):
+            pbdat[names[i]] = dmarray(readarray(infile, floattype, inttype))
+            if units: pbdat[names[i]].attrs['units'] = units.pop(nSkip)
             if gtyp != 'Unstructured':
                 # Put data into multidimensional arrays.
                 pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'], order='F')
@@ -994,13 +990,14 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
                 offset = offset + np.pi/2.0
                 SortIndex = np.argsort(gridtotal)
             for key in list(pbdat.keys()):
-                if key=='grid': continue
+                if key == 'grid': continue
                 pbdat[key] = pbdat[key][SortIndex]
+
 
 class PbData(SpaceData):
     '''
     The base class for all PyBats data container classes.  Inherits from
-    :class:`spacepy.datamodel.SpaceData` but has additional methods for quickly 
+    :class:`spacepy.datamodel.SpaceData` but has additional methods for quickly
     exploring an SWMF dataset.
 
     Just like :class:`spacepy.datamodel.SpaceData` objects, *PbData* objects
@@ -1042,12 +1039,12 @@ class PbData(SpaceData):
         '''
         List all variables and associated units.
         '''
-        keys=list(self.keys())
+        keys = list(self.keys())
         keys.sort()
-        length=0
+        length = 0
         for key in keys:
-            if len(key)>length: length=len(key)
-        form="%%%is:%%s"%length
+            if len(key) > length: length=len(key)
+        form = "%%%is:%%s"%length
         for key in keys:
             if 'units' in self[key].attrs:
                 print(form%(key, self[key].attrs['units']))
@@ -1078,14 +1075,15 @@ class PbData(SpaceData):
             if self[v].size != npts: continue
             # Append away.
             self[v] = dmarray(np.append(self[v], obj[v]), self[v].attrs)
-        
+
+
 class IdlFile(PbData):
- 
+
     '''
     Introduction
     ------------
 
-    An object class that reads/parses an IDL-formatted output file from the 
+    An object class that reads/parses an IDL-formatted output file from the
     SWMF and places it into a :class:`spacepy.pybats.PbData` object.
 
     Usage:
@@ -1095,7 +1093,7 @@ class IdlFile(PbData):
     data contained within the returned object.
 
     This class serves as a parent class to SWMF component-specific derivative
-    classes that do more preprocessing of the data before returning the 
+    classes that do more preprocessing of the data before returning the
     object.  Hence, using this class to read binary files is typically not
     the most efficient way to proceed.  Look for a PyBats sub module that suits
     your specific needs, or use this base object to write your own.
@@ -1104,24 +1102,24 @@ class IdlFile(PbData):
     -----------------
 
     Typically, Idl-formatted data has a single *frame*, or a single snapshot
-    worth of data (a `*.out` file).  However, it is possible to (externally) 
+    worth of data (a `*.out` file).  However, it is possible to (externally)
     combine many of these files together such that a time series of data frames
     are contained within a single file (`*.outs` files). This class can read
     these files, but only one data frame can be made available at a time.  This
     prevents very large memory requirements.
 
-    These files are opened and handled similarly to regular IDL-formatted 
+    These files are opened and handled similarly to regular IDL-formatted
     files  with some important differences.  Upon instantiation, the user
     may select which data frame to open with the *iframe* kwarg.  The default
-    action is to open the first frame.  The user may learn more about the 
-    number of frames within the file and their associated epoch/iteration 
+    action is to open the first frame.  The user may learn more about the
+    number of frames within the file and their associated epoch/iteration
     information by examining the top level *attrs* (see below.)
     The user may switch to any arbitrary frame using the `switch_frame(iframe)`
     object method.  This will load the relevant data from disk into the
     object, overwriting the previous contents.
 
     If the user has created any new variables using the data from a certain
-    data frame, those new values will not be updated automatically.  An 
+    data frame, those new values will not be updated automatically.  An
     exception is for any *self.calc_* type methods that are set to update
     automatically.
 
@@ -1170,7 +1168,7 @@ class IdlFile(PbData):
     '''
 
     def __init__(self, filename, iframe=0, header='units',
-                 keep_case=True, *args,**kwargs):
+                 keep_case=True, *args, **kwargs):
         super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
 
         # Gather information about the file: format, endianess (if necessary),
@@ -1207,9 +1205,9 @@ class IdlFile(PbData):
         self.attrs['time']   = self.attrs['times'][iframe]
 
         # Create string representation of run time:
-        time = self.attrs['runtime'] # Convenience variable.
-        self.attrs['strtime']= "{:04.0f}h{:02.0f}m{:06.3f}s".format(
-            np.floor(time//3600), np.floor(time%3600//60.0), time%60.0)
+        time = self.attrs['runtime']  # Convenience variable.
+        self.attrs['strtime'] = "{:04.0f}h{:02.0f}m{:06.3f}s".format(
+            np.floor(time//3600), np.floor(time % 3600//60.0), time % 60.0)
         
     def _scan_bin_frames(self):
         '''
@@ -1221,14 +1219,14 @@ class IdlFile(PbData):
         from datetime import timedelta as tdelt
 
         # Create some variables to store information:
-        nframe = 0 # Number of epoch frames in file.
-        iters, runtimes = [], [] # Lists of time information.
-        offset = [] # Byte offset from beginning of file of each frame.
+        nframe = 0  # Number of epoch frames in file.
+        iters, runtimes = [], []  # Lists of time information.
+        offset = []  # Byte offset from beginning of file of each frame.
 
         with open(self.attrs['file'], 'rb') as f:
-            f.seek(0,2) # Jump to end of file (in Py3, this returns location)
-            file_size = f.tell() # Get number of bytes in file.
-            f.seek(0) # Rewind to file start.
+            f.seek(0, 2)  # Jump to end of file (in Py3, this returns location)
+            file_size = f.tell()  # Get number of bytes in file.
+            f.seek(0)  # Rewind to file start.
 
             # Loop over all data frames and collect information:
             while f.tell() < file_size:
@@ -1237,7 +1235,7 @@ class IdlFile(PbData):
                 offset.append(info['start'])
                 iters.append(info['iter'])
                 runtimes.append(info['runtime'])
-                nframe+=1
+                nframe += 1
 
         # Store everything as file-level attrs; convert to numpy arrays.
         self.attrs['nframe'] = nframe
@@ -1260,7 +1258,7 @@ class IdlFile(PbData):
 
         # Stash the offset of frames as a private attribute:
         self._offsets = np.array(offset)
-        
+    
     def _scan_asc_frames(self):
         '''
         Open the ascii-formatted file associated with *self* and scan all
@@ -1277,7 +1275,7 @@ class IdlFile(PbData):
         self.attrs['iters']    = [0,0]
         self.attrs['runtimes'] = [0,0]
         self.attrs['times']    = [0,0]
-        
+    
     def switch_frame(self, iframe):
         '''
         For files that have more than one data frame (i.e., `*.outs` files),
@@ -1286,7 +1284,7 @@ class IdlFile(PbData):
         '''
 
         # Ensure that given frame exists within object:
-        if iframe<-self.attrs['nframe'] or iframe>=self.attrs['nframe']:
+        if iframe < -self.attrs['nframe'] or iframe >= self.attrs['nframe']:
             raise IndexError("iframe {} is outside range of [0,{})".format(
                 iframe, self.attrs['nframe']))
         
@@ -1299,9 +1297,9 @@ class IdlFile(PbData):
         self.attrs['time']   = self.attrs['times'][iframe]
 
         # Update string time:
-        time = self.attrs['runtime'] # Convenience variable.
-        self.attrs['strtime']= "{:04.0f}h{:02.0f}m{:06.3f}s".format(
-            np.floor(time//3600), np.floor(time%3600//60.0),time%60.0)
+        time = self.attrs['runtime']  # Convenience variable.
+        self.attrs['strtime'] = "{:04.0f}h{:02.0f}m{:06.3f}s".format(
+            np.floor(time//3600), np.floor(time % 3600//60.0), time % 60.0)
 
         # Re-do calculations if any have been done.
         if hasattr(self, '_calcs'):
@@ -1334,9 +1332,10 @@ class IdlFile(PbData):
             _read_idl_bin(self, header=self._header, start_loc=loc,
                           keep_case=self._keep_case)
         else:
-             raise ValueError('Unrecognized file format: {}'.format(
+            raise ValueError('Unrecognized file format: {}'.format(
                 self._format))
-        
+
+
 class LogFile(PbData):
     ''' An object to read and handle SWMF-type logfiles.
 
