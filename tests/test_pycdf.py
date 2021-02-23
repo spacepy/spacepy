@@ -2903,6 +2903,25 @@ class ChangeCDF(ChangeCDFBase):
         #    numpy.testing.assert_array_equal(zVar[0:4],
         #                                     [1000, 101, 102, 3])
 
+    def testSparseOnCreate(self):
+        """Specify sparseness when creating a variable"""
+        zVar = self.cdf.new('newvar', data=[1, 2, 3, 4],
+                            sparse=const.PAD_SPARSERECORDS, pad=99)
+        self.assertEqual(const.PAD_SPARSERECORDS, zVar.sparse())
+        self.assertEqual(99, zVar.pad())
+        with spacepy_testing.assertWarns(self, 'always', r'VIRTUAL_RECORD_DATA',
+                                         cdf.CDFWarning, r'spacepy\.pycdf$'):
+            self.assertEqual(99, zVar[4])
+
+    def testSparseCopy(self):
+        """Make sure sparseness carries through to VarCopy"""
+        zVar = self.cdf.new('newvar', data=[1, 2, 3, 4],
+                            sparse=const.PAD_SPARSERECORDS, pad=99)
+        cp = zVar.copy()
+        self.assertEqual(const.PAD_SPARSERECORDS, cp.sparse())
+        self.assertEqual(99, cp.pad())
+        numpy.testing.assert_array_equal(zVar[...], [1, 2, 3, 4])
+
     def testChecksum(self):
         """Change checksumming on the CDF"""
         self.cdf.checksum(True)
