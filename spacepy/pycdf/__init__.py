@@ -3574,7 +3574,9 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         Returns
         =======
         out : 
-            Current pad value for this variable.
+            Current pad value for this variable. ``None`` if it has never been
+            set. This rarely happens; the pad value is usually set by the CDF
+            library on variable creation.
 
         Notes
         =====
@@ -3589,8 +3591,11 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         # pretend it's [0, 0, 0, 0...] of the variable
         hslice = _Hyperslice(self, (0,)*(self._n_dims() + 1))
         result = hslice.create_array()
-        self._call(const.GET_, const.zVAR_PADVALUE_,
-                     result.ctypes.data_as(ctypes.c_void_p))
+        status = self._call(const.GET_, const.zVAR_PADVALUE_,
+                            result.ctypes.data_as(ctypes.c_void_p),
+                            ignore=(const.NO_PADVALUE_SPECIFIED,))
+        if status == const.NO_PADVALUE_SPECIFIED:
+            return None
         return hslice.convert_input_array(result)
 
     def dv(self, new_dv=None):
