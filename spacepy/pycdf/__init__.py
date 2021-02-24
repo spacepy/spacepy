@@ -2283,9 +2283,15 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             Compression parameter if compression used; reasonable default
             is chosen. See :py:meth:`Var.compress`.
         sparse : ctypes.c_long
+
+            .. versionadded:: 0.2.3
+
             Sparse records type for this variable, default None (no sparse
             records). See :meth:`Var.sparse`.
         pad :
+
+            .. versionadded:: 0.2.3
+
             Pad value for this variable, default None (do not set). See
             :meth:`Var.pad`.
 
@@ -2305,7 +2311,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             if no type is provided and data is datetime, warning that
             the default will change in the future.
 
-            .. versionadded:: 0.2.2
+            .. versionadded:: 0.2.3
 
         Notes
         =====
@@ -3533,6 +3539,10 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         =======
         out : ctypes.c_long
             Sparse record mode for this variable.
+
+        Notes
+        =====
+        .. versionadded:: 0.2.3
         """
         valid_sr = [
             const.NO_SPARSERECORDS, 
@@ -3565,6 +3575,10 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         =======
         out : 
             Current pad value for this variable.
+
+        Notes
+        =====
+        .. versionadded:: 0.2.3
         """
         if value is not None:
             data = self._prepare(value)
@@ -3974,6 +3988,10 @@ class VarCopy(spacepy.datamodel.dmarray):
         =======
         various
             Pad value, matching type of the variable.
+
+        Notes
+        =====
+        .. versionadded:: 0.2.3
         """
         return self._cdf_meta['pad']
 
@@ -4022,6 +4040,10 @@ class VarCopy(spacepy.datamodel.dmarray):
         =======
         ctypes.c_long
             Sparse record type
+
+        Notes
+        =====
+        .. versionadded:: 0.2.3
         """
         return self._cdf_meta['sparse']
 
