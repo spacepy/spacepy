@@ -2282,6 +2282,10 @@ class ReadCDF(CDFTests):
         #Repopulated
         self.assertEqual((10, True), self.cdf.attr_num(b'Instrument_type'))
 
+    def testReadUnsetPad(self):
+        """Test getting pad value on variable where it isn't set."""
+        self.assertIs(self.cdf['Epoch'].pad(), None)
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
