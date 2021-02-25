@@ -1207,6 +1207,7 @@ class OpenCDF(CDFTests):
 
 class ReadCDF(CDFTests):
     """Tests that read an existing CDF, but do not modify it."""
+    longMessage = True
     testbase = 'test_ro.cdf'
     varnames = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers',
                'RateScalerNames', 'SectorRateScalerNames',
@@ -2290,6 +2291,23 @@ class ReadCDF(CDFTests):
         """Read pad value for NRV"""
         # This wasn't explicitly set but that's what it gives
         self.assertEqual(self.cdf['SectorNumbers'].pad(), ' P')
+
+    def testPrepare(self):
+        """Test data conversion to numpy arrays"""
+        # Data here are only prepared, CDF itself does not change
+        # Each test is variable name, input data, expected prepared data,
+        # expected dtype
+        tests = [('ATC',
+                  [datetime.datetime(1, 1, 1)],
+                  numpy.array([[31622400.0, 0]]), numpy.float64),
+                 ('MeanCharge',
+                  [1, 2], numpy.array([1., 2.]), numpy.float32)
+                 ]
+        for vname, inputs, expected, dtype in tests:
+            actual = self.cdf[vname]._prepare(inputs)
+            self.assertIs(type(actual), numpy.ndarray, vname)
+            self.assertEqual(actual.dtype, dtype, vname)
+            numpy.testing.assert_array_equal(actual, expected)
 
 
 class ReadColCDF(ColCDFTests):
