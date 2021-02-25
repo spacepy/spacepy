@@ -3211,12 +3211,20 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
                          ctypes.c_long(recno), ctypes.c_long(recno))
 
     def _prepare(self, data):
-        """Convert data to CDF data formats.
-        
-        @param data: data to store
-        @type data: numpy.array
-        @return prepared data
-        @rtype numpy.array 
+        """Convert data to numpy array for writing to CDF
+
+        Converts input data intended for CDF writing into a numpy array,
+        so the array's buffer can be used directly for the output buffer
+
+        Parameters
+        ==========
+        data : various
+            data to write
+
+        Returns
+        =======
+        numpy.ndarray
+            `data` converted, including time conversions
         """
         cdf_type = self.type()
         if cdf_type == const.CDF_EPOCH16.value:
