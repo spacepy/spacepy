@@ -3589,7 +3589,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
 
         # Prepare buffer for return, to get array of correct type
         # pretend it's [0, 0, 0, 0...] of the variable
-        hslice = _Hyperslice(self, (0,)*(self._n_dims() + 1))
+        hslice = _Hyperslice(self, (0,)*(self._n_dims() + int(self.rv())))
         result = hslice.create_array()
         status = self._call(const.GET_, const.zVAR_PADVALUE_,
                             result.ctypes.data_as(ctypes.c_void_p),

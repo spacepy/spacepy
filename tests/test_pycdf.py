@@ -2286,6 +2286,11 @@ class ReadCDF(CDFTests):
         """Test getting pad value on variable where it isn't set."""
         self.assertIs(self.cdf['Epoch'].pad(), None)
 
+    def testPadNRV(self):
+        """Read pad value for NRV"""
+        # This wasn't explicitly set but that's what it gives
+        self.assertEqual(self.cdf['SectorNumbers'].pad(), ' P')
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
@@ -2925,6 +2930,21 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual(const.PAD_SPARSERECORDS, cp.sparse())
         self.assertEqual(99, cp.pad())
         numpy.testing.assert_array_equal(zVar[...], [1, 2, 3, 4])
+
+    def testNRVWritePad(self):
+        """Write pad value for NRV"""
+        v = self.cdf['SectorNumbers']
+        v.pad('Q')
+        self.assertEqual('Q', v.pad())
+
+    def testNRVSparse(self):
+        """Make NRV sparse variable"""
+        v = self.cdf.new('newvar', recVary=False, type=const.CDF_INT1)
+        with self.assertRaises(cdf.CDFError) as cm:
+            v.sparse(const.PAD_SPARSERECORDS)
+        self.assertEqual("CANNOT_SPARSERECORDS: Sparse records can't be"
+                         " set/modified for the variable.", str(cm.exception))
+        self.assertEqual(const.CANNOT_SPARSERECORDS, cm.exception.status)
 
     def testChecksum(self):
         """Change checksumming on the CDF"""
