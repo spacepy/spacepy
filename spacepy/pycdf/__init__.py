@@ -3168,7 +3168,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
             raise TypeError('Can only delete entire records.')
         if hslice.counts[0] == 0:
             return
-        if not hslice.no_sr and not hslice.degen[0]:
+        if hslice.sr and not hslice.degen[0]:
             raise NotImplementedError(
                 'Sparse records do not support multi-record delete.')
         start = hslice.starts[0]
@@ -3287,7 +3287,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         if hslice.counts[0] > n_recs and \
                hslice.starts[0] + n_recs < hslice.dimsizes[0]:
             #Specified slice ends before last record, so insert in middle
-            if not hslice.no_sr:
+            if hslice.sr:
                 raise NotImplementedError(
                     'Sparse records do not support insertion.')
             saved_data = self[hslice.starts[0] + n_recs:]
@@ -3296,7 +3296,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
             lib.call(const.PUT_, const.zVAR_HYPERDATA_,
                      data.ctypes.data_as(ctypes.c_void_p))
         if hslice.counts[0] < n_recs:
-            if not hslice.no_sr:
+            if hslice.sr:
                 raise NotImplementedError(
                     'Sparse records do not support truncation on write.')
             first_rec = hslice.starts[0] + hslice.counts[0]
@@ -4128,7 +4128,7 @@ class _Hyperslice(object):
 
         self.zvar = zvar
         self.rv = self.zvar.rv()
-        self.no_sr = self.zvar.sparse() == const.NO_SPARSERECORDS
+        self.sr = self.zvar.sparse() != const.NO_SPARSERECORDS
         #dim of records, + 1 record dim (NRV always is record 0)
         self.dims = zvar._n_dims() + 1
         self.dimsizes = [len(zvar)] + \
@@ -4161,7 +4161,7 @@ class _Hyperslice(object):
                 idx = key[i]
                 if hasattr(idx, 'start'): #slice
                     # Allow read-off-end for record dim if sparse
-                    off_end = not self.no_sr and idx.stop is not None \
+                    off_end = self.sr and idx.stop is not None \
                               and idx.stop > self.dimsizes[i] and i == 0
                     (self.starts[i], self.counts[i],
                      self.intervals[i], self.rev[i]) = \
@@ -4172,7 +4172,7 @@ class _Hyperslice(object):
                     if idx < 0:
                         idx += self.dimsizes[i]
                     out_of_range = idx < 0 or \
-                        (idx >= self.dimsizes[i] and self.no_sr)
+                        (idx >= self.dimsizes[i] and not self.sr)
                     if idx != 0 and out_of_range:
                         raise IndexError('list index out of range')
                     self.starts[i] = idx
