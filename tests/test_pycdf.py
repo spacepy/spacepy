@@ -2805,6 +2805,21 @@ class ChangeCDF(ChangeCDFBase):
             numpy.testing.assert_array_equal(zVar[...],
                                              [1, 1, 1, 2]);
 
+    def testSparseReadOffEnd(self):
+        """Read past the end of a sparse variable"""
+        zVar = self.cdf.new('newvarSR', type=const.CDF_INT4)
+        zVar.sparse(const.PREV_SPARSERECORDS)
+        zVar[...] = [1, 2, 3]
+        hs = cdf._Hyperslice(zVar, slice(None, 4, None))
+        # Make sure the slice sizing is proper before read
+        self.assertEqual([0], hs.starts)
+        self.assertEqual([4], hs.counts)
+        with spacepy_testing.assertWarns(
+                self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
+                r'spacepy\.pycdf$'):
+            numpy.testing.assert_array_equal(zVar[:4],
+                                             [1, 2, 3, 3]);
+
     def testChangeSparseRecordsPad(self):
         """Change sparse records mode to PAD"""
         zVar = self.cdf.new('newvarSRPad', dims=[], type=const.CDF_INT4)
@@ -2920,7 +2935,7 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual(99, zVar.pad())
         with spacepy_testing.assertWarns(self, 'always', r'VIRTUAL_RECORD_DATA',
                                          cdf.CDFWarning, r'spacepy\.pycdf$'):
-            self.assertEqual(99, zVar[4])
+            numpy.testing.assert_array_equal(zVar[0:5], [1, 2, 3, 4, 99])
 
     def testSparseCopy(self):
         """Make sure sparseness carries through to VarCopy"""

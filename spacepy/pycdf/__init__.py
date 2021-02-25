@@ -4152,10 +4152,14 @@ class _Hyperslice(object):
             for i in range(self.dims):
                 idx = key[i]
                 if hasattr(idx, 'start'): #slice
+                    # Allow read-off-end for record dim if sparse
+                    off_end = not self.no_sr and idx.stop is not None \
+                              and idx.stop > self.dimsizes[i] and i == 0
                     (self.starts[i], self.counts[i],
                      self.intervals[i], self.rev[i]) = \
-                     self.convert_range(idx.start, idx.stop,
-                                              idx.step, self.dimsizes[i])
+                     self.convert_range(
+                         idx.start, idx.stop, idx.step,
+                         idx.stop if off_end else self.dimsizes[i])
                 else: #Single degenerate value
                     if idx < 0:
                         idx += self.dimsizes[i]
