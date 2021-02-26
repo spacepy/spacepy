@@ -1536,8 +1536,8 @@ class Bats2d(IdlFile):
     # VISUALIZATION TOOLS
     ######################
     def add_grid_plot(self, target=None, loc=111, do_label=True,
-                      show_nums=False, show_borders=True, cmap='jet_r',
-                      title='BATS-R-US Grid Layout'):
+                      do_fill=True, show_nums=False, show_borders=True,
+                      cmap='jet_r', title='BATS-R-US Grid Layout'):
         '''
         Create a plot of the grid resolution by coloring regions of constant
         resolution.  Kwarg "target" specifies where to place the plot and can
@@ -1567,6 +1567,8 @@ class Bats2d(IdlFile):
            Set subplot location.  Defaults to 111.
         do_label : boolean
            Adds resolution legend to righthand margin.  Defaults to True.
+        do_fill : boolean
+           If true, fill blocks with color indicating grid resolution.
         show_nums : boolean
            Adds quadtree values to each region.  Useful for debugging.
            Defaults to False.
@@ -1603,7 +1605,7 @@ class Bats2d(IdlFile):
             for key in list(self.qtree.keys()):
                 self.qtree[key].plotbox(ax)
         self.qtree.plot_res(ax, tag_leafs=show_nums, do_label=do_label,
-                            cmap=cmap)
+                            cmap=cmap, do_fill=do_fill)
 
         # Customize plot.
         ax.set_xlabel('GSM %s' % xdim.upper())
@@ -2429,10 +2431,10 @@ class Bats2d(IdlFile):
         # Logarithmic scale?
         if dolog:
             z=np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
-            norm=LogNorm()
+            norm=LogNorm(vmin=zlim[0],vmax=zlim[1])
         else:
             z=self[value]
-            norm=None
+            norm=Normalize(vmin=zlim[0],vmax=zlim[1])
 
         if self['grid'].attrs['gtype']=='Regular':
             pass
@@ -2447,8 +2449,7 @@ class Bats2d(IdlFile):
                 x=leaf.cells[ix]
                 y=leaf.cells[iy]
                 z_local=z[leaf.locs]
-                pcol=ax.pcolormesh(x,y,z_local,vmin=zlim[0],vmax=zlim[1],
-                                   norm=norm,**kwargs)
+                pcol=ax.pcolormesh(x,y,z_local,norm=norm,**kwargs)
 
         # Add cbar if necessary.
         if add_cbar:
