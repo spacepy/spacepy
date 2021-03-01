@@ -3527,7 +3527,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
 
     def sparse(self, sparsetype=None):
         """
-        Gets or sets this variable sparse records mode.
+        Gets or sets this variable's sparse records mode.
 
         Sparse records mode may not be changeable on variables with data
         already written; even deleting the data may not permit the change.
@@ -3568,7 +3568,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
 
     def pad(self, value=None):
         """
-        Gets or sets this variable pad value.
+        Gets or sets this variable's pad value.
 
         See section 2.3.20 of the CDF user's guide for more information on
         pad values.
@@ -3577,7 +3577,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         ================
         value : 
             If specified, should be an appropriate pad value. If not
-            specified, the pad value will not change.
+            specified, the pad value will not be set or changed.
 
         Returns
         =======
@@ -3989,7 +3989,7 @@ class VarCopy(spacepy.datamodel.dmarray):
         return self._cdf_meta['nelems']
 
     def pad(self):
-        """Gets pad value of the variable this was copied from.
+        """Gets pad value of the copied variable.
 
         This copy does *not* preserve which records were written, i.e.
         the entire copy is read, including pad values, and the pad values
@@ -4041,7 +4041,7 @@ class VarCopy(spacepy.datamodel.dmarray):
         self._cdf_meta[key] = value
 
     def sparse(self):
-        """Gets sparse records mode of the variable this was copied from.
+        """Gets sparse records mode of the copied variable.
 
         This copy does *not* preserve which records were written, i.e.
         the entire copy is read, including pad values, and the pad values
