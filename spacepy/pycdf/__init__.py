@@ -3558,8 +3558,8 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
             const.PAD_SPARSERECORDS
         ]
         if sparsetype is not None:
-            if sparsetype not in valid_sr:
-                raise CDFError(const.UNKNOWN_SPARSENESS)
+            if not hasattr(sparsetype, 'value'):
+                comptype = ctypes.c_long(sparsetype)
             self._call(const.PUT_, const.zVAR_SPARSERECORDS_, sparsetype)
         sr = ctypes.c_long(0)
         self._call(const.GET_, const.zVAR_SPARSERECORDS_, ctypes.byref(sr))

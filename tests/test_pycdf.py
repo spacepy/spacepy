@@ -2979,6 +2979,14 @@ class ChangeCDF(ChangeCDFBase):
                          " set/modified for the variable.", str(cm.exception))
         self.assertEqual(const.CANNOT_SPARSERECORDS, cm.exception.status)
 
+    def testSparseNonConst(self):
+        """Set sparseness without using the const module"""
+        v = self.cdf.new('newvar', type=const.CDF_INT1)
+        v.sparse(ctypes.c_long(0))
+        self.assertEqual(0, v.sparse().value)
+        v.sparse(0)
+        self.assertEqual(0, v.sparse().value)
+
     def testChecksum(self):
         """Change checksumming on the CDF"""
         self.cdf.checksum(True)
