@@ -2427,11 +2427,11 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             raise ValueError('Data requires EPOCH16, INT8, or TIME_TT2000; '
                              'incompatible with backward-compatible CDF')
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
-        if compress != None:
+        if compress is not None:
             new_var.compress(compress, compress_param)
-        if sparse != None:
+        if sparse is not None:
             new_var.sparse(sparse)
-        if pad != None:
+        if pad is not None:
             new_var.pad(pad)
         if data is not None:
             new_var[...] = data
