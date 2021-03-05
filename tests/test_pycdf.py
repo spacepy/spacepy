@@ -2655,6 +2655,15 @@ class ChangeCDF(ChangeCDFBase):
                          comptype.value)
         self.assertEqual(8, compparam)
 
+    def testNewVarFromVarCompress(self):
+        """Create a new variable from a variable, change compression"""
+        zvar = self.cdf.new('newzvar1', compress=const.GZIP_COMPRESSION,
+                            data=self.cdf['SpinRateScalersCounts'])
+        comptype, compparam = zvar.compress()
+        self.assertEqual(const.GZIP_COMPRESSION.value,
+                         comptype.value)
+        self.assertEqual(5, compparam)
+
     def testNewVarFromdmarrayAssign(self):
         """Create a new variable by assigning from dmarray"""
         indata = datamodel.dmarray([1,2,3], dtype=numpy.int8,
