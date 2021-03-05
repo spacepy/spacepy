@@ -9,6 +9,7 @@ toolbox
  - Fix bootHisto passing of kwargs to histogram and bar.
 pycdf
  - Add support for Sparse Records variables.
+ - Fix changing compression when creating variable from existing var/data.
 
 Changes in Version 0.2.2 (2020-12-29)
 =====================================

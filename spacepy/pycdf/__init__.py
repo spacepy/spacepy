@@ -2359,8 +2359,9 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             else:
                 if compress is None:
                     compress = c
-                if compress_param is None:
-                    compress_param = cp
+                # Ignore data's compress_param if using compress argument
+                    if compress_param is None:
+                        compress_param = cp
         if hasattr(data, 'sparse') and sparse is None:
             sparse = data.sparse()
         if hasattr(data, 'pad') and pad is None:
