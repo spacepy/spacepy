@@ -11,16 +11,19 @@ Los Alamos National Laboratory
 Copyright 2010 - 2014 Los Alamos National Security, LLC.
 """
 
-#pip force-imports setuptools, on INSTALL, so then need to use its versions
-#but on reading the egg info, it DOESN'T force-import, assumes you are using
 import sys
-if any([a in sys.argv for a in ('pip-egg-info', 'bdist_wheel')]):
+# Calling egg info, so a lot of stuff doesn't have to work
+egginfo_only = any([a in sys.argv for a in (
+    'pip-egg-info', 'egg_info', 'dist_info')])
+if egginfo_only:
+    # pip force-imports setuptools, on INSTALL, so then need to use its versions
+    # but on reading egg info, it DOESN'T force-import, assumes you are using
     import setuptools
 if 'bdist_wheel' in sys.argv:
+    # Similarly, self-inject setuptools if making wheel
+    import setuptools
     import wheel
 use_setuptools = "setuptools" in globals()
-#Calling egg info, so a lot of stuff doesn't have to work
-egginfo_only = ('pip-egg-info' in sys.argv)
 
 import copy
 import os, shutil, getopt, glob, re
