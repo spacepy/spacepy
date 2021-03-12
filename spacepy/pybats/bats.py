@@ -739,15 +739,29 @@ class Bats2d(IdlFile):
     # Init by calling IdlFile init and then building qotree, etc.
     def __init__(self, filename, *args, **kwargs):
 
+        # Create quad tree object attribute:
+        self._qtree = None
+        
         # Read file.
         IdlFile.__init__(self, filename, keep_case=False, *args, **kwargs)
-
-        self._qtree = None
-
+        
         # Behavior of output files changed Jan. 2017:
         # Check for 'r' instead of 'rbody' in attrs.
         if 'r' in self.attrs and 'rbody' not in self.attrs:
             self.attrs['rbody'] = self.attrs['r']
+
+    def switch_frame(self, *args, **kwargs):
+        '''
+        For files that have more than one data frame (i.e., `*.outs` files),
+        load data from the *iframe*-th frame into the object replacing what is
+        currently loaded.
+        '''
+
+        # Reset our quad tree before reading our file:
+        self._qtree = None
+        
+        # Switch frames using parent method:
+        super().switch_frame(*args, **kwargs)
         
     @property
     def qtree(self):
