@@ -1620,7 +1620,7 @@ class Bats2d(IdlFile):
         return fig, ax
 
     def add_stream_scatter(self, xcomp, ycomp, nlines=100, target=None, loc=111,
-                           method='rk4', xlim=None, ylim=None, narrow=0,
+                           method='rk4', maxPoints=1E6, xlim=None, ylim=None, narrow=0,
                            arrsize=12, arrstyle='->', start_points=None,
                            **kwargs):
         '''
@@ -1658,6 +1658,8 @@ class Bats2d(IdlFile):
             Set start_points to define starting location of traces instead of
             using random points.  This is useful for creating timeseries of
             plots.
+        maxPoints : int
+            Set the maximum number of points in a single trace.  Defaults to 1E6.
         narrow : int
             Add "n" arrows to each line to indicate direction.  Default is 
             zero, or no lines.  If narrow=1, arrows will be placed at 
@@ -1728,7 +1730,7 @@ class Bats2d(IdlFile):
             # block for the time being.
             try:
                 stream = self.get_stream(xstart, ystart, xcomp, ycomp,
-                                         method=method)
+                                         method=method, maxPoints=maxPoints)
             except IndexError:
                 continue
             
@@ -1899,7 +1901,7 @@ class Bats2d(IdlFile):
                         DoLast=True, DoOpen=True,
                         compX='bx',compY='bz', narrow=0, arrsize=12,
                         method='rk4', tol=np.pi/720., DoClosed=True,
-                        colors=None, linestyles=None,
+                        colors=None, linestyles=None, maxPoints=1E6,
                         nOpen=5, nClosed=15, arrstyle='->', **kwargs):
         '''
         Create an array of field lines closed to the central body in the
@@ -1972,6 +1974,8 @@ class Bats2d(IdlFile):
         compX      Name of x-variable through which to trace, defaults to 'bx'.
         compY      Name of y-variable through which to trace, defaults to 'bz'.
         colors     Matplotlib-compatable color name (single) to apply to lines.
+        maxPoints  Set the maximum number of points in an field line
+                   integration.  Defaults to one million.
         linestyles A single line style indicator, defaults to '-'; 
                    see :class:`~matplotlib.collections.LineCollection` for 
                    possible options.
@@ -2041,11 +2045,11 @@ class Bats2d(IdlFile):
                     linspace(0,     thetaD[0]-dTheta, nClosed),
                     linspace(np.pi, thetaN[1]-dTheta, nClosed)):
                 x, y = R*cos(tDay), R*sin(tDay)
-                sD   = self.get_stream(x,y,compX,compY,method=method,
-                                       style=style)
+                sD   = self.get_stream(x, y, compX, compY, method=method,
+                                       maxPoints=maxPoints, style=style)
                 x, y = R*cos(tNit), R*sin(tNit)
-                sN   = self.get_stream(x,y,compX,compY,method=method,
-                                       maxPoints=1E6,style=style)
+                sN   = self.get_stream(x, y, compX, compY, method=method,
+                                       maxPoints=maxPoints, style=style)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
@@ -2058,11 +2062,11 @@ class Bats2d(IdlFile):
                     linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
                     linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
                 x, y = R*cos(tNorth), R*sin(tNorth)
-                sD   = self.get_stream(x,y,compX,compY,method=method,
-                                       style=style)
+                sD   = self.get_stream(x, y, compX, compY, method=method,
+                                       maxPoints=maxPoints, style=style)
                 x, y = R*cos(tSouth), R*sin(tSouth)
-                sN   = self.get_stream(x,y,compX,compY,method=method,
-                                       style=style)
+                sN   = self.get_stream(x, y, compX, compY, method=method,
+                                       maxPoints=maxPoints, style=style)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())

@@ -194,8 +194,8 @@ class QTree(object):
     rd = rightdaughter
     ld = leftdaughter
 
-    def plot_res(self, ax, do_label=True, tag_leafs=False, zlim=False,
-                 cmap='jet_r'):
+    def plot_res(self, ax, do_label=True, do_fill=True, tag_leafs=False,
+                 zlim=False,cmap='jet_r'):
 
         from matplotlib.pyplot import get_cmap
         from matplotlib import patheffects
@@ -212,12 +212,7 @@ class QTree(object):
             if self[key].isLeaf:
                 color = cMap.to_rgba(self[key].dx)
                 dx_vals[self[key].dx] = 1.0
-                #if self[key].dx in res_colors:
-                #    dx_vals[self[key].dx] = 1.0
-                #    color=#res_colors[self[key].dx]
-                #else:
-                #    color='k'
-                self[key].plot_res(ax, fc=color, label=key*tag_leafs)
+                self[key].plot_res(ax, fc=color, do_fill=do_fill, label=key*tag_leafs)
 
         if do_label:
             
@@ -259,14 +254,15 @@ class Branch(object):
             array([ [l[0],l[3] ], [ l[1],l[3]] ]),
             array([ [l[0],l[2] ], [ l[0],l[3]] ]),
             array([ [l[1],l[2] ], [ l[1],l[3]] ]))
-        coll=LineCollection(segs, colors=lc, **kwargs)
+        alpha = 1#max(0, min(.8, -1/40.*l[2]))
+        coll=LineCollection(segs, colors=lc, alpha=alpha, **kwargs)
         ax.add_collection(coll)
         #ax.plot(l[0:2], [l[2],l[2]], **kwargs)
         #ax.plot(l[0:2], [l[3],l[3]], **kwargs)
         #ax.plot([l[0],l[0]], l[2:],  **kwargs)
         #ax.plot([l[1],l[1]], l[2:],  **kwargs)
 
-    def plot_res(self, ax, fc='gray', label=False):
+    def plot_res(self, ax, fc='gray', do_fill=True, label=False):
         if not self.isLeaf: return
         from matplotlib.patches import Polygon
         from numpy import array
@@ -274,7 +270,8 @@ class Branch(object):
         verts = array([
                 [l[0],l[2] ], [ l[1],l[2]],
                 [l[1],l[3] ], [ l[0],l[3]]])
-        poly = Polygon(verts, True, ec=None, fc=fc, lw=0.0)
+        alpha = 1#max(0, min(.8, -1/40.*l[2]))
+        poly = Polygon(verts, True, ec=None, fc=fc, fill=do_fill, lw=0.0, alpha=alpha)
         if label:
             x = l[0]+(l[1]-l[0])/2.0
             y = l[2]+(l[3]-l[2])/2.0
