@@ -1,5 +1,6 @@
 Changes in Version 0.2.3 (2021-xx-xx)
 =====================================
+- Installs numpy before build on newer versions of pip (thanks Michael Hirsch)
 tests
  - Add spacepy_testing module to provide helper functions for testing.
  - Add assertWarns and assertDoesntWarn context managers.
