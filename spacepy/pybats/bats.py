@@ -761,7 +761,7 @@ class Bats2d(IdlFile):
         self._qtree = None
         
         # Switch frames using parent method:
-        super().switch_frame(*args, **kwargs)
+        super(Bats2d, self).switch_frame(*args, **kwargs)
         
     @property
     def qtree(self):
