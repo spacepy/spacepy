@@ -989,7 +989,7 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
                 gridtotal = gridtotal + offset + pbdat[key]
                 offset = offset + np.pi/2.0
                 SortIndex = np.argsort(gridtotal)
-            for key in list(pbdat.keys()):
+            for key in list(names[:nvar+ndim]):
                 if key == 'grid': continue
                 pbdat[key] = pbdat[key][SortIndex]
 
@@ -1291,7 +1291,7 @@ class IdlFile(PbData):
         self.read(iframe)
 
         # Update information about the current frame:
-        self.attrs['iframe'] = iframe
+        self.attrs['iframe'] = self.attrs['nframe'] + iframe if iframe < 0 else iframe
         self.attrs['iter']   = self.attrs['iters'][iframe]
         self.attrs['runtime']= self.attrs['runtimes'][iframe]
         self.attrs['time']   = self.attrs['times'][iframe]
