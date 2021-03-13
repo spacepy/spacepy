@@ -1208,7 +1208,8 @@ class VarBundleChecks(VarBundleChecksBase):
         sigma[sigma < 0] = numpy.nan
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                'ignore', 'invalid value encountered in divide', RuntimeWarning)
+                'ignore', r'invalid value encountered in (?:true_)divide$',
+                RuntimeWarning)
             expected = numpy.sqrt(numpy.nansum(sigma ** 2, axis=2)) \
                         / (~numpy.isnan(sigma)).sum(axis=2)
         expected[numpy.isnan(expected)] = -1e31
