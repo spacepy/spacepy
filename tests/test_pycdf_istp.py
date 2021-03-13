@@ -287,7 +287,8 @@ class VariablesTests(ISTPTestsBase):
     def testValidRangeFillvalDatetime(self):
         """Validmin/validmax with fillval set, Epoch var"""
         v = self.cdf.new(
-            'var1', data=[datetime.datetime(2010, 1, i) for i in range(1, 6)])
+            'var1', data=[datetime.datetime(2010, 1, i) for i in range(1, 6)],
+            type=spacepy.pycdf.const.CDF_EPOCH)
         v.attrs['VALIDMIN'] = datetime.datetime(2010, 1, 1)
         v.attrs['VALIDMAX'] = datetime.datetime(2010, 1, 31)
         v.attrs['FILLVAL'] = datetime.datetime(9999, 12, 31, 23, 59, 59, 999000)
@@ -728,7 +729,9 @@ class FileTests(ISTPTestsBase):
 
     def testTimesMonoton(self):
         """Test monotonic time"""
-        self.cdf['Epoch'] = [datetime.datetime(1999, 1, 1, i) for i in range(3)]
+        self.cdf.new('Epoch',
+                     data=[datetime.datetime(1999, 1, 1, i) for i in range(3)],
+                     type=spacepy.pycdf.const.CDF_EPOCH)
         self.cdf['Epoch'].append(datetime.datetime(1999, 1, 1, 5))
         self.cdf['Epoch'].append(datetime.datetime(1999, 1, 1, 4))
         errs = spacepy.pycdf.istp.FileChecks.time_monoton(self.cdf)
