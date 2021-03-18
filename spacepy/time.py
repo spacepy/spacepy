@@ -30,7 +30,7 @@ on 2009-01-01 is two seconds, but only represents a one-second increment in
 Unix time. Details are also discussed in the individual time representations.
 
 UTC times more than six months in the future are not well-defined, since
-the sechedule of leap second insertion is not known in advance. SpacePy
+the schedule of leap second insertion is not known in advance. SpacePy
 performs conversions assuming there are no leapseconds after those which have
 been announced by IERS.
 
