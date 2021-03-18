@@ -866,7 +866,8 @@ class Bats2d(IdlFile):
 
         self['j'] = sqrt(self['jx']**2.0 + self['jy']**2.0 + self['jz']**2.0)
         self['j'].attrs = {'units':self['jx'].attrs['units']}
-        
+    
+    @calc_wrapper
     def calc_E(self):
         '''
         Calculates the MHD electric field, -UxB.  Works for default
@@ -2583,7 +2584,7 @@ class ShellSlice(IdlFile):
         self.phi   = d2r*self.lon
         self.theta = d2r*(90-self.lat)
 
-        
+    @calc_wrapper
     def calc_urad(self):
         '''
         Calculate radial velocity.
@@ -2595,6 +2596,7 @@ class ShellSlice(IdlFile):
 
         self['ur'] = dmarray(ur, {'units':self['ux'].attrs['units']})
 
+    @calc_wrapper
     def calc_radflux(self, var, conv=1000. * (100.0)**3):
         '''
         For variable *var*, calculate the radial flux of *var* through each
@@ -2610,6 +2612,7 @@ class ShellSlice(IdlFile):
         # Calc flux:
         self[var+'_rflx'] = self[var] * self['ur'] * conv
 
+    @calc_wrapper
     def calc_radflu(self, var):
         '''
         For variable *var*, calculate the radial fluence, or the 
@@ -2865,7 +2868,7 @@ class Mag(PbData):
         for key in list(self.keys()):
             if key in varmap:
                 self[ varmap[key] ] = self.pop(key)
-            
+
     def calc_h(self):
         '''
         Calculate the total horizontal perturbation, 'H', using the pythagorean
@@ -3320,7 +3323,8 @@ class MagGridFile(IdlFile):
         #if coord == 'GEO':
         #    self['Lat_geo']=self['Lat']
         #    self['Lon_geo']=self['Lon']
-                
+
+    @calc_wrapper                
     def calc_h(self):
         '''
         Calculate the total horizontal perturbation, 'h', using the pythagorean
