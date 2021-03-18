@@ -1145,7 +1145,7 @@ class Ticktock(MutableSequence):
 
         Notes
         =====
-        This is based on the UTC day, defined as JD(UTC) - 2 400 000.5,
+        This is based on the UTC day, defined as JD(UTC),
         per the recommendation
         of `IAU General Assembly XXIII resolution B1
         <https://www.iers.org/IERS/EN/Science/Recommendations/
