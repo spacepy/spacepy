@@ -664,7 +664,6 @@ class Bats2d(IdlFile):
 
     Calculations
     ------------
-    
     New values can be added via the addition of new keys.  For example, 
     a user could add radial distance to an equatorial Bats2d object as follows:
 
