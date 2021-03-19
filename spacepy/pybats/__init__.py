@@ -130,7 +130,6 @@ def calc_wrapper(meth):
     '''
 
     @wraps(meth)
-
     def wrapped(self, *args, **kwargs):
         # Establish list of calculations:
         if not hasattr(self, '_calcs'): self._calcs={}
@@ -639,6 +638,8 @@ def _skip_entry(f, inttype):
     the data entry, skips over the entry, and reads the trailing byte wrapper
     before returning.
 
+    Parameters
+    ==========
     f : Binary file object
         The file from which to read the array of values.
     inttype : Numpy integer type
@@ -1143,7 +1144,6 @@ class IdlFile(PbData):
 
     Notes
     -----
-    
     PyBats assumes little endian byte ordering because
     this is what most machines use.  However, there is an autodetect feature
     such that, if PyBats doesn't make sense of the first read (a record length
