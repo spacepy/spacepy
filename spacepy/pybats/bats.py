@@ -684,7 +684,6 @@ class Bats2d(IdlFile):
 
     Plotting
     --------
-
     While users can employ Matplotlib to plot values, a set of built-in
     methods are available to expedite plotting.  These are the
     `add_<plot type>` methods.  These methods always have the following
@@ -720,7 +719,6 @@ class Bats2d(IdlFile):
 
     Extracting and Stream Tracing
     -----------------------------
-
     Extracting values via interpolation to arbitrary points and creating
     stream traces through any vector field (e.g., velocity or magnetic field)
     are aided via the use of the following object methods:
@@ -1186,7 +1184,7 @@ class Bats2d(IdlFile):
                                      * conv * mass[s.lower()],
                                      attrs={'units':units})
 
-    
+
     def calc_all(self, exclude=[]):
         '''
         Perform all variable calculations (e.g. calculations that
