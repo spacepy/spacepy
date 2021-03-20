@@ -38,6 +38,12 @@ to :func:`numpy.histogram` and :func:`matplotlib.pyplot.bar` has been fixed.
 The check for out-of-date leapseconds in :mod:`~spacepy.time` has been
 fixed (previously warned even when the file was up to date.)
 
+Other changes
+*************
+Modern leapsecond rules are applied from 1958-1972 rather than
+rounding fractional leapseconds. See :mod:`~spacepy.time` for full
+discussion of leap seconds and other conversion considerations.
+
 0.2.2 (2020-12-29)
 ------------------
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Time conversion, manipulation and implementation of Ticktock class
+"""Time conversion, manipulation and implementation of Ticktock class
 
 Notes
 =====
@@ -34,16 +33,28 @@ the schedule of leap second insertion is not known in advance. SpacePy
 performs conversions assuming there are no leapseconds after those which have
 been announced by IERS.
 
-Between 1960 and 1972, UTC was defined by means of fractional leap seconds
-and a varying-length second. SpacePy treats UTC time in this period similar
-to after 1972, with a consistent second the same length of the SI second.
-It applies leap seconds wherever there is an entry in the USNO record of
-TAI-UTC, rounding fractional total leap second countss to the integer (0.5
-rounds up). This results in the application of six leap seconds at the
-beginning of 1972. The discrepancy with other means of calculating TAI-UTC
-may be as much as five seconds at the end of this period.
+Between 1960 and 1972, UTC was defined by means of fractional leap
+seconds and a varying-length second. From 1958 (when UTC was set equal
+to TAI) and 1972, SpacePy treats UTC time similar to after 1972, with
+a consistent second the same length of the SI second, and applying a
+full leap second before the beginning of January and July if UTC - UT1
+exceeded 0.4s. The difference with other methods of calculating UTC is
+less than half a second.
 
-Before 1960, UTC is not defined. SpacePy assumes days of constant length
+.. versionchanged:: 0.2.3
+   The application of post-1972 rules to 1958-1927 is new in
+   0.2.3. Before, SpacePy applied leap seconds wherever there was an
+   entry in the USNO record of TAI-UTC, rounding fractional total leap
+   second counts to the integer (0.5 rounds up). The UTC second was still
+   treated as the same length as the SI second (i.e., rate changed were
+   not applied.) This resulted in the application of six leap seconds at
+   the beginning of 1972. The discrepancy with other means of calculating
+   TAI-UTC was as much as five seconds by the end of this period.
+
+.. versionchanged:: 0.2.2
+   Before 0.2.2, SpacePy truncated fractional leapseconds rather than rounding.
+
+Before 1958, UTC is not defined. SpacePy assumes days of constant length
 86400 seconds, equal to the SI second. This is almost guaranteed to be wrong;
 for times well out of the space era, it is strongly recommended to work
 consistently in either a continuous time system (e.g. TAI) or a day-based
@@ -139,6 +150,7 @@ Contact: smorley@lanl.gov,
 
 
 Copyright 2010 Los Alamos National Security, LLC.
+
 """
 from __future__ import absolute_import
 
@@ -2279,12 +2291,23 @@ def _leapsgood(now, filetime, lastleap):
     return now < goodto
 
 
-def _read_leaps():
+def _read_leaps(oldstyle=False):
     """Read leapseconds in from spacepy tai-utc file
 
     Populates module-global variables with leapsecond information:
     secs, year, mon, day, TAIleaps.
-    Called on first initialization of Ticktock.
+    Called on import of this module.
+
+    Other Parameters
+    ----------------
+    oldstyle : bool
+
+        .. versionadded:: 0.2.3
+
+        Treat leapseconds as in SpacePy 0.2.2 (default False). Default is
+        to ignore the file contents through 1 Jan 1972 and use SpacePy's own
+        list of integral leapseconds, which uses the post-1972 standard
+        (add a leapsecond on January 1/July 1 if UTC - UT1 > 0.4s).
     """
     global secs, year, mon, day, TAIleaps
     # load current file
@@ -2296,13 +2319,28 @@ def _read_leaps():
     if text[0].startswith('Checked'):
         del text[0]
 
+    months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                       'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
+
+    if not oldstyle: # Use internal integral leapsecond count until 1972
+        keep_idx = next((i for i, l in enumerate(text)
+                        if int(l[:5]) > 1972
+                        or int(l[:5]) == 1972 and l[6:9] == 'JUL'))
+        leaps = [(1959, 1, 36569), (1961, 1, 37300), (1963, 7, 38211),
+                 (1965, 1, 38761), (1966, 7, 39307), (1967, 7, 39672),
+                 (1968, 7, 40038), (1969, 7, 40403), (1970, 7, 40768),
+                 (1971, 7, 41133)]
+        # 1972 Jan NOT a leapsecond in this formulation; TAI-UTC=10s at 71 Jul
+        text = [
+            ' {Y} {M}  1 =JD {JD}  TAI-UTC={L:12.7f} S '
+            '+ (MJD - 00000.) X 0.0000000 S   ACTUAL\n'.format(
+                Y=l[0], M=months[l[1] - 1], JD=l[2] + 2400000.5, L=i + 1)
+            for i, l in enumerate(leaps)] \
+                + text[keep_idx:]
     secs = np.zeros(len(text))
     year = np.zeros(len(text))
     mon = np.zeros(len(text))
     day = np.zeros(len(text))
-
-    months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                       'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
 
     for line, i in zip(text, np.arange(len(secs))):
         # Round float seconds (0.5 always rounds up.)
