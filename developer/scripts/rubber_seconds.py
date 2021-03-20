@@ -92,6 +92,8 @@ if len(ut1_ls) < 11:
     ut1_ls.append(datetime.datetime(1972, 7, 1))
 if len(ut1_ls) < 12:
     ut1_ls.append(datetime.datetime(1973, 1, 1))
+print('Leapseconds based on UTC - UT1 > 0.4s:')
+print('\n'.join([str(t) for t in ut1_ls]))
 
 
 def rubber_taiutc(dt):
@@ -121,7 +123,6 @@ if len(utc_ls) < 12:
 
 
 # Fake leapseconds, current SpacePy
-# Obviously will not work if changes to fractional leaps are committed
 def spacepy_taiutc(dt):
     spacepy_ls = [
         datetime.datetime(int(y), int(m), 1)
@@ -147,6 +148,10 @@ ax.plot(times, [fake_taiutc(t, utc_ls) for t in times],
         ls='-.', marker=None, label='Proposed (UTC)')
 ax.plot(times, [spacepy_taiutc(t) for t in times],
         ls=':', marker=None, label='Current')
+# Revert to <=0.2.2 leapsecond treatment
+spacepy.time._read_leaps(oldstyle=True)
+ax.plot(times, [spacepy_taiutc(t) for t in times],
+        ls=':', marker=None, label='0.2.2')
 ax.set_ylabel('seconds')
 ax.set_xlabel('UTC date')
 ax.legend(loc='best')

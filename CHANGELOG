@@ -6,6 +6,7 @@ tests
  - Add assertWarns and assertDoesntWarn context managers.
 time
  - Fix warning for out-of-date leapseconds.
+ - Apply post-1972 leapsecond rules to pre-1972.
 toolbox
  - Fix bootHisto passing of kwargs to histogram and bar.
 pycdf

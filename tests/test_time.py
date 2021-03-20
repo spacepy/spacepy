@@ -388,8 +388,11 @@ class TimeFunctionTests(unittest.TestCase):
             -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
             43200,     # 1958-01-01 12:00:00
-            126230400, # 1961-12-31 23:59:59
-            126230401, # 1961-12-31 23:59:60
+            94694400,  # 1960-12-31 23:59:59
+            94694401,  # 1960-12-31 23:59:60
+            94694402,  # 1961-01-01 00:00:00
+            126230400, # 1961-12-31 23:59:58
+            126230401, # 1961-12-31 23:59:59
             126230402, # 1962-01-01 00:00:00
             126316802, # 1962-01-02 00:00:00
             1609459232,# 2008-12-31 23:59:59
@@ -402,9 +405,12 @@ class TimeFunctionTests(unittest.TestCase):
             -365.25,
             -0.5,
             0,
-            1460 + 43199. / 86401,
-            1460 + 43200. / 86401,
-            1460 + 43201. / 86401,
+            1095 + 43199. / 86401,
+            1095 + 43200. / 86401,
+            1095 + 43201. / 86401,
+            1460 + 43198. / 86400,
+            1460 + 43199. / 86400,
+            1460.5,
             1461.5,
             18627. + 43199. / 86401,
             18627. + 43200. / 86401,
@@ -418,8 +424,11 @@ class TimeFunctionTests(unittest.TestCase):
             -365.25,
             -0.5,
             0,
+            1095 + 43199. / 86400,
+            1095 + 43199.999999 / 86400,
+            1095.5,
+            1460 + 43198. / 86400,
             1460 + 43199. / 86400,
-            1460 + 43199.999999 / 86400,
             1460.5,
             1461.5,
             18627. + 43199. / 86400,
@@ -434,6 +443,9 @@ class TimeFunctionTests(unittest.TestCase):
             -365.25,
             -0.5,
             0,
+            1095.5,
+            1095.5 + 1. / 86400,
+            1095.5 + 2. / 86400,
             1460.5,
             1460.5 + 1. / 86400,
             1460.5 + 2. / 86400,
@@ -467,8 +479,11 @@ class TimeFunctionTests(unittest.TestCase):
             -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
             43200,     # 1958-01-01 12:00:00
-            126230400, # 1961-12-31 23:59:59
-            126230401, # 1961-12-31 23:59:60
+            94694400,  # 1960-12-31 23:59:59
+            94694401,  # 1960-12-31 23:59:60
+            94694402,  # 1961-01-01 00:00:00
+            126230400, # 1961-12-31 23:59:58
+            126230401, # 1961-12-31 23:59:59
             126230402, # 1962-01-01 00:00:00
             126316802, # 1962-01-02 00:00:00
             1609459232,# 2008-12-31 23:59:59
@@ -481,8 +496,11 @@ class TimeFunctionTests(unittest.TestCase):
             -364.75,
             0.,
             0.5,
-            1460 + 86399. / 86401,
-            1460 + 86400. / 86401,
+            1095 + 86399. / 86401,
+            1095 + 86400. / 86401,
+            1095 + 86401. / 86401,
+            1460 + 86398. / 86400,
+            1460 + 86399. / 86400,
             1461,
             1462,
             18627. + 86399. / 86401,
@@ -500,8 +518,11 @@ class TimeFunctionTests(unittest.TestCase):
             -364.75,
             0.,
             0.5,
+            1095 + 86399. / 86400,
+            1095 + 86399.999999 / 86400,
+            1096,
+            1460 + 86398. / 86400,
             1460 + 86399. / 86400,
-            1460 + 86399.999999 / 86400,
             1461,
             1462,
             18627. + 86399. / 86400,
@@ -519,6 +540,9 @@ class TimeFunctionTests(unittest.TestCase):
             -364.75,
             0.,
             0.5,
+            1096,
+            1096 + 1. / 86400,
+            1096 + 2. / 86400,
             1461,
             1461 + 1. / 86400,
             1461 + 2. / 86400,
@@ -541,8 +565,11 @@ class TimeFunctionTests(unittest.TestCase):
             -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
             43200,     # 1958-01-01 12:00:00
-            126230400, # 1961-12-31 23:59:59
-            126230401, # 1961-12-31 23:59:60
+            94694400,  # 1960-12-31 23:59:59
+            94694401,  # 1960-12-31 23:59:60
+            94694402,  # 1961-01-01 00:00:00
+            126230400, # 1961-12-31 23:59:58
+            126230401, # 1961-12-31 23:59:59
             126230402, # 1962-01-01 00:00:00
             126316802, # 1962-01-02 00:00:00
             1609459232,# 2008-12-31 23:59:59
@@ -555,9 +582,12 @@ class TimeFunctionTests(unittest.TestCase):
             -365.25,
             -0.5,
             0,
-            1460 + 43199. / 86401,
-            1460 + 43200. / 86401,
-            1460 + 43201. / 86401,
+            1095 + 43199. / 86401,
+            1095 + 43200. / 86401,
+            1095 + 43201. / 86401,
+            1460 + 43198. / 86400,
+            1460 + 43199. / 86400,
+            1460.5,
             1461.5,
             18627. + 43199. / 86401,
             18627. + 43200. / 86401,
@@ -571,8 +601,11 @@ class TimeFunctionTests(unittest.TestCase):
             -365.25,
             -0.5,
             0,
+            1095 + 43199. / 86400,
+            1095 + 43199.999999 / 86400,
+            1095.5,
+            1460 + 43198. / 86400,
             1460 + 43199. / 86400,
-            1460 + 43199.999999 / 86400,
             1460.5,
             1461.5,
             18627. + 43199. / 86400,
@@ -587,6 +620,9 @@ class TimeFunctionTests(unittest.TestCase):
             -365.25,
             -0.5,
             0,
+            1095.5,
+            1095.5 + 1. / 86400,
+            1095.5 + 2. / 86400,
             1460.5,
             1460.5 + 1. / 86400,
             1460.5 + 2. / 86400,
@@ -623,8 +659,11 @@ class TimeFunctionTests(unittest.TestCase):
             -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
             43200,     # 1958-01-01 12:00:00
-            126230400, # 1961-12-31 23:59:59
-            126230401, # 1961-12-31 23:59:60
+            94694400,  # 1960-12-31 23:59:59
+            94694401,  # 1960-12-31 23:59:60
+            94694402,  # 1961-01-01 00:00:00
+            126230400, # 1961-12-31 23:59:58
+            126230401, # 1961-12-31 23:59:59
             126230402, # 1962-01-01 00:00:00
             126316802, # 1962-01-02 00:00:00
             1609459232,# 2008-12-31 23:59:59
@@ -634,18 +673,21 @@ class TimeFunctionTests(unittest.TestCase):
             ]
 
         inputs = [
-            -364.75,
+           -364.75,
             0.,
             0.5,
-            1460 + 86399. / 86401,
-            1460 + 86400. / 86401,
+            1095 + 86399. / 86401,
+            1095 + 86400. / 86401,
+            1095 + 86401. / 86401,
+            1460 + 86398. / 86400,
+            1460 + 86399. / 86400,
             1461,
             1462,
             18627. + 86399. / 86401,
             18627. + 86400. / 86401,
             18628.,
             18628. + 1. / 86400,
-            ]
+             ]
         actual = t._days1958totai(inputs, leaps='rubber', midnight=True)
         numpy.testing.assert_almost_equal(expected, actual, decimal=6)
         self.assertEqual(
@@ -656,8 +698,11 @@ class TimeFunctionTests(unittest.TestCase):
             -364.75,
             0.,
             0.5,
+            1095 + 86399. / 86400,
+            1095 + 86399.999999 / 86400,
+            1096,
+            1460 + 86398. / 86400,
             1460 + 86399. / 86400,
-            1460 + 86399.999999 / 86400,
             1461,
             1462,
             18627. + 86399. / 86400,
@@ -675,6 +720,9 @@ class TimeFunctionTests(unittest.TestCase):
             -364.75,
             0.,
             0.5,
+            1096,
+            1096 + 1. / 86400,
+            1096 + 2. / 86400,
             1461,
             1461 + 1. / 86400,
             1461 + 2. / 86400,
@@ -1042,10 +1090,11 @@ class TimeClassTests(unittest.TestCase):
             tt2 = t.Ticktock.now()
         tt2tai = tt2.TAI
         taileaps = tt2.TAIleaps
-        range_ex.append(taileaps[39] - 1)
-        range_ex.append(taileaps[39])
-        range_ex.append(taileaps[39] + 1)
-        range_ex.append(taileaps[38])
+        # Get the TAI at the 2015 and 2012 leap seconds
+        range_ex.append(taileaps[35] - 1)
+        range_ex.append(taileaps[35])
+        range_ex.append(taileaps[35] + 1)
+        range_ex.append(taileaps[34])
         tt = t.Ticktock(range_ex, 'TAI')
         ans = ['2010-09-15T10:15:13', '2010-09-15T10:37:26', '2010-09-15T10:59:39',
                '2010-09-15T11:21:53',
@@ -1197,7 +1246,7 @@ class TimeClassTests(unittest.TestCase):
                                   -320., -100841., -100840.,
                                   37299.5 + 43201. / 86401,
                                   41316.,
-                                  41316.5 + 43201. / 86401])
+                                  41317])
         numpy.testing.assert_almost_equal(t1.MJD, expected)
 
     def test_MJDLeapsecond(self):
@@ -1478,31 +1527,28 @@ class TimeClassTests(unittest.TestCase):
             datetime.datetime(1964, 1, 1),
             datetime.datetime(1965, 3, 1)], dtype='UTC')
         numpy.testing.assert_equal(
-            [0, 0, 1, 3, 4], t1.getleapsecs())
+            [0, 1, 2, 3, 4], t1.getleapsecs())
 
     def test_readleapsecs(self):
         """Test that the leap second file was properly read"""
         numpy.testing.assert_equal(
-            [1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 10],
-            spacepy.time.secs[:14])
+            numpy.arange(12) + 1, spacepy.time.secs[:12])
         # The date in the file (the moment after the leapsecond, i.e.
         # the first time where the TAI-UTC changes).
-        expected = [(1961, 1, 1),
-                    (1961, 8, 1),
-                    (1962, 1, 1),
-                    (1963, 11, 1),
-                    (1964, 1, 1),
-                    (1964, 4, 1),
-                    (1964, 9, 1),
+        expected = [(1959, 1, 1),
+                    (1961, 1, 1),
+                    (1963, 7, 1),
                     (1965, 1, 1),
-                    (1965, 3, 1),
-                    (1965, 7, 1),
-                    (1965, 9, 1),
-                    (1966, 1, 1),
-                    (1968, 2, 1),
-                    (1972, 1, 1)]
+                    (1966, 7, 1),
+                    (1967, 7, 1),
+                    (1968, 7, 1),
+                    (1969, 7, 1),
+                    (1970, 7, 1),
+                    (1971, 7, 1),
+                    (1972, 7, 1),
+                    (1973, 1, 1)]
         actual = [(int(y), int(m), int(d))
-                  for y, m, d in zip(t.year, t.mon, t.day)][:14]
+                  for y, m, d in zip(t.year, t.mon, t.day)][:12]
         numpy.testing.assert_equal(expected, actual)
 
     def test_leapsgood(self):
@@ -1525,7 +1571,7 @@ class TimeClassTests(unittest.TestCase):
                 datetime.datetime(*lastleap)), 'Case {}'.format(caseno))
 
     def test_diffAcrossLeaps(self):
-        """Do TAI differences across the first leapsecond"""
+        """Do TAI differences across leapseconds"""
         t1 = t.Ticktock([
             datetime.datetime(1960, 12, 31, 23, 59, 58),
             # 1 normal second in between
@@ -1537,6 +1583,15 @@ class TimeClassTests(unittest.TestCase):
         numpy.testing.assert_equal(
             [1, 2, 1], numpy.diff(t1.TAI))
 
+    def testLeapCount(self):
+        """Check leap-second counts (TAI-UTC) at various times"""
+        t1 = t.Ticktock([datetime.datetime(*dt) for dt in (
+            (1958, 1, 1), (1959, 1, 1), (1961, 1, 1),
+            (1971, 12, 31), (1972, 1, 1), (1982, 7, 1),
+        )], dtype='UTC')
+        numpy.testing.assert_equal(
+            [0, 1, 2, 10, 10, 21], t1.leaps)
+
     def testTAIBase(self):
         """Test the baseline of TAI"""
         t1 = t.Ticktock([
@@ -1544,7 +1599,8 @@ class TimeClassTests(unittest.TestCase):
             datetime.datetime(1961, 1, 1)], dtype='UTC')
         numpy.testing.assert_equal(
             [0, # Start epoch.
-             (3 * 365 + 1) * 86400 + 1, # 1958, 1959, 1960 (leap) + 1 second
+             # 1958, 1959, 1960 (leap year) + leap seconds 1959 and 1961
+             (3 * 365 + 1) * 86400 + 2,
              ],
             t1.TAI)
 
