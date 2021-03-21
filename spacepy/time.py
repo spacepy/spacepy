@@ -2312,11 +2312,17 @@ def _read_leaps(oldstyle=False):
     global secs, year, mon, day, TAIleaps
     # load current file
     fname = os.path.join(spacepy.DOT_FLN, 'data', 'tai-utc.dat')
-    mtime = datetime.datetime(*time.gmtime(os.path.getmtime(fname))[:6])
-    with open(fname) as fh:
-        text = fh.readlines()
+    try:
+        with open(fname) as fh:
+            text = fh.readlines()
+        mtime = datetime.datetime(*time.gmtime(os.path.getmtime(fname))[:6])
+    except IOError:
+        warnings.warn('Cannot read leapsecond file. Use'
+                      ' spacepy.toolbox.update(leapsecs=True).')
+        text = [] # Use built-in pre-1972 leaps
+        mtime = None
     # Some files have a "last checked" line at the top
-    if text[0].startswith('Checked'):
+    if text and text[0].startswith('Checked'):
         del text[0]
 
     months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
@@ -2324,8 +2330,8 @@ def _read_leaps(oldstyle=False):
 
     if not oldstyle: # Use internal integral leapsecond count until 1972
         keep_idx = next((i for i, l in enumerate(text)
-                        if int(l[:5]) > 1972
-                        or int(l[:5]) == 1972 and l[6:9] == 'JUL'))
+                         if int(l[:5]) > 1972
+                         or int(l[:5]) == 1972 and l[6:9] == 'JUL'), len(text))
         leaps = [(1959, 1, 36569), (1961, 1, 37300), (1963, 7, 38211),
                  (1965, 1, 38761), (1966, 7, 39307), (1967, 7, 39672),
                  (1968, 7, 40038), (1969, 7, 40403), (1970, 7, 40768),
@@ -2352,7 +2358,7 @@ def _read_leaps(oldstyle=False):
     # Check for out of date. The leap second bulletin comes every
     # six months, and that contains information through the following
     # leap second (end of June/Dec)
-    if spacepy.config['enable_old_data_warning'] \
+    if mtime is not None and spacepy.config['enable_old_data_warning'] \
        and not _leapsgood(
            datetime.datetime.utcnow(), mtime,
            datetime.datetime(int(year[-1]), int(mon[-1]), int(day[-1]))):
