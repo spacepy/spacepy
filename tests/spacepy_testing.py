@@ -31,9 +31,10 @@ def add_build_to_path():
     """
     # Prioritize version-specific path; py2 tends to be version-specific
     # and py3 tends to use just "lib". But only use first-matching.
-    for pth in ('lib.{0}-{1}.{2}'.format(sysconfig.get_platform(),
+    for pth in ('lib',  # Prepending, so add low-priority paths first.
+                'lib.{0}-{1}.{2}'.format(sysconfig.get_platform(),
                                          *sys.version_info[:2]),
-                'lib'):
+                ):
         buildpath = os.path.abspath(os.path.join(testsdir, '..', 'build', pth))
         if os.path.isdir(buildpath):
             if not buildpath in sys.path:
