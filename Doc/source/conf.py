@@ -24,9 +24,10 @@ sys.path.append(os.path.abspath(os.path.join('..', '..', 'tests')))
 # Add build directory to the path, preferring version-specific.
 buildbase = os.path.abspath(os.path.join(
     os.path.dirname(__file__), '..', '..', 'build'))
-for pth in ('lib.{0}-{1}.{2}'.format(sysconfig.get_platform(),
+for pth in ('lib', # Prepending, so add low-priority paths first.
+            'lib.{0}-{1}.{2}'.format(sysconfig.get_platform(),
                                      *sys.version_info[:2]),
-            'lib'):
+            ):
     buildpath = os.path.join(buildbase, pth)
     if os.path.isdir(buildpath):
         if not buildpath in sys.path:
