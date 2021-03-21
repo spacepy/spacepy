@@ -65,7 +65,7 @@ calendar and dates including and before 1582-10-04 to be Julian. 10-05 through
 10-14 do not exist. This change is ignored for continuously-running non leap
 second aware timebases: CDF and RDT.
 
-See the ``Ticktock`` documentation and its various ``get`` functions for
+See the :class:`Ticktock` documentation and its various ``get`` functions for
 more details on the exact definitions of time systems used by SpacePy.
 
 Examples:
