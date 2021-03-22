@@ -1068,8 +1068,8 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
     This is similar to the deprecated ``urlretrieve``.
 
     .. versionchanged:: 0.5.0
-       In earlier versions of SpacePy invalid combinations of cached and outfile raised RuntimeError,
-       changed to ValueError.
+        In earlier versions of SpacePy invalid combinations of cached and
+        outfile raised RuntimeError, changed to ValueError.
 
     Parameters
     ----------
@@ -1088,7 +1088,8 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         Attempt to keep the connection open to retrieve more URLs.
         The return becomes a tuple of (data, conn) to return the
         connection used so it can be used again. This mode does not
-        support proxies. Required to be True if conn is provided. (Default False)
+        support proxies. Required to be True if conn is provided.
+        (Default False)
     conn : http.client.HTTPConnection (optional)
         An established http connection (HTTPS is also okay) to use with
         ``keepalive``. If not provided, will attempt to make a connection.
@@ -1568,7 +1569,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
             assert type(winsize) == datetime.timedelta
             assert type(overlap) == datetime.timedelta
         except AssertionError:
-            raise TypeError('windowmean error: winsize/overlap must be timedeltas')
+            raise TypeError('windowmean error: winsize/overlap must be timedeltas if a time array is supplied.')
         pts = False #force time-based averaging
         if (type(time[0]) != datetime.datetime):
             startpt = time[0]
@@ -2185,9 +2186,9 @@ def query_yes_no(question, default="yes"):
 
     Parameters
     ----------
-    question : string
+    question : str
         the question to ask
-    default : string (optional)
+    default : str (optional)
 
     Raises
     ------
@@ -2196,7 +2197,7 @@ def query_yes_no(question, default="yes"):
 
     Returns
     -------
-    out : string
+    out : str
         answer ('yes' or 'no')
 
     Examples
