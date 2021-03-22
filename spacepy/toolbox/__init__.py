@@ -1083,7 +1083,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
     cached : bool (optional)
         Compare modification time of the URL to the modification time
         of ``outfile``; do not retrieve (and return None) unless
-        the URL is newer than the file. Is set outfile is required.
+        the URL is newer than the file. If set outfile is required.
     keepalive : bool (optional)
         Attempt to keep the connection open to retrieve more URLs.
         The return becomes a tuple of (data, conn) to return the
@@ -1495,7 +1495,8 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
         1D series of points
     time : list (optional)
         series of timestamps, optional (format as numeric or datetime)
-        For non-overlapping windows set overlap to zero. Must be same length as data.
+        For non-overlapping windows set overlap to zero. Must be same length as
+        data.
     winsize : integer or datetime.timedelta (optional)
         window size
     overlap : integer or datetime.timedelta (optional)
@@ -1914,7 +1915,8 @@ def linspace(min, max, num, **kwargs):
 
     Notes
     -----
-    This function works on both numbers and datetime objects. Not leapsecond aware.
+    This function works on both numbers and datetime objects. Not leapsecond
+    aware.
 
     Examples
     --------
