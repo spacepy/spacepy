@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy
+import spacepy.pycdf
 import spacepy.time
 
 # These are values from USNO tai-utc during rubber-second era
@@ -132,6 +133,15 @@ def spacepy_taiutc(dt):
         return 0
     return spacepy.time.secs[idx]
 
+# And CDF
+def cdf_taiutc(dt):
+    # CDF tt2000 when UTC and TAI set equal
+    tt2000_1958 = -1325419167816000000
+    naive_seconds = (dt - datetime.datetime(1958, 1, 1)).total_seconds()
+    actual_seconds = (spacepy.pycdf.lib.datetime_to_tt2000(dt) - tt2000_1958) \
+                     / 1.e9
+    return actual_seconds - naive_seconds
+
 
 times = spacepy.time.tickrange('1955-1-1', '1973-1-1', 1).UTC
 
@@ -152,6 +162,8 @@ ax.plot(times, [spacepy_taiutc(t) for t in times],
 spacepy.time._read_leaps(oldstyle=True)
 ax.plot(times, [spacepy_taiutc(t) for t in times],
         ls=':', marker=None, label='0.2.2')
+ax.plot(times, [cdf_taiutc(t) for t in times],
+        ls='--', marker=None, label='CDF TT2000')
 ax.set_ylabel('seconds')
 ax.set_xlabel('UTC date')
 ax.legend(loc='best')
