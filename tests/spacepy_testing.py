@@ -172,8 +172,7 @@ class assertWarns(warnings.catch_warnings):
                 fnl = sys.modules[m].__file__
                 if fnl is None:
                     continue
-                fnl = fnl.lower()
-                if fnl.endswith(('.pyc', '.pyo')):
+                if fnl.lower().endswith(('.pyc', '.pyo')):
                     fnl = fnl[:-1]
                 mod_files.append(fnl)
         for w in self._log:
