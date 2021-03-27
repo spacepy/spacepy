@@ -22,6 +22,14 @@ New features
 enabling/disabling sparse records (:meth:`~spacepy.pycdf.Var.sparse`) and
 setting the pad value (:meth:`~spacepy.pycdf.Var.pad`). Thanks Antoine Brunet.
 
+Deprecations and removals
+*************************
+The colourmaps provided in the :mod:`~spacepy.plot` module have been
+deprecated. The same colourmaps have been available in matplotlib since
+at least 1.5, and users who do not directly import the colourmaps should
+see no impact.
+
+
 Major bugfixes
 **************
 The passing of keyword arguments from :func:`~spacepy.toolbox.bootHisto`

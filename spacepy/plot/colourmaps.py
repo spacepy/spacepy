@@ -5,11 +5,16 @@
 # public domain dedication.
 #
 # These, and additional, colourmaps can be found in the mpl-colormaps
-# package on github and will be available in matplotlib v2 when it is
-# released. This file provides these colourmaps for SpacePy users.
+# package on github and are available in matplotlib v1.5+
+# This file provided these colourmaps for SpacePy users under earlier versions.
 
 # The CC0 license can be found at
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
+
+import warnings
+
+warnings.warn('colourmaps deprecated in 0.2.3; use Matplotlib built-ins.',
+              DeprecationWarning)
 
 __all__ = ['plasma', 'viridis']
 
