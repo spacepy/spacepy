@@ -12,12 +12,18 @@ Papers using SpacePy
 
 Peer-reviewed papers
 --------------------
+* Gieseler, J., P. Oleynik, H. Hietala, R. Vainio, H.-P. Hedman, J. Peltonen,
+  A. Punkkinen, R. Punkkinen, T. Säntti, E. Hæggström, J. Praks, P. Niemelä,
+  B. Riwanto, N. Jovanovic, and M. R. Mughal (2020), Radiation monitor RADMON
+  aboard Aalto-1 CubeSat: First results, Adv. Space Res., 66 (1), 52-65,
+  `doi:10.1016/j.asr.2019.11.023 <https://doi.org/10.1016/j.asr.2019.11.023>`_.
+
 * Jordanova, V. K., Y. Yu, J. T. Niehof, R. M. Skoug, G. D. Reeves,
   C. A. Kletzing, J. F. Fennell, and H. E. Spence (2014), Simulations
   of inner magnetosphere dynamics with an expanded RAM-SCB model and
   comparisons with Van Allen Probes observations, Geopys. Res. Lett.,
   41 (8), 2687-2695, `doi:10.1002/2014GL059533
-  <https://doi.org/10.1002/2014GL059533>`_
+  <https://doi.org/10.1002/2014GL059533>`_.
 
 * Niehof, J. T., S. K. Morley, and R. H. W. Friedel (2012), Association of
   cusp energetic ions with geomagnetic storms and substorms, Ann. Geophys.,
