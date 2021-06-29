@@ -631,7 +631,7 @@ class CTrans(dm.SpaceData):
         # Set up transformation matrices for GSM <-> SM
         gsm_sm = np.empty((3, 3))
         gsm_sm[:, 0] = np.array([cos_psi, 0, sin_psi])
-        gsm_sm[:, 1] = np.array([0, 1, 0], dtype=np.float)
+        gsm_sm[:, 1] = np.array([0, 1, 0], dtype=float)
         gsm_sm[:, 2] = np.array([-1*sin_psi, 0, cos_psi])
         self['Transform']['GSM_SM'] = gsm_sm
         self['Transform']['SM_GSM'] = gsm_sm.T
@@ -1060,7 +1060,7 @@ def rll_to_geo(rllvec, units='km', geoid=WGS84):
     -----
     .. versionadded:: 0.2.3
     """
-    posarr = np.atleast_2d(rllvec).astype(np.float_)
+    posarr = np.atleast_2d(rllvec).astype(float)
     surf = np.zeros_like(posarr)
     surf[:, 1:] = posarr[:, 1:]
     geoid_at_pos = np.atleast_2d(gdz_to_geo(surf, units=units, geoid=geoid))

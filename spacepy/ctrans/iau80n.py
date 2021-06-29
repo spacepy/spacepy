@@ -117,10 +117,10 @@ def nutation(TT_JC, const, nTerms=106):
     nf = coeff80[:, 2].astype(int)
     nd = coeff80[:, 3].astype(int)
     nom = coeff80[:, 4].astype(int)
-    sp = coeff80[:, 5].astype(np.float)
-    spt = coeff80[:, 6].astype(np.float)
-    ce = coeff80[:, 7].astype(np.float)
-    cet = coeff80[:, 8].astype(np.float)
+    sp = coeff80[:, 5].astype(float)
+    spt = coeff80[:, 6].astype(float)
+    ce = coeff80[:, 7].astype(float)
+    cet = coeff80[:, 8].astype(float)
     TT = TT_JC
 
     nTerms = nTerms if nTerms <= 106 else 106
