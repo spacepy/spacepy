@@ -1,6 +1,9 @@
 Changes in Version 0.2.3 (2021-xx-xx)
 =====================================
 - Installs numpy before build on newer versions of pip (thanks Michael Hirsch)
+irbempy
+ - Update IRBEMlib to git commit a4759c0 (2021-06-30)
+ - This update fixes an uninitialized GSM to SM transform that would return NaN
 plot
  - Deprecate colourmaps; they were in matplotlib 1.5.
 tests
