@@ -1,5 +1,5 @@
 '''
-A module for reading, handling, and plotting RAM-SCB output.  
+A module for reading, handling, and plotting RAM-SCB output.
 '''
 
 # Global imports
@@ -33,7 +33,7 @@ def gen_rgrid(nR=20, rmin=1.75, rmax=6.5):
 
 def gen_tgrid(nT=25):
     '''
-    Given the number of local time grid points, *nT*, return, as vectors, 
+    Given the number of local time grid points, *nT*, return, as vectors,
     the grid points in local time in units of radians and then local time hours
     that would be used in RAM-SCB.
     '''
@@ -46,7 +46,7 @@ def gen_tgrid(nT=25):
 
 def gen_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
     '''
-    Given number of points and a lower boundary (*nE* and *lb*), build the 
+    Given number of points and a lower boundary (*nE* and *lb*), build the
     RAM-SCB energy grid.  Three arrays are returned: ebound(nE+1), the boundary
     of each bin, ecenter(nE), the center of each bin, and ewidth(nE),
     the width of each bin.  All output units are in keV.
@@ -67,7 +67,7 @@ def gen_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
     >>> (ecentr, ebound, ewidth)=gen_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27)
 
     '''
-    
+
     ebound = np.zeros(nE+1)
     ecentr = np.zeros(nE)
     ewidth = np.zeros(nE)
@@ -85,11 +85,11 @@ def gen_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
 
 def young_comp(kp, f107):
     '''
-    Determine plasma sheet composition using the Young et al. empirical 
-    relationship based on Kp and F10.7 (first and second arguments, 
+    Determine plasma sheet composition using the Young et al. empirical
+    relationship based on Kp and F10.7 (first and second arguments,
     respectively) as given by *Young et al.* [JGR, 1982, Vol. 87 No. A11]
 
-    Returns fraction of total number density that is Hydrogen, 
+    Returns fraction of total number density that is Hydrogen,
     Helium, and Oxygen.
 
     Example usage:
@@ -112,7 +112,7 @@ def viz_young_comp():
     '''
     import matplotlib.pyplot as plt
     from matplotlib.ticker import MultipleLocator
-    
+
     kp = np.arange(0, 9.1, 0.1)
     f7 = np.arange(0, 301, 1.0)
     fracH =np.zeros( (kp.size, f7.size) )
@@ -121,7 +121,7 @@ def viz_young_comp():
 
     for i,f in enumerate(f7):
         fracH[:,i], fracHe[:,i], fracO[:,i] = young_comp(kp, f)
-        
+
 
     levs=np.linspace(0, 0.8, 50)
     fig=plt.figure()
@@ -142,7 +142,7 @@ def viz_young_comp():
 
 def viz_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
     '''
-    Vizualize the RAM-SCB energy grid.  All kwargs correspond to those used by 
+    Vizualize the RAM-SCB energy grid.  All kwargs correspond to those used by
     :func:`gen_egrid`.
     '''
 
@@ -171,7 +171,7 @@ def gen_pgrid(nPa=72):
     The return value is a *nPa*x3 matrix containing the bin starts, centers,
     and ends in cosine of pitch angle.
     '''
-    
+
     pgrid = np.zeros((nPa,3))
 
 def read_t89file(filename):
@@ -187,7 +187,7 @@ def read_t89file(filename):
     infile = open(filename, 'r')
     raw = infile.readlines()
     raw.pop(0) # skip header.
-    
+
     nRec = len(raw)
     time = []
     bdip = np.zeros( (nRec, 3) )
@@ -209,18 +209,18 @@ def read_t89file(filename):
 
 def grid_zeros(axis):
     '''
-    Attempt to plot x=0 and y=0 gridlines w/o messing up 
+    Attempt to plot x=0 and y=0 gridlines w/o messing up
     plot range.  This should be called last when creating
     a plot; after you have the range sorted out.
     '''
     axis.axvline(0, ls='-', color='k')
     axis.axhline(0, ls='-', color='k')
-    
+
 def set_orb_ticks(axis):
     '''
     Set major ticks to multiples of 1, minor ticks to 1/4.
     '''
-    
+
     from matplotlib.ticker import MultipleLocator
 
     # Tick Locators:
@@ -236,8 +236,8 @@ def set_orb_ticks(axis):
 
 def add_body(ax, rad=2.0, rotate=0.0, add_night=True,**extra_kwargs):
     '''
-    Creates a circle of radius kwarg rad (default 2.0 RE) at the center of 
-    axis ax.  Then, a planet of radius 1.0 RE is added to the center to 
+    Creates a circle of radius kwarg rad (default 2.0 RE) at the center of
+    axis ax.  Then, a planet of radius 1.0 RE is added to the center to
     represent the Earth.  Extra kwargs are passed to the patch generators.
 
     Three patches are created by this function: the inner boundary (a light
@@ -245,7 +245,7 @@ def add_body(ax, rad=2.0, rotate=0.0, add_night=True,**extra_kwargs):
     of the planet (a black wedge.)  All three are returned to the caller.
 
     The kwarge "rotate", which defaults to 0.0, can be set to any angle
-    (in degrees) to rotate the location of local noon/midnight on the 
+    (in degrees) to rotate the location of local noon/midnight on the
     planet patches.  The default is local noon points towards +X.  A
     rotate value of 90 will cause local noon to point towards +Y.
 
@@ -262,19 +262,19 @@ def add_body(ax, rad=2.0, rotate=0.0, add_night=True,**extra_kwargs):
     inner = Circle((0,0), rad, fc='lightgrey', ec='k', zorder=1000,
                    **extra_kwargs)
     planet= Circle((0,0), 1.0, fc='w', zorder=1001, **extra_kwargs)
-    night = Wedge( (0,0), 1.0, 90+rotate, -90+rotate, fc='k', 
+    night = Wedge( (0,0), 1.0, 90+rotate, -90+rotate, fc='k',
                    zorder=1002, **extra_kwargs)
 
     ax.add_artist(inner)
     ax.add_artist(planet)
     if add_night:
         ax.add_artist(night)
-    
+
     return inner, planet, night
 
 def add_body_polar(ax, noon=90.0):
     '''
-    Add the "Earth" to the center of a polar dial plot located on 
+    Add the "Earth" to the center of a polar dial plot located on
     axis "ax".  Kwarg noon specifies the angle counter clockwise from the
     x-axis, in degrees, that is local noon (e.g. sun facing.)  Default is
     90 degrees, or in the +Y direction.
@@ -328,7 +328,7 @@ def _adjust_dialplot(ax, rad, title='Noon',labelsize=15, c='gray'):
 def get_iono_cb(ct_name='bwr'):
     '''
     Several custom colorbars used by RIM and AMIE have become standard when
-    visualizing data from these models.  These are 'blue_white_red' and 
+    visualizing data from these models.  These are 'blue_white_red' and
     'white_red', used for data that have positive and negative values and
     for data that have only positive values, respectively.  This function
     builds and returns these colorbars when called with the initials of the
@@ -339,7 +339,7 @@ def get_iono_cb(ct_name='bwr'):
     AMIE and RIM.  The 'wr' color map is useful when plotting anisotropy.
 
     Example - get each colormap:
-    
+
     >>>bwr_map = get_iono_cb('bwr')
     >>>wr_map  = get_iono_cb('wr')
     '''
@@ -368,9 +368,9 @@ class EfieldFile(PbData):
     Base class for reading electric field input and output ASCII files.
     Subclasses such as WeqFile are customized to handle specific formats.
 
-    The default object is configured to handle 
+    The default object is configured to handle
     '''
-    
+
     def __init__(self,filename, *args, **kwargs):
         # Init base object.
         super(EfieldFile, self).__init__(*args, **kwargs)
@@ -389,7 +389,7 @@ class EfieldFile(PbData):
         read such that only the value names and data are left to
         be read.
         '''
-        
+
         head1 = fileobj.readline()
         head2 = fileobj.readline()
         self.attrs['time'] = dt.datetime.strptime(
@@ -408,14 +408,14 @@ class EfieldFile(PbData):
         '''
         Load and parse the information in the file.
         '''
-                                   
+
         # Open file object.  Send object to header parser.
         infile = open(self.attrs['file'], 'r')
         self._parse_head(infile)
 
         # Save last header line:
         head = infile.readline()
-        
+
         # Slurp rest of lines:
         raw = infile.readlines()
 
@@ -439,7 +439,7 @@ class EfieldFile(PbData):
         else:
             self['phi'] = mlt
             self['mlt'] = self['phi']*12/np.pi
-        
+
         # Make CPCP
         self.attrs['cpcp'] = self['epot'].max() - self['epot'].min()
 
@@ -461,8 +461,8 @@ class EfieldFile(PbData):
         figsize : tuple
            A two-item tuple/list giving the dimensions of the figure, in inches.
            Defaults to (5,4)
-        loc : integer 
-           The subplot triple that specifies the location of the axes object.  
+        loc : integer
+           The subplot triple that specifies the location of the axes object.
            Defaults to 111.
         zlim : real
            The upper limit for the color bar range.  Defaults to 50.
@@ -516,7 +516,7 @@ class RamSat(SpaceData):
     >>>sat.time
          array([2005-08-31 09:29:00, ...,2005-09-02 00:58:00],dtype=object)
 
-    Data arrays are stored as object keys.  For example, obtain satellite 
+    Data arrays are stored as object keys.  For example, obtain satellite
     coordinates by typing:
 
     >>>sat['SM_xyz']
@@ -563,7 +563,7 @@ class RamSat(SpaceData):
 
         # parse start time and use it to create time object.
         self.starttime = dt.datetime.strptime(stringtime, '%Y%m%d%H%M%S')
-        
+
         # Convert time in seconds to datetime.
         secs = self.f.variables['Time'][...]
         self.time = np.array(
@@ -583,7 +583,7 @@ class RamSat(SpaceData):
 
     def create_omniflux(self, check=True):
         '''
-        Integrate the flux(currently as a function of energy and 
+        Integrate the flux(currently as a function of energy and
         pitch angle) to get omnidirectional flux as a function of
         energy.  New units = (cm-2*s*keV)^-1
 
@@ -619,7 +619,7 @@ class RamSat(SpaceData):
             dMu=4*np.pi*self['pa_width']
         else:
             dMu[0] = self['pa_grid'][1]
-            for i in range(1,nPa): 
+            for i in range(1,nPa):
                 # Factor of pi here so we don't need it later.
                 dMu[i] = 4*np.pi*self['pa_grid'][i] -self['pa_grid'][i-1]
 
@@ -635,16 +635,16 @@ class RamSat(SpaceData):
     #####RamSat Viz Routines#####
     def _orbit_formatter(self, x, pos):
         '''
-        A function that, when passed to the FuncFormatter class of 
+        A function that, when passed to the FuncFormatter class of
         Matplotlib tick formatters, produces specialized ticks that give
         UT, LT, and inclination.
         '''
-        
+
         from matplotlib.dates import num2date
 
         nt = num2date(x, tz=None)
         nowtime = dt.datetime(  # Need "naive" dt object.
-            nt.year, nt.month, nt.day, nt.hour, nt.minute, 
+            nt.year, nt.month, nt.day, nt.hour, nt.minute,
             nt.second, tzinfo=None)
         deltime = (self.time-nowtime)
         mintime = min(abs(deltime))
@@ -674,7 +674,7 @@ class RamSat(SpaceData):
 
         return (fmtstring)
 
-    def add_orbit_plot(self, plane='XY', target=None, timelim=False, loc=111, 
+    def add_orbit_plot(self, plane='XY', target=None, timelim=False, loc=111,
                        ls='g.', title=False, invertX=True):
         """
         Add a simple, 2D plot of the satellite orbit in a given (SM) plane.
@@ -710,23 +710,23 @@ class RamSat(SpaceData):
              Sets title for plot axes.
 
         ls : string
-             A matplotlib-compatable line format specifier, e.g., 'b-'. 
+             A matplotlib-compatable line format specifier, e.g., 'b-'.
              Defaults to 'g.', or green dots.
         """
         import matplotlib.pyplot as plt
-        
+
         if not plane.upper() in ('XY','XZ','YZ'):
             raise ValueError("{0} is not a valid plot plane.".format(plane))
 
         fig, ax = set_target(target, loc=loc, figsize=(5,5))
-        
+
         # Variables to map plot plane to correct variables:
         plane = plane.upper()
         ijk = {'X':0, 'Y':1, 'Z':2}
         i = ijk[plane[0]]
         j = ijk[plane[1]]
 
-        if not timelim: 
+        if not timelim:
         # Set default time limit if none given.
             timelim = [self.time[0], self.time[-1]]
             iMin=0
@@ -737,7 +737,7 @@ class RamSat(SpaceData):
             iMax = np.nonzero(timediff == timediff.min())[0][0]
             timediff = abs(self.time - timelim[0])
             iMin = np.nonzero(timediff == timediff.min())[0][0]
-            
+
         # Add orbit:
         ax.plot(self['SM_xyz'][iMin:iMax,i], self['SM_xyz'][iMin:iMax,j],ls)
         # Add body:
@@ -766,7 +766,7 @@ class RamSat(SpaceData):
 
         Omnidirectional fluxes are calculated by the object method
         "create_omniflux" and are saved into the object with keys such as
-        'omniO' and 'omniHe', etc.  
+        'omniO' and 'omniHe', etc.
 
         Other Parameters
         ================
@@ -798,17 +798,17 @@ class RamSat(SpaceData):
 
         import matplotlib.pyplot as plt
         from matplotlib.colors  import LogNorm
-        from matplotlib.ticker import (FuncFormatter, LogLocator, 
+        from matplotlib.ticker import (FuncFormatter, LogLocator,
                                        LogFormatterMathtext)
         from matplotlib.dates import date2num
 
         fig, ax = set_target(target, loc=loc, figsize=(10,4))
-        
+
         # Check for omni fluxes, calculate as necessary.
         if not nameflux in self:
             self.create_omniflux()
             if not nameflux in self:
-                raise KeyError('%s is not a valid omnidirectional flux.' 
+                raise KeyError('%s is not a valid omnidirectional flux.'
                                % nameflux)
         # Create a time vector that binds each pixel correctly.
         time=np.zeros(self.time.size+1)
@@ -838,7 +838,7 @@ class RamSat(SpaceData):
         if do_orbticks:
             ax.xaxis.set_major_formatter(FuncFormatter(self._orbit_formatter))
         if add_cbar:
-            cbar = plt.colorbar(flx, pad=0.01, shrink=.85, ticks=LogLocator(), 
+            cbar = plt.colorbar(flx, pad=0.01, shrink=.85, ticks=LogLocator(),
                                 format=LogFormatterMathtext(), ax=ax)
             cbar.set_label('$cm^{-2}s^{-1}keV^{-1}$')
         else:
@@ -882,9 +882,9 @@ class RamSat(SpaceData):
         """
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
-        
+
         fig=plt.figure(figsize=(11,7))
-        fig.subplots_adjust(left=0.07, right=0.99, bottom=0.19, 
+        fig.subplots_adjust(left=0.07, right=0.99, bottom=0.19,
                             top=0.94, wspace=0.4, hspace=0.25)
         gs=gridspec.GridSpec(3,3)
 
@@ -918,18 +918,18 @@ class RamSat(SpaceData):
                                **hflux_opts)
         self.add_omniflux_plot('omniO', target=a3, do_orbticks=True,
                                **oflux_opts)
-        
+
         return fig
 
 ############################################################################
 class PlasmaBoundary(PbData):
     '''
-    Opens an ascii-format boundary file written from 
+    Opens an ascii-format boundary file written from
     IM_wrapper.f90:IM_put_from_gm in the coupled SWMF-RAM-SCB model.
     '''
 
     def __init__(self,filename, time=None, *args, **kwargs):
-        
+
         # Init base object.
         super(PlasmaBoundary, self).__init__(*args, **kwargs)
 
@@ -963,11 +963,11 @@ class PlasmaBoundary(PbData):
         raw.pop(0)
         self.attrs['namevar']=raw.pop(0).split()
         self.attrs['npoints']=len(raw)
-        
+
         # Parse remaining data into a dictionary:
         units = {'l':'hours', 'R':'cm-3', 'p':'eV'}
         for name in self.attrs['namevar']:
-            self[name] = dmarray(np.zeros(self.attrs['npoints']), 
+            self[name] = dmarray(np.zeros(self.attrs['npoints']),
                                  attrs={'units':units[name[0]]})
 
         for i, line in enumerate(raw):
@@ -1008,7 +1008,7 @@ class PlasmaBoundary(PbData):
 ############################################################################
 class BoundaryGroup(PbData):
     '''
-    A class that collects many :class:`PlasmaBoundary` objects together to 
+    A class that collects many :class:`PlasmaBoundary` objects together to
     work as a coherent group.
     '''
 
@@ -1018,7 +1018,7 @@ class BoundaryGroup(PbData):
 
         # Init base object.
         super(BoundaryGroup, self).__init__(*args, **kwargs)
-        
+
         # Load files and count them!
         files = glob(path+'/bound_plasma*.out')
         nfiles=len(files)
@@ -1031,7 +1031,7 @@ class BoundaryGroup(PbData):
         self['time'] = dmarray(np.zeros(nfiles, dtype=object))
 
         for name in namevar:
-            self[name] = dmarray(np.zeros((25,nfiles)), 
+            self[name] = dmarray(np.zeros((25,nfiles)),
                                  attrs={'units':temp[name].attrs['units']})
 
         for i, f in enumerate(files):
@@ -1039,11 +1039,11 @@ class BoundaryGroup(PbData):
             for name in namevar:
                 self[name][:,i] = temp[name]
             self['time'][i]=(temp.attrs['time'])
-        
+
         # Create some new values to plot:
         self['nAll'] = dmarray(self['RhoH'] + self[namevar[2]] + self['RhoO'],
                                attrs={'units':'cm-3'})
-        self['ratO']= dmarray(100.0*self['RhoO']/self['nAll'], 
+        self['ratO']= dmarray(100.0*self['RhoO']/self['nAll'],
                               attrs={'units':'\%'})
 
         if rotate:
@@ -1067,7 +1067,7 @@ class BoundaryGroup(PbData):
         self._dtime     = date2num(self['time']) # create decimal time.
         self._zlims     = {'p':[0,40], 'R':[0,8], 'r':[0,60], 'n':[0,8]}
 
-    def add_ltut(self, var, target=None, loc=111, cmap='inferno', zlim=None, 
+    def add_ltut(self, var, target=None, loc=111, cmap='inferno', zlim=None,
                  add_cbar=True, clabel=None, xlabel='full', title=None,
                  grid=True, ntick=5):
         '''
@@ -1091,14 +1091,14 @@ class BoundaryGroup(PbData):
         grid       Show white dotted grid?  Defaults to **True**
         ntick      Number of attempted cbar ticks.  Defaults to 5.
         ========== =======================================================
-        
+
         '''
 
         import matplotlib.pyplot as plt
         from matplotlib.ticker import MultipleLocator
 
         fig, ax = set_target(target, loc=loc)
-        
+
         # Set up z-limits; use variable-specific defaults.
         if zlim==None:
             try:
@@ -1106,9 +1106,9 @@ class BoundaryGroup(PbData):
             except ValueError:
                 print("No default zlimits for ", var)
                 zlim=None
-            
+
         # Create plot:
-        mesh = ax.pcolormesh(self._dtime, self._y, self[var], 
+        mesh = ax.pcolormesh(self._dtime, self._y, self[var],
                              cmap=cmap, vmin=zlim[0], vmax=zlim[-1])
         # Use LT ticks and markers on y-axis:
         ax.set_yticks(self._yticks)
@@ -1139,7 +1139,7 @@ class BoundaryGroup(PbData):
             cbar.set_label(clabel)
         else:
             cbar=None
-            
+
         return fig, ax, mesh, cbar
 
 ############################################################################
@@ -1158,55 +1158,63 @@ class PressureFile(PbData):
         self.attrs['file'] = filename
 
         # Read and parse file.
-        f = open(filename, 'r')
-        lines = f.readlines()
-        f.close()
+        with open(filename, 'r') as fh:
+            lines = fh.readlines()
+        head_entries = lines[1].strip().split()
+        variables = head_entries[:-1]
+        p_unit = head_entries[-1].replace('[', '').replace(']', '')
+
+        def name_map(namein):
+            '''convert RAM pressure file names to SpacePy names'''
+            # generic as RAM can now use specified list of named species
+            parts = namein.split('_')
+            n_parts = len(parts)
+            # Is a species name present?
+            spec = parts[1] if n_parts == 2 else ''
+            # Is it a pressure? Drop leading P
+            if namein.lower().startswith('p'):
+                varname = parts[0][1:].lower()
+            else:
+                varname = parts[0].lower()
+            # Is it electrons? Make sure the name is lower case
+            if spec and spec.lower() == 'e':
+                spec = 'e'
+            return ''.join([varname, spec])
 
         # Create variables:
         nRec = len(lines[2:])
-        self['L']     = dmarray(np.zeros(nRec), attrs={'units': 'RE'})
-        self['mlt']   = dmarray(np.zeros(nRec), attrs={'units': 'Hours'})
-        self['perH']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
-        self['parH']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
-        self['perO']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
-        self['parO']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
-        self['perHe'] = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
-        self['parHe'] = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
-        self['pere']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
-        self['pare']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
-        self['total'] = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
+        varlist = []
+        varidx = []
+        for idx, vname in enumerate(variables):
+            if vname.lower() == 'lsh':
+                varlist.append('L')
+                varidx.append(idx)
+                self['L']     = dmarray(np.zeros(nRec), attrs={'units': 'RE'})
+            elif vname.lower() == 'mlt':
+                varlist.append('mlt')
+                varidx.append(idx)
+                self['mlt']   = dmarray(np.zeros(nRec), attrs={'units': 'Hours'})
+            else:
+                ent_name = name_map(vname)
+                varlist.append(ent_name)
+                varidx.append(idx)
+                self[ent_name]  = dmarray(np.zeros(nRec), attrs={'units': p_unit})
 
         try:
             self.attrs['time'] = parse(lines[0][5:28], fuzzy=True)
         except:
             self.attrs['time'] = 'unknown'
 
-        # Are electron values included?
-        do_elec = 'PPAR_e' in lines[1]
-
-        # This needs to be re-written with a smart loop.
-        # Use a list of variable strings, append e values if used.
+        # Loop over all variables and grab value from correct column
         for i, line in enumerate(lines[2:]): #Skip header.
             parts = line.split()
-            self['L'][i]     = parts[0]
-            self['mlt'][i]   = parts[1]
-            self['perH'][i]  = parts[2]
-            self['parH'][i]  = parts[3] 
-            self['perO'][i]  = parts[4]
-            self['parO'][i]  = parts[5] 
-            self['perHe'][i] = parts[6]
-            self['parHe'][i] = parts[7]
-            if do_elec:
-                self['pere'][i]  = parts[8]
-                self['pare'][i]  = parts[9]
-                self['total'][i] = parts[10]
-            else:
-                self['total'][i] = parts[8]
+            for lidx, vnam in zip(varidx, varlist):
+                self[vnam][i]     = parts[lidx]
 
         # Theta is an angle used for polar plots.
         self['theta'] = self['mlt']*np.pi/12.0 - np.pi/2.0
         self['theta'].attrs = {'units':'rad'}
-        
+
         # Grid spacing/size:
         self.attrs['dTheta'] = self['theta'][1]-self['theta'][0]
         self.attrs['nTheta'] = int(np.round(2.*np.pi/self.attrs['dTheta'])+1)
@@ -1214,43 +1222,28 @@ class PressureFile(PbData):
         self.attrs['dL'] = self['L'][self.attrs['nTheta']] - self['L'][0]
 
         # Calculate isotropic pressures and anisotropies.
-        self['totH']  = (2./3.)*self['perH'] +(1./3.)*self['parH']
-        self['totHe'] = (2./3.)*self['perHe']+(1./3.)*self['parHe']
-        self['totO']  = (2./3.)*self['perO'] +(1./3.)*self['parO']
-        self['tote']  = (2./3.)*self['pere'] +(1./3.)*self['pare']
-        self['anie']  = self['pere']  / self['pare']  - 1.0
-        self['aniH']  = self['perH']  / self['parH']  - 1.0
-        self['aniHe'] = self['perHe'] / self['parHe'] - 1.0
-        self['aniO']  = self['perO']  / self['parO']  - 1.0
-
-        # Isotropy units.
-        self['anie'].attrs  = {'units':''}
-        self['aniH'].attrs  = {'units':''}
-        self['aniHe'].attrs = {'units':''}
-        self['aniO'].attrs  = {'units':''}
-
-        # Labels for plots.
+        # Calculate totals, set labels and metadata
         self.labels = {}
-        self['pere'].attrs['label']  = r'$\bot$ Pressure, e$^{-}$'
-        self['pare'].attrs['label']  = r'$\parallel$ Pressure, e$^{-}$'
-        self['tote'].attrs['label']  = r'Pressure, e$^{-}$'
-        self['perH'].attrs['label']  = r'$\bot$ Pressure, H$^{+}$'
-        self['parH'].attrs['label']  = r'$\parallel$ Pressure, H$^{+}$'
-        self['totH'].attrs['label']  = r'Pressure, H$^{+}$'
-        self['aniH'].attrs['label']  = r'Anisotropy, H$^{+}$'
-        self['perHe'].attrs['label'] = r'$\bot$ Pressure, He$^{+}$'
-        self['parHe'].attrs['label'] = r'$\parallel$ Pressure, He$^{+}$'
-        self['totHe'].attrs['label'] = r'Pressure, He$^{+}$'
-        self['aniHe'].attrs['label'] = r'Anisotropy, He$^{+}$'
-        self['perO'].attrs['label']  = r'$\bot$ Pressure, O$^{+}$'
-        self['parO'].attrs['label']  = r'$\parallel$ Pressure, O$^{+}$'
-        self['totO'].attrs['label']  = r'Pressure, O$^{+}$'
-        self['aniO'].attrs['label']  = r'Anisotropy, O$^{+}$'
+        parallels = [key for key in self if key.startswith('par')]
+        for var in parallels:
+            spec = var[3:]  # species is everything after the "par"a
+            if spec == 'e':
+                texspec = 'e$^{-}$'
+            else:
+                texspec = spec + '$^{+}$'  # for now assume all singly ionized
+            self['tot' + spec]  = (2./3.)*self['per' + spec] +(1./3.)*self['par' + spec]
+            self['ani' + spec]  = self['per' + spec]  / self['par' + spec]  - 1.0
+            self['tot' + spec].attrs = {'units': ''}  # Isotropy units
+            self['per' + spec].attrs['label']  = r'$\bot$ Pressure, ' + texspec
+            self['par' + spec].attrs['label']  = r'$\parallel$ Pressure, ' + texspec
+            self['tot' + spec].attrs['label']  = r'Pressure, ' + texspec
+            self['ani' + spec].attrs['label']  = r'Anisotropy, ' + texspec
+
         self['total'].attrs['label'] = r'Total Pressure'
 
 
-    def add_cont_press(self, var='total', n=31, target=None, maxz=1000.0, 
-                       minz=1.0, loc=111, add_cbar=False, npa=False, 
+    def add_cont_press(self, var='total', n=31, target=None, maxz=1000.0,
+                       minz=1.0, loc=111, add_cbar=False, npa=False,
                        labelsize=15,  title='auto', cmap='inferno', **kwargs):
         '''
         Create a polar log-axis contour plot of pressure and add it to
@@ -1259,7 +1252,7 @@ class PressureFile(PbData):
 
         Parameters
         ==========
-        
+
         Returns
         =======
         fig : matplotlib figure object
@@ -1304,7 +1297,7 @@ class PressureFile(PbData):
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
         from matplotlib.pyplot import colorbar
-        from matplotlib.ticker import (LogLocator, LogFormatter, 
+        from matplotlib.ticker import (LogLocator, LogFormatter,
                                        LogFormatterMathtext, MultipleLocator)
 
         fig, ax = set_target(target, loc=loc, polar=True)
@@ -1319,7 +1312,7 @@ class PressureFile(PbData):
         # Set up color bar & levels.
         levs = np.power(10, np.linspace(np.log10(minz), np.log10(maxz), n))
         minz = 0.01
-        cont = ax.tricontourf(self['theta'], self['L'], p, levs, 
+        cont = ax.tricontourf(self['theta'], self['L'], p, levs,
                               norm=LogNorm(), cmap=cmap)
         _adjust_dialplot(ax, self['L'], title=title, labelsize=labelsize)
         if add_cbar:
@@ -1331,7 +1324,7 @@ class PressureFile(PbData):
             cbar=None
 
         return fig, ax, cont, cbar
-            
+
     def add_pcol_press(self, var='total', target=None, maxz=1000.0, minz=1.0,
                        add_cbar=False, loc=111, labelsize=15, title='auto'):
         '''
@@ -1339,7 +1332,7 @@ class PressureFile(PbData):
 
         Parameters
         ==========
-        
+
         Returns
         =======
         fig : matplotlib figure object
@@ -1374,14 +1367,14 @@ class PressureFile(PbData):
             Default 111 (single plot).
 
         '''
-        
+
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
         from matplotlib.cm import get_cmap
         from matplotlib.pyplot import colorbar
-        from matplotlib.ticker import (LogLocator, LogFormatter, 
+        from matplotlib.ticker import (LogLocator, LogFormatter,
                                        LogFormatterMathtext, MultipleLocator)
-        
+
 
         fig, ax = set_target(target, loc=loc, polar=True)
 
@@ -1436,13 +1429,13 @@ class BoundaryFluxFile(object):
         self.rtime=float(parts[-1])
 
         # Try to get run time, species from filename.
-        match = search('ds(\w{2})\_d(\d{4})(\d{2})(\d{2})\_t(\d{2})(\d{2})(\d{2})', 
+        match = search('ds(\w{2})\_d(\d{4})(\d{2})(\d{2})\_t(\d{2})(\d{2})(\d{2})',
                   self.filename)
         if match:
             # New filename format! Huzzah!
             t = match.groups()
             self.species=t[0].strip('_')
-            self.time = datetime(int(t[1]), int(t[2]), int(t[3]), 
+            self.time = datetime(int(t[1]), int(t[2]), int(t[3]),
                                  int(t[4]), int(t[5]), int(t[6]))
         else:
             self.time = None
@@ -1470,13 +1463,13 @@ class BoundaryFluxFile(object):
         f=open(self.filename, 'r')
         lines = f.readlines()
         f.close()
-        
+
         # Determine size of file and allocate array.
         self.nLT = len(lines) - 2
         parts = lines[1].split()
         self.nE = len(parts)-2
         self.flux=zeros([self.nLT, self.nE])
-        
+
         # Read and parse lines.
         for i, line in enumerate(lines[1:-1]):
             parts = line.split()
@@ -1493,11 +1486,11 @@ class BoundaryFluxFile(object):
         from numpy import array
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
-        from matplotlib.ticker import (LogLocator, LogFormatter, 
+        from matplotlib.ticker import (LogLocator, LogFormatter,
                                        LogFormatterMathtext, MultipleLocator)
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        
+
         egrid = np.array(range(self.nE))
         flux = self.flux.transpose()
         flux[flux<0.01] = 0.01
@@ -1564,7 +1557,7 @@ class LogFile(PbData):
         namevar.pop(namevar.index('mn'))
         namevar.pop(namevar.index('sc'))
         namevar.pop(namevar.index('time'))
-        
+
         # Create containers for data:
         self['runtime']=dmarray(np.zeros(nPts),attrs={'units':'s'})
         self['time'] = dmarray(np.zeros(nPts, dtype=object))
@@ -1599,7 +1592,7 @@ class LogFile(PbData):
 
         Parameters
         ==========
-        
+
         Returns
         =======
         fig : matplotlib figure object
@@ -1624,15 +1617,15 @@ class LogFile(PbData):
 
 
         '''
-        
+
         import matplotlib.pyplot as plt
-        
+
         fig, ax = set_target(target, loc=loc)
-        
+
         ax.plot(self['time'], self['dstRam'], label='RAM Dst (DPS)')
         if 'dstBiot' in self and showBiot:
             ax.plot(self['time'], self['dstBiot'], label='RAM Dst (Biot)')
-        ax.hlines(0.0, self['time'][0], self['time'][-1], 
+        ax.hlines(0.0, self['time'][0], self['time'][-1],
                   'k', ':', label='_nolegend_')
         applySmartTimeTicks(ax, self['time'])
         ax.set_ylabel('Dst [$nT$]')
@@ -1642,7 +1635,7 @@ class LogFile(PbData):
             import spacepy.pybats.kyoto as kt
         except ImportError:
             return fig, ax
-        
+
         if showObs:
             try:
                 stime = self['time'][0]; etime = self['time'][-1]
@@ -1651,7 +1644,7 @@ class LogFile(PbData):
             except BaseException as args:
                 print('WARNING! Failed to fetch Kyoto Dst: ', args)
             else:
-                ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
+                ax.plot(self.obs_dst['time'], self.obs_dst['dst'],
                         'k--', label='Obs. Dst')
                 ax.legend(loc='best')
                 applySmartTimeTicks(ax, self['time'])
@@ -1675,7 +1668,7 @@ def read_ram_dst(infile):
 
     raise DeprecationWarning('This function acts on files no longer written '+
                              'by RAM-SCB')
-    
+
     f = open(infile, 'r')
     lines = f.readlines()
     f.close()
@@ -1701,8 +1694,8 @@ def read_ram_dst(infile):
 ############################################################################
 class IonoPotScb(object):
     '''
-    The 3D equilibrium code produces NetCDF files that contain the 
-    ionospheric potential on the polar cap as well as mapped to the 
+    The 3D equilibrium code produces NetCDF files that contain the
+    ionospheric potential on the polar cap as well as mapped to the
     equatorial plane.  The IonoPotScb object can be used to parse and
     visualize the data quickly.
 
@@ -1735,7 +1728,7 @@ class IonoPotScb(object):
                 raise ImportError('PyNIO required, not found.')
 
         self.filename=filename
-        
+
         # Load file as Nio object.
         f = Nio.open_file(filename, 'r')
         self.NameVars = list(f.variables.keys())
@@ -1766,9 +1759,9 @@ class IonoPotScb(object):
         cross equatorial potential.
         '''
         from numpy import zeros
-        
+
         self['ceqp'] = zeros(len(self.time))
-        
+
         for i in range(len(self.time)):
             self['ceqp'][i] = self['PhiIono'][i,:,:].max() - \
                 self['PhiIono'][i,:,:].min()
@@ -1786,8 +1779,8 @@ class IonoPotScb(object):
     def plot_eqPot(self, time, target=None, range=200, n=31, add_cbar=True):
         '''
         Plot the equatorial electric potential in kV to target, where
-        target may be a matplotlib figure or axis or None.  If target 
-        is a figure, a new subplot is created.  If target is None, a 
+        target may be a matplotlib figure or axis or None.  If target
+        is a figure, a new subplot is created.  If target is None, a
         new figure AND axis is created.
         Parameters
         ==========
@@ -1806,7 +1799,7 @@ class IonoPotScb(object):
         n : integer
              The number of contours.  Defaults to 31.
         range : real
-             The max and min of the contour range.            
+             The max and min of the contour range.
         add_cbar : bool
              Set whether to add a color bar or not.  Defaults to **False**.
         target : Figure or Axes
@@ -1837,12 +1830,12 @@ class IonoPotScb(object):
         factor = 1.0
         if self.units=='V':
             factor = 1000.0
-        
+
         ax.set_aspect('equal')
         ax.set_xlabel('Y (R$_{E}$)')
         ax.set_ylabel('X (R$_{E}$)')
         cont = ax.contourf(self['yEq'][time,:,:], self['xEq'][time,:,:],
-                           self['PhiIono'][time,:,:]/factor, 
+                           self['PhiIono'][time,:,:]/factor,
                            levs, norm=crange, cmap=cmap)
         add_body(ax, rotate=90.0)
         cbar=False
@@ -1855,7 +1848,7 @@ class IonoPotScb(object):
 ############################################################################
 class Currents(object):
     '''
-    The 3D equilibrium code produces NetCDF files that contain the 
+    The 3D equilibrium code produces NetCDF files that contain the
     electric currents throughout the domain.  Currents objects parse
     and visualize this data.
 
@@ -1888,7 +1881,7 @@ class Currents(object):
                 raise ImportError('PyNIO required, not found.')
 
         self.filename=filename
-        
+
         # Load file as Nio object.
         f = Nio.open_file(filename, 'r')
         self.NameVars = list(f.variables.keys())
@@ -1968,7 +1961,7 @@ class ParamFile(object):
                 break
             self.cmd[cmd_name].append(l.strip())
             npop+=1
-        return npop    
+        return npop
     def _parse_stop(self,lines):
         self.iters=int(lines[0].split()[0])
         self.dur  =float(lines[1].split()[0])
@@ -2014,11 +2007,11 @@ class ParamFile(object):
 ############################################################################
 class GeoMltFile(object):
     '''
-    GeoMltFile is a class to open, read, manipulate and write files that 
+    GeoMltFile is a class to open, read, manipulate and write files that
     contain LANL geosynchronous multi-satellite averaged, MLT-interpolated
     fluxes.
     '''
-    
+
     def __init__(self, filename=None, scrub=True):
         # Create empty arrays.
         self.flux=np.zeros([288,24,36])
@@ -2079,7 +2072,7 @@ class GeoMltFile(object):
                 # Use some string comprehension magic.
                 self.nsats[i,j,:]=[l[32 + 2*x: 32+ 2*x+ 2] for x in range(36)]
                 self.flux[i,j,:] =[l[104+18*x:104+18*x+18] for x in range(36)]
-                
+
     def scrub(self, lastflux=None):
         '''
         GeoMlt files often have bad data througout in the form of negative
@@ -2091,7 +2084,7 @@ class GeoMltFile(object):
         first time entry of the file contains bad values.  If not given, bad
         values at the first time entry will be set to zero.
         '''
-        
+
         # Handle first line:
         if lastflux:
             # Check lastflux.
@@ -2104,7 +2097,7 @@ class GeoMltFile(object):
         for i in range(1,288):
             self.flux[i,self.flux[i,:,:]<=0.0] = \
                 self.flux[i-1,self.flux[i,:,:]<=0.0]
-                               
+
 
     def __iadd__(self, other):
         '''
@@ -2144,18 +2137,18 @@ class GeoMltFile(object):
         from numpy import array
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
-        from matplotlib.ticker import (LogLocator, LogFormatter, 
+        from matplotlib.ticker import (LogLocator, LogFormatter,
                                        LogFormatterMathtext, MultipleLocator)
 
 
         fig, ax = set_target(target, loc=loc)
-        
+
         egrid = np.array(range(len(self.egrid)+1))
         lgrid = np.array(range(len(self.lgrid)+1))
         flux = self.flux[epoch,:,:].transpose()
         flux[flux<0.01] = 0.01
         flx = ax.pcolormesh(lgrid, egrid, flux, norm=LogNorm(),
-                            vmin=0.01, vmax=1e10, 
+                            vmin=0.01, vmax=1e10,
                             cmap=plt.get_cmap('inferno'))
         cbar = plt.colorbar(flx, pad=0.01, shrink=0.85, ticks=LogLocator(),
                             format=LogFormatterMathtext())
@@ -2170,6 +2163,6 @@ class GeoMltFile(object):
         for val in ax.get_yticks()[:-1]:
             newlabs.append('%6.2f' % self.egrid[int(val)])
         ax.set_yticklabels(newlabs)
-        
+
 
         return fig, ax
