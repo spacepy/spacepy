@@ -11,6 +11,8 @@ time
  - Apply post-1972 leapsecond rules to pre-1972.
 toolbox
  - Fix bootHisto passing of kwargs to histogram and bar.
+pybats
+ - Fix bug in reading RAM pressure files (affected electrons and total)
 pycdf
  - Add support for Sparse Records variables.
  - Fix changing compression when creating variable from existing var/data.
