@@ -35,7 +35,7 @@ class TestParseFileTime(unittest.TestCase):
     '''
 
     from datetime import datetime as dt
-    
+
     files = ['mag_grid_e20130924-232600.out',
              'y=0_mhd_1_e20130924-220500-054.out',
              'y=0_mhd_2_t00001430_n00031073.out',
@@ -67,7 +67,7 @@ class TestProbeIdlFile(unittest.TestCase):
                 os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_ascii.out'),
                 os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'),
                 os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out')]
-    
+
     knownResponses = [('bin', '<', np.dtype('int32'), np.dtype('float32')),
                       ('asc', False, False, False),
                       ('bin', '<', np.dtype('int32'), np.dtype('float64')),
@@ -93,7 +93,7 @@ class TestScanBinHeader(unittest.TestCase):
     # File that has multiple frames:
     file_multi = os.path.join(spacepy_testing.datadir, 'pybats_test',
                               'y=0_mhd_1_e20140410-000000-000_20140410-000200-000.outs')
-    
+
     # Responses from single-frame files:
     knownSingle = [{'iter':68, 'runtime':10., 'ndim':2, 'nvar':15, 'end':175288},
                    {'iter':0,  'runtime':10., 'ndim':2, 'nvar':15, 'end':2416}]
@@ -104,7 +104,7 @@ class TestScanBinHeader(unittest.TestCase):
 
     def testOneFrame(self):
         '''Test files that only have one epoch frame.'''
-        
+
         # Open files, get file properties, then probe header and test
         # against known values:
         for f, known in zip(self.files_single, self.knownSingle):
@@ -126,7 +126,7 @@ class TestScanBinHeader(unittest.TestCase):
                 info = pb._scan_bin_header(data, *props[1:])
                 for key in known:
                     self.assertEqual(info[key], known[key])
-                    
+
 class TestIdlFile(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.IdlFile` for different output
@@ -156,7 +156,7 @@ class TestIdlFile(unittest.TestCase):
     knownMax2 = {"Rho":14.71767520904541,"Ux":-1107.3873291015625,
                  "Bz":4.878035068511963,"P":2.2604243755340576,
                  "jy":0.0007115363841876388}
-    
+
     def testBinary(self):
         # Open file:
         mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir,
@@ -172,7 +172,7 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdXmin, mhd['x'].min())
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
-            
+
     def testAscii(self):
         # Open file:
         mhd = pb.IdlFile(os.path.join(
@@ -215,17 +215,17 @@ class TestIdlFile(unittest.TestCase):
         # Check against 2nd frame data:
         for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
             self.assertAlmostEqual(self.knownMax2[v], mhd[v].max(), places=14)
-        
+
         # Switch frames, check for successful update of attributes:
         mhd.switch_frame(0)
         self.assertEqual(self.knownIterRng1[0],  mhd.attrs['iter'])
         self.assertEqual(self.knownRtimeRng1[0], mhd.attrs['runtime'])
         self.assertEqual(self.knownTimeRng1[0],  mhd.attrs['time'])
-         
+
         # Check against 1st frame data:
         for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
             self.assertAlmostEqual(self.knownMax1[v], mhd[v].max(), places=14)
-            
+
 class TestRim(unittest.TestCase):
 
     # Solutions for calc_I:
@@ -235,14 +235,14 @@ class TestRim(unittest.TestCase):
               's_I'    :-8.211648588249157e-10,
               's_Iup'  :0.2517603660687805,
               's_Idown':-0.2517603668899454}
-    
+
     def testReadZip(self):
         from spacepy.pybats import rim
 
         # Open file:
         iono=rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                    'it000321_104510_000.idl.gz'))
-        
+
 
     def testReadAscii(self):
         import gzip
@@ -269,7 +269,7 @@ class TestRim(unittest.TestCase):
         from spacepy.pybats import rim
         iono = rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'it_wrapped.idl.gz'))
-                
+
     def testIonoCalc(self):
         '''Test calculations made by rim.Iono objects.'''
         from spacepy.pybats import rim
@@ -284,7 +284,7 @@ class TestRim(unittest.TestCase):
         from spacepy.pybats import rim
         import matplotlib as mpl
         import matplotlib.pyplot as plt
-        
+
         iono = rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'it000321_104510_000.idl.gz'))
         out = iono.add_cont('n_jr', add_cbar=True)
@@ -293,7 +293,7 @@ class TestRim(unittest.TestCase):
         self.assertTrue(isinstance(out[1], plt.Axes))
         self.assertTrue(isinstance(out[2], mpl.contour.QuadContourSet))
         self.assertTrue(isinstance(out[3], mpl.colorbar.Colorbar))
-        
+
 class TestBats2d(unittest.TestCase):
     '''
     Test functionality of Bats2d objects.
@@ -303,12 +303,12 @@ class TestBats2d(unittest.TestCase):
                  'wy':0.0, 'u':1285.6114501953125}
     knownMax2 = {'jx': 1.680669083725661e-05, 'jbz': 8.276679608343329e-08,
                  'wy': 0.0, 'u': 1285.6114501953125}
-    
+
     def setUp(self):
         self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_binary.out'))
         self.outs = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
                         'y=0_mhd_1_e20140410-000000-000_20140410-000200-000.outs'))
-    
+
     def testCalc(self):
         # Test all calculations:
         self.mhd.calc_all()
@@ -328,7 +328,7 @@ class TestBats2d(unittest.TestCase):
         self.outs.switch_frame(1)
         for k in self.knownMax2:
             self.assertAlmostEqual(self.outs[k].max(), self.knownMax2[k])
-                               
+
     def testMultispecies(self):
         # Open file:
         mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
@@ -347,7 +347,7 @@ class TestBats2d(unittest.TestCase):
 
     def testPlotting(self):
         '''
-        Create a contour plot, add stream traces with arrows, 
+        Create a contour plot, add stream traces with arrows,
         close plot, pass if no Exceptions.  This is a basic test that
         ensures that all methods and functions underlying contours and
         field line tracing are at least operating to completion.
@@ -378,7 +378,7 @@ class TestBats2d(unittest.TestCase):
         self.assertEqual(
             'Start value 150 out of range for variable z.',
             str(cm.exception))
-        
+
 class TestMagGrid(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.bats.MagGridFile` to ensure opening,
@@ -426,7 +426,7 @@ class TestMagGrid(unittest.TestCase):
         m2.calc_h()
         self.assertAlmostEqual(self.knownDbhMax, m1['dBh'].max())
         self.assertAlmostEqual(self.knownDbhMax, m2['dBh'].max())
-        
+
 class TestSatOrbit(unittest.TestCase):
     '''
     Test reading and writing of satellite orbit files.
@@ -494,7 +494,7 @@ class TestSatOrbit(unittest.TestCase):
         # Check time and position:
         assert_array(sat['time'], self.time)
         assert_array(sat['xyz'],  self.pos)
-    
+
 class TestVirtSat(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.VirtSat` to ensure opening, handling,
@@ -524,7 +524,7 @@ class TestVirtSat(unittest.TestCase):
         sat.calc_ndens()
         self.assertTrue('N' in sat)
         self.assertEqual(100, sat['oFrac'][0]+sat['hFrac'][0]+sat['heFrac'][0])
-        
+
 class TestImfInput(unittest.TestCase):
     '''
     Test reading, writing, and plotting from ImfInput files.
@@ -558,7 +558,7 @@ class TestImfInput(unittest.TestCase):
         # Create an IMF object from scratch, fill with zeros.
         imf = pb.ImfInput()
         for key in imf: imf[key]=[0]
-        
+
         # Add a sub-millisecond time:
         imf['time'] = [dt.datetime(2017,9,6,16,42,36,999600)]
 
@@ -568,12 +568,12 @@ class TestImfInput(unittest.TestCase):
 
         # Test for floor of sub-millisecond times:
         self.assertEqual(self.knownSubMilli, imf2['time'][0])
-            
+
     def testWrite(self):
         # Test that files are correctly written to file.
-        
+
         from numpy.testing import assert_array_equal as assert_array
-        
+
         # Save original file names:
         old_file_1 = self.sing.attrs['file']
         old_file_2 = self.mult.attrs['file']
@@ -593,8 +593,8 @@ class TestImfInput(unittest.TestCase):
             assert_array(self.sing[v], sing[v])
         for v in mult:
             assert_array(self.mult[v], mult[v])
-        
-        
+
+
     def testOpen(self):
         # Test single fluid/default variable names:
         self.assertEqual(self.knownImfBz[0],   self.sing['bz'][0])
@@ -642,7 +642,7 @@ class TestImfInput(unittest.TestCase):
                 self.assertEqual(self.mult['time'].size, self.mult[v].size)
             else:
                 self.assertEqual(self.mult[v].size, npts)
-        
+
 class TestExtraction(unittest.TestCase):
     '''
     Test Extraction class by opening a file with known solution.
@@ -650,7 +650,7 @@ class TestExtraction(unittest.TestCase):
     def setUp(self):
         self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir,
                                            'pybats_test', 'z0_sine.out'))
-    
+
     def testExtract(self):
         analytic = lambda x: 1.+.5*np.cos(x*np.pi/10.)
         extr = self.mhd.extract(range(-5, 6),[-8]*11)
@@ -668,10 +668,10 @@ class TestGitm(unittest.TestCase):
     time  = dt.datetime(2015, 3, 16, 20, 1, 8)
     shape = (18,18)
     lat1  = 1.48352986
-    
+
     def testBinary(self):
         '''
-        This tests the ability to open a file and correctly read the attributes and 
+        This tests the ability to open a file and correctly read the attributes and
         variables as well as properly reshape the arrays and remove unused dimensions.
         '''
         # Open 2D file:
@@ -685,7 +685,7 @@ class TestGitm(unittest.TestCase):
         self.assertEqual(self.shape, f['Longitude'].shape)
         self.assertAlmostEqual(   self.lat1, f['Latitude'][0,-1], 6)
         self.assertAlmostEqual(-1*self.lat1, f['Latitude'][0, 0], 6)
-        
+
 class RampyTests(unittest.TestCase):
     '''
     Tests for pybats.rampy
@@ -694,6 +694,10 @@ class RampyTests(unittest.TestCase):
         super(RampyTests, self).setUp()
         self.testfile = os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'ramsat_test.nc')
+        self.p_test = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                   'rampress_test.dat')
+        self.p_test_noe = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                   'rampress_test_noe.dat')
 
     def tearDown(self):
         super(RampyTests, self).tearDown()
@@ -748,6 +752,25 @@ class RampyTests(unittest.TestCase):
         fmtstr = data._orbit_formatter(tst_time, None)
         expected = '00:02 UT\n04:35 MLT\n-13.4$^{\circ}$ MLat\nR=5.05 $R_{E}$'
         self.assertEqual(expected, fmtstr)
+
+    def test_PressureFile_load(self):
+        '''Make sure pressure file loads with no error'''
+        data = ram.PressureFile(self.p_test)
+        self.assertIn('aniHe', data)
+        # single point checks
+        self.assertAlmostEqual(data['pere'][0], 3.5930268833807135)
+        self.assertAlmostEqual(data['perH'][0], 0.17925744886042114)
+        self.assertAlmostEqual(data['total'][0], 2.615855029414899)
+
+    def test_PressureFile_no_elec(self):
+        '''Make sure pressure file loads with electrons turned off'''
+        data = ram.PressureFile(self.p_test_noe)
+        self.assertIn('aniH', data)
+        self.assertIn('total', data)
+        self.assertNotIn('pere', data)
+        self.assertNotIn('pare', data)
+        self.assertAlmostEqual(data['perH'][0], 0.17925744886042114)
+        self.assertAlmostEqual(data['total'][0], 2.615855029414899)
 
 if __name__=='__main__':
     unittest.main()
