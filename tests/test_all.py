@@ -23,6 +23,8 @@ from test_empiricals import *
 from test_toolbox import *
 from test_omni import *
 from test_coordinates import *
+from test_ctrans import *
+from test_igrf import *
 from test_seapy import *
 from test_poppy import *
 from test_pycdf import *
