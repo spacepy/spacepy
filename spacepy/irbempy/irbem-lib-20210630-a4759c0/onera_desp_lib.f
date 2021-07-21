@@ -1,0 +1,3129 @@
+!***************************************************************************************************
+! Copyright 2004, 2008 S. Bourdarie
+!
+! This file is part of IRBEM-LIB.
+!
+!    IRBEM-LIB is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU Lesser General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    IRBEM-LIB is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU Lesser General Public License for more details.
+!
+!    You should have received a copy of the GNU Lesser General Public License
+!    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
+!
+C-----------------------------------------------------------------------------
+C Wrappers and procedures for ONERA_DESP_LIB
+C-----------------------------------------------------------------------------
+
+
+c function returns version of fortran source code
+      ! Called by IDL
+      REAL*4 FUNCTION IRBEM_FORTRAN_VERSION(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+      call IRBEM_FORTRAN_VERSION1(%VAL(argv(1)))
+
+      IRBEM_FORTRAN_VERSION = 9.9
+
+      RETURN
+      END
+
+      SUBROUTINE IRBEM_FORTRAN_VERSION1(VERSN)
+        INCLUDE 'fortran_version.inc' ! include file created by make
+        INTEGER*4 VERSN
+        VERSN = FORTRAN_VERSION
+      END
+
+
+c function returns release of fortran source code
+      ! Called by IDL
+      REAL*4 FUNCTION IRBEM_FORTRAN_RELEASE(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                        ! Because argc is passed by VALUE.
+
+      call IRBEM_FORTRAN_RELEASE1(%VAL(argv(1)))
+
+      IRBEM_FORTRAN_RELEASE = 9.9
+
+      RETURN
+      END
+
+      SUBROUTINE IRBEM_FORTRAN_RELEASE1(RLS)
+        INCLUDE 'fortran_release.inc'
+        CHARACTER*80 RLS
+        RLS = FORTRAN_RELEASE
+      END
+
+
+c function returns maximum size of variables
+      ! Called by IDL
+      REAL*4 FUNCTION GET_IRBEM_NTIME_MAX(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+      call GET_IRBEM_NTIME_MAX1(%VAL(argv(1)))
+
+      GET_IRBEM_NTIME_MAX = 9.9
+
+      RETURN
+      END
+
+      SUBROUTINE GET_IRBEM_NTIME_MAX1(ntime_max1)
+        INCLUDE 'ntime_max.inc' ! include file created by make
+        INTEGER*4 ntime_max1
+        ntime_max1 = ntime_max
+      END
+      ! Called by IDL
+      REAL*4 FUNCTION make_lstar(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine make_Lstar: 17 arguments
+      call make_lstar1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
+     + %VAL(argv(16)), %VAL(argv(17)))
+
+      make_lstar = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE make_lstar1(ntime,kext,options,sysaxes,iyearsat,
+     &  idoy,UT,xIN1,xIN2,xIN3,maginput,Lm,Lstar,BLOCAL,BMIN,XJ,MLT)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+      INCLUDE 'ntime_max.inc'
+C
+c declare inputs
+        INTEGER*4    kext,k_ext,k_l,options(5)
+        INTEGER*4    ntime,sysaxes
+      INTEGER*4    iyearsat(ntime_max)
+      integer*4    idoy(ntime_max)
+      real*8     UT(ntime_max)
+      real*8     xIN1(ntime_max),xIN2(ntime_max),xIN3(ntime_max)
+      real*8     maginput(25,ntime_max)
+c
+c Declare internal variables
+      INTEGER*4    isat,iyear,kint,ifail
+        INTEGER*4    t_resol,r_resol,Ilflag,Ilflag_old
+      REAL*8     mlon,mlon1
+      REAL*8     xGEO(3),xMAG(3),xSUN(3),rM,MLAT
+      real*8     alti,lati,longi
+c
+c Declare output variables
+        REAL*8     BLOCAL(ntime_max),BMIN(ntime_max),XJ(ntime_max)
+      REAL*8     MLT(ntime_max)
+        REAL*8     Lm(ntime_max),Lstar(ntime_max)
+C
+      COMMON /magmod/k_ext,k_l,kint
+        COMMON /flag_L/Ilflag
+        DATA  xSUN /1.d0,0.d0,0.d0/
+      integer*4 int_field_select, ext_field_select
+C
+      Ilflag=0
+      Ilflag_old=Ilflag
+      if (options(3).lt.0 .or. options(3).gt.9) options(3)=0
+      t_resol=options(3)+1
+      r_resol=options(4)+1
+      k_l=options(1)
+
+      kint = int_field_select ( options(5) )
+      k_ext = ext_field_select ( kext )
+c
+      CALL INITIZE
+      if (k_ext .eq. 13 .or. k_ext .eq. 14) then !TS07D tail par init, only need it once
+          call INIT_TS07D_TLPR
+      end if
+
+      DO isat = 1,ntime
+
+          call init_fields ( kint, iyearsat(isat), idoy(isat),
+     6          ut(isat), options(2) )
+
+          call get_coordinates ( sysaxes,
+     6        xIN1(isat), xIN2(isat), xIN3(isat),
+     6        alti, lati, longi, xGEO )
+
+        if (xIN1(isat) .eq. baddata .and. xIN2(isat) .eq. baddata
+     &  .and. xIN3(isat) .eq.baddata) then
+           Lm(isat)=baddata
+           Lstar(isat)=baddata
+           XJ(isat)=baddata
+           BLOCAL(isat)=baddata
+           BMIN(isat)=baddata
+           GOTO 99
+        endif
+
+          call set_magfield_inputs ( k_ext, maginput(1,isat), ifail )
+
+        if (k_ext .eq. 13 .or. k_ext .eq. 14) then !TS07D coeff init
+            call INIT_TS07D_COEFFS(iyearsat(isat),idoy(isat),
+     &      ut(isat),ifail)
+        end if
+
+c        if (alti .le. 50.) ifail=-10 ! removed by TPO, 5/31/2011 - why would we force fail for alt<50km?
+          if ( ifail.lt.0 ) then
+                Lm(isat)=baddata
+              Lstar(isat)=baddata
+              XJ(isat)=baddata
+              BLOCAL(isat)=baddata
+              BMIN(isat)=baddata
+              GOTO 99
+             endif
+c
+           CALL calcul_Lstar_opt(t_resol,r_resol,XGeo
+     &     ,Lm(isat),Lstar(isat),XJ(isat),BLOCAL(isat),BMIN(isat))
+           if (Ilflag_old .eq.1 .and. Lstar(isat).eq. Baddata) then
+            Ilflag=0
+              CALL calcul_Lstar_opt(t_resol,r_resol,xGeo
+     &        ,Lm(isat),Lstar(isat),XJ(isat),BLOCAL(isat),BMIN(isat))
+         endif
+         Ilflag_old=Ilflag
+
+99         continue
+
+        if (ifail .eq. -10) then
+          MLT(isat) = baddata
+        else
+           CALL GDZ_GEO(lati,longi,alti
+     &     ,xGEO(1),xGEO(2),xGEO(3))
+           CALL geo_mag(xGEO,xMAG)
+           CALL car_sph(xMAG,rM,MLAT,Mlon1)
+           CALL GSM_GEO(xSUN,xGEO)
+           CALL geo_mag(xGEO,xMAG)
+           CALL car_sph(xMAG,rM,MLAT,Mlon)
+           MLT(isat) = (Mlon1 - Mlon)/15.d0 + 12.d0
+           IF (MLT(isat).GE.24.d0) MLT(isat) = MLT(isat) - 24.d0
+           IF (MLT(isat).LT.0.d0) MLT(isat) = MLT(isat) + 24.d0
+        endif
+      ENDDO
+
+      END
+C-----------------------------------------------------------------------------
+C Wrapper and procedure
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION make_lstar_shell_splitting(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+      call make_lstar_shell_splitting1(%VAL(argv(1)), %VAL(argv(2)),
+     + %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
+     + %VAL(argv(16)), %VAL(argv(17)), %VAL(argv(18)), %VAL(argv(19)))
+
+      make_lstar_shell_splitting = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE make_lstar_shell_splitting1(ntime,Nipa,kext,options,
+     & sysaxes,iyearsat,idoy,UT,xIN1,xIN2,xIN3,
+     &  alpha,maginput,Lm,Lstar,BLOCAL,BMIN,XJ,MLT)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+        INCLUDE 'ntime_max.inc'
+C
+c declare inputs
+        INTEGER*4    kext,k_ext,k_l,options(5),Nalp,Nipa
+      PARAMETER (Nalp=25)
+        INTEGER*4    ntime,sysaxes
+      INTEGER*4    iyearsat(ntime_max)
+      integer*4    idoy(ntime_max)
+      real*8     UT(ntime_max)
+      real*8     xIN1(ntime_max),xIN2(ntime_max),xIN3(ntime_max)
+      real*8     alpha(Nalp)
+      real*8     maginput(25,ntime_max)
+c
+c
+c Declare internal variables
+      INTEGER*4    isat,iyear,IPA,kint,ifail
+        INTEGER*4    Ilflag,t_resol,r_resol
+      REAL*8     mlon,mlon1,BL,BMIR(25),Bmin_tmp
+      REAL*8     xGEO(3),xMAG(3),xSUN(3),rM,MLAT
+      REAL*8     xGEOp(3,25)
+      real*8     alti,lati,longi
+c
+c Declare output variables
+        REAL*8     BLOCAL(ntime_max,Nalp),BMIN(ntime_max)
+      REAL*8     XJ(ntime_max,Nalp),MLT(ntime_max)
+        REAL*8     Lm(ntime_max,Nalp),Lstar(ntime_max,Nalp)
+C
+      COMMON /magmod/k_ext,k_l,kint
+        COMMON /flag_L/Ilflag
+        DATA  xSUN /1.d0,0.d0,0.d0/
+      integer*4 int_field_select, ext_field_select
+C
+      Ilflag=0
+      k_ext=kext
+      if (options(3).lt.0 .or. options(3).gt.9) options(3)=0
+      t_resol=options(3)+1
+      r_resol=options(4)+1
+      k_l=options(1)
+
+      kint = int_field_select ( options(5) )
+      k_ext = ext_field_select ( kext )
+c
+        CALL INITIZE
+        if (k_ext .eq. 13 .or. k_ext .eq. 14) then !TS07D tail par init, only need it once
+            call INIT_TS07D_TLPR
+        end if
+
+       DO isat = 1,ntime
+        call init_fields ( kint, iyearsat(isat), idoy(isat),
+     6      ut(isat), options(2) )
+
+          call get_coordinates ( sysaxes,
+     6        xIN1(isat), xIN2(isat), xIN3(isat),
+     6        alti, lati, longi, xGEO )
+
+        call set_magfield_inputs ( k_ext, maginput(1,isat), ifail )
+
+       if (k_ext .eq. 13 .or. k_ext .eq. 14) then 
+            call INIT_TS07D_COEFFS(iyearsat(isat),idoy(isat),
+     &      ut(isat),ifail)
+       end if
+
+
+        if ( ifail.lt.0 ) then
+          DO IPA=1,Nipa
+                Lm(isat,IPA)=baddata
+                Lstar(isat,IPA)=baddata
+                XJ(isat,IPA)=baddata
+                BLOCAL(isat,IPA)=baddata
+            ENDDO
+            BMIN(isat)=baddata
+            GOTO 99
+          endif
+c
+c Compute Bmin assuming 90deg PA at S/C
+         k_l=0
+           IPA=1
+           CALL calcul_Lstar_opt(t_resol,r_resol,xGEO
+     &         ,Lm(isat,IPA),Lstar(isat,IPA),XJ(isat,IPA)
+     &         ,BLOCAL(isat,IPA),BMIN(isat))
+         k_l=options(1)
+           CALL find_bm_nalpha(xGEO,nipa,alpha,BL,BMIR,xGEOp)
+           DO IPA=1,Nipa
+           IF (Bmir(ipa).NE.baddata) THEN
+             Ilflag=0
+               CALL calcul_Lstar_opt(t_resol,r_resol,xGEOp(1,ipa)
+     &         ,Lm(isat,IPA),Lstar(isat,IPA),XJ(isat,IPA)
+     &         ,BLOCAL(isat,IPA),BMIN_tmp)
+             ELSE
+             Lm(isat,IPA)=baddata
+             Lstar(isat,IPA)=baddata
+             XJ(isat,IPA)=baddata
+             BLOCAL(isat,IPA)=baddata
+           ENDIF
+           ENDDO
+
+99         continue
+
+           CALL geo_mag(xGEO,xMAG)
+           CALL car_sph(xMAG,rM,MLAT,Mlon1)
+           CALL GSM_GEO(xSUN,xGEO)
+           CALL geo_mag(xGEO,xMAG)
+           CALL car_sph(xMAG,rM,MLAT,Mlon)
+           MLT(isat) = (Mlon1 - Mlon)/15.d0 + 12.d0
+           IF (MLT(isat).GE.24.d0) MLT(isat) = MLT(isat) - 24.d0
+           IF (MLT(isat).LT.0.d0) MLT(isat) = MLT(isat) + 24.d0
+
+      ENDDO
+
+      END
+c
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION Lstar_Phi(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine Lstar_Phi: 7 arguments
+      call Lstar_Phi1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)))
+
+      Lstar_Phi = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE Lstar_Phi1(ntime,whichinv,options,iyearsat,
+     &  idoy,Lstar,Phi)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+        INCLUDE 'ntime_max.inc'
+C
+c declare inputs
+        INTEGER*4    whichinv,options(5)
+        INTEGER*4    ntime
+      INTEGER*4    iyearsat(ntime_max)
+      integer*4    idoy(ntime_max)
+c
+c Declare internal variables
+      INTEGER*4    isat,kint
+        REAL*8     Bo,xc,yc,zc,ct,st,cp,sp
+c
+c Declare output variables
+        REAL*8     Phi(ntime_max),Lstar(ntime_max)
+C
+        COMMON /dipigrf/Bo,xc,yc,zc,ct,st,cp,sp
+        REAL*8     pi,rad
+        common /rconst/rad,pi
+      integer*4 int_field_select, ext_field_select
+C
+
+      kint = int_field_select ( options(5) )
+c
+        CALL INITIZE
+
+        DO isat = 1,ntime
+          call init_fields ( kint, iyearsat(isat),idoy(isat),-1.D0,
+     6      options(2) )
+
+         if (whichinv .EQ. 1) then !Lstar to Phi
+            if (Lstar(isat) .NE. baddata) then
+               Phi(isat)=2.D0*pi*Bo/Lstar(isat)
+            else
+               Phi(isat)=baddata
+            endif
+         else
+            if (phi(isat) .NE. baddata) then
+               Lstar(isat)=2.D0*pi*Bo/Phi(isat)
+            else
+               Lstar(isat)=baddata
+            endif
+         endif
+      enddo
+      end
+c
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION drift_shell(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine make_Lstar: 17 arguments
+      call drift_shell1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
+     + %VAL(argv(16)), %VAL(argv(17)))
+
+      drift_shell = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE drift_shell1(kext,options,sysaxes,iyearsat,idoy,UT,
+     &  xIN1,xIN2,xIN3,maginput,Lm,Lstar,BLOCAL,BMIN,XJ,posit,ind)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+C
+c declare inputs
+        INTEGER*4    kext,k_ext,k_l,options(5)
+        INTEGER*4    sysaxes
+      INTEGER*4    iyearsat
+      integer*4    idoy
+      real*8     UT
+      real*8     xIN1,xIN2,xIN3
+      real*8     maginput(25)
+c
+c Declare internal variables
+      INTEGER*4    isat,iyear,kint,ifail
+      REAL*8     xGEO(3)
+      real*8     alti,lati,longi
+c
+c Declare output variables
+        INTEGER*4  ind(48)
+        REAL*8     BLOCAL(1000,48),BMIN,XJ
+        REAL*8     Lm,Lstar
+      REAL*8     posit(3,1000,48)
+C
+      COMMON /magmod/k_ext,k_l,kint
+      integer*4 int_field_select, ext_field_select
+C
+      k_l=options(1)
+c
+      kint = int_field_select ( options(5) )
+      k_ext = ext_field_select ( kext )
+c
+        CALL INITIZE
+
+      call init_fields ( kint, iyearsat, idoy, ut, options(2) )
+
+      call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
+     6    alti, lati, longi, xGEO )
+
+      call set_magfield_inputs ( k_ext, maginput, ifail )
+
+        if (k_ext .eq. 13 .or. k_ext .eq. 14) then
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+       end if
+
+      if ( ifail.lt.0 ) then
+             Lm=baddata
+             Lstar=baddata
+             XJ=baddata
+             BMIN=baddata
+             RETURN
+          endif
+c
+        CALL trace_drift_shell_opt(xGeo
+     &     ,Lm,Lstar,XJ,BLOCAL,BMIN,
+     &     posit,ind)
+      END
+
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION trace_field_line(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine make_Lstar: 17 arguments
+      call trace_field_line1(%VAL(argv(1)), %VAL(argv(2)),
+     +%VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
+     + %VAL(argv(16)))
+
+      trace_field_line = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION trace_field_line2(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine make_Lstar: 17 arguments
+      call trace_field_line2_1(%VAL(argv(1)), %VAL(argv(2)),
+     +%VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
+     + %VAL(argv(16)), %VAL(argv(17)))
+
+      trace_field_line2 = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE trace_field_line1(kext,options,sysaxes,iyearsat,
+     &  idoy,UT,xIN1,xIN2,xIN3,maginput,
+     &  Lm,BLOCAL,BMIN,XJ,posit,ind)
+        IMPLICIT NONE
+        INTEGER*4 kext,options(5),sysaxes,iyearsat,idoy
+        REAL*8 UT,xIN1,xIN2,xIN3,maginput(25),R0
+        REAL*8 Lm,BLOCAL(3000),BMIN,XJ,posit(3,3000)
+        INTEGER*4 ind
+
+        R0=1.D0
+        call trace_field_line2_1(kext,options,sysaxes,iyearsat,idoy,
+     &  UT,xIN1,xIN2,xIN3,maginput,R0,
+     &  Lm,BLOCAL,BMIN,XJ,posit,ind)
+        end
+
+        SUBROUTINE trace_field_line2_1(kext,options,sysaxes,iyearsat,
+     &  idoy,UT,xIN1,xIN2,xIN3,maginput,R0,
+     &  Lm,BLOCAL,BMIN,XJ,posit,ind)
+C - added R0 argument - radius of reference sphere
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+C
+c declare inputs
+        INTEGER*4    kext,k_ext,k_l,kint,options(5)
+        INTEGER*4    sysaxes
+      INTEGER*4    iyearsat
+      integer*4    idoy
+      real*8     UT
+      real*8     xIN1,xIN2,xIN3
+      real*8     maginput(25)
+        real*8     R0
+c
+c Declare internal variables
+      INTEGER*4    isat,iyear,ifail
+        INTEGER*4    i,j
+      REAL*8     xGEO(3)
+      real*8     alti,lati,longi
+c
+c Declare output variables
+        INTEGER*4  ind
+        REAL*8     BLOCAL(3000),BMIN,XJ
+        REAL*8     Lm
+      REAL*8     posit(3,3000)
+C
+      COMMON /magmod/k_ext,k_l,kint
+      integer*4 int_field_select, ext_field_select
+C
+        do i=1,3
+         do j=1,3000
+           posit(i,j)=baddata
+         enddo
+      enddo
+c
+      kint = int_field_select ( options(5) )
+      k_ext = ext_field_select ( kext )
+c
+        CALL INITIZE
+
+      call init_fields ( kint, iyearsat, idoy, ut, options(2) )
+
+      call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
+     6    alti, lati, longi, xGEO )
+
+      call set_magfield_inputs ( k_ext, maginput, ifail )
+        if (k_ext .eq. 13 .or. k_ext .eq. 14) then
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+        end if
+
+      if ( ifail.lt.0 ) then
+              Lm=baddata
+             XJ=baddata
+             BMIN=baddata
+             ind=0
+             RETURN
+          endif
+c
+        CALL field_line_tracing_opt2(xGeo,R0
+     &     ,Lm,XJ,BLOCAL,BMIN,posit,ind)
+      END
+c
+c --------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION trace_field_line_towards_earth(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine make_Lstar: 17 arguments
+      call trace_field_line_towards_earth1(%VAL(argv(1)), %VAL(argv(2)),
+     +%VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)), %VAL(argv(13)))
+
+      trace_field_line_towards_earth = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+      SUBROUTINE trace_field_line_towards_earth1(kext,options,sysaxes
+     &  ,iyearsat,idoy,UT,xIN1,xIN2,xIN3,maginput,ds,posit,ind)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+C
+c declare inputs
+      INTEGER*4    kext,k_ext,k_l,kint,options(5)
+      INTEGER*4    sysaxes
+      INTEGER*4    iyearsat
+      integer*4    idoy
+      real*8     UT,ds
+      real*8     xIN1,xIN2,xIN3
+      real*8     maginput(25)
+c
+c Declare internal variables
+      INTEGER*4    isat,iyear
+      INTEGER*4    Ndays,activ,i,j
+      REAL*8     xGEO(3)
+      real*8     alti,lati,longi
+c
+c Declare output variables
+      INTEGER*4  ind, ifail
+      REAL*8     posit(3,3000)
+      integer*4 int_field_select, ext_field_select
+C
+C
+      do i=1,3
+        do j=1,3000
+          posit(i,j)=baddata
+        enddo
+      enddo
+c
+      k_ext=kext
+      k_l=options(1)
+      kint=options(5)
+
+      kint = int_field_select ( options(5) )
+      k_ext = ext_field_select ( kext )
+c
+        CALL INITIZE
+
+      call init_fields ( kint, iyearsat, idoy, ut, options(2) )
+
+      call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
+     6    alti, lati, longi, xGEO )
+
+      call set_magfield_inputs ( k_ext, maginput, ifail )
+
+      if (k_ext .eq. 13 .or. k_ext .eq. 14) then
+        call INIT_TS07D_TLPR
+        call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+      end if
+
+      if ( ifail.lt.0 ) then
+             ind=0
+             RETURN
+          endif
+c
+        CALL field_line_tracing_towards_Earth_opt(xGEO,ds,posit,ind)
+      END
+
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION find_mirror_point(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine make_Lstar: 19 arguments
+      call find_mirror_point1(%VAL(argv(1)), %VAL(argv(2)),
+     + %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)))
+
+      find_mirror_point = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE find_mirror_point1(kext,options,sysaxes,iyearsat,
+     &  idoy,UT,xIN1,xIN2,xIN3,alpha,maginput,BLOCAL,BMIR,xGEO)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+C
+c declare inputs
+        INTEGER*4    kext,k_ext,k_l,kint,options(5)
+        INTEGER*4    sysaxes
+      INTEGER*4    iyearsat
+      integer*4    idoy
+      real*8     UT
+      real*8     xIN1,xIN2,xIN3
+      real*8     alpha
+      real*8     maginput(25)
+c
+c Declare internal variables
+      INTEGER*4    isat,iyear,Iint,ifail
+      REAL*8     xMAG(3)
+      real*8     alti,lati,longi
+      real*8     BxGEO(3),xGeop(3,25),myalpha(25)
+      real*8     MyBmir(25)
+c
+c Declare output variables
+        REAL*8     BLOCAL,xGEO(3),BMIR
+C
+      COMMON /magmod/k_ext,k_l,kint
+      integer*4 int_field_select, ext_field_select
+C
+      kint = int_field_select ( options(5) )
+      k_ext = ext_field_select ( kext )
+c
+        CALL INITIZE
+
+      call init_fields ( kint, iyearsat, idoy, ut, options(2) )
+
+      call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
+     6    alti, lati, longi, xGEO )
+
+      call set_magfield_inputs ( k_ext, maginput, ifail )
+
+        if (k_ext .eq. 13 .or. k_ext .eq. 14) then
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+        end if
+
+      if ( ifail.lt.0 ) then
+             xGEO(1)=baddata
+             xGEO(2)=baddata
+             xGEO(3)=baddata
+             BLOCAL=baddata
+             BMIR=baddata
+             RETURN
+          endif
+c
+        if (alpha.eq.90.0d0) then
+          Iint=2 ! TPO: presume this sets internal field?
+c          CALL CHAMP(Iint,xGEO,BxGEO,Blocal,Ifail) ! Iint is superfluous
+          CALL CHAMP(xGEO,BxGEO,Blocal,Ifail)
+        IF (Ifail.LT.0) THEN
+          Blocal=baddata
+          Bmir=baddata
+          xGEO(1)=baddata
+          xGEO(2)=baddata
+          xGEO(3)=baddata
+        ELSE
+          BMIR=Blocal
+        ENDIF
+        RETURN
+      endif
+c
+       myalpha(1)=alpha
+        CALL find_bm_nalpha(xGeo,1,myalpha
+     &     ,BLOCAL,myBMIR,xGEOp)
+        xGEO(1)=xGeop(1,1)
+        xGEO(2)=xGeop(2,1)
+        xGEO(3)=xGeop(3,1)
+        Bmir=MyBmir(1)
+      END
+
+
+
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION find_MAGequator(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c
+      call find_MAGequator1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)))
+
+      find_MAGequator = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE FIND_MAGEQUATOR1(kext,options,sysaxes,iyearsat
+     &  ,idoy,UT,xIN1,xIN2,xIN3,maginput,BMIN,posit)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+C
+c declare inputs
+        INTEGER*4    kext,k_ext,k_l,kint,options(5)
+        INTEGER*4    sysaxes
+      INTEGER*4    iyearsat
+      integer*4    idoy
+      real*8     UT
+      real*8     xIN1,xIN2,xIN3
+      real*8     maginput(25)
+c
+c Declare internal variables
+      INTEGER*4    isat,iyear,ifail
+      REAL*8     xGEO(3)
+      real*8     alti,lati,longi
+c
+c Declare output variables
+        REAL*8     BMIN
+      REAL*8     posit(3)
+C
+      COMMON /magmod/k_ext,k_l,kint
+      integer*4 int_field_select, ext_field_select
+C
+      kint = int_field_select ( options(5) )
+      k_ext = ext_field_select ( kext )
+c
+        CALL INITIZE
+
+      call init_fields ( kint, iyearsat, idoy, ut, options(2) )
+
+      call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
+     6    alti, lati, longi, xGEO )
+
+      call set_magfield_inputs ( k_ext, maginput, ifail )
+
+        if (k_ext .eq. 13 .or. k_ext .eq. 14) then
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+        end if
+
+      if ( ifail.lt.0 ) then
+             posit(1)=baddata
+             posit(2)=baddata
+             posit(3)=baddata
+             BMIN=baddata
+             RETURN
+          endif
+c
+c
+        CALL loc_equator_opt(xGeo,BMIN,posit)
+      END
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION GET_FIELD(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c
+      call GET_FIELD1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)))
+
+      GET_FIELD = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+      SUBROUTINE GET_FIELD1(kext,options,sysaxes,iyearsat,idoy,UT,
+     &     xIN1,xIN2,xIN3,maginput,BxGEO,Bl)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+C
+c     declare inputs
+      INTEGER*4    kext,k_ext,k_l,kint,options(5)
+      INTEGER*4    sysaxes
+      INTEGER*4    iyearsat
+      integer*4    idoy
+      real*8     UT
+      real*8     xIN1,xIN2,xIN3
+      real*8     maginput(25)
+c
+c     Declare internal variables
+      INTEGER*4    isat,iyear,ifail
+      REAL*8     xGEO(3)
+      real*8     alti,lati,longi
+c
+c     Declare output variables
+      REAL*8     BxGEO(3),Bl
+C
+      COMMON /magmod/k_ext,k_l,kint
+      integer*4 int_field_select, ext_field_select
+C
+      kint = int_field_select ( options(5) )
+      k_ext = ext_field_select ( kext )
+c
+
+      CALL INITIZE
+
+      call init_fields ( kint, iyearsat, idoy, ut, options(2) )
+
+      call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
+     6     alti, lati, longi, xGEO )
+
+      call set_magfield_inputs ( k_ext, maginput, ifail )
+
+        if (k_ext .eq. 13 .or. k_ext .eq. 14) then !special script to read files and
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+        end if
+
+      if ( ifail.lt.0 ) then
+         Bl=baddata
+         BxGEO(1)=baddata
+         BxGEO(2)=baddata
+         BxGEO(3)=baddata
+         RETURN
+      endif
+c
+      CALL CHAMP(xGEO,BxGEO,Bl,Ifail)
+      IF (Ifail.LT.0) THEN
+         BxGEO(1)=baddata
+         BxGEO(2)=baddata
+         BxGEO(3)=baddata
+         Bl=baddata
+      ENDIF
+      END
+C-----------------------------------------------------------------------------
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION GET_FIELD_MULTI_IDL(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c
+      call GET_FIELD_MULTI(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)),%VAL(argv(13)))
+
+      GET_FIELD_MULTI_IDL = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C-----------------------------------------------------------------------------
+
+      SUBROUTINE GET_FIELD_MULTI(ntime,kext,options,sysaxes,iyearsat,
+     &     idoy,UT,xIN1,xIN2,xIN3,maginput,BxGEO,Bl)
+C     Call get_field1 many times (ntime, in fact, up to ntime = ntime_max)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+      INCLUDE 'ntime_max.inc'   ! include file created by make, defines ntime_max
+C
+c     declare inputs
+      INTEGER*4    ntime
+      INTEGER*4    kext,options(5)
+      INTEGER*4    sysaxes
+      INTEGER*4    iyearsat(ntime_max)
+      integer*4    idoy(ntime_max)
+      real*8     UT(ntime_max)
+      real*8     xIN1(ntime_max),xIN2(ntime_max),xIN3(ntime_max)
+      real*8     maginput(25,ntime_max)
+
+c     Declare output variables
+      REAL*8     BxGEO(3,ntime_max),Bl(ntime_max)
+C
+c     Declare internal variables
+      integer*4 isat
+      INTEGER*4 k_ext,k_l,kint,ifail
+
+c    For now we call this every time
+c   TODO: create a load flag so that we skip repetative loads
+c      if (kext.eq.13) then
+c            call INIT_TS07D_TLPR
+c      endif
+
+      do isat = 1,ntime
+         call GET_FIELD1(kext,options,sysaxes,iyearsat(isat),
+     &        idoy(isat),UT(isat), xIN1(isat),xIN2(isat),
+     &        xIN3(isat),maginput(1,isat),BxGEO(1,isat),Bl(isat))
+
+      enddo
+      end
+c
+c --------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION GET_MLT(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+      j = loc(argc)             ! Obtains the number of arguments (argc)
+                                ! Because argc is passed by VALUE.
+
+c     Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c     passed by reference arguments.
+c
+c
+      call GET_MLT1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     *     %VAL(argv(4)),  %VAL(argv(5)))
+
+      GET_MLT = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE GET_MLT1(iyr,idoy,UT,xGEO,MLT)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+C
+c declare inputs
+      INTEGER*4    iyr
+      integer*4    idoy
+      real*8     UT
+      real*8     xGEO(3)
+c
+c Declare internal variables
+        REAL*8     dyear
+      REAL*8     psi,mlon
+      REAL*8     xMAG(3),xSUN(3),rM,MLAT,Mlon1
+      REAL*8     xTMP(3)
+c
+c Declare output variables
+        REAL*8     MLT
+C
+        DATA  xSUN /1.d0,0.d0,0.d0/
+C
+      dyear=iyr+0.5d0
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,ut,psi)
+C
+        CALL geo_mag(xGEO,xMAG)
+        CALL car_sph(xMAG,rM,MLAT,Mlon1)
+        CALL GSM_GEO(xSUN,xTMP)
+        CALL geo_mag(xTMP,xMAG)
+        CALL car_sph(xMAG,rM,MLAT,Mlon)
+        MLT = (Mlon1 - Mlon)/15.d0 + 12.d0
+        IF (MLT.GE.24.d0) MLT = MLT - 24.d0
+        IF (MLT.LT.0.d0) MLT = MLT + 24.d0
+
+        END
+C-----------------------------------------------------------------------------
+c******************************************************************************
+c *****************************************************************************
+      ! Called by IDL
+      REAL*4 FUNCTION GET_HEMI(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c
+      call GET_HEMI1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)))
+
+      GET_HEMI = 9.9
+
+      RETURN
+      END
+C-----------------------------------------------------------------------------
+c******************************************************************************
+c *****************************************************************************
+      ! Called by IDL
+      REAL*4 FUNCTION GET_HEMI_MULTI_IDL(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c
+      call GET_HEMI_MULTI(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     * %VAL(argv(12)))
+
+      GET_HEMI_MULTI_IDL = 9.9
+
+      RETURN
+      END
+c
+      integer*4 function int_field_select ( kint )
+      integer*4 kint
+
+      !write(6,*)kint
+      IF (kint .lt. 0) THEN
+         kint=0
+         WRITE(6,*)
+         WRITE(6,*)'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+         WRITE(6,*)'Invalid internal field specification'
+         WRITE(6,*)'Selecting IGRF'
+         WRITE(6,*)'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+         WRITE(6,*)
+      ENDIF
+      if (kint .gt. 5) THEN
+         kint=0
+         WRITE(6,*)
+         WRITE(6,*)'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+         WRITE(6,*)'Invalid internal field specification'
+         WRITE(6,*)'Selecting IGRF'
+         WRITE(6,*)'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+         WRITE(6,*)
+      ENDIF
+
+      int_field_select = kint
+
+      return
+      end
+
+      integer*4 function ext_field_select ( kext )
+
+        integer*4 kext
+
+      IF (kext .lt. 0) THEN
+         k_ext=5
+         WRITE(6,*)
+         WRITE(6,*)'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+         WRITE(6,*)'Invalid external field specification'
+         WRITE(6,*)'Selecting Olson-Pfitzer (quiet)'
+         WRITE(6,*)'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+         WRITE(6,*)
+      ENDIF
+      if (kext .gt. 14) THEN
+         k_ext=5
+         WRITE(6,*)
+         WRITE(6,*)'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+         WRITE(6,*)'Invalid external field specification'
+         WRITE(6,*)'Selecting Olson-Pfitzer (quiet)'
+         WRITE(6,*)'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+         WRITE(6,*)
+      ENDIF
+
+      ext_field_select = kext
+
+      return
+      end
+
+
+      subroutine init_fields ( kint, iyearsat, idoy, ut, opt2 )
+      INTEGER*4    firstJanuary,lastDecember,Julday,currentdoy
+      INTEGER*4    kint,opt2,iyearsat,iyear
+      integer*4    idoy
+      real*8     UT,dec_year
+      REAL*8 tilt,psi
+      INTEGER*4    a2000_iyear,a2000_imonth,a2000_iday
+      REAL*8      a2000_ut
+      COMMON /dip_ang/tilt
+      REAL*8     pi,rad
+
+      common /rconst/rad,pi
+      COMMON /a2000_time/a2000_ut,a2000_iyear,a2000_imonth,a2000_iday
+
+      iyear = 1800
+
+      if (kint .eq. 2) CALL JensenANDCain1960
+      if (kint .eq. 3) CALL GSFC1266
+c         write(6,*)real(isat)*100./real(ntime), '% done'
+c
+      if (kint .le. 1 .or. kint .eq. 4 .or. kint .eq. 5) then
+        if (opt2 .eq. 0) then
+          if (iyearsat .ne. iyear) then
+            iyear=iyearsat
+            dec_year=iyear+0.5d0
+            if (Kint .eq. 4) then
+              call myOwnMagField_init(dec_year)
+            else
+              CALL INIT_DTD(dec_year)
+            endif
+            if (kint .eq. 5) CALL INIT_CD
+          endif
+        else
+          if (iyearsat .ne. iyear .or.
+     &          MOD(idoy*1.d0,opt2*1.d0) .eq. 0) THEN
+            iyear=iyearsat
+            firstJanuary=JULDAY(iyear,01,01)
+            lastDecember=JULDAY(iyear,12,31)
+            currentdoy=(idoy/opt2)*opt2
+            if (currentdoy .eq. 0) currentdoy=1
+            dec_year=iyear+currentdoy*1.d0/
+     &             ((lastDecember-firstJanuary+1)*1.d0)
+            if (Kint .eq. 4) then
+              call myOwnMagField_init(dec_year)
+            else
+              CALL INIT_DTD(dec_year)
+            endif
+          endif
+        endif
+      endif
+c
+      if ( ut.ge.0.0 ) CALL INIT_GSM(iyearsat,idoy,UT,psi)
+      tilt = psi/rad
+
+      a2000_iyear=iyearsat
+      firstJanuary=JULDAY(a2000_iyear,01,01)
+      currentdoy=firstJanuary+idoy-1
+      CALL CALDAT(currentdoy,a2000_iyear,a2000_imonth,a2000_iday)
+      a2000_ut=UT
+
+      return
+      end
+
+      subroutine get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
+     6    alti, lati, longi, xGEO )
+
+      integer*4 sysaxes
+      real*8 xIN1, xIN2, xIN3
+      real*8 alti, lati, longi, xGEO(3)
+      real*8 xGSM(3), xGSE(3), xSM(3), xGEI(3), xMAG(3)
+
+         if (sysaxes .EQ. 0) then
+             alti=xIN1
+             lati=xIN2
+             longi=xIN3
+               CALL GDZ_GEO(lati,longi,alti,xGEO(1),xGEO(2),xGEO(3))
+         endif
+         if (sysaxes .EQ. 1) then
+             xGEO(1)=xIN1
+             xGEO(2)=xIN2
+             xGEO(3)=xIN3
+             CALL GEO_GDZ(xGEO(1),xGEO(2),xGEO(3),lati,longi,alti)
+         endif
+         if (sysaxes .EQ. 2) then
+             xGSM(1)=xIN1
+             xGSM(2)=xIN2
+             xGSM(3)=xIN3
+             CALL GSM_GEO(xGSM,xGEO)
+             CALL GEO_GDZ(xGEO(1),xGEO(2),xGEO(3),lati,longi,alti)
+         endif
+         if (sysaxes .EQ. 3) then
+             xGSE(1)=xIN1
+             xGSE(2)=xIN2
+             xGSE(3)=xIN3
+             CALL GSE_GEO(xGSE,xGEO)
+             CALL GEO_GDZ(xGEO(1),xGEO(2),xGEO(3),lati,longi,alti)
+         endif
+         if (sysaxes .EQ. 4) then
+             xSM(1)=xIN1
+             xSM(2)=xIN2
+             xSM(3)=xIN3
+             CALL SM_GEO(xSM,xGEO)
+             CALL GEO_GDZ(xGEO(1),xGEO(2),xGEO(3),lati,longi,alti)
+         endif
+         if (sysaxes .EQ. 5) then
+             xGEI(1)=xIN1
+             xGEI(2)=xIN2
+             xGEI(3)=xIN3
+             CALL GEI_GEO(xGEI,xGEO)
+             CALL GEO_GDZ(xGEO(1),xGEO(2),xGEO(3),lati,longi,alti)
+         endif
+         if (sysaxes .EQ. 6) then
+             xMAG(1)=xIN1
+             xMAG(2)=xIN2
+             xMAG(3)=xIN3
+             CALL MAG_GEO(xMAG,xGEO)
+             CALL GEO_GDZ(xGEO(1),xGEO(2),xGEO(3),lati,longi,alti)
+         endif
+         if (sysaxes .EQ. 7) then
+             xMAG(1)=xIN1
+             xMAG(2)=xIN2
+             xMAG(3)=xIN3
+             CALL SPH_CAR(xMAG(1),xMAG(2),xMAG(3),xGEO)
+             CALL GEO_GDZ(xGEO(1),xGEO(2),xGEO(3),lati,longi,alti)
+         endif
+         if (sysaxes .EQ. 8) then
+             xMAG(1)=xIN1
+             lati=xIN2
+             longi=xIN3
+             CALL RLL_GDZ(xMAG(1),lati,longi,alti)
+             CALL GDZ_GEO(lati,longi,alti,xGEO(1),xGEO(2),xGEO(3))
+         endif
+
+         return
+         end
+
+       subroutine set_magfield_inputs ( kext, maginput, ifail )
+      INCLUDE 'variables.inc'
+      COMMON /index/activ
+      integer*4 activ
+      COMMON /drivers/density,speed,dst_nt,Pdyn_nPa,BxIMF_nt,ByIMF_nt
+     &       ,BzIMF_nt,G1_tsy01,G2_tsy01,fkp,G3_tsy01,W1_tsy04,W2_tsy04
+     &       ,W3_tsy04,W4_tsy04,W5_tsy04,W6_tsy04,Al
+      real*8  density,speed,dst_nt,Pdyn_nPa,BxIMF_nt,ByIMF_nt,BzIMF_nt
+      real*8  G1_tsy01,G2_tsy01,fkp,G3_tsy01,W1_tsy04,W2_tsy04
+      real*8  W3_tsy04,W4_tsy04,W5_tsy04,W6_tsy04,Al
+
+       integer*4 kext, ifail
+       real*8 maginput(25)
+c                      1: Kp
+c                      2: Dst
+c                      3: dens
+c                      4: velo
+c                      5: Pdyn
+c                      6: ByIMF
+c                      7: BzIMF
+c                      8: G1
+c                      9: G2
+c                     10: G3
+c
+c make inputs according to magn. field model chosen
+c
+c     set fail flag 'on' by default
+         ifail = -1
+c     clear it if all tests for respective selection are ok
+c
+c            'none'
+           if (kext .eq. 0) then
+             ifail = 0
+             return
+         endif
+c            'Olsen-Pfitzer' = default
+           if (kext .eq. 5) then
+             ifail = 0
+             return
+         endif
+
+           if (kext .eq. 1) then
+c Input for MEAD
+           if (maginput(1).eq.baddata) return
+             if (maginput(1).le.3.d0) Activ=1
+             if (maginput(1).gt.3.d0 .and.
+     &         maginput(1).lt.20.d0) Activ=2
+             if (maginput(1).ge.20.d0 .and.
+     &         maginput(1).lt.30.d0) Activ=3
+             if (maginput(1).ge.30.d0) Activ=4
+c
+             if (maginput(1).lt.0.d0 .or.
+     &         maginput(1).gt.90.d0) return
+             ifail = 0
+             return
+         endif
+           if (kext .eq. 2) then
+c Input for TSYG87s
+           if (maginput(1).eq.baddata) return
+             if (maginput(1).lt.7.d0) Activ=1
+             if (maginput(1).ge.7.d0 .and.
+     &         maginput(1).lt.17.d0) Activ=2
+             if (maginput(1).ge.17.d0 .and.
+     &         maginput(1).lt.20.d0) Activ=3
+             if (maginput(1).ge.20.d0 .and.
+     &         maginput(1).lt.27.d0) Activ=4
+             if (maginput(1).ge.27.d0 .and.
+     &         maginput(1).lt.37.d0) Activ=5
+             if (maginput(1).ge.37.d0 .and.
+     &         maginput(1).lt.47.d0) Activ=6
+             if (maginput(1).ge.47.d0) Activ=7
+             if (maginput(1).ge.53.d0) Activ=8
+c
+             if (maginput(1).lt.0.d0 .or.
+     &         maginput(1).gt.90.d0) return
+             ifail = 0
+             return
+         endif
+           if (kext .eq. 3) then
+c Input for TSYG87l
+           if (maginput(1).eq.baddata) return
+             if (maginput(1).lt.7.d0) Activ=1
+             if (maginput(1).ge.7.d0 .and.
+     &         maginput(1).lt.17.d0) Activ=2
+             if (maginput(1).ge.17.d0 .and.
+     &         maginput(1).lt.27.d0) Activ=3
+             if (maginput(1).ge.27.d0 .and.
+     &         maginput(1).lt.37.d0) Activ=4
+             if (maginput(1).ge.37.d0 .and.
+     &         maginput(1).lt.47.d0) Activ=5
+             if (maginput(1).ge.47.d0) Activ=6
+c
+             if (maginput(1).lt.0.d0 .or.
+     &         maginput(1).gt.90.d0) return
+             ifail = 0
+             return
+           endif
+           if (kext .eq. 4) then
+c Input for Tsy89
+           if (maginput(1).eq.baddata) return
+             if (maginput(1).lt.7.d0) Activ=1
+             if (maginput(1).ge.7.d0 .and.
+     &         maginput(1).lt.17.d0) Activ=2
+             if (maginput(1).ge.17.d0 .and.
+     &         maginput(1).lt.27.d0) Activ=3
+             if (maginput(1).ge.27.d0 .and.
+     &         maginput(1).lt.37.d0) Activ=4
+             if (maginput(1).ge.37.d0 .and.
+     &         maginput(1).lt.47.d0) Activ=5
+             if (maginput(1).ge.47.d0 .and.
+     &         maginput(1).lt.57.d0) Activ=6
+             if (maginput(1).ge.57.d0) Activ=7
+c
+             if (maginput(1).lt.0.d0 .or.
+     &         maginput(1).gt.90.d0) return
+             ifail = 0
+             return
+          endif
+           if (kext .eq. 6) then
+c Input for OP dyn
+           if (maginput(2).eq.baddata) return
+           if (maginput(3).eq.baddata) return
+           if (maginput(4).eq.baddata) return
+               density=maginput(3)
+             speed=maginput(4)
+             dst_nt=maginput(2)
+c
+             if (dst_nt.lt.-100.d0 .or. dst_nt.gt.20.d0) return
+             if (density.lt.5.d0 .or. density.gt.50.d0) return
+             if (speed.lt.300.d0 .or. speed.gt.500.d0) return
+             ifail = 0
+             return
+         endif
+           if (kext .eq. 7) then
+c Input for Tsy96
+           if (maginput(2).eq.baddata) return
+           if (maginput(5).eq.baddata) return
+           if (maginput(6).eq.baddata) return
+           if (maginput(7).eq.baddata) return
+             dst_nt=maginput(2)
+             Pdyn_nPa=maginput(5)
+             ByIMF_nt=maginput(6)
+             BzIMF_nt=maginput(7)
+c
+             if (dst_nt.lt.-100.d0 .or. dst_nt.gt.20.d0) return
+             if (Pdyn_nPa.lt.0.5d0 .or. Pdyn_nPa.gt.10.d0) return
+             if (ByIMF_nt.lt.-10.d0 .or. ByIMF_nt.gt.10.d0) return
+             if (BzIMF_nt.lt.-10.d0 .or. BzIMF_nt.gt.10.d0) return
+             ifail = 0
+             return
+         endif
+           if (kext .eq. 8) then
+c Input for Ostapenko97
+           if (maginput(2).eq.baddata) return
+           if (maginput(5).eq.baddata) return
+           if (maginput(7).eq.baddata) return
+             dst_nt=maginput(2)
+             Pdyn_nPa=maginput(5)
+             BzIMF_nt=maginput(7)
+             fkp=maginput(1)*1.d0/10.d0
+             ifail = 0
+             return
+         endif
+           if (kext .eq. 9) then
+c Input for Tsy01
+           if (maginput(2).eq.baddata) return
+           if (maginput(5).eq.baddata) return
+           if (maginput(6).eq.baddata) return
+           if (maginput(7).eq.baddata) return
+           if (maginput(8).eq.baddata) return
+           if (maginput(9).eq.baddata) return
+             dst_nt=maginput(2)
+             Pdyn_nPa=maginput(5)
+             ByIMF_nt=maginput(6)
+             BzIMF_nt=maginput(7)
+             G1_tsy01=maginput(8)
+             G2_tsy01=maginput(9)
+c
+             if (dst_nt.lt.-50.d0 .or. dst_nt.gt.20.d0) return
+             if (Pdyn_nPa.lt.0.5d0 .or. Pdyn_nPa.gt.5.d0) return
+             if (ByIMF_nt.lt.-5.d0 .or. ByIMF_nt.gt.5.d0) return
+             if (BzIMF_nt.lt.-5.d0 .or. BzIMF_nt.gt.5.d0) return
+             if (G1_tsy01.lt.0.d0 .or. G1_tsy01.gt.10.d0) return
+             if (G2_tsy01.lt.0.d0 .or. G2_tsy01.gt.10.d0) return
+             ifail = 0
+             return
+         endif
+           if (kext .eq. 10) then
+c Input for Tsy01 storm
+           if (maginput(2).eq.baddata) return
+           if (maginput(5).eq.baddata) return
+           if (maginput(6).eq.baddata) return
+           if (maginput(7).eq.baddata) return
+           if (maginput(9).eq.baddata) return
+           if (maginput(10).eq.baddata) return
+             dst_nt=maginput(2)
+             Pdyn_nPa=maginput(5)
+             ByIMF_nt=maginput(6)
+             BzIMF_nt=maginput(7)
+             G2_tsy01=maginput(9)
+             G3_tsy01=maginput(10)
+             ifail = 0
+             return
+         endif
+c
+           if (kext .eq. 11) then
+c Input for Tsy04 storm
+           if (maginput(2).eq.baddata) return
+           if (maginput(5).eq.baddata) return
+           if (maginput(6).eq.baddata) return
+           if (maginput(7).eq.baddata) return
+           if (maginput(11).eq.baddata) return
+           if (maginput(12).eq.baddata) return
+           if (maginput(13).eq.baddata) return
+           if (maginput(14).eq.baddata) return
+           if (maginput(15).eq.baddata) return
+           if (maginput(16).eq.baddata) return
+             dst_nt=maginput(2)
+             Pdyn_nPa=maginput(5)
+             ByIMF_nt=maginput(6)
+             BzIMF_nt=maginput(7)
+             W1_tsy04=maginput(11)
+             W2_tsy04=maginput(12)
+             W3_tsy04=maginput(13)
+             W4_tsy04=maginput(14)
+             W5_tsy04=maginput(15)
+             W6_tsy04=maginput(16)
+             ifail = 0
+             return
+         endif
+c
+        if (kext .eq. 12) then
+c Input for Alexeev 2000
+           if (maginput(2).eq.baddata) return
+           if (maginput(3).eq.baddata) return
+           if (maginput(4).eq.baddata) return
+           if (maginput(6).eq.baddata) return
+           if (maginput(7).eq.baddata) return
+           if (maginput(18).eq.baddata) return
+           if (maginput(17).eq.baddata) return
+           density=maginput(3)
+           speed=maginput(4)
+           dst_nt=maginput(2)
+           BxIMF_nt=maginput(18)
+           ByIMF_nt=maginput(6)
+           BzIMF_nt=maginput(7)
+           Al=maginput(17)
+           ifail = 0
+           return
+        endif
+
+        if (kext .eq. 13 .or. kext .eq. 14) then
+c            if (maginput(5).eq.baddata) return
+c            Pdyn_nPa=maginput(5)
+c           no need for solar-wind inputs anymore
+c           they are read directly from the coefficient files
+            ifail=0
+            return
+        endif
+
+c not sure why this is here, it's not implemented in other places
+c        if (kext .eq. 14) then
+c Input for Mead-Tsyganenko
+c           if (maginput(1).eq.baddata) return
+c             fkp=maginput(1)*1.d0/10.d0
+c             if (maginput(1).lt.0.d0 .or.
+c     &         maginput(1).gt.90.d0) return
+c           ifail = 0
+c           return
+c        endif
+       print *, ' invalid kext'
+
+       return
+       end
+
+c Wrapper and procedure to access many coordinate transformation form the
+c ONERA library
+c
+c =======================================================================
+c GEO2GSM
+c
+c Routine to transform Cartesian GEO to cartesian GSM coordinates
+c
+c  INPUTS: iyr = integer year
+c          idoy = integer day of year
+c          secs = UT in seconds
+c          xGEO = 3D array of cartesian position in GEO (Re)
+c
+c OUTPUTS: psi: angle for GSM coordinate
+c         xGSM: 3D array of cartesian position in GSM  (Re)
+c
+c CALLING SEQUENCE from IDL:
+c  result = call_external(lib_name,  $            ;The sharable object file
+c           'geo2gsm_', $                         ;The entry point
+c           iyr,idoy,secs,psi,xGEO,xGSM, $               ;return values (6)
+c           /f_value)                             ;function returns a float.
+c
+c =======================================================================
+c GSM2GEO
+c
+c Routine to transform Cartesian GSM to cartesian GEO coordinates
+c
+c  INPUTS: iyr = integer year
+c          idoy = integer day of year
+c          secs = UT in seconds
+c          xGSM = 3D array of cartesian position in GSM (Re)
+c
+c OUTPUTS: psi: angle for GSM coordinate
+c         xGEO: 3D array of cartesian position in GEO (Re)
+c
+c CALLING SEQUENCE from IDL:
+c  result = call_external(lib_name,  $            ;The sharable object file
+c           'gsm2geo_', $                         ;The entry point
+c           iyr,idoy,secs,psi,xGSM,xGEO, $               ;return values (6)
+c           /f_value)                             ;function returns a float.
+c
+c
+c =======================================================================
+c GDZ2GEO
+c
+c Routine to transform GEODEZIC coordinates to cartesian GEO coordinates
+c
+c  INPUTS: lati = latitude (degres)
+c          longi = longitude (degres)
+c          alti = altitude (km)
+c
+c OUTPUTS: xx = xGEO (Re)
+c          yy = yGEO (Re)
+c          zz = zGEO (Re)
+c
+c CALLING SEQUENCE from IDL:
+c  result = call_external(lib_name,  $            ;The sharable object file
+c           'gdz2geo_', $                         ;The entry point
+c           lati,longi,alti,xx,yy,zz, $               ;return values (6)
+c           /f_value)                             ;function returns a float.
+c
+c
+c =======================================================================
+c GEO2GDZ
+c
+c Routine to transform cartesian GEO coordinates to GEODEZIC coordinates
+c
+c INPUTS: xx = xGEO (Re)
+c          yy = yGEO (Re)
+c          zz = zGEO (Re)
+c
+c OUTPUTS: lati = latitude (degres)
+c          longi = longitude (degres)
+c          alti = altitude (km)
+c
+c
+c CALLING SEQUENCE from IDL:
+c  result = call_external(lib_name,  $            ;The sharable object file
+c           'geo2gdz_', $                         ;The entry point
+c           xx,yy,zz,lati,longi,alti, $               ;return values (6)
+c           /f_value)                             ;function returns a float.
+c
+c =======================================================================
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION coord_trans(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine coord_trans1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine coord_trans1: 7 arguments
+      call coord_trans1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)))
+
+      coord_trans = 9.9
+
+      RETURN
+      END
+c
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION coord_trans_vec(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine coord_trans1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine coord_trans_vec1: 8 arguments
+      call coord_trans_vec1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)))
+
+      coord_trans_vec = 9.9
+
+      RETURN
+      END
+c
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION geo2gsm(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call geo2gsm1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)))
+
+      geo2gsm = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE geo2gsm1(iyr,idoy,secs,psi,xGEO,xGSM)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGEO(3),xGSM(3)
+
+      dyear=iyr+0.5d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL GEO_GSM(xGEO,xGSM)
+        end
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION gsm2geo(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine gsm2geo1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine gsm2geo: 6 arguments
+      call gsm2geo1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)))
+
+      gsm2geo = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE gsm2geo1(iyr,idoy,secs,psi,xGSM,xGEO)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGEO(3),xGSM(3)
+
+
+      dyear=iyr+0.5d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL GSM_GEO(xGSM,xGEO)
+        end
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION geo2gse(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call geo2gse1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      geo2gse = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE geo2gse1(iyr,idoy,secs,xGEO,xGSE)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGEO(3),xGSE(3)
+
+        dyear=iyr+0.5d0
+        psi=0.d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL GEO_GSE(xGEO,xGSE)
+        end
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION gse2geo(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine gsm2geo1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine gsm2geo: 6 arguments
+      call gse2geo1(%VAL(argv(1)), %VAL(argv(2)),
+     * %VAL(argv(3)),  %VAL(argv(4)),  %VAL(argv(5)))
+
+      gse2geo = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE gse2geo1(iyr,idoy,secs,xGSE,xGEO)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGEO(3),xGSE(3)
+
+
+      dyear=iyr+0.5d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL GSE_GEO(xGSE,xGEO)
+        end
+
+
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION gdz2geo(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine gdz2geo1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine gdz2geo: 6 arguments
+      call GDZ_GEO(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)))
+
+      gdz2geo = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION geo2gdz(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo_gdz, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo_gdz: 6 arguments
+      call GEO_GDZ(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)))
+
+      geo2gdz = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION geo2gei(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call geo2gei1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      geo2gei = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE geo2gei1(iyr,idoy,secs,xGEO,xGEI)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGEO(3),xGEI(3)
+
+       dyear=iyr+0.5d0
+       psi=0.d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL GEO_GEI(xGEO,xGEI)
+        end
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION gei2geo(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call gei2geo1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      gei2geo = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE gei2geo1(iyr,idoy,secs,xGEI,xGEO)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGEO(3),xGEI(3)
+
+        dyear=iyr+0.5d0
+        psi=0.d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL GEI_GEO(xGEI,xGEO)
+        end
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION geo2sm(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call geo2sm1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      geo2sm = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE geo2sm1(iyr,idoy,secs,xGEO,xSM)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGEO(3),xSM(3)
+
+       dyear=iyr+0.5d0
+       psi=0.d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL GEO_SM(xGEO,xSM)
+        end
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION sm2geo(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call sm2geo1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      sm2geo = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE sm2geo1(iyr,idoy,secs,xSM,xGEO)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGEO(3),xSM(3)
+
+        dyear=iyr+0.5d0
+        psi=0.d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL SM_GEO(xSM,xGEO)
+        end
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION gsm2sm(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call gsm2sm1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      gsm2sm = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE gsm2sm1(iyr,idoy,secs,xGSM,xSM)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGSM(3),xSM(3)
+
+        dyear=iyr+0.5d0
+        psi=0.d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL GSM_SM(xGSM,xSM)
+        end
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION sm2gsm(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call sm2gsm1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      sm2gsm = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE sm2gsm1(iyr,idoy,secs,xSM,xGSM)
+      INTEGER*4 iyr,idoy
+      REAL*8    secs,psi,dyear
+      REAL*8    xGSM(3),xSM(3)
+
+        dyear=iyr+0.5d0
+        psi=0.d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
+        CALL INIT_GSM(iyr,idoy,secs,psi)
+        CALL SM_GSM(xSM,xGSM)
+        end
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION geo2mag(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call geo2mag1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)))
+
+      geo2mag = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE geo2mag1(iyr,xGEO,xMAG)
+      INTEGER*4 iyr
+      REAL*8    dyear
+      REAL*8    xGEO(3),xMAG(3)
+
+      dyear=iyr+0.5d0
+        CALL INIT_DTD(dyear)
+        CALL GEO_MAG(xGEO,xMAG)
+        end
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION mag2geo(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call mag2geo1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)))
+
+      mag2geo = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+        SUBROUTINE mag2geo1(iyr,xMAG,xGEO)
+      INTEGER*4 iyr
+      REAL*8    dyear
+      REAL*8    xGEO(3),xMAG(3)
+
+      dyear=iyr+0.5d0
+        CALL INIT_DTD(dyear)
+        CALL MAG_GEO(xMAG,xGEO)
+        end
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION sph2car(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call SPH_CAR(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     &  %VAL(argv(4)))
+
+      sph2car = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION car2sph(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call CAR_SPH(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     & %VAL(argv(4)))
+
+      car2sph = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION rll2gdz(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine geo2gsm: 6 arguments
+      call RLL_GDZ(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     & %VAL(argv(4)))
+
+      rll2gdz = 9.9
+
+      RETURN
+      END
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION gse2hee(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine gse2hee1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine gse2hee1: 5 arguments
+      call gse2hee1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      gse2hee = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION hee2gse(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine hee2gse1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine hee2gse1: 5 arguments
+      call hee2gse1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      hee2gse = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION hae2hee(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine hae2hee1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine hae2hee1: 5 arguments
+      call hae2hee1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      hae2hee = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION hee2hae(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine hee2hae1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine hee2hae1: 5 arguments
+      call hee2hae1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      hee2hae = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION hae2heeq(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine hae2heeq1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine hae2heeq1: 5 arguments
+      call hae2heeq1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      hae2heeq = 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C Wrapper and procedure for ONERA library
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION heeq2hae(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine heeq2hae1, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+c  subroutine heeq2hae1: 5 arguments
+      call heeq2hae1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)))
+
+      heeq2hae = 9.9
+
+      RETURN
+      END
+c
+c
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 3.0
+!
+! CREATION: S. Bourdarie - September 2005
+! MODIFICATION: None
+!
+! DESCRIPTION: Wrapper to call fly_in_nasa_aeap1 (IN AE8_AP8.f) from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_nasa_aeap_', ntime,sysaxes,whichm,whatf,energy,xIN1,xIN2,xIN3,flux, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION fly_in_nasa_aeap(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+!
+      call fly_in_nasa_aeap1(%VAL(argv(1)), %VAL(argv(2)),
+     * %VAL(argv(3)),%VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),
+     * %VAL(argv(7)),  %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)),
+     * %VAL(argv(11)),  %VAL(argv(12)),  %VAL(argv(13)))
+
+      fly_in_nasa_aeap = 9.9
+
+      RETURN
+      END
+c
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 4.2
+!
+! CREATION: S. Bourdarie - March 2008
+! MODIFICATION: None
+!
+! DESCRIPTION: Wrapper to call get_AE8_AP8_flux (IN AE8_AP8.f) from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'get_AE8_AP8_flux_idl_', ntime,whichm,whatf,nene,energy,BBo,L,flux, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION get_ae8_ap8_flux_idl(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+!
+      call get_AE8_AP8_flux(%VAL(argv(1)), %VAL(argv(2)),
+     * %VAL(argv(3)),%VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),
+     * %VAL(argv(7)), %VAL(argv(8)))
+
+      get_AE8_AP8_flux_idl = 9.9
+
+      RETURN
+      END
+c
+c
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 3.0
+!
+! CREATION: S. Bourdarie - May 2006
+! MODIFICATION: S. Bourdarie - March 2007 (add multi channel calculcations) - V4.1
+!
+! DESCRIPTION: Wrapper to call fly_in_afrl_crres1 (IN AFRL_CRRES_models.f) from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_afrl_crres_', ntime,sysaxes,whichm,whatf,energy,xIN1,xIN2,xIN3,flux, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION fly_in_afrl_crres(argc, argv)
+!
+      INTEGER*4   CHAR_SIZE
+      PARAMETER      (CHAR_SIZE=500)
+
+      INCLUDE 'wrappers.inc'
+!
+      j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+c
+
+      call fly_in_afrl_crres1(%VAL(argv(1)), %VAL(argv(2)),
+     * %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     * %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
+     * %VAL(argv(16)))
+
+      fly_in_afrl_crres = 9.9
+
+      RETURN
+      END
+c
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 4.2
+!
+! CREATION: S. Bourdarie - March 2008
+!
+! DESCRIPTION: Wrapper to call get_crres_flux (IN AFRL_CRRES_models.f) from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'get_crres_flux_idl_', ntime,whichm,whatf,Nene,energy,BBo,L,Ap15,flux,afrl_crres_path,strlen, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION get_crres_flux_idl(argc, argv)
+!
+      INTEGER*4   CHAR_SIZE
+      PARAMETER      (CHAR_SIZE=500)
+
+      INCLUDE 'wrappers.inc'
+!
+      j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+c
+
+      call get_crres_flux(%VAL(argv(1)), %VAL(argv(2)),
+     * %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)))
+
+      get_crres_flux_idl = 9.9
+
+      RETURN
+      END
+c
+
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 4.2
+!
+! CREATION: S. Bourdarie - December 2007
+! MODIFICATION: None
+!
+! DESCRIPTION: Wrapper to call fly_in_ige1 from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_ige1_', launch_year,duration,whichm,whatf,Nene,energy,Lower_flux,Mean_flux,Upper_flux, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION fly_in_ige(argc, argv)
+!
+      INTEGER*4   CHAR_SIZE
+      PARAMETER      (CHAR_SIZE=500)
+
+      INCLUDE 'wrappers.inc'
+!
+      j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+c
+
+      call fly_in_ige1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)))
+
+      fly_in_ige = 9.9
+
+      RETURN
+      END
+c
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 4.3
+!
+! CREATION: S. Bourdarie - March 2008
+! MODIFICATION: None
+!
+! DESCRIPTION: Wrapper to call fly_in_meo_gnss1 from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_meo_gnss1_', launch_year,duration,whichm,whatf,Nene,energy,Lower_flux,Mean_flux,Upper_flux, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION fly_in_meo_gnss(argc, argv)
+!
+      INTEGER*4   CHAR_SIZE
+      PARAMETER      (CHAR_SIZE=500)
+
+      INCLUDE 'wrappers.inc'
+!
+      j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+c
+
+      call fly_in_meo_gnss1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)))
+
+      fly_in_meo_gnss = 9.9
+
+      RETURN
+      END
+c
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 4.0
+!
+! CREATION: S. Bourdarie - January 2007
+! MODIFICATION: None
+!
+! DESCRIPTION: Wrapper to call SPG4_TLE1 from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'SGP4_TLE_', runtype,startsfe,stopsfe,deltasec,InFileByte,strlenIn,OutFileByte,strlenOut, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION SGP4_TLE(argc, argv)
+!
+      INTEGER*4   CHAR_SIZE
+      PARAMETER      (CHAR_SIZE=500)
+
+      INCLUDE 'wrappers.inc'
+!
+      j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+c
+
+      call SGP4_TLE1(%VAL(argv(1)), %VAL(argv(2)),
+     * %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)))
+
+      SGP4_TLE = 9.9
+
+      RETURN
+      END
+c
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 4.0
+!
+! CREATION: S. Bourdarie - January 2007
+! MODIFICATION: None
+!
+! DESCRIPTION: Wrapper to call SPG4_ORB1 from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'SGP4_ORB_', runtype,startsfe,stopsfe,deltasec,InFileByte,strlenIn,OutFileByte,strlenOut, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION SGP4_ELE(argc, argv)
+!
+      INCLUDE 'wrappers.inc'
+!
+      j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+c
+
+      call SGP4_ELE1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),%VAL(argv(5)), %VAL(argv(6)), %VAL(argv(7)),
+     * %VAL(argv(8)),%VAL(argv(9)), %VAL(argv(10)), %VAL(argv(11)),
+     * %VAL(argv(12)),%VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
+     * %VAL(argv(16)),%VAL(argv(17)),%VAL(argv(18)),%VAL(argv(19)),
+     * %VAL(argv(20)),%VAL(argv(21)),%VAL(argv(22)),%VAL(argv(23)))
+
+      SGP4_ELE= 9.9
+
+      RETURN
+      END
+c
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 4.0
+!
+! CREATION: S. Bourdarie - January 2007
+! MODIFICATION: None
+!
+! DESCRIPTION: Wrapper to call rv2coe (in sgp4ext.f) from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'RV2COE_IDL_', R, V, P, A, Ecc, Incl, Omega, Argp, Nu, M, ArgLat, TrueLon, LonPer, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION RV2COE_IDL(argc, argv)
+!
+      INCLUDE 'wrappers.inc'
+!
+      j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+c
+
+      call rv2coe(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),%VAL(argv(5)), %VAL(argv(6)), %VAL(argv(7)),
+     * %VAL(argv(8)),%VAL(argv(9)), %VAL(argv(10)), %VAL(argv(11)),
+     * %VAL(argv(12)),%VAL(argv(13)))
+
+      RV2COE_IDL= 9.9
+
+      RETURN
+      END
+c
+!---------------------------------------------------------------------------------------------------
+!                              Introduced in version 4.1
+!
+! CREATION: S. Bourdarie - March 2007
+! MODIFICATION: None
+!
+! DESCRIPTION: Wrapper to call DATE_AND_TIME2DECY from IDL, converts the IDL parameters to
+!              standard FORTRAN passed by reference arguments.
+!
+! INPUT: argc-> number of argument (long integer)
+!        argv -> reference argument
+!
+! CALLING SEQUENCE: result=call_external(lib_name, 'DATE_AND_TIME2DECY_IDL_', Year,Month,Day,hour,minute,second,decy, /f_value)
+!---------------------------------------------------------------------------------------------------
+      REAL*4 FUNCTION DATE_AND_TIME2DECY_IDL(argc, argv)
+!
+      INCLUDE 'wrappers.inc'
+!
+      j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+c
+
+      call DATE_AND_TIME2DECY(%VAL(argv(1)), %VAL(argv(2)),
+     * %VAL(argv(3)),
+     * %VAL(argv(4)),%VAL(argv(5)), %VAL(argv(6)), %VAL(argv(7)))
+
+      DATE_AND_TIME2DECY_IDL= 9.9
+
+      RETURN
+      END
+c
+C-----------------------------------------------------------------------------
+C IDL Wrappers
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION msis86_idl(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+      call msis86(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)))
+
+      msis86_idl = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+      subroutine msis86(ntime,whichAp,DOY,UT,ALT,LAT,LONG,F107A,
+     &F107,AP,Dens,Temp)
+c
+      IMPLICIT NONE
+      INTEGER*4 ISW,ntime,whichAp,DOY(100000),I,J
+      REAL*8 SV(25),STL
+      REAL*8 UT(100000),ALT(100000),LAT(100000),LONG(100000)
+      REAL*8 F107A(100000),F107(100000),AP(7,100000)
+      REAL*8 Dens(8,100000),Temp(2,100000),APin(7),D(8),T(2)
+c
+      COMMON/CSWI/ISW
+      DO I=1,25
+         SV(I)=1.D0
+      ENDDO
+      if (WhichAp .EQ.2) SV(9)=-1.D0
+      CALL TSELEC(SV)
+      ISW=64999
+      DO I=1,ntime
+         STL=UT(I)/3600.D0+Long(I)/15.D0
+       DO J=1,7
+          APin(J)=AP(J,I)
+       ENDDO
+       IF (ALT(I).GE.85.D0) then
+          CALL GTS5(DOY(I),UT(I),ALT(I),LAT(I),LONG(I),STL,F107A(I),
+     &             F107(I),APin,48,D,T)
+         ELSE
+            DO J=1,8
+             D(J)=-1.D31
+          ENDDO
+          DO J=1,2
+             T(J)=-1.D31
+          ENDDO
+       ENDIF
+         DO J=1,8
+          Dens(J,I)=D(J)
+       ENDDO
+       DO J=1,2
+          Temp(J,I)=T(J)
+       ENDDO
+      ENDDO
+      END
+
+C-----------------------------------------------------------------------------
+C IDL Wrappers
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION msise90_idl(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+      call msise90(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)))
+
+      msise90_idl = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+      subroutine msise90(ntime,whichAp,DOY,UT,ALT,LAT,LONG,F107A,
+     &F107,AP,Dens,Temp)
+c
+      IMPLICIT NONE
+      INTEGER*4 ISW,ntime,whichAp,DOY(100000),I,J
+      REAL*8 SV(25),STL
+      REAL*8 UT(100000),ALT(100000),LAT(100000),LONG(100000)
+      REAL*8 F107A(100000),F107(100000),AP(7,100000)
+      REAL*8 Dens(8,100000),Temp(2,100000),APin(7),D(8),T(2)
+c
+      COMMON/CSWI/ISW
+      DO I=1,25
+         SV(I)=1.D0
+      ENDDO
+      if (WhichAp .EQ.2) SV(9)=-1.D0
+      CALL TSELEC5(SV)
+      ISW=64999
+      DO I=1,ntime
+         STL=UT(I)/3600.D0+Long(I)/15.D0
+       DO J=1,7
+          APin(J)=AP(J,I)
+       ENDDO
+       CALL GTD6(DOY(I),UT(I),ALT(I),LAT(I),LONG(I),STL,F107A(I),
+     &             F107(I),APin,48,D,T)
+         DO J=1,8
+          Dens(J,I)=D(J)
+       ENDDO
+       DO J=1,2
+          Temp(J,I)=T(J)
+       ENDDO
+      ENDDO
+      END
+C-----------------------------------------------------------------------------
+C IDL Wrappers
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION nrlmsise00_idl(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                    ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+      call nrlmsise00(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)))
+
+      nrlmsise00_idl = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+      subroutine nrlmsise00(ntime,whichAp,DOY,UT,ALT,LAT,LONG,F107A,
+     &F107,AP,Dens,Temp)
+c
+      IMPLICIT NONE
+      INTEGER*4 ISW,ntime,whichAp,DOY(100000),I,J
+      REAL*8 SV(25),STL
+      REAL*8 UT(100000),ALT(100000),LAT(100000),LONG(100000)
+      REAL*8 F107A(100000),F107(100000),AP(7,100000)
+      REAL*8 Dens(9,100000),Temp(2,100000),APin(7),D(8),T(2)
+c
+      COMMON/CSWI/ISW
+      DO I=1,25
+         SV(I)=1.D0
+      ENDDO
+      if (WhichAp .EQ.2) SV(9)=-1.D0
+      CALL TSELEC7(SV)
+      ISW=64999
+      DO I=1,ntime
+         STL=UT(I)/3600.D0+Long(I)/15.D0
+       DO J=1,7
+          APin(J)=AP(J,I)
+       ENDDO
+       CALL GTD7(DOY(I),UT(I),ALT(I),LAT(I),LONG(I),STL,F107A(I),
+     &             F107(I),APin,48,D,T)
+         DO J=1,9
+          Dens(J,I)=D(J)
+       ENDDO
+       DO J=1,2
+          Temp(J,I)=T(J)
+       ENDDO
+      ENDDO
+      END
+
+
+C-----------------------------------------------------------------------------
+C Wrapper and procedure
+C-----------------------------------------------------------------------------
+      ! Called by IDL
+      REAL*4 FUNCTION make_lstar_shell_splitting2_idl(argc, argv)
+      INCLUDE 'wrappers.inc'
+
+       j = loc(argc)                   ! Obtains the number of arguments (argc)
+                                       ! Because argc is passed by VALUE.
+
+c  Call subroutine make_Lstar_shell_splitting2, converting the IDL parameters to standard FORTRAN
+c  passed by reference arguments.
+c
+      call make_lstar_shell_splitting2(%VAL(argv(1)), %VAL(argv(2)),
+     + %VAL(argv(3)),
+     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
+     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
+     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
+     + %VAL(argv(16)), %VAL(argv(17)), %VAL(argv(18)), %VAL(argv(19)))
+
+      make_lstar_shell_splitting2_idl = 9.9
+
+      RETURN
+      END
+c
+c --------------------------------------------------------------------
+c
+c Alternate version without useless 100k time/position array
+        SUBROUTINE make_lstar_shell_splitting2(Nipa,kext,options,
+     & sysaxes,iyearsat,idoy,UT,xIN1,xIN2,xIN3,
+     &  alpha,maginput,Lm,Lstar,BMirror,BLOCAL,BMIN,XJ,MLT)
+c
+      IMPLICIT NONE
+      INCLUDE 'variables.inc'
+C
+c declare inputs
+        INTEGER*4    kext,k_ext,k_l,options(5),Nalp,Nipa
+      PARAMETER (Nalp=25)
+        INTEGER*4    sysaxes
+      INTEGER*4    iyearsat
+      integer*4    idoy
+      real*8     UT
+      real*8     xIN1,xIN2,xIN3
+      real*8     alpha(Nalp)
+      real*8     maginput(25)
+c
+c
+c Declare internal variables
+      INTEGER*4    iyear,IPA,kint,ifail
+        INTEGER*4    Ilflag,t_resol,r_resol
+      REAL*8     mlon,BL,BMIR(25),Bmin_tmp
+      REAL*8     xGEO(3),xMAG(3),xSUN(3),rM,MLAT,Mlon1
+      REAL*8     xGEOp(3,25)
+      real*8     alti,lati,longi
+c
+c Declare output variables
+        REAL*8     Bmirror(Nalp),BMIN,Blocal
+      REAL*8     XJ(Nalp),MLT
+        REAL*8     Lm(Nalp),Lstar(Nalp)
+C
+      COMMON /magmod/k_ext,k_l,kint
+        COMMON /flag_L/Ilflag
+        DATA  xSUN /1.d0,0.d0,0.d0/
+      integer*4 int_field_select, ext_field_select
+C
+      Ilflag=0
+      k_ext=kext
+      if (options(3).lt.0 .or. options(3).gt.9) options(3)=0
+      t_resol=options(3)+1
+      r_resol=options(4)+1
+      k_l=options(1)
+      kint = int_field_select ( options(5) )
+      k_ext = ext_field_select ( kext )
+c
+        CALL INITIZE
+
+      call init_fields ( kint, iyearsat, idoy, ut, options(2) )
+
+      call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
+     6    alti, lati, longi, xGEO )
+
+      call set_magfield_inputs ( k_ext, maginput, ifail )
+
+        if (k_ext .eq. 13 .or. k_ext .eq. 14) then !special script to read files and
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+        end if
+
+      if ( ifail.lt.0 ) then
+          DO IPA=1,Nipa
+             Lm(IPA)=baddata
+             Lstar(IPA)=baddata
+             XJ(IPA)=baddata
+             Bmirror(IPA)=baddata
+          ENDDO
+          BMIN=baddata
+          GOTO 99
+         endif
+c
+c      load the GDZ and GSM coordinates in unused end of maginput
+       maginput(20) = alti
+         maginput(21) = lati
+       maginput(22) = longi
+         CALL GEO_GSM(xGEO,maginput(23))
+
+c      collect the B components for return in maginput() array
+        CALL CHAMP(xGEO,maginput(17),maginput(16),Ifail)
+      IF (Ifail.LT.0) THEN
+         maginput(17)=baddata
+         maginput(18)=baddata
+         maginput(19)=baddata
+         maginput(16)=baddata
+      ENDIF
+c
+c Compute Bmin assuming 90deg PA at S/C
+         k_l=0
+           IPA=1
+c             all returned values except Bmin are subsequently overwritten
+c            this call is required to return a valid Bmin value, as it is
+c            not guaranteed that input pitch angles will produce valid results
+           CALL calcul_Lstar_opt(t_resol,r_resol,xGeo
+     &         ,Lm(IPA),Lstar(IPA),XJ(IPA)
+     &         ,Bmirror(IPA),BMIN)
+         k_l=options(1)
+c            for the specified location and array of pitch angles,
+c              return 'Blocal' for the specified location
+c              return Bmir() array for bmirror values for each pitch angle
+c              return xGeop() array for location of mirror points ""  ""
+           CALL find_bm_nalpha(xGEO,nipa,alpha,Blocal,BMIR,xGEOp)
+           DO IPA=1,Nipa
+           IF (Bmir(ipa).NE.baddata) THEN
+             Ilflag=0
+c    for each mirror point location in xGEOp, calc several values
+               CALL calcul_Lstar_opt(t_resol,r_resol,xGEOp(1,ipa)
+     &         ,Lm(IPA),Lstar(IPA),XJ(IPA)
+c        bmirror is the blocal at the xGEOp mirror point,
+c         (should be identical to the BMIR() array returned by find_bm_nalpha)
+     &         ,Bmirror(IPA),BMIN_tmp)
+             ELSE
+             Lm(IPA)=baddata
+             Lstar(IPA)=baddata
+             XJ(IPA)=baddata
+             Bmirror(IPA)=baddata
+           ENDIF
+           ENDDO
+99         continue
+           CALL geo_mag(xGEO,xMAG)
+           CALL car_sph(xMAG,rM,MLAT,Mlon1)
+           CALL GSM_GEO(xSUN,xGEO)
+           CALL geo_mag(xGEO,xMAG)
+           CALL car_sph(xMAG,rM,MLAT,Mlon)
+           MLT = (Mlon1 - Mlon)/15.d0 + 12.d0
+           IF (MLT.GE.24.d0) MLT = MLT - 24.d0
+           IF (MLT.LT.0.d0) MLT = MLT + 24.d0
+
+      END
