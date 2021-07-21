@@ -1165,7 +1165,23 @@ class PressureFile(PbData):
         p_unit = head_entries[-1].replace('[', '').replace(']', '')
 
         def name_map(namein):
-            '''convert RAM pressure file names to SpacePy names'''
+            '''convert RAM pressure file pressure variable names to SpacePy names
+
+            This module uses pressure variable names "per[species]" for perpendicular
+            pressure and "par[species]" for parallel pressure.
+            The species names use the case (e.g., helium is He) and electrons are
+            always given as a lower case "e". In the RAM pressure files the variables
+            are "PPAR_[species]" where the species use title case.
+
+            Examples
+            --------
+            >>> name_map('PPAR_E')
+            'pare'
+            >>> name_map('PPER_He')
+            'perHe'
+            >>> name_map('PTotal')
+            'total'
+            '''
             # generic as RAM can now use specified list of named species
             parts = namein.split('_')
             n_parts = len(parts)
