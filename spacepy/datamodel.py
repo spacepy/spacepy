@@ -162,6 +162,7 @@ The file looks like:
 from __future__ import division
 import copy
 import datetime
+import gzip
 import itertools
 import json
 from functools import partial
@@ -1324,6 +1325,9 @@ def readJSONMetadata(fname, **kwargs):
     fname : str
         Filename to read metadata from
 
+        .. versionchanged:: 0.2.2
+                Filename can now be a .gz to indicate the file is gzipped
+
     Other Parameters
     ----------------
     verbose : bool (optional)
@@ -1337,8 +1341,13 @@ def readJSONMetadata(fname, **kwargs):
     if hasattr(fname, 'read'):
         lines = fname.read()
     else:
-        with open(fname, 'r') as f:
-            lines = f.read()
+        if fname.endswith('.gz'):
+            kwargs = {} if str is bytes else {'mode': 'rt', 'encoding': 'latin-1'}
+            with gzip.open(filename=fname, **kwargs) as gzh:
+                lines = gzh.read()
+        else:
+            with open(fname, 'r') as f:
+                lines = f.read()
 
     # isolate header
     p_srch = re.compile(r"^#(.*)$", re.M)
@@ -1383,6 +1392,9 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
     ----------
     fname : str or list
         Filename(s) to read data from
+
+            .. versionchanged:: 0.2.2
+                Filename can now be a .gz to indicate the file is gzipped
 
     Other Parameters
     ----------------
@@ -1468,8 +1480,12 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
         return mdata
     for fn in fname:
         if not filelike:
-            with open(fn, 'rb') as fh: # fixes windows bug with seek()
-                mdata = innerloop(fh, mdata, mdata_copy)
+            if fn.endswith('.gz'):
+                with gzip.open(filename=fn) as gzh:
+                    mdata = innerloop(gzh, mdata, mdata_copy)
+            else:
+                with open(fn, 'rb') as fh: # fixes windows bug with seek()
+                    mdata = innerloop(fh, mdata, mdata_copy)
         else:
             mdata = innerloop(fh, mdata, mdata_copy)
     #now add the attributres to the variables
