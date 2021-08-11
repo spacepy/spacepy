@@ -3,15 +3,15 @@
 PyBats!  An open source Python-based interface for reading, manipulating,
 and visualizing BATS-R-US and SWMF output.
 For more information on the SWMF, please visit the
-`Center for Space Environment Modeling <http://csem.engin.umich.edu>`_. 
+`Center for Space Environment Modeling <http://csem.engin.umich.edu>`_.
 
 Introduction
 ------------
 
 At its most fundamental level, PyBats provides access to output files written
-by the Space Weather Modeling Framework and the codes contained within.  
+by the Space Weather Modeling Framework and the codes contained within.
 The key task performed by PyBats is loading simulation data into a Spacepy
-data model object so that the user can move on to the important tasks of 
+data model object so that the user can move on to the important tasks of
 analyzing and visualizing the values.  The secondary goal of PyBats is to make
 common tasks performed with these data as easy as possible.  The result is that
 most SWMF output can be opened and visualized using only a few lines of code.
@@ -77,7 +77,7 @@ related to an SWMF-included code.
    ram
    rim
    trace2d
-   
+
 Top-Level Classes & Functions
 -----------------------------
 
@@ -87,7 +87,7 @@ and are very flexible.  However, they do little beyond open files for the user.
 There are several functions found in the top-level module.  These are mostly
 convenience functions for customizing plots.
 
-.. rubric:: Classes	    
+.. rubric:: Classes
 .. autosummary::
    :template: clean_class.rst
    :toctree: autosummary
@@ -199,7 +199,7 @@ def parse_filename_time(filename):
     import re
 
     filename = os.path.basename(filename)
-    
+
     # Look for date/time:
     if '_e' in filename:
         subname = re.search('_e((\d{8}\-\d{6}(\-\d{3})?\_?)+)', filename).groups()[0]
@@ -221,7 +221,7 @@ def parse_filename_time(filename):
             if len(time) == 1: time = time[0]
             runtime = None
         else:
-            runtime = [3600*float(x[:-4])+60*float(x[-4:-2])+float(x[-2:]) 
+            runtime = [3600*float(x[:-4])+60*float(x[-4:-2])+float(x[-2:])
                        for x in groups]
             if len(runtime) == 1: runtime = runtime[0]
     else:
@@ -243,10 +243,10 @@ def mhdname_to_tex(varname):
     '''
 
     import re
-    
+
     match_u = re.search('(.*)u([xyz])', varname)
     match_b = re.match('([bj])([xyz])', varname)
-    
+
     if 'rho' in varname.lower():
         out = r'$\rho_{'+varname.replace('rho', '')+'}$'
     elif varname.lower() == 'nt':
@@ -273,7 +273,7 @@ def parse_tecvars(line):
     Parse the VARIABLES line from a TecPlot-formatted ascii data file.  Create
     a list of name-unit tuples for each variable.
     '''
-    
+
     import re
 
     # Create return list.
@@ -300,20 +300,20 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, zorder=1000,
     Creates a circle of ``radius=self.para['rbody']`` and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
     using the *ax* keyword, the patch is added to the plot.
-    
+
     Unlike the add_body method, the circle is colored half white (dayside)
     and half black (nightside) to coincide with the direction of the
     sun. Additionally, because the size of the planet is not intrinsically
     known to the MHD file, the kwarg "rad", defaulting to 1.0, sets the
     size of the planet.  *add_night* can turn off this behavior.
-    
+
     Extra keywords are handed to the Ellipse generator function.
 
     Parameters
     ==========
     ax : Matplotlib Axes object
        Set the axes on which to place planet.
-    
+
     Other Parameters
     ================
     rad : float
@@ -327,15 +327,15 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, zorder=1000,
        Set the matplotlib zorder of the patch to set how other plot
        elements order with the inner boundary patch. Defaults to 1000,
        nightside patch is given zorder of *zorder+5*.
-    
+
     '''
 
     from matplotlib.patches import Circle, Wedge
 
     body = Circle((0,0), rad, fc='w', zorder=zorder, **extra_kwargs)
-    arch = Wedge((0,0), rad, 90+ang, -90+ang, fc='k', 
+    arch = Wedge((0,0), rad, 90+ang, -90+ang, fc='k',
                  zorder=zorder+5, **extra_kwargs)
-        
+
     ax.add_artist(body)
     if add_night: ax.add_artist(arch)
 
@@ -349,25 +349,25 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
     using the "ax" keyword, the patch is added to the plot.
     Default color is light grey; extra keywords are handed to the Ellipse
     generator function.
-    
-    Because the body is rarely the size of the planet at the center of 
+
+    Because the body is rarely the size of the planet at the center of
     the modeling domain, add_planet is automatically called.  This can
     be negated by using the show_planet kwarg.
-    
+
     Parameters
     ==========
     ax : Matplotlib Axes object
        Set the axes on which to place planet.
-        
+
     Other Parameters
     ================
     rad : float
        Set radius of the inner boundary.  Defaults to 2.5.
     facecolor : string
-       Set color of face of inner boundary circle via Matplotlib color 
+       Set color of face of inner boundary circle via Matplotlib color
        selectors (name, hex, etc.)  Defaults to 'lightgrey'.
     show_planet : boolean
-       Turns on/off planet indicator inside inner boundary.  
+       Turns on/off planet indicator inside inner boundary.
        Defaults to **True**
     ang : float
        Set the rotation of the day-night terminator from the y-axis, in degrees.
@@ -381,7 +381,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
 
     '''
     from matplotlib.patches import Ellipse
-    
+
     dbody = 2.0 * rad
     body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=zorder,
                    **extra_kwargs)
@@ -422,14 +422,14 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     keep_case : boolean
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
-    
+
     Returns
     -------
     True : Boolean
         Returns True on success.
 
     '''
-    
+
     # Open the file:
     infile = open(pbdat.attrs['file'], 'r')
 
@@ -472,7 +472,7 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     nvar=pbdat.attrs['nvar']
     npar=pbdat.attrs['nparam']
 
-     # Read parameters stored in file.
+    # Read parameters stored in file.
     para = np.zeros(npar)
     if npar>0:
         para[:] = infile.readline().split()
@@ -501,12 +501,12 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     # around this rather egregious error.
     nSkip=len(units)+npar-len(names)
     if nSkip<0: nSkip=0
-          
+
     # Save grid names (e.g. 'x' or 'r') and save associated params.
     pbdat['grid'].attrs['dims']=tuple(names[0:ndim])
     for name, para in zip(names[(nvar+ndim):], para):
         pbdat.attrs[name]=para
-        
+
     # Create containers for the rest of the data:
     for v, u in zip(names, units[nSkip:]):
         pbdat[v] = dmarray(np.zeros(npts), {'units':u})
@@ -542,7 +542,7 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
 
 def readarray(f, dtype=np.float32, inttype=np.int32):
     '''
-    Read an array from an unformatted binary file written out by a 
+    Read an array from an unformatted binary file written out by a
     Fortran program.
 
     Parameters
@@ -557,7 +557,7 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
     inttype : Numpy integer type
         Set the precision for the integers that store the size of each
         entry.   Defaults to numpy.int32
-    
+
     Returns
     -------
     numpy.array : Numpy array
@@ -576,7 +576,7 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
     # Check that the record length is consistent with the data type
     if rec_len % dtype_size_bytes != 0:
         raise ValueError(
-            'Read error: Data type inconsistent with record length (data ' + 
+            'Read error: Data type inconsistent with record length (data ' +
             'type size is {0:d} bytes, record length is {1:d} bytes'.format(
                 int(dtype_size_bytes), int(rec_len)))
 
@@ -629,8 +629,8 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
 
 def _skip_entry(f, inttype):
     '''
-    Given a binary IDL-formmatted file opened as a file object, *f*, 
-    and whose file pointer is positioned at the start of an entry, 
+    Given a binary IDL-formmatted file opened as a file object, *f*,
+    and whose file pointer is positioned at the start of an entry,
     skip to the end of the entry and return the total number of bytes skipped.
 
     Fortran90+ binary files wrap entries with integers that state the number
@@ -663,8 +663,8 @@ def _skip_entry(f, inttype):
 
 def _scan_bin_header(f, endchar, inttype, floattype):
     '''
-    Given a binary IDL-formmatted file opened as a file object, *f*, 
-    and whose file pointer is positioned at the start of the header, 
+    Given a binary IDL-formmatted file opened as a file object, *f*,
+    and whose file pointer is positioned at the start of the header,
     gather some header information and return to caller.
 
     The file object's pointer will be set to the end of the whole entry
@@ -681,7 +681,7 @@ def _scan_bin_header(f, endchar, inttype, floattype):
         entry with the correct endianess.
     floattype : numpy float type
         The data type used for data conversion with the correct endianess.
-    
+
     Returns
     -------
     info : dict
@@ -700,7 +700,7 @@ def _scan_bin_header(f, endchar, inttype, floattype):
     # Read initial header:
     headline = readarray(f, str, inttype)
     headline = headline.decode('utf-8')
-    
+
     # Construct size of header entries:
     header_fields_dtype = np.dtype([
         ('it', np.int32), ('t', floattype), ('ndim', np.int32),
@@ -747,7 +747,7 @@ def _scan_bin_header(f, endchar, inttype, floattype):
 def _probe_idlfile(filename):
     '''
     For an SWMF IDL-formatted output file, probe the header to determine if the
-    file is ASCII or binary formatted.  If binary, attempt to determine the 
+    file is ASCII or binary formatted.  If binary, attempt to determine the
     byte ordering (i.e., endianess) and size of floating point values.
 
     Parameters
@@ -869,11 +869,11 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
     with open(pbdat.attrs['file'], 'rb') as infile:
         # Jump to start_loc:
         infile.seek(start_loc, 0)
-        
+
         # Read header information.
         headline = readarray(infile, str, inttype)
         headline = headline.decode('utf-8')
-        
+
         # Parse rest of header
         header_fields_dtype = np.dtype([
             ('it', np.int32), ('t', floattype), ('ndim', np.int32),
@@ -934,7 +934,7 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
         else:
             # If headline is NOT just units, create blank units:
             units = [''] * (len(names) - npar)
-        
+
         # For some reason, there are often more units than variables
         # in these files.  It looks as if there are more grid units
         # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
@@ -942,12 +942,12 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
         # around this curiousity:
         nSkip = len(units) + npar - len(names)
         if nSkip < 0: nSkip = 0
-        
+
         # Save grid names (e.g. 'x' or 'r') and save associated params.
         pbdat['grid'].attrs['dims'] = tuple(names[0:ndim])
         for name, para in zip(names[(nvar+ndim):], para):
             pbdat.attrs[name] = para
-                
+
         # Get the grid points...
         prod = [1] + pbdat['grid'].cumprod().tolist()
 
@@ -1005,7 +1005,7 @@ class PbData(SpaceData):
     work just like dictionaries except they have special **attr** dictionary
     attributes for both the top-level object and most values.  This means that
     the following syntax can be used to explore a generic *PbData* object:
-    
+
     >>>print obj.keys()
     >>>print obj.attrs
     >>>value = obj[key]
@@ -1014,7 +1014,7 @@ class PbData(SpaceData):
     calling ``self.listunits()`` will print all values that have the 'units'
     attribute and the associated units.  Hence, it is often most instructive
     to use the following two lines to quickly learn a *PbData*'s contents:
-    
+
     >>>print obj
     >>>obj.listunits()
 
@@ -1184,7 +1184,7 @@ class IdlFile(PbData):
         self.attrs['iter_range']    = t_info[0]
         self.attrs['runtime_range'] = t_info[1]
         self.attrs['time_range']    = t_info[2]
-        
+
         # For binary files, store information about file:
         self._endchar, self._int, self._float = endchar, inttype, floattype
 
@@ -1208,7 +1208,7 @@ class IdlFile(PbData):
         time = self.attrs['runtime']  # Convenience variable.
         self.attrs['strtime'] = "{:04.0f}h{:02.0f}m{:06.3f}s".format(
             np.floor(time//3600), np.floor(time % 3600//60.0), time % 60.0)
-        
+
     def _scan_bin_frames(self):
         '''
         Open the binary-formatted file associated with *self* and scan all
@@ -1241,7 +1241,7 @@ class IdlFile(PbData):
         self.attrs['nframe'] = nframe
         self.attrs['iters'] = np.array(iters)
         self.attrs['runtimes'] = np.array(runtimes)
-        
+
         # Use times info to build datetimes and update file-level attributes.
         if self.attrs['time_range'] != [None]:
             self.attrs['times'] = np.array(
@@ -1258,7 +1258,7 @@ class IdlFile(PbData):
 
         # Stash the offset of frames as a private attribute:
         self._offsets = np.array(offset)
-    
+
     def _scan_asc_frames(self):
         '''
         Open the ascii-formatted file associated with *self* and scan all
@@ -1275,7 +1275,7 @@ class IdlFile(PbData):
         self.attrs['iters']    = [0,0]
         self.attrs['runtimes'] = [0,0]
         self.attrs['times']    = [0,0]
-    
+
     def switch_frame(self, iframe):
         '''
         For files that have more than one data frame (i.e., `*.outs` files),
@@ -1287,7 +1287,7 @@ class IdlFile(PbData):
         if iframe < -self.attrs['nframe'] or iframe >= self.attrs['nframe']:
             raise IndexError("iframe {} is outside range of [0,{})".format(
                 iframe, self.attrs['nframe']))
-        
+
         self.read(iframe)
 
         # Update information about the current frame:
@@ -1311,7 +1311,7 @@ class IdlFile(PbData):
             for name in calcs:
                 args, kwargs = calcs[name]
                 getattr(self, name)(*args, **kwargs)
-                
+
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
 
@@ -1324,7 +1324,7 @@ class IdlFile(PbData):
 
         # Get location of frame that we wish to read:
         loc = self._offsets[iframe]
-        
+
         if self.attrs['format'] == 'asc':
             _read_idl_ascii(self, header=self._header, start_loc=loc,
                             keep_case=self._keep_case)
@@ -1340,7 +1340,7 @@ class LogFile(PbData):
     ''' An object to read and handle SWMF-type logfiles.
 
     *LogFile* objects read and hold all information in an SWMF
-    ascii time-varying logfile.  The file is read upon instantiation.  
+    ascii time-varying logfile.  The file is read upon instantiation.
     Many SWMF codes
     produce flat ascii files that can be read by this class; the most
     frequently used ones have their own classes that inherit from this.
@@ -1360,16 +1360,16 @@ class LogFile(PbData):
     Time is handled by Python's datetime package.  Given that time
     may or may not be given in the logfile, there are three options
     for how time is returned:
-        
+
         1. if the full date and time are listed in the file, ``self['time']``
         is an array of datetime objects corresponding to the entries.  The
         starttime kwarg is ignored.
-        
+
         2. If only the runtime (seconds from start of simulation) is given,
         self['time'] is an array of datetime objects that starts from
         the given *starttime* kwarg which defaults to  1/1/1 00:00UT.
-        
-        3. If neither of the above are given, the time is assumed to 
+
+        3. If neither of the above are given, the time is assumed to
         advance one second per line starting from either the starttime kwarg
         or from 2000/1/1 00:00UT + the first iteration (if given in file.)
         As you can imagine, this is sketchy at best.
@@ -1378,7 +1378,7 @@ class LogFile(PbData):
     and time into the log by default while others will almost never include the
     full date and time.  The variable ``self['runtime']`` contains the more
     generic seconds from simulation start values.
-    
+
     Example usage:
 
     >>> import spacepy.pybats as pb
@@ -1429,7 +1429,7 @@ class LogFile(PbData):
         for i, name in enumerate(names):
             loc[name] = i
 
-        # Use the header info to set up arrays 
+        # Use the header info to set up arrays
         # for time, iteration, and the data.
         npts = len(raw)
         # If opening an incomplete file, we must skip the last line.
@@ -1514,7 +1514,7 @@ class LogFile(PbData):
                 if '*' in vals[loc['it']]:
                     self['iter'][i] = -1
                 else:
-                    self['iter'][i] = int(vals[loc['it']]) 
+                    self['iter'][i] = int(vals[loc['it']])
             else: self['iter'][i] = i
             # Collect data
             for j, name in enumerate(names):
@@ -1536,7 +1536,7 @@ class NgdcIndex(PbData):
     NgdcIndex objects aid in reading, creating, and visualizing these files.
 
     Creating an :class:`NgdcIndex` object is simple:
-    
+
     >>> from spacepy import pybats
     >>> obj=pybats.NgdcIndex(filename='ngdc_example.dat')
 
@@ -1546,16 +1546,16 @@ class NgdcIndex(PbData):
     and no other work needs to be done.
 
     If *filename* is False or *load* is False, a blank :class:`NgdcIndex`
-    is created for the user to manipulate.  
-    The user can set the time array and the ssociated data values to any values 
+    is created for the user to manipulate.
+    The user can set the time array and the ssociated data values to any values
     desired and use the method *obj.write()* to dump the contents to an NGDC
-    formatted input file.  See the documentation for the write method for 
+    formatted input file.  See the documentation for the write method for
     more details.
 
     This class is a work-in-progress.  It is especially tuned for SWMF-needs
     and cannot be considered a general function for the handling of generic
     NGDC files.
-    
+
     =========== ============================================================
     Kwarg       Description
     ----------- ------------------------------------------------------------
@@ -1566,12 +1566,12 @@ class NgdcIndex(PbData):
     '''
 
     def __init__(self, filename=None, load=True, *args, **kwargs):
-        
+
         super(NgdcIndex, self).__init__(*args, **kwargs)
         # Set key information.
         self.attrs['file'] = filename
         self.attrs['comments'] = []
-        
+
         if load:
             self._read()
 
@@ -1587,12 +1587,12 @@ class NgdcIndex(PbData):
         temp = infile.readline()
         while temp != '#'+50*'-'+'\n': #Detect start of file.
             # Skip blank comments, save substantive ones.
-            if temp == '#\n': 
+            if temp == '#\n':
                 temp = infile.readline()
                 continue
             self.attrs['comments'].append(temp)
             temp = infile.readline()
-            
+
         # Skip "data start" marker.
         infile.readline()
 
@@ -1637,13 +1637,13 @@ class NgdcIndex(PbData):
     def write(self, outfile=False):
         '''
         Write the :class:`NgdcIndex` object to file.  Kwarg *outfile* can be
-        used to specify the path of the output file; if it is not set, 
-        *self.attrs['file']* is used.  If this is not set, default to 
+        used to specify the path of the output file; if it is not set,
+        *self.attrs['file']* is used.  If this is not set, default to
         "ngdc_index.dat".
         '''
-        
+
         import datetime as dt
-    
+
         if not outfile:
             if self.attrs['file']!=None:
                 outfile=self.attrs['file']
@@ -1651,12 +1651,12 @@ class NgdcIndex(PbData):
                 outfile='ngdc_index.dat'
 
         out = open(outfile, 'w')
-        
+
         # Write header.
         for c in self.attrs['comments']:
             out.write(c)
         out.write(2*'#\n'+'#'+50*'-'+'\n')
-        
+
         # Write variables.
         for k in self:
             out.write('#>\n')
@@ -1666,7 +1666,7 @@ class NgdcIndex(PbData):
             out.write('#>\n#yyyy-MM-dd HH:mm value qualifier description\n')
             for i in range(len(self[k][0,:])):
                 t = self[k][0,i]; d = self[k][1,i]
-                out.write('%04i-%02i-%02i %02i:%02i%7.1f\t""\t""\n' % 
+                out.write('%04i-%02i-%02i %02i:%02i%7.1f\t""\t""\n' %
                           (t.year,t.month,t.day,t.hour,t.minute, d))
 
 class ImfInput(PbData):
@@ -1676,7 +1676,7 @@ class ImfInput(PbData):
     in the SWMF/BATS-R-US documentation for the \#SOLARWINDFILE command.
 
     Creating an :class:`ImfInput` object is simple:
-    
+
     >>> from spacepy import pybats
     >>> obj=pybats.ImfInput(filename='test.dat', load=True)
 
@@ -1685,17 +1685,17 @@ class ImfInput(PbData):
     and no other work needs to be done.
 
     If *filename* is False or *load* is False, a blank :class:`ImfInput file`
-    is created for the user to manipulate.  
-    The user can set the time array and the 
-    associated data values (see *obj.attrs['var']* for a list) to any values 
+    is created for the user to manipulate.
+    The user can set the time array and the
+    associated data values (see *obj.attrs['var']* for a list) to any values
     desired and use the method *obj.write()* to dump the contents to an SWMF
-    formatted input file.  See the documentation for the write method for 
+    formatted input file.  See the documentation for the write method for
     more details.
 
     Like most :mod:`~spacepy.pybats` objects, you may interact with
     :class:`ImfInput` objects as if they were specialized dictionaries.
     Access data like so:
-    
+
     >>> obj.keys()
     ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'rho', 'temp']
     >>> density=obj['rho']
@@ -1706,7 +1706,7 @@ class ImfInput(PbData):
     >>> import numpy as np
     >>> v = np.sqrt(obj['vx']**2 + obj['vy']**2 + obj['vz']**2)
     >>> obj['v']=v
-       
+
     =========== ============================================================
     Kwarg       Description
     ----------- ------------------------------------------------------------
@@ -1715,7 +1715,7 @@ class ImfInput(PbData):
     npoints     For empty data sets, sets number of points (default is 0)
     =========== ============================================================
     '''
-    
+
     def __init__(self, filename=False, load=True, npoints=0, *args, **kwargs):
         from numpy import zeros
 
@@ -1731,7 +1731,7 @@ class ImfInput(PbData):
         self.attrs['plane']=[None, None]
         self.attrs['header']=[]
         self['time']=dmarray(zeros(npoints, dtype=object))
-            
+
         # Set Filename.
         if filename:
             self.attrs['file'] = filename
@@ -1753,8 +1753,8 @@ class ImfInput(PbData):
             self._denvar="rho"
         else:
             raise ValueError('Could not find density variable in file.')
-        
-            
+
+
         self.calc_pram()
 
 
@@ -1784,10 +1784,10 @@ class ImfInput(PbData):
         '''
         Calculate the magnitude of the IMF in nT.  Store as self['b'].
         '''
-        
+
         self['b'] = dmarray( np.sqrt(self['bx']**2+self['by']**2+self['bz']**2),
                              {'units':'nT'} )
-        
+
         return True
 
     def calc_alf(self):
@@ -1800,12 +1800,12 @@ class ImfInput(PbData):
 
         # Const: nT->T, m->km, mu_0, proton mass, cm-3->m-3.
         const = 1E-12/np.sqrt(4.*np.pi*10**-7*1.67E-27*100**3)
-        
+
         self['vAlf']=dmarray(const*self['b']/np.sqrt(self['rho']),
                             {'units':'km/s'})
 
         return True
-        
+
     def calc_alfmach(self):
         '''
         Calculate the Alvenic Mach number and save as self['machA'].
@@ -1817,7 +1817,7 @@ class ImfInput(PbData):
         self['machA']=dmarray(self['u']/self['vAlf'], {'units':None})
 
         return True
-        
+
     def varcheck(self):
         '''
         Ensure that the variable list, which gives the order of the
@@ -1836,7 +1836,7 @@ class ImfInput(PbData):
             print('Not enough variables in IMF object:')
             print('\t%i listed, %i actual.\n' % (len(var),len(key)))
             return False
-        # Each variable corresponds to only one in the dict 
+        # Each variable corresponds to only one in the dict
         # and occurs only once:
         for v in var:
             if v not in key:
@@ -1854,7 +1854,7 @@ class ImfInput(PbData):
         instantiated imfinput object.
         '''
         import datetime as dt
-        
+
         in_header = True
         with open(infile, 'r') as f:
             while True:
@@ -1912,20 +1912,20 @@ class ImfInput(PbData):
             self[key] = dmarray(np.empty(npoints, dtype=np.float64))
         indata[:, 6] *= 1000 # to microseconds
         self['time'][:] = np.frompyfunc(dt.datetime, 7, 1)(
-            *np.require(indata[:, 0:7], dtype=np.int).transpose())
+            *np.require(indata[:, 0:7], dtype=int).transpose())
         for i, name in enumerate(self.attrs['var']):
             self[name][:] = indata[:, i + 7]
 
     def write(self, outfile=False):
         '''
         Write the :class:`ImfInput` object to file.  Kwarg *outfile* can be
-        used to specify the path of the output file; if it is not set, 
-        *self.attrs['file']* is used.  If this is not set, default to 
+        used to specify the path of the output file; if it is not set,
+        *self.attrs['file']* is used.  If this is not set, default to
         "imfinput.dat".
         '''
-        
+
         import datetime as dt
-    
+
         # Check that the var attribute agrees with the data dictionary.
         if not self.varcheck():
             raise Exception('Number of variables does not match variable order.')
@@ -1937,7 +1937,7 @@ class ImfInput(PbData):
                 outfile='imfinput.dat'
 
         with open(outfile, 'wb') as out:
-        
+
             # Convenience variable:
             var=self.attrs['var']
 
@@ -1987,8 +1987,8 @@ class ImfInput(PbData):
     def add_pram_bz(self, target=None, loc=111, pcol='#CC3300', bcol='#3333CC',
                     xlim=None, plim=None, blim=None, epoch=None):
         '''
-        Plot, on a single set of axes, both ram pressure and IMF Bz for a 
-        quick-look summary of an event. 
+        Plot, on a single set of axes, both ram pressure and IMF Bz for a
+        quick-look summary of an event.
 
         The figure and main axes object are returned.
 
@@ -2028,11 +2028,11 @@ class ImfInput(PbData):
 
         import matplotlib.pyplot as plt
         from spacepy.plot import set_target, applySmartTimeTicks
-        
+
         # Set ax and fig based on given target.
         fig, a1 = set_target(target, figsize=(8,4), loc=loc)
         a2 = a1.twinx()
-        
+
         self.calc_pram()
 
         # Plot lines:
@@ -2055,12 +2055,12 @@ class ImfInput(PbData):
         # Add epoch marker.
         if epoch:
             ymin, ymax = a1.get_ylim()
-            a1.vlines(epoch, ymin, ymax, linestyles='solid', color='g', 
+            a1.vlines(epoch, ymin, ymax, linestyles='solid', color='g',
                       linewidths=2.)
             a1.set_ylim([ymin, ymax])
 
         return fig, a1
-        
+
     def quicklook(self, timerange=None):
         '''
         Generate a quick-look plot of solar wind conditions driving the
@@ -2070,7 +2070,7 @@ class ImfInput(PbData):
 
         import matplotlib.pyplot as plt
         from spacepy.plot import applySmartTimeTicks
-        
+
         if not timerange:
             timerange = [self['time'][0], self['time'][-1]]
 
@@ -2084,18 +2084,18 @@ class ImfInput(PbData):
             if Zero:
                 ax.plot(timerange, [0,0], 'k--')
             if xlab:
-                ax.set_xlabel('Universal Time from %s' % 
+                ax.set_xlabel('Universal Time from %s' %
                               timerange[0].isoformat())
             else:
                 ax.xaxis.set_ticklabels([])
 
         fig = plt.figure(figsize=(8,10))
         fig.subplots_adjust(hspace=0.025, top=0.95, bottom=0.05, right=0.95)
-        
+
         a1 = fig.add_subplot(511)
         a1.plot(self['time'], self['bx'], lw=1.25, c='#003366')
         adjust_plots(a1, 'IMF $B_{X}$ ($nT$)')
-        a1.set_title('Solar Wind Drivers (%s Coordinates)' 
+        a1.set_title('Solar Wind Drivers (%s Coordinates)'
                      % (self.attrs['coor']))
 
         a2 = fig.add_subplot(512)
@@ -2120,8 +2120,8 @@ class SatOrbit(PbData):
     '''
     An class to load, read, write, and handle BATS-R-US satellite orbit
     input files.  These files are used to fly virtual satellites through
-    the MHD domain.  Note that the output files should be handled by 
-    the :class:`LogFile` and not this satorbit object.  The object's 
+    the MHD domain.  Note that the output files should be handled by
+    the :class:`LogFile` and not this satorbit object.  The object's
     required and always present attributes are:
 
     ============ ==============================================================
@@ -2238,8 +2238,8 @@ class SatOrbit(PbData):
             self['xyz'][:,i] = parts[7:]
 
     def write(self):
-        '''Write a L{satorbit object<pybats.satorbit>} to file using the 
-        correct SWMF-input format.  The file will be written to the 
+        '''Write a L{satorbit object<pybats.satorbit>} to file using the
+        correct SWMF-input format.  The file will be written to the
         location specified by self.filename.  An error is thrown if this
         attribute is not set.
         '''
@@ -2248,7 +2248,7 @@ class SatOrbit(PbData):
             outfile = open(self.attrs['file'], 'w')
         except:
             raise Exception('Could not open self.filename!')
-        
+
         # Start by writing header, coordinate system, and then #START.
         for line in self.attrs['head']:
             outfile.write(line+'\n')

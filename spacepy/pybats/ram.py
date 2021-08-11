@@ -1328,7 +1328,7 @@ class PressureFile(PbData):
         # Set up color bar & levels.
         levs = np.power(10, np.linspace(np.log10(minz), np.log10(maxz), n))
         minz = 0.01
-        cont = ax.tricontourf(self['theta'], self['L'], p, levs,
+        cont = ax.tricontourf(self['theta'], self['L'], np.asarray(p), levs,
                               norm=LogNorm(), cmap=cmap)
         _adjust_dialplot(ax, self['L'], title=title, labelsize=labelsize)
         if add_cbar:
@@ -1405,8 +1405,8 @@ class PressureFile(PbData):
         T = T-np.pi/2.0
         R = np.linspace(self['L'][0]-dL/2.0,self['L'][-1]+dL/2.0,self.attrs['nL']+1)
         p = np.reshape(self[var], [self.attrs['nL'], self.attrs['nTheta']])
-        pcol = ax.pcolormesh(T, R, p[:,:-1], norm=LogNorm(),
-                             vmin=minz, vmax=maxz, cmap=get_cmap('inferno'))
+        pcol = ax.pcolormesh(T, R, p[:,:-1], norm=LogNorm(vmin=minz, vmax=maxz),
+                             cmap=get_cmap('inferno'))
         _adjust_dialplot(ax, R, title=title, labelsize=15)
         if add_cbar:
             cbar = colorbar(pcol, pad=0.1, ticks=LogLocator(), ax=ax,
