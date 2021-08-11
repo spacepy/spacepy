@@ -772,6 +772,27 @@ class RampyTests(unittest.TestCase):
         self.assertAlmostEqual(data['perH'][0], 0.17925744886042114)
         self.assertAlmostEqual(data['total'][0], 2.615855029414899)
 
+    def test_pcolor_plot(self):
+        '''Pcolor plot should not fail and should return known types'''
+        import matplotlib.pyplot as plt
+        data = ram.PressureFile(self.p_test)
+        out = data.add_pcol_press('totH')
+        self.assertTrue(isinstance(out[0], plt.Figure))
+        self.assertTrue(isinstance(out[1], plt.Axes))
+        self.assertTrue(isinstance(out[2], matplotlib.collections.QuadMesh))
+        self.assertTrue(out[3] is None)
+
+    def test_contour_plot(self):
+        '''Contour plot should not fail and should return known types'''
+        import matplotlib.pyplot as plt
+        data = ram.PressureFile(self.p_test)
+        out = data.add_cont_press('totH', add_cbar=True)
+        self.assertTrue(isinstance(out[0], plt.Figure))
+        self.assertTrue(isinstance(out[1], plt.Axes))
+        self.assertTrue(isinstance(out[2], matplotlib.tri.TriContourSet))
+        self.assertTrue(isinstance(out[3], matplotlib.colorbar.Colorbar))
+
+
 if __name__=='__main__':
     unittest.main()
 
