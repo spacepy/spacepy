@@ -63,7 +63,7 @@ class TestProbeIdlFile(unittest.TestCase):
     different compatible files.
     '''
 
-    filelist = [os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_binary.out'),
+    filelist = [os.path.join(spacepy_testing.datadir, 'pybats_test', 'y=0_mhd_1_e20140410-000050.out'),
                 os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_ascii.out'),
                 os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'),
                 os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out')]
@@ -88,7 +88,7 @@ class TestScanBinHeader(unittest.TestCase):
     '''
 
     # Files that have a single frame:
-    files_single = [os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_binary.out'),
+    files_single = [os.path.join(spacepy_testing.datadir, 'pybats_test', 'y=0_mhd_1_e20140410-000050.out'),
                     os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out')]
     # File that has multiple frames:
     file_multi = os.path.join(spacepy_testing.datadir, 'pybats_test',
@@ -140,7 +140,8 @@ class TestIdlFile(unittest.TestCase):
     knownMhdXmax = 31.0
     knownMhdXmin = -220.0
     knownMhdZlim = 124.0
-
+    knownMhdTime = dt.datetime(2014, 4, 10, 0, 0, 50)
+    
     # Known values for multi-frame *.outs files:
     # Time/iteration range covered by files:
     knownIterRng1  = [2500, 2512]
@@ -160,8 +161,11 @@ class TestIdlFile(unittest.TestCase):
     def testBinary(self):
         # Open file:
         mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir,
-                                      'pybats_test', 'y0_binary.out'))
+                                      'pybats_test', 'y=0_mhd_1_e20140410-000050.out'))
 
+        # Test time attribute:
+        self.assertEqual(self.knownMhdTime, mhd.attrs['time'])
+        
         # Test units are loaded correctly:
         for v in mhd:
             if v not in self.varnames: continue
@@ -305,7 +309,7 @@ class TestBats2d(unittest.TestCase):
                  'wy': 0.0, 'u': 1285.6114501953125}
 
     def setUp(self):
-        self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_binary.out'))
+        self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test', 'y=0_mhd_1_e20140410-000050.out'))
         self.outs = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
                         'y=0_mhd_1_e20140410-000000-000_20140410-000200-000.outs'))
 
