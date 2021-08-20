@@ -1245,7 +1245,7 @@ class IdlFile(PbData):
         # Use times info to build datetimes and update file-level attributes.
         if self.attrs['time_range'] != [None]:
             self.attrs['times'] = np.array(
-                [self.attrs['time_range'][0]+tdelt(seconds=int(x)) for x in runtimes])
+                [self.attrs['time_range'][0]+tdelt(seconds=int(x-runtimes[0])) for x in runtimes])
         else:
             self.attrs['times'] = np.array(nframe*[None])
 
