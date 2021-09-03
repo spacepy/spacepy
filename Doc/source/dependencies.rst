@@ -145,8 +145,11 @@ f2py) must be installed before SpacePy.
 
 Astropy 1.0+
 ------------
-:mod:`~spacepy.time` requires AstroPy if conversion to/from
-AstroPy :class:`~astropy.time.Time` is desired.
+:mod:`~spacepy.time` requires Astropy if conversion to/from
+Astropy :class:`~astropy.time.Time` is desired.
+
+:mod:`~spacepy.coordinates` requires Astropy if conversion to/from
+Astropy :class:`~astropy.coordinates.SkyCoord` is desired.
 
 Soft Dependency Summary
 =======================

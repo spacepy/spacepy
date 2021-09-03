@@ -12,6 +12,11 @@ try:
     import spacepy.irbempy as ib
 except ImportError:
     pass #tests will fail, but won't bring down the entire suite
+try:
+    import astropy.coordinates
+    HAVE_ASTROPY = True
+except ImportError:
+    HAVE_ASTROPY = False
 import spacepy.toolbox as tb
 
 __all__ = ['coordsTest']
@@ -51,6 +56,77 @@ class coordsTest(unittest.TestCase):
         self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         expected = spc.Coords([1,2,4], 'GEO', 'car')
         np.testing.assert_equal(expected.data, self.cvals[0].data)
+
+    @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
+    def test_to_skycoord_without_ticks(self):
+        with self.assertRaises(ValueError) as cm:
+            sc = self.cvals.to_skycoord()
+
+    @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
+    def test_to_skycoord_with_ticks(self):
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
+
+        sc = self.cvals.to_skycoord()
+
+        assert isinstance(sc, astropy.coordinates.SkyCoord)
+        assert sc.frame.name == 'itrs'
+
+        # Check that the data was loaded correctly
+        sc_data = sc.cartesian.xyz.to_value('m').T
+        np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re, rtol=1e-10)
+
+        # Check that the time was loaded correctly
+        assert np.all(sc.obstime.isclose(self.cvals.ticks.APT))
+
+    @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
+    def test_to_skycoord_with_ticks_and_conversion(self):
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
+
+        # Convert to a frame other than GEO before calling to_skycoord()
+        non_geo = self.cvals.convert('GSE', 'sph')
+
+        sc = non_geo.to_skycoord()
+
+        assert isinstance(sc, astropy.coordinates.SkyCoord)
+        assert sc.frame.name == 'itrs'
+
+        # Check that the data converts back correctly
+        sc_data = sc.cartesian.xyz.to_value('m').T
+        np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re, rtol=1e-10)
+
+        # Check that the time was loaded correctly
+        assert np.all(sc.obstime.isclose(self.cvals.ticks.APT))
+
+    @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
+    def test_from_skycoord(self):
+        sc = astropy.coordinates.SkyCoord(x=[1, 2], y=[4, 5], z=[7, 8],
+                                          unit='Mm', frame='itrs',
+                                          obstime=['2001-02-03T04:00:00', '2005-06-07T08:00:00'])
+
+        coords = spc.Coords.from_skycoord(sc)
+
+        # Check that the data was loaded correctly
+        sc_data = sc.cartesian.xyz.to_value('m').T
+        np.testing.assert_allclose(coords.data * coords.Re, sc_data, rtol=1e-10)
+
+        # Check that the time was loaded correctly
+        assert np.all(sc.obstime.isclose(coords.ticks.APT))
+
+    @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
+    def test_from_skycoord_with_conversion(self):
+        sc = astropy.coordinates.SkyCoord(x=[1, 2], y=[4, 5], z=[7, 8],
+                                          unit='Mm', frame='itrs',
+                                          obstime=['2001-02-03T04:00:00', '2005-06-07T08:00:00'])
+
+        # Convert to a frame other than GEO before calling from_skycoord()
+        coords = spc.Coords.from_skycoord(sc.gcrs)
+
+        # Check that the data was loaded correctly
+        sc_data = sc.cartesian.xyz.to_value('m').T
+        np.testing.assert_allclose(coords.data * coords.Re, sc_data, rtol=1e-10)
+
+        # Check that the time was loaded correctly
+        assert np.all(sc.obstime.isclose(coords.ticks.APT))
 
 
 class QuaternionFunctionTests(unittest.TestCase):
