@@ -76,7 +76,7 @@ class coordsTest(unittest.TestCase):
         np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re, rtol=1e-10)
 
         # Check that the time was loaded correctly
-        assert np.all(sc.obstime.isclose(self.cvals.ticks.APT))
+        np.testing.assert_allclose((sc.obstime - self.cvals.ticks.APT).to('s').value, 0)
 
     @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
     def test_to_skycoord_with_ticks_and_conversion(self):
@@ -95,7 +95,7 @@ class coordsTest(unittest.TestCase):
         np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re, rtol=1e-10)
 
         # Check that the time was loaded correctly
-        assert np.all(sc.obstime.isclose(self.cvals.ticks.APT))
+        np.testing.assert_allclose((sc.obstime - self.cvals.ticks.APT).to('s').value, 0)
 
     @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
     def test_from_skycoord(self):
@@ -110,7 +110,7 @@ class coordsTest(unittest.TestCase):
         np.testing.assert_allclose(coords.data * coords.Re, sc_data, rtol=1e-10)
 
         # Check that the time was loaded correctly
-        assert np.all(sc.obstime.isclose(coords.ticks.APT))
+        np.testing.assert_allclose((sc.obstime - coords.ticks.APT).to('s').value, 0)
 
     @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
     def test_from_skycoord_with_conversion(self):
@@ -126,7 +126,7 @@ class coordsTest(unittest.TestCase):
         np.testing.assert_allclose(coords.data * coords.Re, sc_data, rtol=1e-10)
 
         # Check that the time was loaded correctly
-        assert np.all(sc.obstime.isclose(coords.ticks.APT))
+        np.testing.assert_allclose((sc.obstime - coords.ticks.APT).to('s').value, 0)
 
 
 class QuaternionFunctionTests(unittest.TestCase):
