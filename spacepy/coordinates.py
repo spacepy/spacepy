@@ -459,7 +459,7 @@ class Coords(object):
             raise e.__class__("This method requires Astropy to be installed.")
 
         skycoord = astropy.coordinates.SkyCoord(skycoord).itrs  # Astropy ITRS is GEO
-        data = (skycoord.cartesian.xyz.to_value('m') / cls.Re).T  # convert Cartesian to Re units
+        data = (skycoord.cartesian.xyz.to('m').value / cls.Re).T  # convert Cartesian to Re units
         ticks = spacepy.time.Ticktock(skycoord.obstime)
 
         return cls(data, 'GEO', 'car', ticks=ticks)

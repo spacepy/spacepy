@@ -72,7 +72,7 @@ class coordsTest(unittest.TestCase):
         assert sc.frame.name == 'itrs'
 
         # Check that the data was loaded correctly
-        sc_data = sc.cartesian.xyz.to_value('m').T
+        sc_data = sc.cartesian.xyz.to('m').value.T
         np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re, rtol=1e-10)
 
         # Check that the time was loaded correctly
@@ -91,7 +91,7 @@ class coordsTest(unittest.TestCase):
         assert sc.frame.name == 'itrs'
 
         # Check that the data converts back correctly
-        sc_data = sc.cartesian.xyz.to_value('m').T
+        sc_data = sc.cartesian.xyz.to('m').value.T
         np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re, rtol=1e-10)
 
         # Check that the time was loaded correctly
@@ -106,7 +106,7 @@ class coordsTest(unittest.TestCase):
         coords = spc.Coords.from_skycoord(sc)
 
         # Check that the data was loaded correctly
-        sc_data = sc.cartesian.xyz.to_value('m').T
+        sc_data = sc.cartesian.xyz.to('m').value.T
         np.testing.assert_allclose(coords.data * coords.Re, sc_data, rtol=1e-10)
 
         # Check that the time was loaded correctly
@@ -122,7 +122,7 @@ class coordsTest(unittest.TestCase):
         coords = spc.Coords.from_skycoord(sc.gcrs)
 
         # Check that the data was loaded correctly
-        sc_data = sc.cartesian.xyz.to_value('m').T
+        sc_data = sc.cartesian.xyz.to('m').value.T
         np.testing.assert_allclose(coords.data * coords.Re, sc_data, rtol=1e-10)
 
         # Check that the time was loaded correctly
