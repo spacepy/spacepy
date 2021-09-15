@@ -1649,7 +1649,7 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
         '''Chop up omni data for multiprocessing'''
         out = dm.SpaceData()
         keylist = list(fullov.keys())
-        dum = keylist.pop(keylist.index('Qbits'))
+        dum = keylist.pop(keylist.index('Qbits')) if 'Qbits' in keylist else None
         for key in keylist:
             out[key] = fullov[key][stind:enind]
         if 'Qbits' in fullov:
