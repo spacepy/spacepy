@@ -149,6 +149,36 @@ class IRBEMBigTests(unittest.TestCase):
         for key in expected.keys():
             numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
 
+    def test_get_Lstar_OPQuiet_multi(self):
+        """Test Lstar on OPQ forcing multiprocess"""
+        cpu_actual = spacepy.config['ncpus']
+        # To trigger a worker pool, number of calcs must be
+        # more than double number of cpus
+        spacepy.config['ncpus'] = 4
+        ticks = spacepy.time.tickrange(self.ticks.ISO[0], self.ticks.ISO[-1], 1/1440.)
+        ncalc = len(ticks)  # Forced 10 times in test data range
+        loci = spacepy.coordinates.Coords([[nc-4, 6-nc, 0] for nc in range(ncalc)], 'GEO', 'car')
+        omnivals = spacepy.omni.get_omni(ticks, dbase='Test')
+        expected = {'Lstar': array([[6.84698], [5.58814], [4.35608],
+                                    [3.13613], [1.97344], [1.41439],
+                                    [2.05375], [3.19979], [4.35920],
+                                    [5.38242]]),
+                    'Lm': array([[7.61427481], [6.13826804], [4.65907084],
+                                 [3.21519241], [1.97225109], [1.41105356],
+                                 [2.05626165], [3.28414042], [4.6531115 ],
+                                 [5.92800457]])
+                    }
+        # OPQ won't use the OMNI, but if they're passed in
+        # the code still processes them, so answers should be identical
+        actuali= ib.get_Lstar(ticks, loci, [90], extMag="OPQUIET", omnivals=omnivals)
+        actualn = ib.get_Lstar(ticks, loci, [90], extMag="OPQUIET", omnivals=None)
+        spacepy.config['ncpus'] = cpu_actual
+        # Check that results are as expected
+        numpy.testing.assert_almost_equal(expected['Lstar'], actuali['Lstar'], decimal=5)
+        numpy.testing.assert_almost_equal(expected['Lm'], actuali['Lm'], decimal=5)
+        numpy.testing.assert_almost_equal(expected['Lstar'], actualn['Lstar'], decimal=5)
+        numpy.testing.assert_almost_equal(expected['Lm'], actualn['Lm'], decimal=5)
+
     def test_get_Lstar_TooManyPA(self):
         """test OP-Quiet with too many pitch angles"""
         with self.assertRaises(ValueError) as cm:
