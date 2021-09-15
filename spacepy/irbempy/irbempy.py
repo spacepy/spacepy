@@ -9,7 +9,7 @@ D. Boscher, S. Bourdarie, T. P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 
 Authors
 -------
-Josef Koller, Steve Morley 
+Josef Koller, Steve Morley
 
 Copyright 2010 Los Alamos National Security, LLC.
 """
@@ -93,7 +93,7 @@ def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
             os.makedirs(path, mode=0o777)
         else:
             raise IOError('updateTS07Coeffs: Specified path for TS07 is not valid - to force creation use "force" keyword')
-    
+
     if 'start' not in kwargs:
         firstDate = dt.datetime(2007,1,1)
     else:
@@ -102,7 +102,7 @@ def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
         lastDate = dt.datetime.now()
     else:
         lastDate = spt.Ticktock(kwargs['end']).UTC[0]
-        
+
     baseURL = 'http://rbspgway.jhuapl.edu/models/magneticfieldmodeling/ts07d/coeffs_v02/'
 
     #make inventory of current TS07 data
@@ -140,21 +140,21 @@ def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
             tar.close()
         #now remove tgz file
         os.unlink(tmp)
-        
+
 
 # -----------------------------------------------
 def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
-    call get_bfield in irbem lib and return a dictionary with the B-field vector and 
+    call get_bfield in irbem lib and return a dictionary with the B-field vector and
     strenght.
 
     Parameters
     ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        - extMag (string) : optional; will choose the external magnetic field model
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
         - omni values as dictionary (optional) : if not provided, will use lookup table
@@ -216,7 +216,7 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
 # -----------------------------------------------
 def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
-    call find_mirror_point from irbem library and return a dictionary with values for 
+    call find_mirror_point from irbem library and return a dictionary with values for
     Blocal, Bmirr and the GEO (cartesian) coordinates of the mirror point
 
     Parameters
@@ -228,14 +228,14 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
     alpha : array-like
         containing the pitch angles
     extMag : str
-        optional; will choose the external magnetic field model 
-        possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-        OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        optional; will choose the external magnetic field model
+        possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+        OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
         'T05', 'ALEX', 'TS07']
     options : array-like (optional)
         length=5 : explained in Lstar
     omnivals : dict (optional)
-        if not provided, will use lookup table 
+        if not provided, will use lookup table
         (see get_Lstar documentation for further explanation)
 
     Returns
@@ -289,7 +289,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
         GEOcoord[np.where( np.isclose(GEOcoord,badval)) ] = np.NaN
 
         results['Blocal'][i] = blocal
-        results['Bmirr'][i] = bmirr	
+        results['Bmirr'][i] = bmirr
         results['loci'][i] = GEOcoord
 
     results['loci'] = spc.Coords(results['loci'], 'GEO', 'car')
@@ -307,17 +307,17 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
     ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        - extMag (string) : optional; will choose the external magnetic field model
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
-        - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - omni values as dictionary (optional) : if not provided, will use lookup table
         - (see Lstar documentation for further explanation)
 
     Returns
     =======
-        - results (dictionary) : containing keys: Bmin, Coords instance with GEO coordinates of 
+        - results (dictionary) : containing keys: Bmin, Coords instance with GEO coordinates of
             the magnetic equator
 
     Examples
@@ -378,12 +378,12 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
     ==========
         - ticks (Ticktock class) : containing time information **for a single time**
         - alpha (numeric) : equatorial pitch angle for search
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        - extMag (string) : optional; will choose the external magnetic field model
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
-        - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - omni values as dictionary (optional) : if not provided, will use lookup table
         - (see Lstar documentation for further explanation)
         - tol (float) : tolerance for search in radial distance
         - bracket (list): X-GSM coordinates to bracket bisection search
@@ -429,10 +429,10 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
     results['K'].attrs['DEPEND_1'] = "AlphaEq"
     results['K'].attrs['MODEL'] = "{0} (IRBEM implementation)".format(extMag)
     results['UTC'] = ticks.UTC
-    results['AlphaEq'] = dm.dmarray(alpha, 
+    results['AlphaEq'] = dm.dmarray(alpha,
                                     attrs={'DESCRIPTION': 'Equatorial pitch angle for LCDS calculation',
                                            'UNITS': 'degrees'})
-    
+
     mlt *= 15 #hours to degrees
     mlt = np.deg2rad(mlt)
 
@@ -477,7 +477,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
                 raise ValueError('Specified inner bracket ({0}) is on an open drift shell'.format(loci_brac1))
             #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
             LCDS, LCDS_K = LS1['Lstar'][0], LS1['K'][0]
-                
+
             #Set outer bracket (default to R of 12)
             b2x = -1.0*bracket[1]*np.cos(mlt)
             b2y = -1.0*bracket[1]*np.sin(mlt)
@@ -511,7 +511,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
             else:
                 LS2 = {'Lstar': np.NaN}
             #print('L* at outer bracket: {0}; Xgsm = {1}'.format(LS2['Lstar'], loci_brac2.x))
-            
+
             #now search by bisection
             while (tb.hypot(loci_brac2.x, loci_brac2.y) - tb.hypot(loci_brac1.x, loci_brac1.y) > tol):
                 newdist = (tb.hypot(loci_brac2.x, loci_brac2.y) + tb.hypot(loci_brac1.x, loci_brac1.y))/2.0
@@ -575,12 +575,12 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1,1,3,0,0], omnivals=None,
     ==========
         - ticks (Ticktock class) : containing time information **for a single time**
         - alpha (numeric) : equatorial pitch angle for search
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        - extMag (string) : optional; will choose the external magnetic field model
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
-        - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - omni values as dictionary (optional) : if not provided, will use lookup table
         - (see Lstar documentation for further explanation)
         - tol (float) : tolerance for search in radial distance
         - bracket (list): X-GSM coordinates to bracket bisection search
@@ -629,7 +629,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1,1,3,0,0], omnivals=None,
     results['UTC'] = ticks.UTC
     results['K'] = dm.dmarray(K, attrs={'DESCRIPTION': 'Equatorial pitch angle for LCDS calculation',
                                            'UNITS': 'degrees'})
-    
+
     mlt *= 15 #hours to degrees
     mlt = np.deg2rad(mlt)
 
@@ -693,7 +693,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1,1,3,0,0], omnivals=None,
 
             #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
             LCDS, LCDS_PA = LS1['Lstar'][0], pa
-                
+
             #Set outer bracket (default to R of 12)
             b2x = -1.0*bracket[1]*np.cos(mlt)
             b2y = -1.0*bracket[1]*np.sin(mlt)
@@ -736,7 +736,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1,1,3,0,0], omnivals=None,
             else:
                 LS2 = {'Lstar': np.NaN}
             #print('L* at outer bracket: {0}; Xgsm = {1}'.format(LS2['Lstar'], loci_brac2.x))
-            
+
             #now search by bisection
             while (tb.hypot(loci_brac2.x, loci_brac2.y) - tb.hypot(loci_brac1.x, loci_brac1.y) > tol):
                 newdist = (tb.hypot(loci_brac2.x, loci_brac2.y) + tb.hypot(loci_brac1.x, loci_brac1.y))/2.0
@@ -801,12 +801,12 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0,0,3,0,0], omnivals=No
         - ticks (Ticktock class) : containing time information **for a single time**
         - loci (Coords class) : containing position information **for a single point**
         - K (numeric) : value of second invariant (K) for search
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        - extMag (string) : optional; will choose the external magnetic field model
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
-        - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - omni values as dictionary (optional) : if not provided, will use lookup table
         - (see Lstar documentation for further explanation)
         - tol (float) : tolerance for search in radial distance
         - bracket (list): X-GSM coordinates to bracket bisection search
@@ -897,7 +897,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0,0,3,0,0], omnivals=No
             count += 1
             if count>20: break
     return outvals
-        
+
 
 # -----------------------------------------------
 def find_footpoint(ticks, loci, extMag='T01STORM', options=[1,0,3,0,0], hemi='same', alt=100, omnivals=None):
@@ -909,12 +909,12 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1,0,3,0,0], hemi='sa
     ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        - extMag (string) : optional; will choose the external magnetic field model
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
-        - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - omni values as dictionary (optional) : if not provided, will use lookup table
         - (see Lstar documentation for further explanation)
         - hemi (string) : optional (valid cases are 'same', 'other', 'north' or 'south')
                           will set the target hemisphere for tracing the footpoint
@@ -996,11 +996,11 @@ def coord_trans(loci, returntype, returncarsph ):
         - loci (Coords instance) : containing coordinate information, can contain n points
         - returntype (str) : describing system as GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
         - returncarsph (str) : cartesian or spherical units 'car', 'sph'
-        
+
     Returns
     =======
         - xout (ndarray) : values after transformation in (n,3) dimensions
-        
+
     Examples
     ========
     >>> c = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
@@ -1033,10 +1033,10 @@ def coord_trans(loci, returntype, returncarsph ):
         idoy = loci.ticks.DOY[i]
         secs = loci.ticks.UTC[i].hour*3600. + loci.ticks.UTC[i].minute*60. + \
             loci.ticks.UTC[i].second
-            
+
         xout[i,:] = oplib.coord_trans1(sysaxesin, sysaxesout, \
             iyear, idoy, secs, loci.data[i])
-        
+
     # add  sph to car or v/v convertion if initial sysaxesout was None
     if  aflag == True:
         if returncarsph == 'sph':
@@ -1055,12 +1055,12 @@ def car2sph(CARin):
     ==========
         - CARin (list or ndarray) : coordinate points in (n,3) shape with n coordinate points in
             units of [Re, Re, Re] = [x,y,z]
-        
+
     Returns
     =======
         - results (ndarray) : values after conversion to spherical coordinates in
             radius, latitude, longitude in units of [Re, deg, deg]
-        
+
     Examples
     ========
     >>> sph2car([1,45,0])
@@ -1069,7 +1069,7 @@ def car2sph(CARin):
     See Also
     ========
     sph2car
-    """	
+    """
 
     if isinstance(CARin[0], numbers.Number):
         CAR = np.array([CARin])
@@ -1091,7 +1091,7 @@ def car2sph(CARin):
             longi = np.arctan2(y,x)*180./np.pi
             lati = 90. - np.arctan2(sq, z)*180./np.pi
         res[i,:] = [r, lati, longi]
-        
+
     if isinstance(CARin[0], numbers.Number):
         return res[0]
     else:
@@ -1106,11 +1106,11 @@ def sph2car(SPHin):
     ==========
         - SPHin (list or ndarray) : coordinate points in (n,3) shape with n coordinate points in
             units of [Re, deg, deg] = [r, latitude, longitude]
-        
+
     Returns
     =======
         - results (ndarray) : values after conversion to cartesian coordinates x,y,z
-        
+
     Examples
     ========
     >>> sph2car([1,45,45])
@@ -1142,17 +1142,17 @@ def sph2car(SPHin):
     else:
         return res
 
-# -----------------------------------------------    
+# -----------------------------------------------
 def get_sysaxes(dtype, carsph):
     """
     will return the sysaxes according to the irbem library
 
     Parameters
     ==========
-    - dtype (str) : coordinate system, possible values: GDZ, GEO, GSM, GSE, SM, 
+    - dtype (str) : coordinate system, possible values: GDZ, GEO, GSM, GSE, SM,
             GEI, MAG, SPH, RLL
     - carsph (str) : cartesian or spherical, possible values: 'sph', 'car'
-        
+
     Returns
     =======
     - sysaxes (int) : value after oner_desp library from 0-8 (or None if not available)
@@ -1173,13 +1173,13 @@ def get_sysaxes(dtype, carsph):
         #'GSE': {'sph': 23, 'car': 3}, 'SM': {'sph': 24, 'car': 4},
         #'GEI': {'sph': 25, 'car': 5}, 'MAG': {'sph': 26, 'car': 6},
         #'SPH': {'sph': 7, 'car': 17}, 'RLL': {'sph': 8, 'car': 18}}
-        
-    
+
+
     sysaxes = SYSAXES_TYPES[dtype][carsph]
 
     return sysaxes
-    
-# -----------------------------------------------    
+
+# -----------------------------------------------
 def get_dtype(sysaxes):
     """
     will return the coordinate system type as string
@@ -1187,7 +1187,7 @@ def get_dtype(sysaxes):
     Parameters
     ==========
         - sysaxes (int) : number according to the irbem, possible values: 0-8
-        
+
     Returns
     =======
         - dtype (str) : coordinate system GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
@@ -1212,7 +1212,7 @@ def get_dtype(sysaxes):
 
     return dtype, carsph
 
-# -----------------------------------------------    
+# -----------------------------------------------
 def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     """
     will return the flux from the AE8-AP8 model
@@ -1225,11 +1225,11 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         - model (str)    : MIN or MAX for solar cycle dependence
         - fluxtype (str) : DIFF, RANGE, INT are possible types
         - particles (str): e or p or electrons or protons
-        
+
     Returns
     =======
         - float : flux from AE8/AP8 model
-        
+
     Examples
     ========
     >>> spacepy.irbempy.get_aep8()
@@ -1246,7 +1246,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
 
     """
     # find bad values and dimensions
-    
+
     if particles.lower() == 'e': # then choose electron model
         if model.upper() == 'MIN':
             whichm = 1
@@ -1263,7 +1263,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
             print('Warning: model='+model+' is not implemented: Choose MIN or MAX')
     else:
         print('Warning: particles='+particles+' is not available: choose e or p')
-    
+
     if fluxtype.upper() == 'DIFF':
         whatf = 1
     elif fluxtype.upper() == 'RANGE':
@@ -1272,7 +1272,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         whatf = 3
     else:
         print('Warning: fluxtype='+fluxtype+' is not implemented: Choose DIFF, INT or RANGE')
-    
+
     # need range if whatf=2
     Nene  = 1
     if whatf == 2: assert len(energy) == 2, 'Need energy range with this choice of fluxtype=RANGE'
@@ -1284,7 +1284,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
                     'G1', 'G2', 'G3', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6']
     for key in magkeys:
         dum_omni[key] = [0]*len(loci)
-    
+
     if isinstance(loci, spc.Coords):
         assert loci.ticks, 'Coords require time information with a Ticktock object'
         d = prep_irbem(ticks=loci.ticks, loci=loci, omnivals=dum_omni)
@@ -1304,18 +1304,18 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         L_array[0] = L
         # now get the flux
         flux =  oplib.get_ae8_ap8_flux(ntmax, whichm, whatf, Nene, E_array, B_array, L_array)
-    
+
     else:
         print('Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]')
-        
-    
+
+
     flux[np.where( np.isclose(flux, d['badval'])) ] = np.NaN
-    
+
     return flux[0,0]
-    
+
 
 # -----------------------------------------------
-def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None, landi2lstar=False): 
+def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None, landi2lstar=False):
     """
     This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
     and will lookup omni values for given time if not provided (optional). If pitch angles
@@ -1326,22 +1326,22 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
     ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
-        - alpha (list or ndarray) : pitch angles in degrees; if provided will 
+        - alpha (list or ndarray) : pitch angles in degrees; if provided will
             calculate shell splitting; max 25 values
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        - extMag (string) : optional; will choose the external magnetic field model
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained below
-        - omni values as dictionary (optional) : if not provided, will use lookup table 
-        - landi2lstar : if True, will use the faster landi2lstar routine if possible. This 
+        - omni values as dictionary (optional) : if not provided, will use lookup table
+        - landi2lstar : if True, will use the faster landi2lstar routine if possible. This
             routine can only be used with OPQUIET+IGRF magnetic field models.
 
     Returns
     =======
-        - results (dictionary) : containing keys: Lm, Lstar, Bmin, Blocal (or Bmirr), 
+        - results (dictionary) : containing keys: Lm, Lstar, Bmin, Blocal (or Bmirr),
             Xj (I - the 2nd invariant), MLT
-            if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
+            if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr"
             is returned if not provided, then "Blocal" at spacecraft is returned.
 
     Examples
@@ -1366,16 +1366,16 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
         - T87LONG : Tsyganenko long [1987] (uses 0<=Kp<=9 - Valid for rGEO<=70. Re)
         - T89	 : Tsyganenko [1989] (uses 0<=Kp<=9 - Valid for rGEO<=70. Re)
         - OPQUIET : Olson & Pfitzer quiet [1977] (default - Valid for rGEO<=15. Re)
-        - OPDYN   : Olson & Pfitzer dynamic [1988] (uses 5.<=dens<=50., 300.<=velo<=500., 
+        - OPDYN   : Olson & Pfitzer dynamic [1988] (uses 5.<=dens<=50., 300.<=velo<=500.,
             -100.<=Dst<=20. - Valid for rGEO<=60. Re)
-        - T96	 : Tsyganenko [1996] (uses -100.<=Dst (nT)<=20., 0.5<=Pdyn (nPa)<10., 
+        - T96	 : Tsyganenko [1996] (uses -100.<=Dst (nT)<=20., 0.5<=Pdyn (nPa)<10.,
             |ByIMF| (nT)<1=0., |BzIMF| (nT)<=10. - Valid for rGEO<=40. Re)
         - OSTA	: Ostapenko & Maltsev [1997] (uses dst,Pdyn,BzIMF, Kp)
-            T01QUIET: Tsyganenko [2002a,b] (uses -50.<Dst (nT)<20., 0.5<Pdyn (nPa)<=5., 
+            T01QUIET: Tsyganenko [2002a,b] (uses -50.<Dst (nT)<20., 0.5<Pdyn (nPa)<=5.,
             |ByIMF| (nT)<=5., |BzIMF| (nT)<=5., 0.<=G1<=10., 0.<=G2<=10. - Valid for xGSM>=-15. Re)
-        - T01STORM: Tsyganenko, Singer & Kasper [2003] storm  (uses Dst, Pdyn, ByIMF, BzIMF, G2, G3 - 
+        - T01STORM: Tsyganenko, Singer & Kasper [2003] storm  (uses Dst, Pdyn, ByIMF, BzIMF, G2, G3 -
             there is no upper or lower limit for those inputs - Valid for xGSM>=-15. Re)
-        - T05	 : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF, 
+        - T05	 : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF,
             W1, W2, W3, W4, W5, W6 - no upper or lower limit for inputs - Valid for xGSM>=-15. Re)
         - TS07   : Tsyganenko and Sitnov [2007] model. Uses specially calculated coefficient files.
 
@@ -1387,34 +1387,34 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
         - Pdyn: Solar Wind dynamic pressure (nPa)
         - ByIMF: GSM y component of IMF mag. field (nT)
         - BzIMF: GSM z component of IMF mag. field (nT)
-        - G1:  G1=< Vsw*(Bperp/40)2/(1+Bperp/40)*sin3(theta/2) > where the <> mean an average over the 
-            previous 1 hour, Vsw is the solar wind speed, Bperp is the transverse IMF 
+        - G1:  G1=< Vsw*(Bperp/40)2/(1+Bperp/40)*sin3(theta/2) > where the <> mean an average over the
+            previous 1 hour, Vsw is the solar wind speed, Bperp is the transverse IMF
             component (GSM) and theta it's clock angle.
-        - G2: G2=< a*Vsw*Bs > where the <> mean an average over the previous 1 hour, 
+        - G2: G2=< a*Vsw*Bs > where the <> mean an average over the previous 1 hour,
                 Vsw is solar wind speed, Bs=|IMF Bz| when IMF Bz < 0 and Bs=0 when IMF Bz > 0, a=0.005.
-        - G3:  G3=< Vsw*Dsw*Bs /2000.> where the <> mean an average over the previous 1 hour, 
-                Vsw is the solar wind speed, Dsw is the solar wind density, Bs=|IMF Bz| when IMF 
+        - G3:  G3=< Vsw*Dsw*Bs /2000.> where the <> mean an average over the previous 1 hour,
+                Vsw is the solar wind speed, Dsw is the solar wind density, Bs=|IMF Bz| when IMF
                 Bz < 0 and Bs=0 when IMF Bz > 0.
         - W1 - W6: see definition in (JGR-A, v.110(A3), 2005.) (PDF 1.2MB)
         - AL: the auroral index
 
     Options
         - 1st element: 0 - don't compute L* or phi ;  1 - compute L*; 2- compute phi
-        - 2nd element: 0 - initialize IGRF field once per year (year.5);  
-            n - n is the  frequency (in days) starting on January 1st of each year 
-            (i.e. if options(2nd element)=15 then IGRF will be updated on the following days of the 
+        - 2nd element: 0 - initialize IGRF field once per year (year.5);
+            n - n is the  frequency (in days) starting on January 1st of each year
+            (i.e. if options(2nd element)=15 then IGRF will be updated on the following days of the
             year: 1, 15, 30, 45 ...)
-        - 3rd element: resolution to compute L* (0 to 9) where 0 is the recomended value to ensure a 
+        - 3rd element: resolution to compute L* (0 to 9) where 0 is the recomended value to ensure a
             good ratio precision/computation time
-            (i.e. an error of ~2% at L=6). The higher the value the better will be the precision, the 
-            longer will be the computing time. Generally there is not much improvement for values 
-            larger than 4. Note that this parameter defines the integration step (theta) 
+            (i.e. an error of ~2% at L=6). The higher the value the better will be the precision, the
+            longer will be the computing time. Generally there is not much improvement for values
+            larger than 4. Note that this parameter defines the integration step (theta)
             along the field line such as dtheta=(2pi)/(720*[options(3rd element)+1])
-        - 4th element: resolution to compute L* (0 to 9). The higher the value the better will be 
-            the precision, the longer will be 
-            the computing time. It is recommended to use 0 (usually sufficient) unless L* is not 
-            computed on a LEO orbit. For LEO orbit higher values are recommended. Note that this 
-            parameter defines the integration step (phi) along the drift shell such as 
+        - 4th element: resolution to compute L* (0 to 9). The higher the value the better will be
+            the precision, the longer will be
+            the computing time. It is recommended to use 0 (usually sufficient) unless L* is not
+            computed on a LEO orbit. For LEO orbit higher values are recommended. Note that this
+            parameter defines the integration step (phi) along the drift shell such as
             dphi=(2pi)/(25*[options(4th element)+1])
         - 5th element: allows to select an internal magnetic field model (default is set to IGRF)
             - 0 = IGRF
@@ -1423,7 +1423,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
             - 3 = GSFC 12/66 updated to 1970
             - 4 = User-defined model (Default: Centred dipole + uniform [Dungey open model] )
             - 5 = Centred dipole
-            
+
     """
     nTAI = len(ticks)
     d = prep_irbem(ticks, loci, alpha, extMag, options, omnivals)
@@ -1464,7 +1464,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
         results['Bmin'] = bmin[0:nTAI]
         results['Xj'] = xj[0:nTAI][:,None]
         results['MLT'] = mlt[0:nTAI]
-    else:		
+    else:
         results['Lm'] = lm[0:nTAI, 0:nalpha]
         results['Lstar'] = lstar[0:nTAI, 0:nalpha]
         bmirr[np.where( np.isclose(bmirr, d['badval'])) ] = np.NaN
@@ -1472,7 +1472,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
         results['Bmin'] = bmin[0:nTAI]
         results['Xj'] = xj[0:nTAI, 0:nalpha]
         results['MLT'] = mlt[0:nTAI]
-        
+
     return results
 
 # -----------------------------------------------
@@ -1485,20 +1485,20 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : pitch angles in degrees
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        - extMag (string) : optional; will choose the external magnetic field model
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
                             'T05', 'ALEX', 'TS07']
         - intMag (string) : optional: select the internal field model
                             possible values ['IGRF','EDIP','JC','GSFC','DUN','CDIP']
                             For full details see get_Lstar
-        - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - omni values as dictionary (optional) : if not provided, will use lookup table
 
     Returns
     =======
 
-        - results (dictionary) : containing keys: Lm, Bmin, Blocal (or Bmirr), Xj, MLT 
-            if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
+        - results (dictionary) : containing keys: Lm, Bmin, Blocal (or Bmirr), Xj, MLT
+            if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr"
             is returned if not provided, then "Blocal" at spacecraft is returned. A negative
             value for Lm indicates the field line is closed but particles are lost to the
             atmosphere; the absolute value indicates the L value.
@@ -1522,7 +1522,7 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
             ##TODO: test for numeric type
         except AssertionError:
             raise ValueError('IGRFset must be positive-valued and numeric')
-        
+
     opts = [0, IGRFset, 0, 0, intMaglookup[intMag]]
 
     results = get_Lstar(ticks, loci, alpha, extMag=extMag, options=opts, omnivals=omnivals)
@@ -1543,19 +1543,19 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
         - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : optional pitch angles in degrees (default is 90);
             if provided will calculate shell splitting; max 25 values
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        - extMag (string) : optional; will choose the external magnetic field model
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained below
-        - omni values as dictionary (optional) : if not provided, will use lookup table 
-        - landi2lstar : if True, will use the faster landi2lstar routine if possible. This 
+        - omni values as dictionary (optional) : if not provided, will use lookup table
+        - landi2lstar : if True, will use the faster landi2lstar routine if possible. This
             routine can only be used with OPQUIET+IGRF magnetic field models.
 
     Returns
     =======
-        - results (dictionary) : containing keys: Lm, Lstar, Bmin, Blocal (or Bmirr), Xj, MLT 
-            if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
+        - results (dictionary) : containing keys: Lm, Lstar, Bmin, Blocal (or Bmirr), Xj, MLT
+            if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr"
             is returned if not provided, then "Blocal" at spacecraft is returned. A negative
             value for Lm indicates the field line is closed but particles are lost to the
             atmosphere; the absolute value indicates the L value. A negative value for Lstar
@@ -1584,16 +1584,16 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
         - T87LONG : Tsyganenko long [1987] (uses 0<=Kp<=9 - Valid for rGEO<=70. Re)
         - T89	 : Tsyganenko [1989] (uses 0<=Kp<=9 - Valid for rGEO<=70. Re)
         - OPQUIET : Olson & Pfitzer quiet [1977] (default - Valid for rGEO<=15. Re)
-        - OPDYN   : Olson & Pfitzer dynamic [1988] (uses 5.<=dens<=50., 300.<=velo<=500., 
+        - OPDYN   : Olson & Pfitzer dynamic [1988] (uses 5.<=dens<=50., 300.<=velo<=500.,
             -100.<=Dst<=20. - Valid for rGEO<=60. Re)
-        - T96	 : Tsyganenko [1996] (uses -100.<=Dst (nT)<=20., 0.5<=Pdyn (nPa)<10., 
+        - T96	 : Tsyganenko [1996] (uses -100.<=Dst (nT)<=20., 0.5<=Pdyn (nPa)<10.,
             abs(ByIMF) (nT)<1=0., abs(BzIMF) (nT)<=10. - Valid for rGEO<=40. Re)
         - OSTA	: Ostapenko & Maltsev [1997] (uses dst,Pdyn,BzIMF, Kp)
-            T01QUIET: Tsyganenko [2002a,b] (uses -50.<Dst (nT)<20., 0.5<Pdyn (nPa)<=5., 
+            T01QUIET: Tsyganenko [2002a,b] (uses -50.<Dst (nT)<20., 0.5<Pdyn (nPa)<=5.,
             abs(ByIMF) (nT)<=5., abs(BzIMF) (nT)<=5., 0.<=G1<=10., 0.<=G2<=10. - Valid for xGSM>=-15. Re)
-        - T01STORM: Tsyganenko, Singer & Kasper [2003] storm  (uses Dst, Pdyn, ByIMF, BzIMF, G2, G3 - 
+        - T01STORM: Tsyganenko, Singer & Kasper [2003] storm  (uses Dst, Pdyn, ByIMF, BzIMF, G2, G3 -
             there is no upper or lower limit for those inputs - Valid for xGSM>=-15. Re)
-        - T05	 : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF, 
+        - T05	 : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF,
             W1, W2, W3, W4, W5, W6 - no upper or lower limit for inputs - Valid for xGSM>=-15. Re)
 
     OMNI contents
@@ -1604,34 +1604,34 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
         - Pdyn: Solar Wind dynamic pressure (nPa)
         - ByIMF: GSM y component of IMF mag. field (nT)
         - BzIMF: GSM z component of IMF mag. field (nT)
-        - G1:  G1=< Vsw*(Bperp/40)2/(1+Bperp/40)*sin3(theta/2) > where the <> mean an average over the 
-            previous 1 hour, Vsw is the solar wind speed, Bperp is the transverse IMF 
+        - G1:  G1=< Vsw*(Bperp/40)2/(1+Bperp/40)*sin3(theta/2) > where the <> mean an average over the
+            previous 1 hour, Vsw is the solar wind speed, Bperp is the transverse IMF
             component (GSM) and theta it's clock angle.
-        - G2: G2=< a*Vsw*Bs > where the <> mean an average over the previous 1 hour, 
+        - G2: G2=< a*Vsw*Bs > where the <> mean an average over the previous 1 hour,
                 Vsw is solar wind speed, Bs=|IMF Bz| when IMF Bz < 0 and Bs=0 when IMF Bz > 0, a=0.005.
-        - G3:  G3=< Vsw*Dsw*Bs /2000.> where the <> mean an average over the previous 1 hour, 
-                Vsw is the solar wind speed, Dsw is the solar wind density, Bs=|IMF Bz| when IMF 
+        - G3:  G3=< Vsw*Dsw*Bs /2000.> where the <> mean an average over the previous 1 hour,
+                Vsw is the solar wind speed, Dsw is the solar wind density, Bs=|IMF Bz| when IMF
                 Bz < 0 and Bs=0 when IMF Bz > 0.
         - W1 - W6: see definition in (JGR-A, v.110(A3), 2005.) (PDF 1.2MB)
         - AL: the auroral index
 
     Options
         - 1st element: 0 - don't compute L* or phi ;  1 - compute L*; 2- compute phi
-        - 2nd element: 0 - initialize IGRF field once per year (year.5);  
-            n - n is the  frequency (in days) starting on January 1st of each year 
-            (i.e. if options(2nd element)=15 then IGRF will be updated on the following days of the 
+        - 2nd element: 0 - initialize IGRF field once per year (year.5);
+            n - n is the  frequency (in days) starting on January 1st of each year
+            (i.e. if options(2nd element)=15 then IGRF will be updated on the following days of the
             year: 1, 15, 30, 45 ...)
-        - 3rd element: resolution to compute L* (0 to 9) where 0 is the recomended value to ensure a 
+        - 3rd element: resolution to compute L* (0 to 9) where 0 is the recomended value to ensure a
             good ratio precision/computation time
-            (i.e. an error of ~2% at L=6). The higher the value the better will be the precision, the 
-            longer will be the computing time. Generally there is not much improvement for values 
-            larger than 4. Note that this parameter defines the integration step (theta) 
+            (i.e. an error of ~2% at L=6). The higher the value the better will be the precision, the
+            longer will be the computing time. Generally there is not much improvement for values
+            larger than 4. Note that this parameter defines the integration step (theta)
             along the field line such as dtheta=(2pi)/(720*[options(3rd element)+1])
-        - 4th element: resolution to compute L* (0 to 9). The higher the value the better will be 
-            the precision, the longer will be 
-            the computing time. It is recommended to use 0 (usually sufficient) unless L* is not 
-            computed on a LEO orbit. For LEO orbit higher values are recommended. Note that this 
-            parameter defines the integration step (phi) along the drift shell such as 
+        - 4th element: resolution to compute L* (0 to 9). The higher the value the better will be
+            the precision, the longer will be
+            the computing time. It is recommended to use 0 (usually sufficient) unless L* is not
+            computed on a LEO orbit. For LEO orbit higher values are recommended. Note that this
+            parameter defines the integration step (phi) along the drift shell such as
             dphi=(2pi)/(25*[options(4th element)+1])
         - 5th element: allows to select an internal magnetic field model (default is set to IGRF)
             - 0 = IGRF
@@ -1640,7 +1640,7 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
             - 3 = GSFC 12/66 updated to 1970
             - 4 = User-defined model (Default: Centred dipole + uniform [Dungey open model] )
             - 5 = Centred dipole
-            
+
     """
 
     from spacepy import config as config_dict
@@ -1652,10 +1652,12 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
         dum = keylist.pop(keylist.index('Qbits'))
         for key in keylist:
             out[key] = fullov[key][stind:enind]
-        for key in fullov['Qbits']:
-            out['Qbits'][key] = fullov['Qbits'][key][stind:enind]
+        if 'Qbits' in fullov:
+            out['Qbits'] = dm.SpaceData()
+            for key in fullov['Qbits']:
+                out['Qbits'][key] = fullov['Qbits'][key][stind:enind]
         return out
-    
+
     def reassemble(result):
         '''Reassemble the results from the multiprocessing'''
         funcs = {'Bmin': np.hstack,
@@ -1665,7 +1667,7 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
                  'Lstar': np.vstack,
                  'MLT': np.hstack,
                  'Xj': np.vstack}
-        out = dm.SpaceData() 
+        out = dm.SpaceData()
         for el in result:
             for key in result[0]:
                 if key in list(out.keys()): #not first chunk
@@ -1701,18 +1703,19 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
         if omnivals:
             ov = []
         else:
-            ov = None
+            ov = [None] * nblocks
         for block in range(nblocks):
             startind = block*blocklen
             if block != nblocks-1: #not last block
                 endind = block*blocklen + blocklen
             else:
-                endind = block*blocklen + 2*blocklen #going past the end of an array in a slice is fine
+                endind = ncalc  # in last block, go to index of final time
             tt.append(ticks[startind:endind]) #chunk time tags
             cc.append(loci[startind:endind]) #chunk positions
             if omnivals:
                 ov.append(get_ov(omnivals, startind, endind))
-        inputs = [[tch, cch, alpha, extMag, options, ov, landi2lstar] for tch, cch in zip(tt,cc)]
+        inputs = [[tch, cch, alpha, extMag, options, oval, landi2lstar]
+                  for tch, cch, oval in zip(tt, cc, ov)]
         result = pool.map(_multi_get_Lstar, inputs)
         pool.close()
         pool.join()
@@ -1734,11 +1737,11 @@ def _multi_get_Lstar(inputs):
     omnivals = inputs[5]
     landi2lstar = inputs[6]
     DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals, landi2lstar)
-    
+
     return DALL
 
 # -----------------------------------------------
-def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
+def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
     Prepare inputs for direct IRBEM-LIB calls. Not expected to be called by the user.
     """
@@ -1794,7 +1797,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
             if dum.ndim == 0: dum = np.array([dum])
             omnivals['W{0}'.format(n)] = dum
         del omnivals['W']
-        
+
     for iTAI in np.arange(nTAI):
         for ikey, key in enumerate(magkeys):
             magin[ikey, iTAI] = omnivals[key][iTAI]
@@ -1802,7 +1805,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     # multiply Kp*10 to look like omni database
     # this is what irbem lib is looking for
     magin[0,:] = magin[0,:]*10.
-    
+
     d['magin'] = magin
 
     # setup time array
@@ -1830,7 +1833,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     d['sysaxes'] = posi.sysaxes
     xin1 = np.zeros(ntime_max, dtype=float)
     xin2 = np.zeros(ntime_max, dtype=float)
-    xin3 = np.zeros(ntime_max, dtype=float) 
+    xin3 = np.zeros(ntime_max, dtype=float)
     if posi.carsph == 'sph':
         xin1[0:nTAI] = posi.radi[:]
         xin2[0:nTAI] = posi.lati[:]
@@ -1863,7 +1866,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     if nalpha > 0:
         degalpha[0:nalpha] = alpha
     d['degalpha'] = degalpha
-        
+
     return d
 
 
