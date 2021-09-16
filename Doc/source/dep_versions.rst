@@ -54,6 +54,11 @@ principles:
     table below. The commit message must include the reason for the
     dependency requirement.
 
+Regardless of minimum requirements, using the latest stable version of
+a package is generally preferred. The minimum supported version for
+SpacePy may not be recommended for other reasons (e.g. bug fixes or
+improved features elsewhere in the package.)
+
 This table summarizes the versions to be supported according to the
 above policy, as well as the minimum version currently supported by
 SpacePy. Where available, the dependency name links to its version
