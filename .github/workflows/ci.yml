@@ -41,6 +41,18 @@ jobs:
             piplist: "scipy matplotlib networkx h5py ffnet astropy"
             cflags: ""
             dep-strategy: "newest"
+          - python-version: 3.4
+            os: ubuntu-18.04
+            numpy-version: ">=1.10.0,<1.11.0"
+            piplist: "scipy>=0.14.0,<0.15.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0<0.9 astropy>=1.0,<1.1"
+            cflags: ""
+            dep-strategy: "oldest"
+          - python-version: 3.4
+            os: ubuntu-18.04
+            numpy-version: ">=1.15.0,<1.16.0"
+            piplist: "scipy matplotlib networkx h5py ffnet astropy"
+            cflags: ""
+            dep-strategy: "newest"
           - python-version: 3.5
             os: ubuntu-18.04
             numpy-version: ">=1.10.0,<1.11.0"
