@@ -27,6 +27,10 @@ class Coords(object):
     A class holding spatial coordinates in Cartesian/spherical
     in units of Re and degrees
 
+    .. note:: Although other units may be specified and will be carried
+         through, most functions throughout SpacePy assume distances
+         in Re and angles in degrees, regardless of specified units.
+
     Coordinate transforms are based on the IRBEM library; `its manual
     <http://svn.code.sf.net/p/irbem/code/trunk/manual/user_guide.html>`_
     may prove useful. For a good reference on heliospheric and magnetospheric
@@ -54,7 +58,8 @@ class Coords(object):
     carsph : string
         Cartesian or spherical, 'car' or 'sph'
     units : list of strings, optional
-        standard are  ['Re', 'Re', 'Re'] or ['Re', 'deg', 'deg'] depending on the carsph content
+        standard are  ['Re', 'Re', 'Re'] or ['Re', 'deg', 'deg'] depending
+        on the carsph content. See note.
     ticks : Ticktock instance, optional
         used for coordinate transformations (see a.convert)
 
