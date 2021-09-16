@@ -65,7 +65,7 @@ SpacePy. Where available, the dependency name links to its version
 history. The oldest version supported according to this policy is in
 **bold**.
 
-.. list-table:: SpacePy dependency versions (2020/9/17)
+.. list-table:: SpacePy dependency versions (2021/9/16)
    :widths: 10 10 10 10 10 10 10
    :header-rows: 1
 
@@ -77,18 +77,18 @@ history. The oldest version supported according to this policy is in
      - NEP 29 (2/3 minor versions)
      - SpacePy current minimum
    * - `CPython <https://www.python.org/downloads/>`_
-     - 3.8.5 (2020/7/20)
+     - 3.9.7 (2021/8/30)
      - **3.6.5** (2018/2/5)
      - 3.8.2 (2020/2/24) 
-     - 3.8.0 (2019/10/14)
      - 3.7.0 (2018/6/27)
+     - 3.8.0 (2019/10/14)
      - 3.2.0 (2011/2/20) or 2.7.0 (2010/7/3)
    * - `AstroPy <https://docs.astropy.org/en/stable/changelog.html#changelog>`_
-     - 4.0.1 (2020/3/27)
-     - **1.1.1** (2016/1/8)
-     - 2.0.4 (2018/2/6)
-     - 3.0 (2018/2/12)
+     - 4.3.1 (2021/8/11)
+     - **2.0.4** (2018/2/6)
+     - 4.0 (2019/2/16)
      - 3.2 (2019/6/14)
+     - 4.1 (2020/10/21)
      - 1.0 (2015/2/18)
    * - `CDF <https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/latest-release/unix/CHANGES.txt>`_
      - 3.8.0.1 (2020/7/7)
@@ -98,7 +98,7 @@ history. The oldest version supported according to this policy is in
      - **3.6.0** (2015/2/5)
      - 2.7.0 (1999/9/27)
    * - `dateutil <https://github.com/dateutil/dateutil/releases>`_
-     - 2.8.1 (2019/11/3)
+     - 2.8.2 (2021/7/8)
      - 2.6.1 (2017/7/10)
      - 2.7.3 (2018/5/9)
      - 2.8.0 (2019/2/5)
@@ -112,37 +112,37 @@ history. The oldest version supported according to this policy is in
      - **0.6.0** (2007/3/22)
      - tested from 0.7 (2011/8/8)
    * - `h5py <https://github.com/h5py/h5py/releases>`_
-     - 2.10.0 (2019/9/6)
+     - 3.4.0 (2021/8/3)
      - **2.7.1** (2017/9/1)
      - 2.10.0 (2019/9/6)
-     - 2.9.0 (2018/12/19)
-     - 2.8.0 (2018/5/13)
+     - 3.0.0 (2020/10/30)
+     - 3.2.0 (2021/3/3)
      - tested from 2.6 (2017/3/18)
    * - `matplotlib <https://github.com/matplotlib/matplotlib/releases>`_
-     - 3.3.2 (2020/9/15)
+     - 3.4.3 (2021/8/12)
      - **2.1.1** (2017/12/9)
      - 3.1.2 (2019/12/4)
-     - 3.0.0 (2018/9/17)
-     - 3.1.0 (2019/5/17)
+     - 3.2.0 (2020/3/3)
+     - 3.2.0 (2020/3/3)
      - 1.5.0 (2015/10/29)
    * - `networkx <https://github.com/networkx/networkx/releases>`_
-     - 2.5 (2020/8/22)
+     - 2.6.3 (2021/9/9)
      - **1.11** (2016/1/30)
      - 2.4 (2019/10/16)
-     - 2.2 (2018/9/19)
-     - 2.3 (2019/4/11)
+     - 2.4 (2019/10/16)
+     - 2.4 (2019/10/16)
      - tested from 1.0 (2010/1/7)
    * - `numpy <https://github.com/numpy/numpy/releases>`_
-     - 1.19.2 (2020/9/10)
-     - **1.13.1** (2017/7/6)
-     - 1.17.4 (2019/11/10)
-     - 1.16.0 (2019/1/13)
-     - 1.17.0 (2019/7/26)
+     - 1.21.2 (2021/8/15)
+     - **1.13.3** (2017/7/6)
+     - 1.16.5 (2019/8/27)
+     - 1.18.0 (2019/12/22)
+     - 1.19.0 (2020/1/20)
      - 1.10.0 (2015/10/5)
    * - `scipy <https://github.com/scipy/scipy/releases>`_
-     - 1.5.2 (2020/7/23)
+     - 1.7.1 (2021/8/1)
      - **0.19.1** (2017/6/23)
      - 1.3.3 (2019/11/23)
-     - 1.2.0 (2018/12/17)
-     - 1.3.0 (2019/5/17)
+     - 1.4.0 (2019/12/16)
+     - 1.5.0 (2020/6/21)
      - 0.11.0 (2012/9/24)
