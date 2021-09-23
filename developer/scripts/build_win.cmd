@@ -22,7 +22,7 @@ IF "%1"=="32" (
     set CONDA_FORCE_32_BIT=
 )
 set PYVER="%2"
-CALL %USERPROFILE%\Miniconda3\Scripts\activate py%2_%1
+CALL "%USERPROFILE%\Miniconda3\Scripts\activate" py%2_%1
 pushd %~dp0\..\..\
 rmdir /s /q build
 CALL python setup.py bdist_wheel

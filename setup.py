@@ -564,30 +564,31 @@ class build(_build):
             'intelem': 'ifort',
             }[fcompiler]
         compflags = {
-            'pg': '-Mnosecond_underscore -w -fastsse -fPIC',
-            'gnu': '-w -O2 -fPIC -fno-second-underscore',
-            'gnu95': '-w -O2 -fPIC -ffixed-line-length-none -std=legacy',
-            'intel': '-Bstatic -assume 2underscores -O2 -fPIC',
-            'intelem': '-Bdynamic -O2 -fPIC',
+            'pg': ['-Mnosecond_underscore', '-w', '-fastsse', '-fPIC'],
+            'gnu': ['-w', '-O2', '-fPIC', '-fno-second-underscore'] ,
+            'gnu95': ['-w', '-O2', '-fPIC', '-ffixed-line-length-none',
+                      '-std=legacy'],
+            'intel': ['-Bstatic', '-assume', '2underscores', '-O2', '-fPIC'],
+            'intelem': ['-Bdynamic', '-O2', '-fPIC'],
             }[fcompiler]
         if fcompiler == 'gnu':
             if bit == 64:
-                compflags = '-m64 ' + compflags
+                compflags = ['-m64'] + compflags
         if not sys.platform.startswith('win') and fcompiler == 'gnu95' \
            and not os.uname()[4].startswith('arm'):
             # Raspberry Pi doesn't have this switch and assumes 32-bit
-            compflags = '-m{0} '.format(bit) + compflags
+            compflags = ['-m{0}'.format(bit)] + compflags
         if fcompiler.startswith('intel'):
             if bit == 32:
-                compflags = '-Bstatic -assume 2underscores ' + compflags
+                compflags = ['-Bstatic', '-assume', '2underscores'] + compflags
             else:
-                compflags = '-Bdynamic ' + compflags
+                compflags = ['-Bdynamic'] + compflags
         comp_candidates = [comppath]
         if fcompexec is not None and 'compiler_f77' in fcompexec:
             comp_candidates.insert(0, fcompexec['compiler_f77'][0])
         for fc in comp_candidates:
-            retval = subprocess.call(fc + ' -c ' + compflags + ' *.f',
-                                     shell=True)
+            retval = subprocess.call([fc, '-c'] + compflags
+                                     + list(glob.glob('*.f')))
             if retval == 0:
                 break
             else:
@@ -599,33 +600,31 @@ class build(_build):
             return
         retval = -1
         if 'archiver' in fcompexec:
-            archiver = ' '.join(fcompexec['archiver']) + ' '
-            ranlib = None
-            if 'ranlib' in fcompexec:
-                ranlib = ' '.join(fcompexec['ranlib']) + ' '
-            retval = subprocess.check_call(archiver + 'libBL2.a *.o', shell=True)
-            if (retval == 0) and ranlib:
-                retval = subprocess.call(ranlib + 'libBL2.a', shell=True)
+            retval = subprocess.check_call(fcompexec['archiver'] + ['libBL2.a']
+                                           + list(glob.glob('*.o')))
+            if (retval == 0) and 'ranlib' in fcompexec:
+                retval = subprocess.call(fcompexec['ranlib'] + ['libBL2.a'])
             if retval != 0:
                 warnings.warn(
                     'irbemlib linking failed, trying with default linker.')
         if retval != 0: #Try again with defaults
             archiver = {
-                'darwin': 'libtool -static -o ',
-                'linux': 'ar -r ',
-                'linux2': 'ar -r ',
-                'win32': 'ar - r',
+                'darwin': ['libtool', '-static', '-o'],
+                'linux': ['ar', '-r '],
+                'linux2': ['ar', '-r '],
+                'win32': ['ar', '-r '],
                 }[sys.platform]
             ranlib = {
                 'darwin': None,
-                'linux': 'ranlib ',
-                'linux2': 'ranlib ',
-                'win32': 'ranlib ',
+                'linux': 'ranlib',
+                'linux2': 'ranlib',
+                'win32': 'ranlib',
                 }[sys.platform]
             try:
-                subprocess.check_call(archiver + 'libBL2.a *.o', shell=True)
+                subprocess.check_call(archiver + ['libBL2.a']
+                                      + list(glob.glob('*.o')))
                 if ranlib:
-                    subprocess.check_call(ranlib + 'libBL2.a', shell=True)
+                    subprocess.check_call([ranlib, 'libBL2.a'])
             except:
                 warnings.warn(
                     'irbemlib linking failed. '
