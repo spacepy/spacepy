@@ -9,13 +9,13 @@ SETLOCAL EnableDelayedExpansion
 set PYTHONPATH=
 set PATH=
 
-set CONDA_PKGS_DIRS=%USERPROFILE%\Miniconda3\PKGS64
+set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS64
 set CONDA_SUBDIR=win-64
 set CONDA_FORCE_32_BIT=
 
-start /wait "" "%USERPROFILE%\Downloads\Miniconda3-latest-Windows-x86_64.exe" /InstallationType=JustMe /AddToPath=0 /RegisterPython=0 /NoRegistry=1 /S /D=%USERPROFILE%\Miniconda3
+start /wait "" "%USERPROFILE%\Downloads\Miniconda3-latest-Windows-x86_64.exe" /InstallationType=JustMe /AddToPath=0 /RegisterPython=0 /NoRegistry=1 /S /D=%SYSTEMDRIVE%\Miniconda3
 :: base environment needs to be activated
-CALL "%USERPROFILE%\Miniconda3\Scripts\activate"
+CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate"
 CALL conda update -y conda
 CALL conda create -y -n py39_64 python=3.9
 CALL conda create -y -n py38_64 python=3.8
@@ -23,7 +23,7 @@ CALL conda create -y -n py37_64 python=3.7
 CALL conda create -y -n py36_64 python=3.6
 CALL conda create -y -n py27_64 python=2.7
 
-set CONDA_PKGS_DIRS=%USERPROFILE%\Miniconda3\PKGS32
+set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS32
 set CONDA_SUBDIR=win-32
 set CONDA_FORCE_32_BIT=1
 CALL conda create -y -n py39_32 python=3.9
@@ -45,15 +45,15 @@ GOTO :EOF
 
 :installs
 IF "%1"=="32" (
-    set CONDA_PKGS_DIRS=%USERPROFILE%\Miniconda3\PKGS32
+    set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS32
     set CONDA_SUBDIR=win-32
     set CONDA_FORCE_32_BIT=1
 ) ELSE (
-    set CONDA_PKGS_DIRS=%USERPROFILE%\Miniconda3\PKGS64
+    set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS64
     set CONDA_SUBDIR=win-64
     set CONDA_FORCE_32_BIT=
 )
-CALL "%USERPROFILE%\Miniconda3\Scripts\activate" py%2_%1
+CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%2_%1
 
 :: Are we building SpacePy wheels, or testing?
 IF "%ACTION%"=="BUILD" (
