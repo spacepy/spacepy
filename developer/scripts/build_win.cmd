@@ -13,16 +13,16 @@ GOTO :EOF
 
 :build
 IF "%1"=="32" (
-    set CONDA_PKGS_DIRS=%USERPROFILE%\Miniconda3\PKGS32
+    set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS32
     set CONDA_SUBDIR=win-32
     set CONDA_FORCE_32_BIT=1
 ) ELSE (
-    set CONDA_PKGS_DIRS=%USERPROFILE%\Miniconda3\PKGS64
+    set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS64
     set CONDA_SUBDIR=win-64
     set CONDA_FORCE_32_BIT=
 )
 set PYVER="%2"
-CALL "%USERPROFILE%\Miniconda3\Scripts\activate" py%2_%1
+CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%2_%1
 pushd %~dp0\..\..\
 rmdir /s /q build
 CALL python setup.py bdist_wheel
