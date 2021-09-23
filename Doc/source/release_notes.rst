@@ -38,6 +38,10 @@ to :func:`numpy.histogram` and :func:`matplotlib.pyplot.bar` has been fixed.
 The check for out-of-date leapseconds in :mod:`~spacepy.time` has been
 fixed (previously warned even when the file was up to date.)
 
+Fixed installation on new versions of setuptools, which removed
+``bdist_wininst`` support (`#530
+<https://github.com/spacepy/spacepy/issues/530>`_).
+
 Other changes
 *************
 Modern leapsecond rules are applied from 1958-1972 rather than
