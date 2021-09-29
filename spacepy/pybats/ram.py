@@ -502,6 +502,7 @@ class WeqFile(EfieldFile):
         parts=headlines.split()
         self.UT=float(parts[0])
 
+
 ############################################################################
 class RamSat(SpaceData):
     '''
@@ -542,13 +543,14 @@ class RamSat(SpaceData):
         self.f = netcdf.netcdf_file(self.filename, mode='r', mmap=False)
         self.namevars = list(self.f.variables.keys())
         self.attrs = {}
-        #split off the netCDF attributes from the Python attributes
+        # split off the netCDF attributes from the Python attributes
         for k in dir(self.f):
             if k[0] == '_' or k in ('dimensions', 'filename', 'fp', 'mode',
                                     'use_mmap', 'variables', 'version_byte'):
                 continue
             tmp = getattr(self.f, k)
-            if not callable(tmp): self.attrs[k] = tmp
+            if not callable(tmp):
+                self.attrs[k] = tmp
         # self.filedata contains the raw netcdf_variable objects.
         for var in self.f.variables:
             # New values saved as self[key] are stored in self.data, not
@@ -609,30 +611,30 @@ class RamSat(SpaceData):
             return None
         # Create new flux attributes:
         nTime = self.time.size
-        nPa   = self['pa_grid'].size
+        nPa = self['pa_grid'].size
         nEner = self['energy_grid'].size
-        omnikeys = [('omni{0}'.format(get_species_label(kk)), kk) for kk in self
-                    if get_species_label(kk) is not None]
+        omnikeys = [('omni{0}'.format(get_species_label(kk)), kk)
+                    for kk in self if get_species_label(kk) is not None]
         # Create delta mu, where mu = cos(pitch angle)
         dMu = np.zeros(nPa)
         if 'pa_width' in self:
-            dMu=4*np.pi*self['pa_width']
+            dMu = 4*np.pi*self['pa_width']
         else:
             dMu[0] = self['pa_grid'][1]
-            for i in range(1,nPa):
-                # Factor of pi here so we don't need it later.
-                dMu[i] = 4*np.pi*self['pa_grid'][i] -self['pa_grid'][i-1]
+            for i in range(1, nPa):
+                # Factor of 4*pi here so we don't need it later
+                dMu[i] = 4*np.pi*self['pa_grid'][i] - self['pa_grid'][i-1]
 
         for omkey, fluxkey in omnikeys:
             self[omkey] = np.zeros((nTime, nEner))
             # Integrate.
-            temp = np.ma.masked_where(self[fluxkey]<=0, self[fluxkey])
+            temp = np.ma.masked_where(self[fluxkey] <= 0, self[fluxkey])
             self[omkey] = (temp * np.reshape(dMu, (1, -1, 1))).sum(axis=1)
 
             # Mask out bad values.
-            self[omkey] = np.ma.masked_where(self[omkey]<=0, self[omkey])
+            self[omkey] = np.ma.masked_where(self[omkey] <= 0, self[omkey])
 
-    #####RamSat Viz Routines#####
+    # RamSat Viz Routines #
     def _orbit_formatter(self, x, pos):
         '''
         A function that, when passed to the FuncFormatter class of
@@ -658,11 +660,11 @@ class RamSat(SpaceData):
             return(fmtstring)
 
         # Get local time from XY coords.
-        x = self['SM_xyz'][index,0]
-        y = self['SM_xyz'][index,1]
-        z = self['SM_xyz'][index,2]
+        x = self['SM_xyz'][index, 0]
+        y = self['SM_xyz'][index, 1]
+        z = self['SM_xyz'][index, 2]
         R = np.sqrt(y**2 + x**2 + z**2)
-        Mlat  = np.rad2deg(np.arcsin(z/R))
+        Mlat = np.rad2deg(np.arcsin(z/R))
         fltMLT = tb.rad2mlt(np.arctan2(y, x)) % 24
         locHr = np.floor(fltMLT).astype(int)
         locMn = np.round((fltMLT - locHr)*60).astype(int)
@@ -713,24 +715,22 @@ class RamSat(SpaceData):
              A matplotlib-compatable line format specifier, e.g., 'b-'.
              Defaults to 'g.', or green dots.
         """
-        import matplotlib.pyplot as plt
-
-        if not plane.upper() in ('XY','XZ','YZ'):
+        if not plane.upper() in ('XY', 'XZ', 'YZ'):
             raise ValueError("{0} is not a valid plot plane.".format(plane))
 
-        fig, ax = set_target(target, loc=loc, figsize=(5,5))
+        fig, ax = set_target(target, loc=loc, figsize=(5, 5))
 
         # Variables to map plot plane to correct variables:
         plane = plane.upper()
-        ijk = {'X':0, 'Y':1, 'Z':2}
+        ijk = {'X': 0, 'Y': 1, 'Z': 2}
         i = ijk[plane[0]]
         j = ijk[plane[1]]
 
         if not timelim:
-        # Set default time limit if none given.
+            # Set default time limit if none given.
             timelim = [self.time[0], self.time[-1]]
-            iMin=0
-            iMax=-1
+            iMin = 0
+            iMax = -1
         else:
             # Use timelim to get indices that bound our plots.
             timediff = abs(self.time - timelim[-1])
@@ -739,18 +739,20 @@ class RamSat(SpaceData):
             iMin = np.nonzero(timediff == timediff.min())[0][0]
 
         # Add orbit:
-        ax.plot(self['SM_xyz'][iMin:iMax,i], self['SM_xyz'][iMin:iMax,j],ls)
+        ax.plot(self['SM_xyz'][iMin:iMax, i],
+                self['SM_xyz'][iMin:iMax, j],
+                ls)
         # Add body:
-        add_body(ax,add_night=(plane!='YZ'))
+        add_body(ax, add_night=(plane != 'YZ'))
 
         # Axis details:
         ax.axis('equal')
-        if plane.upper() in ('XY','XZ') and invertX:
+        if plane.upper() in ('XY', 'XZ') and invertX:
             xmin, xmax = ax.get_xlim()
             if xmin < xmax:
                 ax.invert_xaxis()
-        ax.set_xlabel('SM %s'%(plane[0]))
-        ax.set_ylabel('SM %s'%(plane[1]))
+        ax.set_xlabel('SM %s' % (plane[0]))
+        ax.set_ylabel('SM %s' % (plane[1]))
         if title:
             ax.set_title(title)
         grid_zeros(ax)
@@ -758,7 +760,7 @@ class RamSat(SpaceData):
 
         return fig, ax
 
-    def add_omniflux_plot(self, nameflux, target=None, zlim=[1E4,1E9],
+    def add_omniflux_plot(self, nameflux, target=None, zlim=[1E4, 1E9],
                           add_cbar=True, do_orbticks=False, title=False,
                           timelim=False, loc=111, no_xlabels=False):
         """
@@ -770,8 +772,6 @@ class RamSat(SpaceData):
 
         Other Parameters
         ================
-
-
         target : Figure or Axes
              If None (default), a new figure is generated from scratch.
              If a matplotlib Figure object, a new axis is created
@@ -797,43 +797,44 @@ class RamSat(SpaceData):
         """
 
         import matplotlib.pyplot as plt
-        from matplotlib.colors  import LogNorm
+        from matplotlib.colors import LogNorm
         from matplotlib.ticker import (FuncFormatter, LogLocator,
                                        LogFormatterMathtext)
         from matplotlib.dates import date2num
 
-        fig, ax = set_target(target, loc=loc, figsize=(10,4))
+        fig, ax = set_target(target, loc=loc, figsize=(10, 4))
 
         # Check for omni fluxes, calculate as necessary.
-        if not nameflux in self:
+        if nameflux not in self:
             self.create_omniflux()
-            if not nameflux in self:
+            if nameflux not in self:
                 raise KeyError('%s is not a valid omnidirectional flux.'
                                % nameflux)
         # Create a time vector that binds each pixel correctly.
-        time=np.zeros(self.time.size+1)
-        time[0]=date2num(self.time[0]-dt.timedelta(seconds=self.dt/2.0))
-        time[1:]=date2num(self.time+dt.timedelta(seconds=self.dt/2.0))
-        #egrid=self['energy_grid']
-        ecenter, eboundary, ewidth=gen_egrid(nE=self['energy_grid'].size)
-        #print("Need better energy grid setup for pcolormesh.")
-        flx = ax.pcolormesh(time, eboundary, np.asarray(self[nameflux]).transpose(),
+        time = np.zeros(self.time.size+1)
+        time[0] = date2num(self.time[0]-dt.timedelta(seconds=self.dt/2.0))
+        time[1:] = date2num(self.time+dt.timedelta(seconds=self.dt/2.0))
+        # egrid = self['energy_grid']
+        ecenter, eboundary, ewidth = gen_egrid(nE=self['energy_grid'].size)
+        # print("Need better energy grid setup for pcolormesh.")
+        flx = ax.pcolormesh(time, eboundary,
+                            np.asarray(self[nameflux]).transpose(),
                             norm=LogNorm(), vmin=zlim[0], vmax=zlim[1])
         ax.set_yscale('log')
-        ax.set_ylim( [eboundary[0], eboundary[-1]] )
+        ax.set_ylim([eboundary[0], eboundary[-1]])
         if not timelim:
-            timelim=[self.time[0], self.time[-1]]
+            timelim = [self.time[0], self.time[-1]]
         applySmartTimeTicks(ax, timelim, dolabel=True)
         if no_xlabels:
             ax.set_xlabel('')
             ax.set_xticklabels([''])
-            do_orbticks=False
+            do_orbticks = False
         ax.set_ylabel('E ($keV$)')
-        if title:  #If title not set, use a default:
+        if title:  # If title not set, use a default:
             ax.set_title(title)
         else:
-            labels={'omniH':'H$^{+}$','omniHe':'He$^{+}$',
-                    'omniO':'O$^{+}$','omnie':'e$^{-}$'}
+            labels = {'omniH': 'H$^{+}$', 'omniHe': 'He$^{+}$',
+                      'omniO': 'O$^{+}$', 'omnie': 'e$^{-}$'}
             ax.set_title('Omnidirectional %s Flux' % (labels[nameflux]))
         if do_orbticks:
             ax.xaxis.set_major_formatter(FuncFormatter(self._orbit_formatter))
@@ -842,7 +843,7 @@ class RamSat(SpaceData):
                                 format=LogFormatterMathtext(), ax=ax)
             cbar.set_label('$cm^{-2}s^{-1}keV^{-1}$')
         else:
-            cbar=False
+            cbar = False
 
         return fig, ax, flx, cbar
 
@@ -883,23 +884,23 @@ class RamSat(SpaceData):
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
 
-        fig=plt.figure(figsize=(11,7))
+        fig = plt.figure(figsize=(11, 7))
         fig.subplots_adjust(left=0.07, right=0.99, bottom=0.19,
                             top=0.94, wspace=0.4, hspace=0.25)
-        gs=gridspec.GridSpec(3,3)
+        gs = gridspec.GridSpec(3, 3)
 
         # Do orbits first.
-        a1=fig.add_subplot(gs[0,0])
-        a2=fig.add_subplot(gs[1,0])
-        a3=fig.add_subplot(gs[2,0])
+        a1 = fig.add_subplot(gs[0, 0])
+        a2 = fig.add_subplot(gs[1, 0])
+        a3 = fig.add_subplot(gs[2, 0])
         self.add_orbit_plot('XY', target=a1)
         self.add_orbit_plot('XZ', target=a2)
         self.add_orbit_plot('YZ', target=a3)
 
         # Add fluxes.
-        a1=fig.add_subplot(gs[0,1:])
-        a2=fig.add_subplot(gs[1,1:])
-        a3=fig.add_subplot(gs[2,1:])
+        a1 = fig.add_subplot(gs[0, 1:])
+        a2 = fig.add_subplot(gs[1, 1:])
+        a3 = fig.add_subplot(gs[2, 1:])
         if eflux_opts is None:
             eflux_opts = {}
         if hflux_opts is None:
@@ -910,7 +911,7 @@ class RamSat(SpaceData):
             flux_opts = {}
         for k in flux_opts:
             for d in (eflux_opts, hflux_opts, oflux_opts):
-                if not k in d:
+                if k not in d:
                     d[k] = flux_opts[k]
         self.add_omniflux_plot('omnie', target=a1, no_xlabels=True,
                                **eflux_opts)
@@ -920,6 +921,7 @@ class RamSat(SpaceData):
                                **oflux_opts)
 
         return fig
+
 
 ############################################################################
 class PlasmaBoundary(PbData):
