@@ -616,14 +616,14 @@ class RamSat(SpaceData):
         omnikeys = [('omni{0}'.format(get_species_label(kk)), kk)
                     for kk in self if get_species_label(kk) is not None]
         # Create delta mu, where mu = cos(pitch angle)
-        dMu = np.zeros(nPa)
         if 'pa_width' in self:
             dMu = 4*np.pi*self['pa_width']
         else:
-            dMu[0] = self['pa_grid'][1]
-            for i in range(1, nPa):
-                # Factor of 4*pi here so we don't need it later
-                dMu[i] = 4*np.pi*self['pa_grid'][i] - self['pa_grid'][i-1]
+            # if "pa_width" absent, calculate...
+            # assume bin width for zeroth bin is same as first,
+            # and that zeroth PA is zero.
+            grdif = np.diff(self['pa_grid'])
+            dMu = 4*np.pi*dmarray(np.r_[grdif[0], grdif])
 
         for omkey, fluxkey in omnikeys:
             self[omkey] = np.zeros((nTime, nEner))
