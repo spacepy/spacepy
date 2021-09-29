@@ -725,6 +725,24 @@ class RampyTests(unittest.TestCase):
         data.create_omniflux(check=False)
         numpy.testing.assert_array_equal(flux_h, data['FluxH+'])
 
+    def test_RamSat_omni_pabin(self):
+        '''Check that internal PA bin calc is consistent'''
+        data = ram.RamSat(self.testfile)
+        data.create_omniflux(check=False)
+        omni1 = np.asarray(data['omniHe'].copy())
+        origwid = np.asarray(data['pa_width'].copy())
+        del data['pa_width']
+        data.create_omniflux(check=False)
+        omni2 = np.asarray(data['omniHe'])
+        # test that calculated omni is close -- bin widths are
+        # not fully recoverable from grid, so this is approximate
+        numpy.testing.assert_allclose(omni1, omni2, rtol=1e-1)
+        # and test that "pa_width" is consistent with simulation
+        # (again, calculation from pa_grid isn't fully recovering
+        # actual widths - so test is approximate)
+        newwid = np.asarray(data['pa_width'])
+        numpy.testing.assert_array_almost_equal(origwid, newwid, decimal=2)
+
     def test_RamSat_omnicalc_regress(self):
         '''Regression test for omni flux calculation'''
         data = ram.RamSat(self.testfile)
