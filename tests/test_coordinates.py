@@ -345,7 +345,7 @@ class coordsTestIrbem(unittest.TestCase):
 
         # Check that the data was loaded correctly
         sc_data = sc.cartesian.xyz.to('m').value.T
-        np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re, rtol=1e-10)
+        np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re * 1000, rtol=1e-10)
 
         # Check that the time was loaded correctly
         np.testing.assert_allclose((sc.obstime - self.cvals.ticks.APT).to('s').value, 0)
@@ -364,7 +364,7 @@ class coordsTestIrbem(unittest.TestCase):
 
         # Check that the data converts back correctly
         sc_data = sc.cartesian.xyz.to('m').value.T
-        np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re, rtol=1e-10)
+        np.testing.assert_allclose(sc_data, self.cvals.data * self.cvals.Re * 1000, rtol=1e-10)
 
         # Check that the time was loaded correctly
         np.testing.assert_allclose((sc.obstime - self.cvals.ticks.APT).to('s').value, 0)
@@ -379,7 +379,7 @@ class coordsTestIrbem(unittest.TestCase):
 
         # Check that the data was loaded correctly
         sc_data = sc.cartesian.xyz.to('m').value.T
-        np.testing.assert_allclose(coords.data * coords.Re, sc_data, rtol=1e-10)
+        np.testing.assert_allclose(coords.data * coords.Re * 1000, sc_data, rtol=1e-10)
 
         # Check that the time was loaded correctly
         np.testing.assert_allclose((sc.obstime - coords.ticks.APT).to('s').value, 0)
@@ -395,7 +395,7 @@ class coordsTestIrbem(unittest.TestCase):
 
         # Check that the data was loaded correctly
         sc_data = sc.cartesian.xyz.to('m').value.T
-        np.testing.assert_allclose(coords.data * coords.Re, sc_data, rtol=1e-10)
+        np.testing.assert_allclose(coords.data * coords.Re * 1000, sc_data, rtol=1e-10)
 
         # Check that the time was loaded correctly
         np.testing.assert_allclose((sc.obstime - coords.ticks.APT).to('s').value, 0)

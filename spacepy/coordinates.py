@@ -90,6 +90,8 @@ SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
 
 SYS_EQUIV = {'GEI': 'ECITOD', 'TOD': 'ECITOD', 'J2000': 'ECI2000', 'MAG': 'CDMAG'}
 
+IRBEM_RE = 6371.2  # kilometers
+
 
 class Coords(object):
     '''
@@ -163,9 +165,6 @@ class Coords(object):
     .. automethod:: from_skycoord
     .. automethod:: to_skycoord
     '''
-
-    Re = 6371200.0  # meters
-
     def __init__(self, data, dtype, carsph, units=None, ticks=None, use_irbem=True):
         if use_irbem:
             from . import irbempy as op
@@ -177,7 +176,7 @@ class Coords(object):
                           DeprecationWarning)
         self.use_irbem = use_irbem
         # setup units
-        self.Re = 6371.2 if use_irbem else ctrans.WGS84['A']  # kilometers
+        self.Re = IRBEM_RE if use_irbem else ctrans.WGS84['A']  # kilometers
 
         # Make sure that inputs are all formed correctly
         self.data = np.atleast_2d(data).astype(np.float_)
@@ -548,7 +547,7 @@ class Coords(object):
             raise e.__class__("This method requires Astropy to be installed.")
 
         coord = self.convert('GEO', 'car')  # GEO is Astropy ITRS
-        data = coord.data * self.Re  # convert to meters
+        data = coord.data * self.Re * 1000 # convert to meters
         obstime = coord.ticks.APT
 
         return astropy.coordinates.SkyCoord(x=data[:, 0], y=data[:, 1], z=data[:, 2],
@@ -556,7 +555,7 @@ class Coords(object):
 
     # -----------------------------------------------
     @classmethod
-    def from_skycoord(cls, skycoord):
+    def from_skycoord(cls, skycoord, use_irbem=True):
         '''
         Create a Coords instance from an Astropy SkyCoord instance
 
@@ -582,10 +581,11 @@ class Coords(object):
             raise e.__class__("This method requires Astropy to be installed.")
 
         skycoord = astropy.coordinates.SkyCoord(skycoord).itrs  # Astropy ITRS is GEO
-        data = (skycoord.cartesian.xyz.to('m').value / cls.Re).T  # convert Cartesian to Re units
+        use_Re = IRBEM_RE if use_irbem else ctrans.WGS84['A']  # kilometers
+        data = (skycoord.cartesian.xyz.to('m').value / (1000 * use_Re)).T  # convert Cartesian to Re units
         ticks = spacepy.time.Ticktock(skycoord.obstime)
 
-        return cls(data, 'GEO', 'car', ticks=ticks)
+        return cls(data, 'GEO', 'car', ticks=ticks, use_irbem=use_irbem)
 
 
 def car2sph(car_in):
