@@ -56,6 +56,7 @@ try:
     import ConfigParser
 except ImportError:
     import configparser as ConfigParser
+import errno
 import functools
 import multiprocessing
 import os
@@ -382,6 +383,12 @@ def _find_spacepy_dir():
     """
     if 'SPACEPY' in os.environ:
         parentdir = os.environ['SPACEPY']
+        if not os.path.exists(parentdir):
+            try:
+                os.makedirs(parentdir)
+            except OSError as e:
+                if e.errno != errno.EEXIST:  # FileExistsError in 3.3+
+                    raise
     elif 'HOME' in os.environ:
         parentdir = os.environ['HOME']
     elif 'HOMEDRIVE' in os.environ and 'HOMEPATH' in os.environ:
