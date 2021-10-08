@@ -100,31 +100,41 @@ class SpacepyFuncTests(unittest.TestCase):
                                          DeprecationWarning, r'spacepy$'):
             self.assertEqual(2, testfunc(1))
 
+
+class SpacepyDirTests(unittest.TestCase):
+    """Tests on the .spacepy directory and related."""
+
+    def setUp(self):
+        self.td = None
+        self.old_env = {}
+        super(SpacepyDirTests, self).setUp()
+        self.old_env = { k: os.environ.get(k, None)
+                         for k in ('SPACEPY', 'HOME') }
+        self.td = tempfile.mkdtemp()
+
+    def tearDown(self):
+        if self.td:
+            shutil.rmtree(self.td)
+        for k, v in self.old_env.items():
+            if v is None:
+                if k in os.environ:
+                    del os.environ[k]
+            else:
+                os.environ[k] = v
+        super(SpacepyDirTests, self).tearDown()
+
     def testDotfln(self):
         """Checks DOT_FLN calculations"""
-        old_env = { k: os.environ.get(k, None) for k in ('SPACEPY', 'HOME') }
-        td = None
-        try:
-            td = tempfile.mkdtemp()
-            os.environ['SPACEPY'] = os.path.join(td, 'spacepy')
-            os.environ['HOME'] = os.path.join(td, 'notspacepy')
-            self.assertEqual(os.path.join(td, 'spacepy', '.spacepy'),
-                             spacepy._find_spacepy_dir())
-            self.assertTrue(os.path.isdir(os.path.join(td, 'spacepy')))
-            self.assertEqual(os.path.join(td, 'spacepy', '.spacepy'),
-                             spacepy._find_spacepy_dir())
-            del os.environ['SPACEPY']
-            self.assertEqual(os.path.join(td, 'notspacepy', '.spacepy'),
-                             spacepy._find_spacepy_dir())
-        finally:
-            if td:
-                shutil.rmtree(td)
-            for k, v in old_env.items():
-                if v is None:
-                    if k in os.environ:
-                        del os.environ[k]
-                else:
-                    os.environ[k] = v
+        os.environ['SPACEPY'] = os.path.join(self.td, 'spacepy')
+        os.environ['HOME'] = os.path.join(self.td, 'notspacepy')
+        self.assertEqual(os.path.join(self.td, 'spacepy', '.spacepy'),
+                         spacepy._find_spacepy_dir())
+        self.assertTrue(os.path.isdir(os.path.join(self.td, 'spacepy')))
+        self.assertEqual(os.path.join(self.td, 'spacepy', '.spacepy'),
+                         spacepy._find_spacepy_dir())
+        del os.environ['SPACEPY']
+        self.assertEqual(os.path.join(self.td, 'notspacepy', '.spacepy'),
+                         spacepy._find_spacepy_dir())
 
 
 if __name__ == '__main__':

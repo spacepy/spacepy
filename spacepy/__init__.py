@@ -62,6 +62,7 @@ import multiprocessing
 import os
 import os.path
 import re
+import shutil
 import sys
 import warnings
 
@@ -410,7 +411,6 @@ def _populate_spacepy_dir(DOT_FLN):
         Full path to the .spacepy directory.
     """
     if not os.path.exists(DOT_FLN):
-        import shutil, sys
         datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'data')
         dataout = os.path.join(DOT_FLN, 'data')
@@ -427,9 +427,7 @@ _read_config(rcfile)
 if __version__ == 'UNRELEASED' and config['support_notice']:
     print('This unreleased version of SpacePy is not supported '
           'by the SpacePy team.')
-
-
-#Set up a filter to always warn on deprecation
+# Set up a filter to always warn on deprecation
 if config['enable_deprecation_warning']:
     warnings.filterwarnings('default', '', DeprecationWarning,
                             '^spacepy', 0, False)
