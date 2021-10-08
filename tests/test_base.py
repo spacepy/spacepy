@@ -7,6 +7,9 @@ Unit test suite for base spacepy
 Copyright 2012 Los Alamos National Security, LLC.
 """
 
+import os
+import shutil
+import tempfile
 import unittest
 import warnings
 
@@ -96,6 +99,29 @@ class SpacepyFuncTests(unittest.TestCase):
         with spacepy_testing.assertWarns(self, 'always', r'pithy message$',
                                          DeprecationWarning, r'spacepy$'):
             self.assertEqual(2, testfunc(1))
+
+    def testDotfln(self):
+        """Checks DOT_FLN calculations"""
+        old_env = { k: os.environ.get(k, None) for k in ('SPACEPY', 'HOME') }
+        td = None
+        try:
+            td = tempfile.mkdtemp()
+            os.environ['SPACEPY'] = os.path.join(td, 'spacepy')
+            os.environ['HOME'] = os.path.join(td, 'notspacepy')
+            self.assertEqual(os.path.join(td, 'spacepy', '.spacepy'),
+                             spacepy._find_spacepy_dir())
+            del os.environ['SPACEPY']
+            self.assertEqual(os.path.join(td, 'notspacepy', '.spacepy'),
+                             spacepy._find_spacepy_dir())
+        finally:
+            if td:
+                shutil.rmtree(td)
+            for k, v in old_env.items():
+                if v is None:
+                    if k in os.environ:
+                        del os.environ[k]
+                else:
+                    os.environ[k] = v
 
 
 if __name__ == '__main__':

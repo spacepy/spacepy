@@ -368,17 +368,30 @@ def _read_config(rcfile):
     for k in caster:
         config[k] = caster[k](config[k])
 
-if 'SPACEPY' in os.environ:
-    DOT_FLN = os.path.join(os.environ['SPACEPY'], '.spacepy')
-else:
-    if 'HOME' in os.environ:
-        DOT_FLN = os.path.join(os.environ['HOME'], '.spacepy')
+
+def _find_spacepy_dir():
+    """Determine the .spacepy directory (DOT_FLN)
+
+    This does not create the directory (although will create the parent
+    directory if ``SPACEPY`` environment variable is set).
+
+    Returns
+    -------
+    DOT_FLN : str
+        Full path to the .spacepy directory.
+    """
+    if 'SPACEPY' in os.environ:
+        parentdir = os.environ['SPACEPY']
+    elif 'HOME' in os.environ:
+        parentdir = os.environ['HOME']
     elif 'HOMEDRIVE' in os.environ and 'HOMEPATH' in os.environ:
-        DOT_FLN = os.path.join(os.environ['HOMEDRIVE'],
-                               os.environ['HOMEPATH'],
-                               '.spacepy')
+        parentdir = os.path.join(
+            os.environ['HOMEDRIVE'], os.environ['HOMEPATH'])
     else:
-        DOT_FLN = os.path.expanduser(os.path.join('~', '.spacepy'))
+        parentdir = os.path.expanduser('~')
+    return os.path.join(parentdir, '.spacepy')
+
+DOT_FLN = _find_spacepy_dir()
 rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
 if not os.path.exists(DOT_FLN):
     import shutil, sys
