@@ -152,6 +152,16 @@ class SpacepyDirTests(unittest.TestCase):
         self.assertTrue(os.path.isdir(os.path.join(
             self.td, 'spacepy', '.spacepy', 'data')))
 
+    def testEmptyConfig(self):
+        """Treat an empty config file as corrupt"""
+        configfile = os.path.join(self.td, 'spacepy.rc')
+        open(configfile, 'w').close()
+        spacepy._read_config(configfile)
+        self.assertIn('enable_old_data_warning', spacepy.config)
+        self.assertTrue(os.stat(configfile).st_size > 100)
+        spacepy._read_config(spacepy.rcfile)  # Restore the previous config
+
+
 
 if __name__ == '__main__':
     unittest.main()

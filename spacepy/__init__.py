@@ -356,9 +356,13 @@ def _read_config(rcfile):
         successful = cp.read([rcfile])
     except ConfigParser.Error:
         successful = []
-    if successful: #New file structure
-        config = dict(cp.items('spacepy'))
-    else: #old file structure, wipe it out
+    if successful:  # New file structure
+        try:
+            config = dict(cp.items('spacepy'))
+        except ConfigParser.NoSectionError:
+            successful = []
+            config = {}
+    if not successful:  # Old or bad file structure, wipe it out
         cp = cp_class()
         cp.add_section('spacepy')
         with open(rcfile, 'w') as cf:
