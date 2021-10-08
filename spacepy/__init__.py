@@ -430,6 +430,10 @@ def _populate_spacepy_dir(DOT_FLN):
             if e.errno != errno.EEXIST:
                 raise
         shutil.copy2(os.path.join(datadir, 'tai-utc.dat'), dataout)
+        # Set permissions based on umask, not perms in SpacePy install
+        u = os.umask(0)
+        os.umask(u)
+        os.chmod(os.path.join(dataout, 'tai-utc.dat'), 0o666 & ~u)
 
 
 DOT_FLN = _find_spacepy_dir()
