@@ -162,6 +162,5 @@ class SpacepyDirTests(unittest.TestCase):
         spacepy._read_config(spacepy.rcfile)  # Restore the previous config
 
 
-
 if __name__ == '__main__':
     unittest.main()
