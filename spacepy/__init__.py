@@ -408,9 +408,7 @@ if not os.path.exists(DOT_FLN):
     os.mkdir(DOT_FLN)
     os.mkdir(dataout)
     shutil.copy2(os.path.join(datadir, 'tai-utc.dat'), dataout)
-    _read_config(rcfile)
-else:
-    _read_config(rcfile)
+_read_config(rcfile)
 
 if __version__ == 'UNRELEASED' and config['support_notice']:
     print('This unreleased version of SpacePy is not supported '
