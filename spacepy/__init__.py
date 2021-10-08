@@ -411,11 +411,20 @@ def _populate_spacepy_dir(DOT_FLN):
         Full path to the .spacepy directory.
     """
     if not os.path.exists(DOT_FLN):
+        try:
+            os.mkdir(DOT_FLN)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+    dataout = os.path.join(DOT_FLN, 'data')
+    if not os.path.exists(dataout):
         datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'data')
-        dataout = os.path.join(DOT_FLN, 'data')
-        os.mkdir(DOT_FLN)
-        os.mkdir(dataout)
+        try:
+            os.mkdir(dataout)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
         shutil.copy2(os.path.join(datadir, 'tai-utc.dat'), dataout)
 
 

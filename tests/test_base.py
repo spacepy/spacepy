@@ -136,6 +136,22 @@ class SpacepyDirTests(unittest.TestCase):
         self.assertEqual(os.path.join(self.td, 'notspacepy', '.spacepy'),
                          spacepy._find_spacepy_dir())
 
+    def testNoDotfln(self):
+        """Check creating .spacepy"""
+        spdir = os.path.join(self.td, 'spacepy')
+        os.mkdir(spdir)
+        spacepy._populate_spacepy_dir(os.path.join(spdir, '.spacepy'))
+        self.assertTrue(os.path.isdir(os.path.join(
+            self.td, 'spacepy', '.spacepy', 'data')))
+
+    def testNoDataDir(self):
+        """Check creating data directory only"""
+        spdir = os.path.join(self.td, 'spacepy')
+        os.mkdir(spdir)
+        spacepy._populate_spacepy_dir(os.path.join(spdir, '.spacepy'))
+        self.assertTrue(os.path.isdir(os.path.join(
+            self.td, 'spacepy', '.spacepy', 'data')))
+
 
 if __name__ == '__main__':
     unittest.main()
