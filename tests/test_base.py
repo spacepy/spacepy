@@ -110,6 +110,9 @@ class SpacepyFuncTests(unittest.TestCase):
             os.environ['HOME'] = os.path.join(td, 'notspacepy')
             self.assertEqual(os.path.join(td, 'spacepy', '.spacepy'),
                              spacepy._find_spacepy_dir())
+            self.assertTrue(os.path.isdir(os.path.join(td, 'spacepy')))
+            self.assertEqual(os.path.join(td, 'spacepy', '.spacepy'),
+                             spacepy._find_spacepy_dir())
             del os.environ['SPACEPY']
             self.assertEqual(os.path.join(td, 'notspacepy', '.spacepy'),
                              spacepy._find_spacepy_dir())
