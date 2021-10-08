@@ -48,6 +48,12 @@ Modern leapsecond rules are applied from 1958-1972 rather than
 rounding fractional leapseconds. See :mod:`~spacepy.time` for full
 discussion of leap seconds and other conversion considerations.
 
+The handling of the ``.spacepy`` directory (see :doc:`configuration`)
+has been improved. If the ``SPACEPY`` environment variable is used,
+the directory will be created. The import process also is less fragile
+in the case of a partially-created ``.spacepy`` directory or an
+invalid (e.g. empty) ``spacepy.rc``.
+
 0.2.2 (2020-12-29)
 ------------------
 

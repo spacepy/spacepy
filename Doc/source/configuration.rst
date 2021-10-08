@@ -41,7 +41,10 @@ for the ``bash`` shell you would:
 
 If you change the default location, make sure you add the environment
 variable ``$SPACEPY`` to your ``.cshrc, .tcshrc,`` or ``.bashrc``
-script.
+script. If this directory does not exist, it will be created.
+
+The actual ``.spacepy`` directory is made inside the directory
+specified by ``$SPACEPY``.
 
 This directory contains the configuration file and also SpacePy-related
 data, which can be updated with :func:`~spacepy.toolbox.update`.
