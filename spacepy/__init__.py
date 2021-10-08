@@ -398,16 +398,30 @@ def _find_spacepy_dir():
         parentdir = os.path.expanduser('~')
     return os.path.join(parentdir, '.spacepy')
 
+
+def _populate_spacepy_dir(DOT_FLN):
+    """Create .spacepy directory and populate.
+
+    Makes sure created and data directory exists.
+
+    Parameters
+    ----------
+    DOT_FLN : str
+        Full path to the .spacepy directory.
+    """
+    if not os.path.exists(DOT_FLN):
+        import shutil, sys
+        datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               'data')
+        dataout = os.path.join(DOT_FLN, 'data')
+        os.mkdir(DOT_FLN)
+        os.mkdir(dataout)
+        shutil.copy2(os.path.join(datadir, 'tai-utc.dat'), dataout)
+
+
 DOT_FLN = _find_spacepy_dir()
+_populate_spacepy_dir(DOT_FLN)
 rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
-if not os.path.exists(DOT_FLN):
-    import shutil, sys
-    datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           'data')
-    dataout = os.path.join(DOT_FLN, 'data')
-    os.mkdir(DOT_FLN)
-    os.mkdir(dataout)
-    shutil.copy2(os.path.join(datadir, 'tai-utc.dat'), dataout)
 _read_config(rcfile)
 
 if __version__ == 'UNRELEASED' and config['support_notice']:
