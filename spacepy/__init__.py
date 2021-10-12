@@ -387,7 +387,7 @@ def _find_spacepy_dir():
         Full path to the .spacepy directory.
     """
     if 'SPACEPY' in os.environ:
-        parentdir = os.environ['SPACEPY']
+        parentdir = os.path.abspath(os.path.expanduser(os.environ['SPACEPY']))
         if not os.path.exists(parentdir):
             try:
                 os.makedirs(parentdir)
