@@ -136,6 +136,21 @@ class SpacepyDirTests(unittest.TestCase):
         self.assertEqual(os.path.join(self.td, 'notspacepy', '.spacepy'),
                          spacepy._find_spacepy_dir())
 
+    def testDotflnRelative(self):
+        """Checks DOT_FLN with a relative path"""
+        wd = os.getcwd()
+        try:
+            os.chdir(self.td)
+            os.environ['SPACEPY'] = ''
+            self.assertEqual(os.path.join(self.td, '.spacepy'),
+                             spacepy._find_spacepy_dir())
+            os.environ['SPACEPY'] = 'spacepy'
+            self.assertEqual(os.path.join(self.td, 'spacepy', '.spacepy'),
+                             spacepy._find_spacepy_dir())
+            self.assertTrue(os.path.isdir(os.path.join(self.td, 'spacepy')))
+        finally:
+            os.chdir(wd)
+
     def testNoDotfln(self):
         """Check creating .spacepy"""
         spdir = os.path.join(self.td, 'spacepy')
