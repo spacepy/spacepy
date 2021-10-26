@@ -11,4 +11,6 @@
 "%SYSTEMDRIVE%\Miniconda3\Scripts\conda" env remove -y --name py38_64
 "%SYSTEMDRIVE%\Miniconda3\Scripts\conda" env remove -y --name py39_32
 "%SYSTEMDRIVE%\Miniconda3\Scripts\conda" env remove -y --name py39_64
+"%SYSTEMDRIVE%\Miniconda3\Scripts\conda" env remove -y --name py310_32
+"%SYSTEMDRIVE%\Miniconda3\Scripts\conda" env remove -y --name py310_64
 start /wait "" "%SYSTEMDRIVE%\Miniconda3\Uninstall-Miniconda3.exe" /S /D=%SYSTEMDRIVE%\Miniconda3

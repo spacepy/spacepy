@@ -17,6 +17,7 @@ start /wait "" "%USERPROFILE%\Downloads\Miniconda3-latest-Windows-x86_64.exe" /I
 :: base environment needs to be activated
 CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate"
 CALL conda update -y conda
+CALL conda create -y -n py310_64 python=3.10
 CALL conda create -y -n py39_64 python=3.9
 CALL conda create -y -n py38_64 python=3.8
 CALL conda create -y -n py37_64 python=3.7
@@ -26,6 +27,7 @@ CALL conda create -y -n py27_64 python=2.7
 set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS32
 set CONDA_SUBDIR=win-32
 set CONDA_FORCE_32_BIT=1
+CALL conda create -y -n py310_32 python=3.9
 CALL conda create -y -n py39_32 python=3.9
 CALL conda create -y -n py38_32 python=3.8
 CALL conda create -y -n py37_32 python=3.7
@@ -39,7 +41,7 @@ IF "%1"=="build" (
     set ACTION=TEST
 )
 
-FOR %%B in (32 64) DO (FOR %%P in (27 36 37 38 39) DO CALL :installs %%B %%P)
+FOR %%B in (32 64) DO (FOR %%P in (27 36 37 38 39 310) DO CALL :installs %%B %%P)
 
 GOTO :EOF
 
@@ -60,7 +62,10 @@ IF "%ACTION%"=="BUILD" (
     :: Get the compiler
     CALL conda install -y m2w64-gcc-fortran libpython
     set NUMPY="numpy"
-    :: minimum version for each Python version
+    :: Build with the minimum version for each Python version
+    IF "%2"=="310" (
+        set NUMPY="numpy>=1.21.0,<1.22.0"
+    )
     IF "%2"=="39" (
     :: 1.18 works on 3.9, but there's no Windows binary wheel.
     :: 1.19.4 has Win10 2004 bug on 64-bit, but
@@ -86,7 +91,7 @@ IF "%ACTION%"=="BUILD" (
     CALL pip install !NUMPY!
 ) ELSE (
     :: Testing. Get the latest of everything
-    IF "%2"=="39" (
+    IF "%2"=="310" (
         CALL pip install numpy
         CALL pip install numpy scipy matplotlib networkx h5py ffnet astropy
     ) ELSE (
