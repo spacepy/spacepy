@@ -61,7 +61,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: 3.6
             os: ubuntu-20.04
-            numpy-version: ">=1.18.0"
+            numpy-version: ">=1.19.0,<1.20.0"
             piplist: "scipy matplotlib networkx h5py ffnet astropy"
             cflags: ""
             dep-strategy: "newest"
@@ -73,7 +73,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: 3.7
             os: ubuntu-20.04
-            numpy-version: ">=1.18.0"
+            numpy-version: ">=1.21.0"
             piplist: "scipy matplotlib networkx h5py ffnet astropy"
             cflags: ""
             dep-strategy: "newest"
@@ -85,7 +85,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: 3.8
             os: ubuntu-20.04
-            numpy-version: ">=1.18.0"
+            numpy-version: ">=1.21.0"
             piplist: "scipy matplotlib networkx h5py ffnet astropy"
             cflags: ""
             dep-strategy: "newest"
@@ -97,7 +97,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: 3.9
             os: ubuntu-20.04
-            numpy-version: ">=1.19.0"
+            numpy-version: ">=1.21.0"
             piplist: "scipy matplotlib networkx h5py ffnet astropy"
             cflags: ""
             dep-strategy: "newest"
