@@ -3,6 +3,7 @@ Changes in Version 0.2.3 (2021-xx-xx)
 - Installs numpy before build on newer versions of pip (thanks Michael Hirsch)
 - Fixes install with new versions of setuptools
 - Better handling of unusual status of .spacepy directory
+- More robust handling of Windows library loading on Python 3.8+
 coordinates
  - Added Coords methods to convert to/from Astropy SkyCoord instances
 irbempy
