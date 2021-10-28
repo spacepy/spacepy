@@ -96,6 +96,10 @@ if sys.platform == 'win32':
                 os.environ['PATH'] = minglibs
     else:
         os.environ['PATH'] = minglibs
+    try:
+        os.add_dll_directory(minglibs)
+    except AttributeError:  # Python 3.8+ only
+        pass
 
 #actual deprecation decorator
 def _deprecator(version, message, docstring, func):
