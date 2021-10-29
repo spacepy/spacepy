@@ -1,4 +1,4 @@
-Changes in Version 0.2.3 (2021-xx-xx)
+Changes in Version 0.2.3 (2021-10-30)
 =====================================
 - Installs numpy before build on newer versions of pip (thanks Michael Hirsch)
 - Fixes install with new versions of setuptools
