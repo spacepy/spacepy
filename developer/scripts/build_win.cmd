@@ -24,7 +24,7 @@ IF "%1"=="32" (
 set PYVER="%2"
 CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%2_%1
 pushd %~dp0\..\..\
-rmdir /s /q build
+rmdir /s /q build 2> nul
 CALL python setup.py bdist_wheel
 CALL python setup.py bdist_wininst
 for %%f in (dist\spacepy-*.*.*.win32.exe dist\spacepy-*.*.*.win-amd64.exe) DO (
