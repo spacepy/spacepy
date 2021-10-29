@@ -13,8 +13,13 @@ contains more detail.
 0.2 Series
 ==========
 
-0.2.3 (2021-xx-xx)
+0.2.3 (2021-10-30)
 ------------------
+This is the last release of the 0.2 series and the last with full
+support for :doc:`Python 2 <py2k_eol>`. Binary installers (including
+wheels) for :doc:`32-bit Windows <install_windows>` will also end
+after the 0.2 series, as will Windows installers. The only binaries
+for Windows will be 64-bit wheels, installable with ``pip``.
 
 New features
 ************
