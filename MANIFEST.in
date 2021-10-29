@@ -2,6 +2,8 @@
 #top-level docs
 include INSTALL
 include CHANGELOG
+# Defining build requirements (numpy)
+include pyproject.toml
 #Sphinx docs and source
 graft Doc/build/html
 include Doc/Makefile
