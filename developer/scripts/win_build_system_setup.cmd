@@ -63,9 +63,9 @@ IF "%ACTION%"=="BUILD" (
     :: minimum version for each Python version
     IF "%2"=="39" (
     :: 1.18 works on 3.9, but there's no Windows binary wheel.
-    :: 1.19.3 is only one that avoids Win10 2004 bug on 64-bit, but no
-    :: we'll use it on 32-bit as well, no point getting picky...
-        set NUMPY="numpy==1.19.3"
+    :: 1.19.4 has Win10 2004 bug on 64-bit, but
+    :: we'll avoid it on 32-bit as well, no point getting picky...
+        set NUMPY="numpy>=1.19.5,<1.20.0"
     )
     IF "%2"=="38" (
         set NUMPY="numpy>=1.17.0,<1.19.0"

@@ -7,24 +7,6 @@ be installed on Windows without a compiler. Binaries are provided for
 Python 2.7 and 3.6 through 3.9 in 64-bit and 32-bit variants for each.
 ``pip install spacepy`` should find and install these binaries.
 
-At this writing (2020-12-24), a Windows bug affects numpy. Version
-1.19.3 is known to work, so it is strongly recommended to install this
-version:
-
-  1. ``pip install numpy==1.19.3``
-  2. ``pip install spacepy``
-
-The bug is documented `here
-<https://developercommunity.visualstudio.com/content/problem/1207405/
-fmod-after-an-update-to-windows-2004-is-causing-a.html>`_. It
-will affect users for whom all of the following are true. In general,
-if you don't know, the answer is probably yes:
-
-  1. Running 64-bit Windows
-  2. Running the latest (2004) update of Windows 10.
-  3. *Not* taking specific action to compile numpy and its dependent
-     libraries in a way that works around this bug.
-
 32-bit Windows binaries will be discontinued with SpacePy 0.3, so
 installing 32-bit SpacePy will require :ref:`compiling <windows_compiling>`.
 
