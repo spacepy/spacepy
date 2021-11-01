@@ -486,6 +486,7 @@ class NoCDF(unittest.TestCase):
                    [[1.2, 1.3, 1.4], [2.2, 2.3, 2.4]],
                    ['hello', 'there', 'everybody'],
                    datetime.datetime(2009, 1, 1),
+                   datetime.datetime(2009, 1, 1, 12, 15, 12, 1000),
                    datetime.datetime(2009, 1, 1, 12, 15, 12, 1),
                    [1.0],
                    0.0,
@@ -511,10 +512,12 @@ class NoCDF(unittest.TestCase):
                  ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
-                 ((), [const.CDF_EPOCH, const.CDF_EPOCH16,
-                       const.CDF_TIME_TT2000], 1),
-                 ((), [const.CDF_EPOCH16, const.CDF_EPOCH,
-                       const.CDF_TIME_TT2000], 1),
+                 ((), [const.CDF_TIME_TT2000, const.CDF_EPOCH,
+                       const.CDF_EPOCH16], 1),
+                 ((), [const.CDF_TIME_TT2000, const.CDF_EPOCH,
+                       const.CDF_EPOCH16], 1),
+                 ((), [const.CDF_TIME_TT2000, const.CDF_EPOCH16,
+                       const.CDF_EPOCH], 1),
                  ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
                          const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ((), [const.CDF_FLOAT, const.CDF_REAL4,
@@ -551,6 +554,7 @@ class NoCDF(unittest.TestCase):
                  ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
+                 ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
                  ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
                  ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
                  ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
@@ -685,7 +689,7 @@ class NoCDF(unittest.TestCase):
             numpy.array([99, 100], dtype=numpy.float32))
         numpy.testing.assert_array_equal(
             data['Epoch'][...],
-            cdf.lib.v_datetime_to_epoch([datetime.datetime(2010, 1, i)
+            cdf.lib.v_datetime_to_tt2000([datetime.datetime(2010, 1, i)
                                                    for i in range(1, 7)]))
 
 
@@ -2705,18 +2709,15 @@ class ChangeCDF(ChangeCDFBase):
     def testNewVarTime(self):
         with spacepy_testing.assertWarns(
                 self, 'always',
-                r'No type specified for time input\; assuming CDF_EPOCH\.'
-                r' This will change to TT2000 in the future, on systems which'
-                r' support it\.$',
+                r'No type specified for time input\; assuming'
+                r' CDF_TIME_TT2000\.$',
                 DeprecationWarning, r'spacepy\.pycdf$'):
             self.cdf['newzVar'] = [datetime.datetime(2010, 1, 1)]
-        # For future
-        #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
-        #           else cdf.const.CDF_EPOCH.value
         # Most of the type-guessing testing is in NoCDF, but this is here
         # because the warning of the default changing is associated with
         # creating a zVar.
-        expected = cdf.const.CDF_EPOCH.value
+        expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
+                   else cdf.const.CDF_EPOCH.value
         self.assertEqual(expected, self.cdf['newzVar'].type())
 
     def testBadDataSize(self):
@@ -2768,7 +2769,9 @@ class ChangeCDF(ChangeCDFBase):
             self.cdf['newvar'] = numpy.array([datetime.datetime(2010, 1, 1)])
         finally:
             del warnings.filters[0]
-        self.assertEqual(const.CDF_EPOCH.value, self.cdf['newvar'].type())
+        self.assertEqual((const.CDF_TIME_TT2000 if cdf.lib.supports_int8
+                          else const.CDF_EPOCH).value,
+                         self.cdf['newvar'].type())
 
     def testNewVarNRV(self):
         """Create a new non-record-varying variable"""
@@ -3791,16 +3794,13 @@ class ChangeAttr(ChangeCDFBase):
         self.assertEqual(expected, self.cdf['ATC'].attrs.type('testtime'))
         with spacepy_testing.assertWarns(
                 self, 'always',
-                r'Assuming CDF_EPOCH for time input\.'
-                r' This will change to TT2000 in the future, on systems which'
-                r' support it\.$',
+                r'Assuming CDF_TIME_TT2000 for time input\.$',
                 DeprecationWarning, r'spacepy\.pycdf$'):
             self.cdf['SectorRateScalersCounts'].attrs['testtime'] \
                 = datetime.datetime(2010, 1, 1)
-        # For future
-        #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
-        #           else cdf.const.CDF_EPOCH.value
-        expected = cdf.const.CDF_EPOCH.value # Non-time variable
+        # Assigned to attribute of non-time variable
+        expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
+                   else cdf.const.CDF_EPOCH.value
         self.assertEqual(
             expected,
             self.cdf['SectorRateScalersCounts'].attrs.type('testtime'))
@@ -3809,15 +3809,11 @@ class ChangeAttr(ChangeCDFBase):
         """Assign a time type to a gAttr"""
         with spacepy_testing.assertWarns(
                 self, 'always',
-                r'Assuming CDF_EPOCH for time input\.'
-                r' This will change to TT2000 in the future, on systems which'
-                r' support it\.$',
+                r'Assuming CDF_TIME_TT2000 for time input\.$',
                 DeprecationWarning, r'spacepy\.pycdf$'):
             self.cdf.attrs['testtime'] = datetime.datetime(2010, 1, 1)
-        # For future
-        #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
-        #           else cdf.const.CDF_EPOCH.value
-        expected = cdf.const.CDF_EPOCH.value
+        expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
+                   else cdf.const.CDF_EPOCH.value
         self.assertEqual(expected, self.cdf.attrs['testtime'].type(0))
 
     def testzAttrsDelete(self):

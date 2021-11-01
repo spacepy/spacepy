@@ -2309,8 +2309,12 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         Warns
         =====
         DeprecationWarning
-            if no type is provided and data is datetime, warning that
-            the default will change in the future.
+            if no type is provided and data is datetime, warn
+            that a default type was chosen (usually TIME_TT2000).
+
+            .. versionchanged:: 0.3.0
+               Before 0.3.0 (when the default changed from EPOCH/EPOCH16
+               to TIME_TT2000), this warned that the default would change.
 
             .. versionadded:: 0.2.3
 
@@ -2323,8 +2327,8 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             #. If input data is a numpy array, match the type of that array
             #. Proper kind (numerical, string, time)
             #. Proper range (stores highest and lowest number provided)
-            #. Sufficient resolution (EPOCH16 required if datetime has
-               microseconds or below.)
+            #. Sufficient resolution (EPOCH16 or TIME_TT2000 required if datetime
+               has microseconds or below.)
 
         If more than one value satisfies the requirements, types are returned
         in preferred order:
@@ -2335,12 +2339,14 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             #. signed type first, then
             #. specifically-named (CDF_BYTE) vs. generically named (CDF_INT1)
 
-        So for example, EPOCH_16 is preferred over EPOCH if ``data`` specifies
+        TIME_TT2000 is always the preferred time type if it is available.
+        Otherwise, EPOCH_16 is preferred over EPOCH if ``data`` specifies
         below the millisecond level (rule 1), but otherwise EPOCH is preferred
         (rule 2).
 
-        In the future, CDF_TIME_TT2000 will be the preferred EPOCH type if
-        not specified.
+        .. versionchanged:: 0.3.0
+           Before 0.3.0, EPOCH or EPOCH_16 were used if not specified. Now
+           TIME_TT2000 is always the preferred type.
 
         For floats, four-byte is preferred unless eight-byte is required:
 
@@ -2403,13 +2409,13 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
                     dims = guess_dims
             if type is None:
                 type = guess_types[0]
-                if type == const.CDF_EPOCH16.value and self.backward:
+                if type in (const.CDF_EPOCH16.value,
+                            const.CDF_TIME_TT2000.value) and self.backward:
                     type = const.CDF_EPOCH
                 if type in lib.timetypes and len(guess_types) > 1:
                     warnings.warn(
-                        'No type specified for time input; assuming {}. This'
-                        ' will change to TT2000 in the future, on systems'
-                        ' which support it.'.format(lib.cdftypenames[type]),
+                        'No type specified for time input; assuming {}.'
+                        .format(lib.cdftypenames[type]),
                         DeprecationWarning)
             if n_elements is None:
                 n_elements = guess_elements
@@ -4423,7 +4429,7 @@ class _Hyperslice(object):
         the CDF types which can represent this data. This breaks down to:
           1. Proper kind (numerical, string, time)
           2. Proper range (stores highest and lowest number)
-          3. Sufficient resolution (EPOCH16 required if datetime has
+          3. Sufficient resolution (EPOCH16 or TT2000 required if datetime has
              microseconds or below.)
 
         If more than one value satisfies the requirements, types are returned
@@ -4435,7 +4441,7 @@ class _Hyperslice(object):
           5. specifically-named (CDF_BYTE) vs. generically named (CDF_INT1)
         So for example, EPOCH_16 is preferred over EPOCH if L{data} specifies
         below the millisecond level (rule 1), but otherwise EPOCH is preferred
-        (rule 2).
+        (rule 2). TIME_TT2000 is always preferred as of 0.3.0.
 
         For floats, four-byte is preferred unless eight-byte is required:
           1. absolute values between 0 and 3e-39
@@ -4467,16 +4473,16 @@ class _Hyperslice(object):
                 elements //= 4
         elif d.size and hasattr(numpy.ma.getdata(d).flat[0], 'microsecond'):
             if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
-                types = [const.CDF_EPOCH16, const.CDF_EPOCH,
-                         const.CDF_TIME_TT2000]
+                types = [const.CDF_TIME_TT2000, const.CDF_EPOCH16,
+                         const.CDF_EPOCH]
             else:
-                types = [const.CDF_EPOCH, const.CDF_EPOCH16,
-                         const.CDF_TIME_TT2000]
+                types = [const.CDF_TIME_TT2000, const.CDF_EPOCH,
+                         const.CDF_EPOCH16]
             if backward:
                 del types[types.index(const.CDF_EPOCH16)]
-                del types[-1]
+                del types[0]
             elif not lib.supports_int8:
-                del types[-1]
+                del types[0]
         elif d is data or isinstance(data, numpy.generic):
             #numpy array came in, use its type (or byte-swapped)
             types = [k for k in lib.numpytypedict
@@ -4868,8 +4874,7 @@ class Attr(MutableSequence):
                 entry_type = types[0]
                 if entry_type in lib.timetypes and len(types) > 1:
                     warnings.warn(
-                        'Assuming {} for time input. This will change to'
-                        ' TT2000 in the future, on systems which support it.'
+                        'Assuming {} for time input.'
                         .format(lib.cdftypenames[entry_type]),
                         DeprecationWarning)
             if not entry_type in lib.numpytypedict:
