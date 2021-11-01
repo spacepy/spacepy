@@ -16,6 +16,9 @@ This document presents user-visible changes in each release of SpacePy.
 
 Deprecations and removals
 *************************
+The old name ``spectrogram`` for :class:`~spacepy.plot.Spectrogram`
+has been removed. (Deprecated in 0.2.2.)
+
 The ``read_ram_dst`` function has been removed from
 :mod:`~spacepy.pybats.ram`, as it operates on files that are no longer
 written by RAM-SCB. (Deprecated in 0.1.6.)
