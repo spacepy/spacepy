@@ -156,7 +156,6 @@ def style(look=None, cmap='plasma'):
     try:
         plt.style.use(usestyle)
     except AttributeError: #plt.style.use not available, old matplotlib?
-        import warnings
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             dum = mpl.rc_params_from_file(usestyle)
@@ -178,7 +177,6 @@ if config['apply_plot_styles']:
 def revert_style():
     '''Revert plot style settings to those in use prior to importing spacepy.plot
     '''
-    import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         for key in oldParams:
@@ -392,16 +390,3 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
         ax.legend(loc='upper left', ncol=ncols)
 
     return ax
-
-
-class spectrogram(Spectrogram):
-    """Deprecated variant of :class:`~spacepy.plot.Spectrogram`
-
-    .. deprecated: 0.2.2
-       Use :class:`~spacepy.plot.Spectrogram` instead.
-    """
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn('Use spacepy.plot.Spectrogram (capitalized).',
-                      DeprecationWarning)
-        super(spectrogram, self).__init__(*args, **kwargs)

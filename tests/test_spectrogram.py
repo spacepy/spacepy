@@ -7,7 +7,6 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 import unittest
-import warnings
 
 import numpy as np
 import datetime
@@ -17,9 +16,7 @@ import spacepy_testing
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
 
-# Switch to this import once the name clash is gone
-#from spacepy.plot.spectrogram import Spectrogram
-from spacepy.plot import Spectrogram
+from spacepy.plot.spectrogram import Spectrogram
 import spacepy.plot
 
 
@@ -52,15 +49,6 @@ class spectrogramTests(unittest.TestCase):
         self.assertRaises(ValueError, Spectrogram, self.data, variables=self.kwargs['variables'])
         self.data['xval'] = []
         self.assertRaises(ValueError, Spectrogram, self.data, variables=self.kwargs['variables'])
-
-    def test_deprecation(self):
-        """Deprecation warning on old name"""
-        with spacepy_testing.assertWarns(
-                self, 'always',
-                r'Use spacepy\.plot\.Spectrogram \(capitalized\)\.',
-                DeprecationWarning, r'spacepy.plot$'):
-            a = spacepy.plot.spectrogram(
-                self.data, variables=self.kwargs['variables'])
 
     def test_defaults(self):
         """run it and check that defaults were set correctly"""
