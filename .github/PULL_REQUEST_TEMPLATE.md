@@ -16,7 +16,7 @@ pull request description.
 - [ ] Pull request gives overview of changes
 - [ ] New code has inline comments where necessary
 - [ ] Any new modules, functions or classes have docstrings consistent with SpacePy style
-- [ ] Added an entry to CHANGELOG if fixing a major bug or providing a major new feature
+- [ ] Added an entry to release notes if fixing a significant bug or providing a new feature
 - [ ] New features and bug fixes should have unit tests
 - [ ] Relevant issues are linked to (e.g. `See issue #` or `Closes #`)
 
