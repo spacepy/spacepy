@@ -32,6 +32,9 @@ The ``from_dict`` method of CDF attribute lists
 has been removed. Use :meth:`~spacepy.pycdf.AttrList.clone`, which
 supports cloning from dictionaries. (Deprecated in 0.1.5.)
 
+The ``feq`` function has been removed from :mod:`~spacepy.toolbox`;
+use :func:`numpy.isclose`. (Deprecated in 0.2.2.)
+
 Other changes
 *************
 :mod:`~spacepy.pycdf` now defaults to creating version 3 (not

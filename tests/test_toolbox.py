@@ -354,33 +354,6 @@ class SimpleFunctionTests(unittest.TestCase):
         numpy.testing.assert_array_almost_equal(array([1.0, 6.0, numpy.nan, 11.0]), tb.normalize(array([1,2,numpy.nan, 3,]),
                                                                                     low=1, high=11))
 
-    def testfeq_equal(self):
-        """feq should return true when they are equal"""
-        val1 = 1.1234
-        val2 = 1.1235
-        with spacepy_testing.assertWarns(self, 'always', r'use numpy\.isclose',
-                                         DeprecationWarning, r'spacepy'):
-            self.assertTrue(tb.feq(val1, val2, 0.0001))
-        with spacepy_testing.assertWarns(self, 'always', r'use numpy\.isclose',
-                                         DeprecationWarning, r'spacepy'):
-            numpy.testing.assert_array_equal(
-                [False, True, False, False],
-                tb.feq([1., 2., 3., 4.],
-                       [1.25, 2.05, 2.2, 500.1],
-                       0.1)
-            )
-
-    def testfeq_notequal(self):
-        """feq should return false when they are not equal"""
-        val1 = 1.1234
-        val2 = 1.1235
-        with spacepy_testing.assertWarns(self, 'always', r'use numpy\.isclose',
-                                         DeprecationWarning, r'spacepy'):
-            self.assertTrue(tb.feq(val1, val2, 0.0001))
-        with spacepy_testing.assertWarns(self, 'always', r'use numpy\.isclose',
-                                         DeprecationWarning, r'spacepy'):
-            self.assertFalse(tb.feq(val1, val2, 0.000005))
-
     def test_medAbsDev(self):
         """medAbsDev should return a known range for given random input"""
         data = numpy.random.normal(0, 1, 100000)
