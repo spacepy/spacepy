@@ -781,7 +781,6 @@ class MakeCDF(unittest.TestCase):
         os.remove(self.testfspec)
         self.assertEqual(3, ver)
         self.assertFalse(backward)
-        cdf.lib.set_backward(True)
 
     def testNewEPOCHAssign(self):
         """Create a new epoch variable by assigning to a CDF element"""
@@ -799,6 +798,7 @@ class MakeCDF(unittest.TestCase):
             [datetime.datetime(2000, 1, 1, 0, 0, 1),
              datetime.datetime(2001, 1, 1, 0, 0, 1)],
             newdata)
+        cdf.lib.set_backward(False)  # Revert to default
 
     def testCreateCDFLeak(self):
         """Make a CDF that doesn't get collected"""
@@ -891,6 +891,7 @@ class MakeCDF(unittest.TestCase):
             self.fail('Should have raised ValueError: ' + msg)
         newcdf.close()
         os.remove(self.testfspec)
+        cdf.lib.set_backward(False)  # Revert to default
 
     def testEPOCH16AttrinBackward(self):
         """Create backward-compatible CDF with EPOCH16 attribute"""
@@ -912,6 +913,7 @@ class MakeCDF(unittest.TestCase):
                 datetime.datetime(9999, 12, 31, 23, 59, 59, 999000),
                 newcdf.attrs['bar'][0])
         finally:
+            cdf.lib.set_backward(True)  # Revert to default
             newcdf.close()
             os.remove(self.testfspec)
 
@@ -1072,13 +1074,12 @@ class MakeCDF(unittest.TestCase):
         with spacepy_testing.assertWarns(
                 self, 'always',
                 r'spacepy\.pycdf\.lib\.set_backward not called\; making'
-                r' backward-compatible CDF\. This default will change in the'
-                r' future\.$',
+                r' v3-compatible CDF\.$',
                 DeprecationWarning, r'spacepy\.pycdf$'):
             cdf.CDF(self.testfspec, create=True).close()
         with cdf.CDF(self.testfspec) as f:
             ver, rel, inc = f.version()
-        self.assertEqual(2, ver) # Still the default
+        self.assertEqual(3, ver) # Still the default
 
     def testSetBackward(self):
         """But no warn if explicit set"""
@@ -1094,6 +1095,8 @@ class MakeCDF(unittest.TestCase):
         with cdf.CDF(self.testfspec) as f:
             ver, rel, inc = f.version()
         self.assertEqual(2, ver)
+        # Revert to the default
+        cdf.lib.set_backward(False)
 
     def testSetBackwardFalse(self):
         """But no warn if explicit set"""
@@ -1107,8 +1110,6 @@ class MakeCDF(unittest.TestCase):
         with cdf.CDF(self.testfspec) as f:
             ver, rel, inc = f.version()
         self.assertEqual(3, ver)
-        # Revert to the default (for now)
-        cdf.lib.set_backward(True)
 
 
 class CDFTestsBase(unittest.TestCase):
@@ -1961,14 +1962,12 @@ class ReadCDF(CDFTests):
         for i in range(len(varcopy)):
             varcopy[i] = varcopy[i].replace(microsecond=0)
         testdir = tempfile.mkdtemp()
-        cdf.lib.set_backward(False) #Enable Epoch16
         try:
             with cdf.CDF(os.path.join(testdir, 'temp.cdf'), create=True) as f:
                 f['newvar'] = varcopy
                 self.assertEqual(self.cdf['ATC'].type(),
                                  f['newvar'].type())
         finally:
-            cdf.lib.set_backward(True)
             shutil.rmtree(testdir)
 
     def testVarCopyMungeCDFType(self):

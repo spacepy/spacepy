@@ -465,8 +465,6 @@ class Library(object):
             self.tt2000_to_epoch16 = self._bad_tt2000
             self.v_tt2000_to_epoch16 = self._bad_tt2000
 
-        #Default to V2 CDF
-        self.set_backward(True)
         # User has not explicitly called set_backward
         self._explicit_backward = False
 
@@ -647,7 +645,11 @@ class Library(object):
         Set backward compatibility mode for new CDFs
 
         Unless backward compatible mode is set, CDF files created by
-        the version 3 library can not be read by V2.
+        the version 3 library can not be read by V2. pycdf does not
+        set backward compatible mode by default.
+
+        .. versionchanged:: 0.3.0
+           Before 0.3.0, pycdf set backward compatible mode on import.
 
         Parameters
         ==========
@@ -1948,8 +1950,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         if not lib._explicit_backward:
             warnings.warn(
                 'spacepy.pycdf.lib.set_backward not called;'
-                ' making backward-compatible CDF.'
-                ' This default will change in the future.',
+                ' making v3-compatible CDF.',
                 DeprecationWarning)
         lib.call(const.CREATE_, const.CDF_, self.pathname, ctypes.c_long(0),
                               (ctypes.c_long * 1)(0), ctypes.byref(self._handle))

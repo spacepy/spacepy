@@ -52,7 +52,8 @@ CDF_EPOCH types.
 >>> time = [datetime.datetime(2000, 10, 1, 1, val) for val in range(60)]
 
 .. warning::
-    If you create a CDF in backwards compatibility mode (default),
+    If you create a CDF in backwards compatibility mode (using
+    :meth:`~spacepy.pycdf.Library.set_backward`),
     then :class:`~datetime.datetime` objects are degraded to CDF_EPOCH
     (millisecond resolution), not CDF_EPOCH16 (microsecond resolution).
 
