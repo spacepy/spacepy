@@ -32,16 +32,18 @@ The ``from_dict`` method of CDF attribute lists
 has been removed. Use :meth:`~spacepy.pycdf.AttrList.clone`, which
 supports cloning from dictionaries. (Deprecated in 0.1.5.)
 
+Other changes
+*************
 :mod:`~spacepy.pycdf` now defaults to creating version 3 (not
 backward-compatible) CDFs if the backward compatible mode is not
 explicitly set (:meth:`~spacepy.pycdf.Library.set_backward`). It still
 issues a warning when creating a CDF if this is not set; this warning
-will be removed in 0.4.0.
+will be removed in 0.4.0. (Warning added in 0.2.2.)
 
 Similarly, :mod:`~spacepy.pycdf` defaults to TIME_TT2000 when creating
 a time variable or attribute without specifying a type (EPOCH or
 EPOCH16 are used if TT2000 isn't available). A warning is issued when
-doing so; this warning will be removed in 0.4.0.
+doing so; this warning will be removed in 0.4.0. (Warning added in 0.2.2.)
 
 0.2 Series
 ==========
