@@ -8,6 +8,19 @@ This document presents user-visible changes in each release of SpacePy.
    :depth: 2
    :local:
 
+
+0.3 Series
+==========
+0.3.0 (2021-xx-xx)
+------------------
+
+Deprecations and removals
+*************************
+The ``from_dict`` method of CDF attribute lists
+(:meth:`~spacepy.pycdf.gAttrList`, :meth:`~spacepy.pycdf.zAttrList`)
+has been removed. Use :meth:`~spacepy.pycdf.AttrList.clone`, which
+supports cloning from dictionaries. (Deprecated in 0.1.5.)
+
 0.2 Series
 ==========
 
