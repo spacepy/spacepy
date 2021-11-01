@@ -56,7 +56,6 @@ Other functions
     bootHisto
     dictree
     eventTimer
-    feq
     getNamedPath
     human_sort
     hypot

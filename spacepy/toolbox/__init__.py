@@ -80,7 +80,7 @@ except NameError:
     xrange = range
 
 __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
-           'human_sort', 'feq', 'dictree', 'update', 'progressbar',
+           'human_sort', 'dictree', 'update', 'progressbar',
            'windowMean', 'medAbsDev', 'binHisto', 'bootHisto',
            'logspace', 'geomspace', 'linspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
@@ -601,49 +601,6 @@ def human_sort( l ):
         l.sort()
     return l
 
-@spacepy.deprecated(
-    '0.2.2', 'use numpy.isclose',
-    'use :func:`numpy.isclose`; the ``rtol`` keyword is equivalent to'
-    ' ``precision``.')
-def feq(x, y, precision=0.0000005):
-    """
-    compare two floating point values if they are equal
-    after: http://www.lahey.com/float.htm
-
-    See Also
-    --------
-    numpy.allclose
-    numpy.isclose
-
-    Parameters
-    ----------
-    x : float
-        a number
-    y : float or array of floats
-        other numbers to compare
-    precision : float (optional)
-        Relative precision for equal (default 0.0000005)
-        Specified as a fraction of the sum of ``x`` and ``y``.
-
-    Returns
-    -------
-    out : bool
-        True (equal) or False (not equal)
-
-    Examples
-    --------
-    >>> import spacepy.toolbox as tb
-    >>> x = 1 + 1e-4
-    >>> y = 1 + 2e-4
-    >>> tb.feq(x, y)
-    False
-    >>> tb.feq(x, y, 1e-3)
-    True
-    """
-    x = np.asanyarray(x)
-    y = np.asanyarray(y)
-    boolean = abs(x-y) <= (abs(x+y)*precision)
-    return boolean
 
 def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwargs):
     """
