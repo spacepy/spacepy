@@ -16,6 +16,10 @@ This document presents user-visible changes in each release of SpacePy.
 
 Deprecations and removals
 *************************
+The ``read_ram_dst`` function has been removed from
+:mod:`~spacepy.pybats.ram`, as it operates on files that are no longer
+written by RAM-SCB. (Deprecated in 0.1.6.)
+
 The ``from_dict`` method of CDF attribute lists
 (:meth:`~spacepy.pycdf.gAttrList`, :meth:`~spacepy.pycdf.zAttrList`)
 has been removed. Use :meth:`~spacepy.pycdf.AttrList.clone`, which
