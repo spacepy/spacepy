@@ -21,6 +21,12 @@ The ``from_dict`` method of CDF attribute lists
 has been removed. Use :meth:`~spacepy.pycdf.AttrList.clone`, which
 supports cloning from dictionaries. (Deprecated in 0.1.5.)
 
+:mod:`~spacepy.pycdf` now defaults to creating version 3 (not
+backward-compatible) CDFs if the backward compatible mode is not
+explicitly set (:meth:`~spacepy.pycdf.Library.set_backward`). It still
+issues a warning when creating a CDF if this is not set; this warning
+will be removed in 0.4.0.
+
 0.2 Series
 ==========
 
