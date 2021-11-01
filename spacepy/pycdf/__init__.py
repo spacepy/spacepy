@@ -5455,13 +5455,11 @@ class AttrList(MutableMapping):
 
         ~AttrList.clone
         ~AttrList.copy
-        ~AttrList.from_dict
         ~AttrList.new
         ~AttrList.rename
     
     .. automethod:: clone
     .. automethod:: copy
-    .. automethod:: from_dict
     .. automethod:: new
     .. automethod:: rename
     """
@@ -5687,28 +5685,6 @@ class AttrList(MutableMapping):
             the new name of the attribute
         """
         AttrList.__getitem__(self, old_name).rename(new_name)
-
-    def from_dict(self, in_dict):
-        """
-        Fill this list of attributes from a dictionary
-
-        .. deprecated:: 0.1.5
-           Use :meth:`~spacepy.pycdf.AttrList.clone` instead; it supports
-           cloning from dictionaries.
-
-        Parameters
-        ==========
-        in_dict : dict
-            Attribute list is populated entirely from this dictionary;
-            all existing attributes are deleted.
-        """
-        warnings.warn("from_dict is deprecated and will be removed. Use clone.",
-                      DeprecationWarning)
-        for k in in_dict:
-            self[k] = in_dict[k]
-        for k in list(self):
-            if not k in in_dict:
-                del self[k]
 
     def _clone_attr(self, master, name, new_name=None):
         """Clones a single attribute from one in this list or another

@@ -3766,27 +3766,6 @@ class ChangeAttr(ChangeCDFBase):
         for k in types:
             self.assertEqual(types[k], attrlist.type(k))
 
-    def testAttrsFromDictDeprecated(self):
-        """Test deprecation of from_dict"""
-        indict = { 'CATDESC': numpy.array([1, 2, 3], dtype=numpy.int32),
-                   'b': 'hello',
-                   }
-        attrlist = self.cdf['ATC'].attrs
-        with spacepy_testing.assertWarns(
-                self, 'always',
-                r'from_dict is deprecated and will be removed\. Use clone\.$',
-                DeprecationWarning, r'spacepy\.pycdf$'):
-            attrlist.from_dict(indict)
-        self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
-        numpy.testing.assert_array_equal(indict['CATDESC'],
-                                         attrlist['CATDESC'])
-        self.assertEqual('hello', attrlist['b'])
-        types = {'CATDESC': const.CDF_INT4.value,
-                 'b': const.CDF_CHAR.value,
-                 }
-        for k in types:
-            self.assertEqual(types[k], attrlist.type(k))
-
     def testgAttrsAssign(self):
         """Assign to the attrs attribute of CDF"""
         self.cdf.attrs = {'foobar': ['global']}
