@@ -9,7 +9,7 @@ Note: it's probably best to get the latest up on test PyPI first to
 make sure it works! Also best to go through this process for a release
 candidate to test PyPI https://www.python.org/dev/peps/pep-0440/#pre-releases.
 
-Edit the CHANGELOG and release notes to include the release date.
+Edit the release notes to include the release date.
 
 The following changes should result in either the final release version,
 or the appropriate release candidate (i.e. add "rc1" if building rc).

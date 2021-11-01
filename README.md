@@ -75,4 +75,5 @@ Certain modules may provide additional citations in the ```__citation__``` attri
 
 For acknowledging SpacePy, please provide the URL to our github repository. [github.com/spacepy/spacepy](https://github.com/spacepy/spacepy)
 
-
+## Changes
+Changes in the released version of SpacePy are provided in the [release notes](https://spacepy.github.io/release_notes.html). For changes since the latest release, see the [repository version](https://github.com/spacepy/spacepy/blob/master/Doc/source/release_notes.rst).

@@ -2,9 +2,7 @@
 Release Notes
 =============
 
-This document presents the most notable user-level changes in each
-release of SpacePy. The CHANGELOG file in the source distribution
-contains more detail.
+This document presents user-visible changes in each release of SpacePy.
 
 .. contents::
    :depth: 2
