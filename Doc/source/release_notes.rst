@@ -23,6 +23,10 @@ The ``read_ram_dst`` function has been removed from
 :mod:`~spacepy.pybats.ram`, as it operates on files that are no longer
 written by RAM-SCB. (Deprecated in 0.1.6.)
 
+The ``fix_format`` function has been removed from
+:mod:`~spacepy.pybats.rim`; :class:`~spacepy.pybats.rim.Iono` can now
+read these files directly. (Deprecated in 0.2.2.)
+
 The ``from_dict`` method of CDF attribute lists
 (:meth:`~spacepy.pycdf.gAttrList`, :meth:`~spacepy.pycdf.zAttrList`)
 has been removed. Use :meth:`~spacepy.pycdf.AttrList.clone`, which
