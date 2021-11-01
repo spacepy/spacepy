@@ -136,36 +136,6 @@ class SimpleFunctionTests(unittest.TestCase):
         dat = [5, 1, 3, -1]
         self.assertEqual([-1, 1, 3, 5], tb.human_sort(dat))
 
-    def test_quaternionDeprecation(self):
-        """Make sure deprecated quaternion functions work"""
-        with spacepy_testing.assertWarns(
-                self, 'always', r'moved to spacepy\.coordinates',
-                DeprecationWarning, r'spacepy'):
-            tst = tb.quaternionNormalize([0.707, 0, 0.707, 0.2])
-        numpy.testing.assert_array_almost_equal(
-            [0.693,  0.,  0.693,  0.196], tst, decimal=2)
-
-        with spacepy_testing.assertWarns(
-                self, 'always', r'moved to spacepy\.coordinates',
-                DeprecationWarning, r'spacepy'):
-            tst = tb.quaternionRotateVector([0.7071, 0, 0, 0.7071],
-                                            [0, 1, 0])
-        numpy.testing.assert_array_almost_equal(
-            [0, 0, 1], tst, decimal=5)
-
-        with spacepy_testing.assertWarns(
-                self, 'always', r'moved to spacepy\.coordinates',
-                DeprecationWarning, r'spacepy'):
-            tst = tb.quaternionMultiply([1., 0, 0, 0],
-                                        [0., 0, 0, 1], scalarPos='first')
-        numpy.testing.assert_array_equal([0, 0, 0, 1], tst)
-
-        with spacepy_testing.assertWarns(
-                self, 'always', r'moved to spacepy\.coordinates',
-                DeprecationWarning, r'spacepy'):
-            tst = tb.quaternionConjugate([.707, 0, .707, 0.2])
-        numpy.testing.assert_array_equal([-.707, 0, -.707, 0.2], tst)
-
     def test_indsFromXrange(self):
         """indsFromXrange should have known result"""
         foo = xrange(23, 39)
