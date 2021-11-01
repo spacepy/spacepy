@@ -1671,44 +1671,6 @@ class LogFile(PbData):
         return fig, ax
 
 ############################################################################
-def read_ram_dst(infile):
-    '''
-    A function to quickly read a RAM-SCB dst file as prepared during
-    the post-processing step of a simulation.
-    It currently returns a list of datetime objects and a numpy array
-    of dst values (species-specific dst values are discarded.)
-    Example: (time, dst) = read_ram_dst('dst_d20050831_t090000.txt')
-
-    This function is a candidate for removal as more efficient ways
-    of saving Dst from RAM_SCB are devised.
-    '''
-
-    raise DeprecationWarning('This function acts on files no longer written '+
-                             'by RAM-SCB')
-
-    f = open(infile, 'r')
-    lines = f.readlines()
-    f.close()
-
-    lines.pop(0) # Remove header.
-    npoints = len(lines)
-    time = []
-    dst = np.zeros(npoints)
-
-    for i, line in enumerate(lines):
-        parts = line.split()
-        time.append(dt.datetime(int(parts[0][1:5]),   #year
-                                int(parts[0][5:7]),   #month
-                                int(parts[0][7:9]),   #day
-                                int(parts[0][11:13]), #hour
-                                int(parts[0][13:15]), #min
-                                int(parts[0][15:17])) #sec
-                    )
-        dst[i] = float(parts[-1]) * 1.3
-
-    return(time, dst)
-
-############################################################################
 class IonoPotScb(object):
     '''
     The 3D equilibrium code produces NetCDF files that contain the
