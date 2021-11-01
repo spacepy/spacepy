@@ -16,6 +16,10 @@ This document presents user-visible changes in each release of SpacePy.
 
 Deprecations and removals
 *************************
+Colourmaps have been removed from :class:`~spacepy.plot`. The same
+colourmaps (``plasma`` and ``viridis``) have been available in
+matplotlib since at least 1.5. (Deprecated in 0.2.3.)
+
 The old name ``spectrogram`` for :class:`~spacepy.plot.Spectrogram`
 has been removed. (Deprecated in 0.2.2.)
 
