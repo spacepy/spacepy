@@ -305,6 +305,30 @@ class SpaceDataTests(unittest.TestCase):
         for k, v in out.items():
             np.testing.assert_equal(v,  ans[k])
 
+    def test_resample4(self):
+        '''resample should give consistent results (2d)'''
+        ans = {}
+        ans['a'] = [[1., 2.],
+                    [5., 6.],
+                    [9., 10.],
+                    [13., 14.],
+                    [17., 18.]]
+        ans['b'] = [4.5, 6.5, 8.5, 10.5, 12.5]
+        ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
+                        datetime.datetime(2010, 1, 1, 3, 0),
+                        datetime.datetime(2010, 1, 1, 5, 0),
+                        datetime.datetime(2010, 1, 1, 7, 0),
+                        datetime.datetime(2010, 1, 1, 9, 0)]
+
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray(range(10 * 2)).reshape(10, 2)
+        a['b'] = dm.dmarray(range(10)) + 4
+        a['c'] = dm.dmarray(range(3)) + 10
+        times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(9)]
+        out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+        for k, v in out.items():
+            np.testing.assert_equal(v, ans[k])
+
     def test_readmeta(self):
         """Check on reading from the meta property"""
         a = dm.SpaceData(attrs={'a': 1, 'b': 2})
