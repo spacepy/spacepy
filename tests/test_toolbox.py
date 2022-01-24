@@ -176,7 +176,7 @@ class SimpleFunctionTests(unittest.TestCase):
         """getNamedPath should return None if directory does not exist"""
         import string, random
         len_fn = 16 #should be exceedingly unlikely to exist...
-        dname = ''.join(random.choice(string.ascii_uppercase + 
+        dname = ''.join(random.choice(string.ascii_uppercase +
                         string.digits) for _ in range(len_fn))
         res = tb.getNamedPath(dname)
         self.assertTrue(res is None)
@@ -253,17 +253,18 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_interpol_baddata(self):
         """interpol should give known results in presence of fill values"""
-        ans = array([ 0.5,  1.5,  2.5,  3.5,  4.5])
+        ans = array([0.5, 1.5, 2.5, 3.5, 4.5])
         x = numpy.arange(10)
         y = numpy.arange(10)
-        numpy.testing.assert_equal(ans, tb.interpol(numpy.arange(5)+0.5, x, y))
+        numpy.testing.assert_almost_equal(ans, tb.interpol(numpy.arange(5)+0.5, x, y))
         # now test with baddata
         ans = numpy.ma.masked_array([0.5, 1.5, 2.5, 3.5, 4.5],
-            mask = [False,  True,  True, False, False], fill_value = 1e+20)
-        numpy.testing.assert_equal(ans, tb.interpol(numpy.arange(5)+0.5, x, y, baddata=2))
-        #test with baddata at end of array
+                                    mask=[False, True, True, False, False],
+                                    fill_value=1e+20)
+        numpy.testing.assert_almost_equal(ans, tb.interpol(numpy.arange(5)+0.5, x, y, baddata=2))
+        # test with baddata at end of array
         ans = array([1.0, 9.0])
-        numpy.testing.assert_equal(ans, tb.interpol([-1,12], x, y, baddata=0))
+        numpy.testing.assert_almost_equal(ans, tb.interpol([-1, 12], x, y, baddata=0))
 
     def test_interpol_keywords(self):
         """Interpol should give known results with hour and lon keyword wrapping"""
@@ -271,20 +272,21 @@ class SimpleFunctionTests(unittest.TestCase):
         y = list(range(24))*2
         x = list(range(len(y)))
         real_ans = numpy.ma.masked_array([1.5, 10.5, 23.5],
-            mask = False, fill_value = 1e+20)
-        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 23.5], x, y, wrap='hour'))
+                                         mask=False,
+                                         fill_value=1e+20)
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 23.5], x, y, wrap='hour'))
         real_ans = numpy.ma.masked_array([1.5, 10.5, 1.5],
-            mask = False, fill_value = 1e+20)
-        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 1.5], x, y)) # as a regression don't need wrap
+                                         mask=False, fill_value=1e+20)
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 1.5], x, y))  # as a regression don't need wrap
         # test wrap lon
         y = list(range(360))*2
         x = list(range(len(y)))
         real_ans = numpy.ma.masked_array([1.5, 10.5, 359.5],
-            mask = False, fill_value = 1e+20)
-        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 359.5], x, y, wrap='lon'))
+                                         mask=False, fill_value=1e+20)
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 359.5], x, y, wrap='lon'))
         real_ans = numpy.ma.masked_array([1.5, 10.5, 10.5],
-            mask = False, fill_value = 1e+20)
-        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 370.5], x, y)) # as a regression don't need wrap
+                                         mask=False, fill_value=1e+20)
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 370.5], x, y)) # as a regression don't need wrap
 
     def test_interpol_arb(self):
         """Interpol should give known results for arbitrary float/int wrapping"""
@@ -302,8 +304,8 @@ class SimpleFunctionTests(unittest.TestCase):
         y = list(range(360))*2
         x = list(range(len(y)))
         real_ans = numpy.ma.masked_array([1.5, 10.5, 359.5],
-            mask = False, fill_value = 1e+20)
-        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 359.5], x, y, wrap=360.0))
+                                         mask=False, fill_value=1e+20)
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 359.5], x, y, wrap=360.0))
 
     def test_normalize(self):
         """normalize should give known results, default range"""
@@ -1105,7 +1107,7 @@ class TBTimeFunctionTests(unittest.TestCase):
                       datetime.datetime(2001, 1, 5, 12, 0)]
             numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
-            
+
     def test_windowMeanInputs(self):
         """windowMean does some input checking (regression)"""
         wsize = datetime.timedelta(days=1)
