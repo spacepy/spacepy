@@ -133,7 +133,7 @@ def calc_wrapper(meth):
     @wraps(meth)
     def wrapped(self, *args, **kwargs):
         # Establish list of calculations:
-        if not hasattr(self, '_calcs'): self._calcs={}
+        if not hasattr(self, '_calcs'): self._calcs = {}
 
         # Check to see if we're in the list, return if true.
         if meth.__name__ in self._calcs: return
@@ -2080,7 +2080,7 @@ class ImfInput(PbData):
             Set the line and label color for ram pressure.
         bcol : matplotlib color specifier
             Set the line and label color for IMF Bz.
-        xlim : 2-element list of datetimes
+        xlim : 2-element list of datetimes, optional
             Set the time range for the plot.  Defaults to full range.
         plim : 2-element list
             Set the y-axis range for dynamic pressure.
@@ -2092,7 +2092,8 @@ class ImfInput(PbData):
         Returns
         =======
         fig : matplotlib figure object
-        ax  : matplotlib axes object
+        ax1 : matplotlib axes object for the Pdyn plot.
+        ax2 : matplotlib axes object for the Bz plot.
         '''
 
         import matplotlib.pyplot as plt
@@ -2129,7 +2130,7 @@ class ImfInput(PbData):
                       linewidths=2.)
             a1.set_ylim([ymin, ymax])
 
-        return fig, a1
+        return fig, a1, a2
 
     def quicklook(self, plotvars=None, timerange=None, legloc='upper left'):
         '''
