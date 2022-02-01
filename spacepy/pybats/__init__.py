@@ -33,7 +33,7 @@ will receive its own submodule.
 Conventions and Prefixes
 ------------------------
 
-Nearly every class in PyBats inherits from :class:`spacepy.datamodel.SpaceData`,
+Nearly every class in PyBats inherits from :class:`spacepy.datamodel.SpaceData`
 so it is important for users to understand how to employ and explore SpaceData
 objects.  There are a few exceptions, so always pay close attention to the
 docstrings and examples.  Legacy code that does not adhere to this pattern is
@@ -119,6 +119,7 @@ from functools import wraps
 from spacepy.datamodel import dmarray, SpaceData
 import numpy as np
 
+
 # Pybats-related decorators:
 def calc_wrapper(meth):
     '''
@@ -145,6 +146,7 @@ def calc_wrapper(meth):
 
     # Return decorated function:
     return wrapped
+
 
 # Some common, global functions.
 def parse_filename_time(filename):
@@ -202,7 +204,8 @@ def parse_filename_time(filename):
 
     # Look for date/time:
     if '_e' in filename:
-        subname = re.search('_e((\d{8}\-\d{6}(\-\d{3})?\_?)+)', filename).groups()[0]
+        subname = re.search('_e((\d{8}\-\d{6}(\-\d{3})?\_?)+)',
+                            filename).groups()[0]
         t_string = re.findall('(\d{8}\-\d{6})', subname)
         time = [parse(x) for x in t_string]
         if len(time) == 1: time = time[0] # Reduce to scalar if necessary.
@@ -231,11 +234,13 @@ def parse_filename_time(filename):
     if '_n' in filename:
         subname = re.search('_n((\d+\_?)+)', filename).groups()[0]
         i_iter = [int(x) for x in re.findall('\d+', subname)]
-        if len(i_iter) == 1: i_iter = i_iter[0]  # Reduce to scalar if necessary.
+        # Reduce to scalar if necessary.
+        if len(i_iter) == 1: i_iter = i_iter[0]
     else:
         i_iter = None
 
     return i_iter, runtime, time
+
 
 def mhdname_to_tex(varname):
     '''
@@ -252,7 +257,7 @@ def mhdname_to_tex(varname):
     elif varname.lower() == 'nt':
         out = '$nT$'
     elif varname[:2] == 'dB':
-        subscript = varname[2]+', '*(len(varname)>3)+varname[3:]
+        subscript = varname[2]+', '*(len(varname) > 3)+varname[3:]
         out = r'$\Delta B _{'+subscript+'}$'
     elif varname.lower()[-1] == 'p':
         out = '$P_{'+varname[:-1]+'}$'
@@ -267,6 +272,7 @@ def mhdname_to_tex(varname):
         out = varname
 
     return out
+
 
 def parse_tecvars(line):
     '''
@@ -284,12 +290,12 @@ def parse_tecvars(line):
         raise ValueError('Input line is not a TecPlot VARIABLES line.')
 
     # Strip out "VARIABLES = "
-    line=re.sub('(^\s*VARIABLES\s*\=\s*)|(")', '', line)
+    line = re.sub('(^\s*VARIABLES\s*\=\s*)|(")', '', line)
 
     # break into individual vars using commas.
     for s in line.split(','):
-        m=re.match('\s*(\w+)\s*(\[(.*)\])*\s*', s)
-        ret.append( (m.group(1).lower(), m.group(3)) )
+        m = re.match('\s*(\w+)\s*(\[(.*)\])*\s*', s)
+        ret.append((m.group(1).lower(), m.group(3)))
 
     return ret
 
@@ -319,7 +325,7 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, zorder=1000,
     rad : float
        Set radius of planet.  Defaults to 1.
     ang : float
-       Set the rotation of the day-night terminator from the y-axis, in degrees.
+       Set the rotation of the day-night terminator from the y-axis, in degrees
        Defaults to zero (terminator is aligned with Y-axis.)
     add_night : boolean
        Add night hemisphere.  Defaults to **True**
@@ -332,14 +338,15 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, zorder=1000,
 
     from matplotlib.patches import Circle, Wedge
 
-    body = Circle((0,0), rad, fc='w', zorder=zorder, **extra_kwargs)
-    arch = Wedge((0,0), rad, 90+ang, -90+ang, fc='k',
+    body = Circle((0, 0), rad, fc='w', zorder=zorder, **extra_kwargs)
+    arch = Wedge((0, 0), rad, 90+ang, -90+ang, fc='k',
                  zorder=zorder+5, **extra_kwargs)
 
     ax.add_artist(body)
     if add_night: ax.add_artist(arch)
 
     return body, arch
+
 
 def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
              ang=0.0, add_night=True, zorder=1000, **extra_kwargs):
@@ -370,7 +377,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
        Turns on/off planet indicator inside inner boundary.
        Defaults to **True**
     ang : float
-       Set the rotation of the day-night terminator from the y-axis, in degrees.
+       Set the rotation of the day-night terminator from the y-axis, in degrees
        Defaults to zero (terminator is aligned with Y-axis.)
     add_night : boolean
        Add night hemisphere.  Defaults to **True**
@@ -383,7 +390,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
     from matplotlib.patches import Ellipse
 
     dbody = 2.0 * rad
-    body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=zorder,
+    body = Ellipse((0, 0), dbody, dbody, facecolor=facecolor, zorder=zorder,
                    **extra_kwargs)
 
     if show_planet:
@@ -438,11 +445,11 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
 
     # Read & convert iters, runtime, etc. from next line:
     parts = infile.readline().split()
-    pbdat.attrs['iter']   = int(parts[0])
-    pbdat.attrs['runtime']= float(parts[1])
-    pbdat.attrs['ndim']   = int(parts[2])
+    pbdat.attrs['iter'] = int(parts[0])
+    pbdat.attrs['runtime'] = float(parts[1])
+    pbdat.attrs['ndim'] = int(parts[2])
     pbdat.attrs['nparam'] = int(parts[3])
-    pbdat.attrs['nvar']   = int(parts[4])
+    pbdat.attrs['nvar'] = int(parts[4])
 
     # Read & convert grid dimensions.
     grid = [int(x) for x in infile.readline().split()]
@@ -455,7 +462,7 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     # Here, we set the grid type attribute to either Regular,
     # Generalized, or Unstructured.  Let's set that here.
     pbdat['grid'].attrs['gtype'] = 'Regular'
-    pbdat['grid'].attrs['npoints']  = abs(pbdat['grid'].prod())
+    pbdat['grid'].attrs['npoints'] = abs(pbdat['grid'].prod())
     if pbdat.attrs['ndim'] < 0:
         if any(pbdat['grid'][1:] > 1):
             pbdat['grid'].attrs['gtype'] = 'Generalized'
@@ -465,16 +472,16 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
 
     # Quick ref vars:
-    time=pbdat.attrs['runtime']
-    gtyp=pbdat['grid'].attrs['gtype']
-    npts=pbdat['grid'].attrs['npoints']
-    ndim=pbdat['grid'].size
-    nvar=pbdat.attrs['nvar']
-    npar=pbdat.attrs['nparam']
+    time = pbdat.attrs['runtime']
+    gtyp = pbdat['grid'].attrs['gtype']
+    npts = pbdat['grid'].attrs['npoints']
+    ndim = pbdat['grid'].size
+    nvar = pbdat.attrs['nvar']
+    npar = pbdat.attrs['nparam']
 
     # Read parameters stored in file.
     para = np.zeros(npar)
-    if npar>0:
+    if npar > 0:
         para[:] = infile.readline().split()
 
     # Read variable names.  Preserve or destroy case
@@ -486,7 +493,7 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
 
     # Now that we know the number of variables, we can properly handle
     # the headline and units based on the kwarg *header*:
-    pbdat.attrs['header']=headline
+    pbdat.attrs['header'] = headline
     if header == 'units':
         # If headline is just units:
         units = headline.split()
@@ -499,13 +506,13 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
     # in file but only X and Y are present.)  Let's try to work
     # around this rather egregious error.
-    nSkip=len(units)+npar-len(names)
-    if nSkip<0: nSkip=0
+    nSkip = len(units)+npar-len(names)
+    if nSkip < 0: nSkip = 0
 
     # Save grid names (e.g. 'x' or 'r') and save associated params.
-    pbdat['grid'].attrs['dims']=tuple(names[0:ndim])
+    pbdat['grid'].attrs['dims'] = tuple(names[0:ndim])
     for name, para in zip(names[(nvar+ndim):], para):
-        pbdat.attrs[name]=para
+        pbdat.attrs[name] = para
 
     # Create containers for the rest of the data:
     for v, u in zip(names, units[nSkip:]):
@@ -513,7 +520,7 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
 
     # Load grid points and data:
     for i, line in enumerate(infile.readlines()):
-        parts=line.split()
+        parts = line.split()
         for j, p in enumerate(parts):
             pbdat[names[j]][i] = p
 
@@ -530,9 +537,9 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     elif gtyp == 'Regular':
         # Put coords into vectors:
         prod = [1]+pbdat['grid'].cumprod().tolist()
-        for i,x in enumerate(pbdat['grid'].attrs['dims']):
+        for i, x in enumerate(pbdat['grid'].attrs['dims']):
             pbdat[x] = dmarray(pbdat[x][0:prod[i+1]-prod[i]+1:prod[i]],
-                attrs=pbdat[x].attrs)
+                               attrs=pbdat[x].attrs)
         for v in names:
             if v not in pbdat.keys(): continue
             if v not in pbdat['grid'].attrs['dims']:
@@ -762,7 +769,8 @@ def _probe_idlfile(filename):
     Returns
     -------
     fmt : str
-        Format of file, either "asc" or "bin" for ASCII or binary, respectively.
+        Format of file, either "asc" or "bin" for ASCII or binary,
+        respectively.
 
     endian : str
         Binary byte ordering, either '<' or '>' for little or big endianess,
@@ -780,8 +788,8 @@ def _probe_idlfile(filename):
     '''
 
     # Set default guesses:
-    endian    = '<'
-    inttype   = np.dtype(np.int32)
+    endian = '<'
+    inttype = np.dtype(np.int32)
     floattype = np.dtype(np.float32)
 
     with open(filename, 'rb') as f:
@@ -913,7 +921,7 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
         npar = pbdat.attrs['nparam']
 
         # Read parameters stored in file.
-        para  = np.zeros(npar)
+        para = np.zeros(npar)
         if npar > 0:
             para[:] = readarray(infile, floattype, inttype)
 
@@ -1044,11 +1052,11 @@ class PbData(SpaceData):
         keys.sort()
         length = 0
         for key in keys:
-            if len(key) > length: length=len(key)
-        form = "%%%is:%%s"%length
+            if len(key) > length: length = len(key)
+        form = "%%%is:%%s" % length
         for key in keys:
             if 'units' in self[key].attrs:
-                print(form%(key, self[key].attrs['units']))
+                print(form % (key, self[key].attrs['units']))
 
     def timeseries_append(self, obj):
         '''
@@ -1130,17 +1138,17 @@ class IdlFile(PbData):
     (e.g., accessing the dictionary `self.attrs`).  All IdlFile objects and
     child classes begin with at least these attributes:
 
-    | Attribute Name       | Description                                        |
-    | -------------------- | -------------------------------------------------- |
-    | file                 | Path/name of file represented by object            |
-    | iter/time/runtime    | Iteration/datetime/runtime of the current frame    |
-    | iters/times/runtimes | Lists of all iterations/times of each data frame   |
-    | *_range              | The range of iterations/epochs covered in the file |
-    | ndim                 | Number of spatial dimensions covered by the data   |
-    | nframe               | The total number of data frames within the file    |
-    | iframe               | The current frame loaded (zero-based)              |
-    | format               | The format of the file, either binary or ascii     |
-    | header               | The raw string header of the file                  |
+    | Attribute Name       | Description                                      |
+    | -------------------- | ------------------------------------------------ |
+    | file                 | Path/name of file represented by object          |
+    | iter/time/runtime    | Iteration/datetime/runtime of the current frame  |
+    | iters/times/runtimes | Lists of all iterations/times of each data frame |
+    | *_range              | The range of iterations/epochs covered in file   |
+    | ndim                 | Number of spatial dimensions covered by the data |
+    | nframe               | The total number of data frames within the file  |
+    | iframe               | The current frame loaded (zero-based)            |
+    | format               | The format of the file, either binary or ascii   |
+    | header               | The raw string header of the file                |
 
     Notes
     -----
@@ -1174,16 +1182,16 @@ class IdlFile(PbData):
         # Gather information about the file: format, endianess (if necessary),
         # number of picts/frames, etc.:
         fmt, endchar, inttype, floattype = _probe_idlfile(filename)
-        self.attrs['file']   = filename   # Save file name.
+        self.attrs['file'] = filename   # Save file name.
         self.attrs['format'] = fmt        # Save file format.
 
         # Gather information about time range of file from name:
         t_info = list(parse_filename_time(filename))
         for i in range(len(t_info)):
-            if type(t_info[i]) != list: t_info[i]=[t_info[i]]
-        self.attrs['iter_range']    = t_info[0]
+            if type(t_info[i]) != list: t_info[i] = [t_info[i]]
+        self.attrs['iter_range'] = t_info[0]
         self.attrs['runtime_range'] = t_info[1]
-        self.attrs['time_range']    = t_info[2]
+        self.attrs['time_range'] = t_info[2]
 
         # For binary files, store information about file:
         self._endchar, self._int, self._float = endchar, inttype, floattype
@@ -1192,7 +1200,7 @@ class IdlFile(PbData):
         self._header, self._keep_case = header, keep_case
 
         # Collect information about the number of epoch frames in the file:
-        if fmt=='bin':
+        if fmt == 'bin':
             self._scan_bin_frames()
         else:
             self._scan_asc_frames()
@@ -1202,7 +1210,7 @@ class IdlFile(PbData):
 
         # Update information about the currently loaded frame.
         self.attrs['iframe'] = iframe
-        self.attrs['time']   = self.attrs['times'][iframe]
+        self.attrs['time'] = self.attrs['times'][iframe]
 
         # Create string representation of run time:
         time = self.attrs['runtime']  # Convenience variable.
@@ -1245,7 +1253,8 @@ class IdlFile(PbData):
         # Use times info to build datetimes and update file-level attributes.
         if self.attrs['time_range'] != [None]:
             self.attrs['times'] = np.array(
-                [self.attrs['time_range'][0]+tdelt(seconds=int(x-runtimes[0])) for x in runtimes])
+                [self.attrs['time_range'][0]+tdelt(seconds=int(x-runtimes[0]))
+                 for x in runtimes])
         else:
             self.attrs['times'] = np.array(nframe*[None])
 
@@ -1271,10 +1280,10 @@ class IdlFile(PbData):
 
         # Only use top-level frame as of now.
         self._offsets = np.array([0])
-        self.attrs['nframe']   = 1
-        self.attrs['iters']    = [0,0]
-        self.attrs['runtimes'] = [0,0]
-        self.attrs['times']    = [0,0]
+        self.attrs['nframe'] = 1
+        self.attrs['iters'] = [0, 0]
+        self.attrs['runtimes'] = [0, 0]
+        self.attrs['times'] = [0, 0]
 
     def switch_frame(self, iframe):
         '''
@@ -1292,9 +1301,9 @@ class IdlFile(PbData):
 
         # Update information about the current frame:
         self.attrs['iframe'] = self.attrs['nframe'] + iframe if iframe < 0 else iframe
-        self.attrs['iter']   = self.attrs['iters'][iframe]
-        self.attrs['runtime']= self.attrs['runtimes'][iframe]
-        self.attrs['time']   = self.attrs['times'][iframe]
+        self.attrs['iter'] = self.attrs['iters'][iframe]
+        self.attrs['runtime'] = self.attrs['runtimes'][iframe]
+        self.attrs['time'] = self.attrs['times'][iframe]
 
         # Update string time:
         time = self.attrs['runtime']  # Convenience variable.
@@ -1392,8 +1401,8 @@ class LogFile(PbData):
 
     import datetime as dt
 
-    def __init__(self, filename, starttime=(2000,1,1,0,0,0), keep_case=True,
-                 *args, **kwargs):
+    def __init__(self, filename, starttime=(2000, 1, 1, 0, 0, 0),
+                 keep_case=True, *args, **kwargs):
         super(LogFile, self).__init__(*args, **kwargs)
         self.attrs['file'] = filename
         self.read(starttime, keep_case)
@@ -1411,8 +1420,8 @@ class LogFile(PbData):
             if len(starttime) != 6:
                 raise ValueError('starttime must be a length 6 Tuple ' +
                                  'or a datetime.datetime object')
-            starttime=dt.datetime(starttime[0], starttime[1], starttime[2],
-                                  starttime[3], starttime[4], starttime[5])
+            starttime = dt.datetime(starttime[0], starttime[1], starttime[2],
+                                    starttime[3], starttime[4], starttime[5])
 
         # Slurp in entire file.
         infile = open(self.attrs['file'], 'r')
@@ -1424,7 +1433,7 @@ class LogFile(PbData):
         raw_names = raw.pop(0)
         if not keep_case: raw_names = raw_names.lower()
         names = raw_names.split()
-        loc={}
+        loc = {}
         # Keep track of in which column each data vector lies.
         for i, name in enumerate(names):
             loc[name] = i
@@ -1434,18 +1443,18 @@ class LogFile(PbData):
         npts = len(raw)
         # If opening an incomplete file, we must skip the last line.
         if len(raw[-1].split()) < len(names):
-            npts=npts-1
-        self.attrs['npts']=npts
+            npts = npts-1
+        self.attrs['npts'] = npts
 
         # Pop time/date/iteration names off of Namevar.
-        for key in ['year','mo','dy','hr','mn','sc','msc',
-                    't','it','yy','mm','dd','hh','ss','ms']:
+        for key in ['year', 'mo', 'dy', 'hr', 'mn', 'sc', 'msc',
+                    't', 'it', 'yy', 'mm', 'dd', 'hh', 'ss', 'ms']:
             if key in loc: names.pop(names.index(key))
 
         # Create containers for data:
-        time=dmarray(np.zeros(npts, dtype=object))
-        runtime=dmarray(np.zeros(npts), attrs={'units':'s'})
-        self['iter']=dmarray(np.zeros(npts))
+        time = dmarray(np.zeros(npts, dtype=object))
+        runtime = dmarray(np.zeros(npts), attrs={'units':'s'})
+        self['iter'] = dmarray(np.zeros(npts))
         for name in names:
             self[name] = dmarray(np.zeros(npts))
 
@@ -1456,28 +1465,28 @@ class LogFile(PbData):
                 # If "year" or "yy" is listed, we have the full datetime.
                 if 'year' in loc:
                     # BATS date format
-                    time[i]=(dt.datetime(
-                            int(vals[loc['year']]), # Year
-                            int(vals[loc['mo']  ]), # Month
-                            int(vals[loc['dy']]), # Day
-                            int(vals[loc['hr']]), # Hour
-                            int(vals[loc['mn']]), # Minute
-                            int(vals[loc['sc']]), # Second
-                            int(vals[loc['msc']]) * 1000 #microsec
-                            ))
+                    time[i] = (dt.datetime(
+                                int(vals[loc['year']]),  # Year
+                                int(vals[loc['mo']]),  # Month
+                                int(vals[loc['dy']]),  # Day
+                                int(vals[loc['hr']]),  # Hour
+                                int(vals[loc['mn']]),  # Minute
+                                int(vals[loc['sc']]),  # Second
+                                int(vals[loc['msc']]) * 1000  #microsec
+                                ))
                 elif 'yy' in loc:
                     # RIM date format
-                    time[i]=(dt.datetime(
-                            int(vals[1]), # Year
-                            int(vals[2]), # Month
-                            int(vals[3]), # Day
-                            int(vals[4]), # Hour
-                            int(vals[5]), # Minute
-                            int(vals[6]), # Second
-                            int(vals[7]) * 1000 #microsec
-                            ))
+                    time[i] = (dt.datetime(
+                                int(vals[1]),  # Year
+                                int(vals[2]),  # Month
+                                int(vals[3]),  # Day
+                                int(vals[4]),  # Hour
+                                int(vals[5]),  # Minute
+                                int(vals[6]),  # Second
+                                int(vals[7]) * 1000  # microsec
+                                ))
                 diffT = time[i] - time[0]
-                runtime[i]=diffT.days*24.0*3600.0 + \
+                runtime[i] = diffT.days*24.0*3600.0 + \
                     diffT.seconds + \
                     diffT.microseconds*1E-6
             elif 't' in loc:
@@ -1487,35 +1496,30 @@ class LogFile(PbData):
                 nowsecs = float(vals[loc['t']])
                 nowdays = int(nowsecs / (24.0 * 3600.0))
                 nowsecs = nowsecs - (24.0 * 3600.0 * nowdays)
-                delta = dt.timedelta(\
-                    days    = nowdays,
-                    seconds = nowsecs
-                    )
+                delta = dt.timedelta(days=nowdays, seconds=nowsecs)
                 newtime = starttime + delta
-                time[i]=newtime
-                runtime[i]=nowdays*24.0*3600.0 + nowsecs
+                time[i] = newtime
+                runtime[i] = nowdays*24.0*3600.0 + nowsecs
             elif 'it' in loc:
                 # Check to ensure number of seconds doesn't
                 # exceed 24 hours.
                 nowsecs = float(vals[loc['it']])
                 nowdays = int(nowsecs / (24.0 * 3600.0))
                 nowsecs = nowsecs - (24.0 * 3600.0 * nowdays)
-                delta = dt.timedelta(\
-                    days    = nowdays,
-                    seconds = nowsecs
-                    )
+                delta = dt.timedelta(days=nowdays, seconds=nowsecs)
                 newtime = starttime + delta
-                time[i]=newtime
-                runtime[i]=nowdays*24.*3600.+nowsecs
+                time[i] = newtime
+                runtime[i] = nowdays*24.*3600.+nowsecs
             else:
-                time[i]=starttime + dt.timedelta(float(i))
+                time[i] = starttime + dt.timedelta(float(i))
             # Set iteration:
             if 'it' in loc:
                 if '*' in vals[loc['it']]:
                     self['iter'][i] = -1
                 else:
                     self['iter'][i] = int(vals[loc['it']])
-            else: self['iter'][i] = i
+            else:
+                self['iter'][i] = i
             # Collect data
             for j, name in enumerate(names):
                 self[name][i] = float(vals[loc[name]])
@@ -1585,7 +1589,7 @@ class NgdcIndex(PbData):
         # Start by reading the header.
         infile = open(self.attrs['file'], 'r')
         temp = infile.readline()
-        while temp != '#'+50*'-'+'\n': #Detect start of file.
+        while temp != '#'+50*'-'+'\n':  # Detect start of file.
             # Skip blank comments, save substantive ones.
             if temp == '#\n':
                 temp = infile.readline()
@@ -1633,7 +1637,6 @@ class NgdcIndex(PbData):
         while IsData:
             IsData = read_one_var()
 
-
     def write(self, outfile=False):
         '''
         Write the :class:`NgdcIndex` object to file.  Kwarg *outfile* can be
@@ -1642,13 +1645,11 @@ class NgdcIndex(PbData):
         "ngdc_index.dat".
         '''
 
-        import datetime as dt
-
         if not outfile:
-            if self.attrs['file']!=None:
-                outfile=self.attrs['file']
+            if self.attrs['file'] is not None:
+                outfile = self.attrs['file']
             else:
-                outfile='ngdc_index.dat'
+                outfile = 'ngdc_index.dat'
 
         out = open(outfile, 'w')
 
@@ -1664,10 +1665,12 @@ class NgdcIndex(PbData):
             for a in self[k].attrs:
                 out.write('#%s: %s\n' % (a, self[k].attrs[a]))
             out.write('#>\n#yyyy-MM-dd HH:mm value qualifier description\n')
-            for i in range(len(self[k][0,:])):
-                t = self[k][0,i]; d = self[k][1,i]
+            for i in range(len(self[k][0, :])):
+                t = self[k][0, i]
+                d = self[k][1, i]
                 out.write('%04i-%02i-%02i %02i:%02i%7.1f\t""\t""\n' %
-                          (t.year,t.month,t.day,t.hour,t.minute, d))
+                          (t.year, t.month, t.day, t.hour, t.minute, d))
+
 
 class ImfInput(PbData):
     '''
@@ -1741,16 +1744,16 @@ class ImfInput(PbData):
 
         # Initialize data object and required attributes.
         super(ImfInput, self).__init__(*args, **kwargs)
-        self.attrs['var']= ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 't']
-        self.attrs['std_var']=True
-        self.attrs['coor']='GSM'
-        self.attrs['satxyz']=[None, None, None]
-        self.attrs['zerobx']=False
-        self.attrs['reread']=False
-        self.attrs['delay']=None
-        self.attrs['plane']=[None, None]
-        self.attrs['header']=[]
-        self['time']=dmarray(zeros(npoints, dtype=object))
+        self.attrs['var'] = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 't']
+        self.attrs['std_var'] = True
+        self.attrs['coor'] = 'GSM'
+        self.attrs['satxyz'] = [None, None, None]
+        self.attrs['zerobx'] = False
+        self.attrs['reread'] = False
+        self.attrs['delay'] = None
+        self.attrs['plane'] = [None, None]
+        self.attrs['header'] = []
+        self['time'] = dmarray(zeros(npoints, dtype=object))
 
         # Store standard variable set:
         self.__stdvar__ = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 't']
@@ -1765,15 +1768,15 @@ class ImfInput(PbData):
         if filename and load:  # Load contents from existing file.
             self.read(filename)
         else:
-            units   = ['nT', 'nT', 'nT', 'km/s', 'km/s', 'km/s', 'cm^-3', 'K']
+            units = ['nT', 'nT', 'nT', 'km/s', 'km/s', 'km/s', 'cm^-3', 'K']
             for i, key in enumerate(self.attrs['var']):
-                self[key]=dmarray(zeros(npoints), attrs={'units':units[i]})
+                self[key] = dmarray(zeros(npoints), attrs={'units': units[i]})
 
         # Determine the density variable, which can either be "n" or "rho".
         if "n" in self.attrs['var']:
-            self._denvar="n"
+            self._denvar = "n"
         elif "rho" in self.attrs['var']:
-            self._denvar="rho"
+            self._denvar = "rho"
         else:
             raise ValueError('Could not find density variable in file.')
 
@@ -1807,20 +1810,19 @@ class ImfInput(PbData):
 
         # Densities & temperature:
         for v in self.keys():
-            if v[0]=='b' or v[0]=='u': continue
+            if v[0] == 'b' or v[0] == 'u': continue
             if v == 't':
                 self[v].attrs['units'] = '$K$'
                 self[v].attrs['label'] = "T"
             elif 'rho' in v.lower():
                 self[v].attrs['units'] = r'$cm^{-3}$'
                 self[v].attrs['label'] = r'$\rho_{'+v[:-3]+r'}$'
-            elif v=='n':
+            elif v == 'n':
                 self[v].attrs['units'] = r'$cm^{-3}$'
                 self[v].attrs['label'] = r'$\rho$'
             else:
                 self[v].attrs['units'] = ''
                 self[v].attrs['label'] = v
-
 
     def calc_pram(self):
         '''
@@ -1830,8 +1832,8 @@ class ImfInput(PbData):
         '''
         n = self._denvar
 
-        self['pram']=dmarray(self['ux']**2.*self[n]*1.67621E-6,
-                             {'units':'$nPa$', 'label':r'P$_{dyn}$'})
+        self['pram'] = dmarray(self['ux']**2.*self[n]*1.67621E-6,
+                                {'units':'$nPa$', 'label':r'P$_{dyn}$'})
 
     def calc_u(self):
         '''
@@ -1839,8 +1841,8 @@ class ImfInput(PbData):
         internally as self['u'].
         '''
 
-        self['u'] = dmarray( np.sqrt(self['ux']**2+self['uy']**2+self['uz']**2),
-                             {'units':'$km/s$', 'label':'|U|'} )
+        self['u'] = dmarray(np.sqrt(self['ux']**2+self['uy']**2+self['uz']**2),
+                            {'units':'$km/s$', 'label':'|U|'})
 
         return True
 
@@ -1849,8 +1851,8 @@ class ImfInput(PbData):
         Calculate the magnitude of the IMF in nT.  Store as self['b'].
         '''
 
-        self['b'] = dmarray( np.sqrt(self['bx']**2+self['by']**2+self['bz']**2),
-                             {'units':'nT', 'label':'|B|'} )
+        self['b'] = dmarray(np.sqrt(self['bx']**2+self['by']**2+self['bz']**2),
+                            {'units':'nT', 'label':'|B|'})
 
         return True
 
@@ -1860,13 +1862,13 @@ class ImfInput(PbData):
         internally as self['vAlf']
         '''
 
-        if 'b'    not in self: self.calc_b()
+        if 'b' not in self: self.calc_b()
 
         # Const: nT->T, m->km, mu_0, proton mass, cm-3->m-3.
         const = 1E-12/np.sqrt(4.*np.pi*10**-7*1.67E-27*100**3)
 
-        self['vAlf']=dmarray(const*self['b']/np.sqrt(self['rho']),
-                            {'units':'$km/s$', 'label':r'V$_{Alf}'})
+        self['vAlf'] = dmarray(const*self['b']/np.sqrt(self['rho']),
+                                {'units':'$km/s$', 'label':r'V$_{Alf}'})
 
         return True
 
@@ -1877,9 +1879,9 @@ class ImfInput(PbData):
         '''
 
         if 'vAlf' not in self: self.calc_alf()
-        if 'u'    not in self: self.calc_u()
-        self['machA']=dmarray(self['u']/self['vAlf'],
-                              {'units':None, 'label':'M$_{Alfven}$'})
+        if 'u' not in self: self.calc_u()
+        self['machA'] = dmarray(self['u']/self['vAlf'],
+                                {'units':None, 'label':'M$_{Alfven}$'})
 
         return True
 
@@ -1892,8 +1894,8 @@ class ImfInput(PbData):
         Returns True on success, returns warnings and False on fail.
         '''
         # Convenience:
-        var=self.attrs['var']
-        key=list(self.keys())
+        var = self.attrs['var']
+        key = list(self.keys())
         key.remove('time')
 
         # Number of variables check:
@@ -1941,28 +1943,28 @@ class ImfInput(PbData):
                 if param[:5] == '#COOR':
                     self.attrs['coor'] = f.readline()[0:3]
                 elif param[:7] == '#REREAD':
-                    self.attrs['reread']=True
+                    self.attrs['reread'] = True
                 elif param[:7] == '#ZEROBX':
                     setting = f.readline()[0]
                     self.attrs['zerobx'] = (setting == 'T')
                 elif param[:4] == '#VAR':
                     self.attrs['var'] = f.readline().split()
-                    self.attrs['std_var']=False
+                    self.attrs['std_var'] = False
                 elif param[:6] == '#PLANE':
                     xp = float(f.readline().split()[0])
                     yp = float(f.readline().split()[0])
-                    self.attrs['plane']=[xp, yp]
+                    self.attrs['plane'] = [xp, yp]
                 elif param[:9] == '#POSITION':
                     yp = float(f.readline().split()[0])
                     zp = float(f.readline().split()[0])
-                    self.attrs['satxyz'][1:]=(yp, zp)
+                    self.attrs['satxyz'][1:] = (yp, zp)
                 elif param[:13] == '#SATELLITEXYZ':
                     xp = float(f.readline().split()[0])
                     yp = float(f.readline().split()[0])
                     zp = float(f.readline().split()[0])
-                    self.attrs['satxyz']=[xp, yp, zp]
+                    self.attrs['satxyz'] = [xp, yp, zp]
                 elif param[:10] == '#TIMEDELAY':
-                    self.attrs['delay']=float(f.readline().split()[0])
+                    self.attrs['delay'] = float(f.readline().split()[0])
                 elif param[:6] == '#START':
                     break
                 else:
@@ -1976,7 +1978,7 @@ class ImfInput(PbData):
         self['time'] = dmarray(np.empty(npoints, dtype=object))
         for key in self.attrs['var']:
             self[key] = dmarray(np.empty(npoints, dtype=np.float64))
-        indata[:, 6] *= 1000 # to microseconds
+        indata[:, 6] *= 1000  # to microseconds
         self['time'][:] = np.frompyfunc(dt.datetime, 7, 1)(
             *np.require(indata[:, 0:7], dtype=int).transpose())
         for i, name in enumerate(self.attrs['var']):
@@ -1997,15 +1999,15 @@ class ImfInput(PbData):
             raise Exception('Number of variables does not match variable order.')
 
         if not outfile:
-            if self.attrs['file']!=None:
-                outfile=self.attrs['file']
+            if self.attrs['file'] is not None:
+                outfile = self.attrs['file']
             else:
-                outfile='imfinput.dat'
+                outfile = 'imfinput.dat'
 
         with open(outfile, 'wb') as out:
 
             # Convenience variable:
-            var=self.attrs['var']
+            var = self.attrs['var']
 
             # Write the header:
             out.write('File created on {}\n'.format(dt.datetime.now().isoformat())
@@ -2022,9 +2024,9 @@ class ImfInput(PbData):
                 out.write(b'#REREAD')
             if self.attrs['var'] != self.__stdvar__:
                 out.write('#VAR\n{}\n\n'.format(' '.join(var)).encode())
-            if self.attrs['satxyz'].count(None)<3:
+            if self.attrs['satxyz'].count(None) < 3:
                 xyz = self.attrs['satxyz']
-                if (xyz[0]==None) and (None not in xyz[1:]):
+                if (xyz[0] is None) and (None not in xyz[1:]):
                     out.write('#POSITION\n{0[1]:-7.3f}\n{0[2]:-7.3f}\n\n'
                               .format(xyz).encode())
                 elif None not in xyz:
@@ -2042,8 +2044,9 @@ class ImfInput(PbData):
             out.write(b'\n#START\n')
             # Round time to millisecond and format it
             timestr = np.vectorize(
-                lambda t: (t.replace(microsecond=0)
-                + dt.timedelta(microseconds=int(round(t.microsecond, -3))))
+                lambda t: (t.replace(microsecond=0) +
+                           dt.timedelta(microseconds=int(round(
+                               t.microsecond, -3))))
                 .strftime('%Y %m %d %H %M %S %f')[:-3] + ' ',
                 otypes=[bytes])(self['time'])
             outarray = np.column_stack([timestr] + [
@@ -2096,7 +2099,7 @@ class ImfInput(PbData):
         from spacepy.plot import set_target, applySmartTimeTicks
 
         # Set ax and fig based on given target.
-        fig, a1 = set_target(target, figsize=(8,4), loc=loc)
+        fig, a1 = set_target(target, figsize=(8, 4), loc=loc)
         a2 = a1.twinx()
 
         self.calc_pram()
@@ -2106,7 +2109,8 @@ class ImfInput(PbData):
         a2.plot(self['time'], self['pram'], color=pcol, lw=1.5)
 
         # Restrict x-range:
-        if not xlim: xlim=self['time']
+        if not xlim:
+            xlim = self['time']
         applySmartTimeTicks(a1, xlim, dolabel=True)
 
         # Zero line for IMF Bz:
@@ -2141,25 +2145,25 @@ class ImfInput(PbData):
         # Set default time range if not given.
         if not timerange:
             timerange = [self['time'][0], self['time'][-1]]
-        tloc = (self['time']>=timerange[0])&(self['time']<=timerange[1])
+        tloc = (self['time'] >= timerange[0]) & (self['time'] <= timerange[1])
 
         # Process plotvars:
         if not plotvars:  # Not given?  Use default!
-            plotvars = ['bx','by','bz',self._denvar,'v']
+            plotvars = ['bx', 'by', 'bz', self._denvar, 'v']
         nPlot = len(plotvars)
 
         # Create and configure figure:
         # Figure is larger if nPlot>3.
-        fig = plt.figure(figsize=(8,6+4*(nPlot>3)))
-        fig.subplots_adjust(hspace=0.025, top=0.95,right=0.95,
-                            bottom=0.05 + 0.03*(nPlot<=3))
+        fig = plt.figure(figsize=(8, 6+4*(nPlot > 3)))
+        fig.subplots_adjust(hspace=0.025, top=0.95, right=0.95,
+                            bottom=0.05 + 0.03*(nPlot <= 3))
 
         # Create and configure axes:
         axes = fig.subplots(nPlot, 1, sharex='all')
 
         # Plot each variable:
-        for p, ax in zip(plotvars,axes):
-            ylim = [0,0]
+        for p, ax in zip(plotvars, axes):
+            ylim = [0, 0]
             # If multiple values given, plot each:
             if type(p) in (list, tuple):
                 units = []
@@ -2174,19 +2178,19 @@ class ImfInput(PbData):
                     if self[x].attrs['units'] not in units:
                         units.append(self[x].attrs['units'])
                 # Add legend and y-label:
-                ax.legend(loc=legloc,frameon=True)
+                ax.legend(loc=legloc, frameon=True)
                 ax.set_ylabel(', '.join(units))
 
             else:
                 # Plot, add label, save y limits:
                 ax.plot(self['time'], self[p], lw=1.5)
-                label=f"{self[p].attrs['label']} ({self[p].attrs['units']})"
+                label = f"{self[p].attrs['label']} ({self[p].attrs['units']})"
                 ax.set_ylabel(label)
                 ylim = [self[p][tloc].min(), self[p][tloc].max()]
 
             # Grid and x-ticks/labels:
             ax.grid(True)
-            applySmartTimeTicks(ax, timerange, dolabel=ax==axes[-1])
+            applySmartTimeTicks(ax, timerange, dolabel=ax == axes[-1])
 
             # Set ylimit w/ buffer:
             ybuff = 0.03*(ylim[1]-ylim[0])
@@ -2196,22 +2200,22 @@ class ImfInput(PbData):
             if ylim[0] == ylim[1]:
                 if ylim[0] == 0:
                     # Value is always zero:
-                    ylim = [-1,1]
+                    ylim = [-1, 1]
                 else:
                     # Value is nonzero constant:
                     ylim = [.9 * ylim[0], 1.1 * ylim[0]]
             ax.set_ylim(ylim)
 
             # Set horizontal line if data crosses zero marker:
-            if ylim[0]<0 and ylim[1]>0:
+            if ylim[0] < 0 and ylim[1] > 0:
                 ax.hlines(0, timerange[0], timerange[-1], colors='k',
                           linestyles='dashed')
-
 
         # Set plot title on topmost axes:
         axes[0].set_title(f'Solar Wind Drivers ({self.attrs["coor"]} Coordinates)')
 
         return fig
+
 
 class SatOrbit(PbData):
     '''
@@ -2275,10 +2279,10 @@ class SatOrbit(PbData):
         '''
         import numpy as np
 
-        super(SatOrbit,self).__init__(*args, **kwargs)
+        super(SatOrbit, self).__init__(*args, **kwargs)
 
         self.attrs['file'] = filename
-        self.attrs['head']=[]
+        self.attrs['head'] = []
         self.attrs['coor'] = 'GSM'
         self['time'] = dmarray(np.zeros(0, dtype=object))
 
@@ -2286,11 +2290,11 @@ class SatOrbit(PbData):
             try:
                 self.read()
             except IOError as reason:
-                self['xyz'] = dmarray(np.zeros( (3,1) ))
+                self['xyz'] = dmarray(np.zeros((3, 1)))
                 raise IOError(reason)
         else:
             # fill with empty stuff.
-            self['xyz'] = dmarray(np.zeros( (3,1) ))
+            self['xyz'] = dmarray(np.zeros((3, 1)))
 
     def read(self):
         '''
@@ -2319,20 +2323,20 @@ class SatOrbit(PbData):
 
         # Read and store all values.
         npts = len(raw)
-        self['xyz'] = dmarray(np.zeros( (3,npts) ))
-        self['time']=dmarray(np.zeros(npts, dtype=object))
+        self['xyz'] = dmarray(np.zeros((3, npts)))
+        self['time'] = dmarray(np.zeros(npts, dtype=object))
         for i, line in enumerate(raw):
             parts = line.split()
-            self['time'][i]=dt.datetime(
-                    int(parts[0]), #year
-                    int(parts[1]), #month
-                    int(parts[2]), #day
-                    int(parts[3]), #hour
-                    int(parts[4]), #min
-                    int(parts[5]), #sec
-                    int(parts[6]) * 1000 #micro seconds
-                    )
-            self['xyz'][:,i] = parts[7:]
+            self['time'][i] = dt.datetime(
+                        int(parts[0]),  # year
+                        int(parts[1]),  # month
+                        int(parts[2]),  # day
+                        int(parts[3]),  # hour
+                        int(parts[4]),  # min
+                        int(parts[5]),  # sec
+                        int(parts[6]) * 1000  # micro seconds
+                        )
+            self['xyz'][:, i] = parts[7:]
 
     def write(self):
         '''Write a L{satorbit object<pybats.satorbit>} to file using the
@@ -2341,27 +2345,20 @@ class SatOrbit(PbData):
         attribute is not set.
         '''
 
-        try:
-            outfile = open(self.attrs['file'], 'w')
-        except:
-            raise Exception('Could not open self.filename!')
+        with open(self.attrs['file'], 'w') as outfile:
+            # Start by writing header, coordinate system, and then #START.
+            for line in self.attrs['head']:
+                outfile.write(line+'\n')
+            outfile.write('\n')
+            outfile.write('#COOR\n{}\n\n'.format(self.attrs['coor']))
+            outfile.write('#START\n')
 
-        # Start by writing header, coordinate system, and then #START.
-        for line in self.attrs['head']:
-            outfile.write(line+'\n')
-        outfile.write('\n')
-        outfile.write('#COOR\n{}\n\n'.format(self.attrs['coor']))
-        outfile.write('#START\n')
-
-        # Write the rest of the orbit.
-        npts=len(self['time'])
-        for i in range(npts):
-            #Time:
-            outfile.write('{:%Y %m %d %H %M %S} {:03.0f} '.format(
-                self['time'][i], self['time'][i].microsecond/1000.0) )
-            #Position:
-            outfile.write('{:13.7E} {:13.7E} {:13.7E}\n'.format(
-                self['xyz'][0,i], self['xyz'][1,i], self['xyz'][2,i]) )
-
-        outfile.close()
-
+            # Write the rest of the orbit.
+            npts = len(self['time'])
+            for i in range(npts):
+                # Time:
+                outfile.write('{:%Y %m %d %H %M %S} {:03.0f} '.format(
+                    self['time'][i], self['time'][i].microsecond/1000.0))
+                # Position:
+                outfile.write('{:13.7E} {:13.7E} {:13.7E}\n'.format(
+                    self['xyz'][0, i], self['xyz'][1, i], self['xyz'][2, i]))
