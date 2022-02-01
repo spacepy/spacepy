@@ -1715,8 +1715,8 @@ class ImfInput(PbData):
     vx, vy, vz, n, t
 
     If the variable order changes, or if new state variables are included
-    (e.g., species-specific densities for multi-ion simulations), the 
-    #VAR entry must be included in the solar wind file.  While the SWMF 
+    (e.g., species-specific densities for multi-ion simulations), the
+    #VAR entry must be included in the solar wind file.  While the SWMF
     documentation refers to density and temperature values as having names
     'dens' or 'temp', **only 'n', 't', or MHD state variable names as defined
     in the BATS-R-US equation file are accepted.**.  In multi-ion simulations,
@@ -1725,7 +1725,8 @@ class ImfInput(PbData):
     To illustrate, consider this example of converting a single fluid input
     file to a multi-fluid input file where density is split evenly across
     two ion species:
-    
+
+
     =========== ============================================================
     Kwarg       Description
     ----------- ------------------------------------------------------------
@@ -1753,7 +1754,7 @@ class ImfInput(PbData):
 
         # Store standard variable set:
         self.__stdvar__ = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 't']
-        
+
         # Set Filename.
         if filename:
             self.attrs['file'] = filename
@@ -1783,7 +1784,44 @@ class ImfInput(PbData):
         self.calc_pram()
         self['v'] = -self['ux']
         self['v'].attrs['label'] = r'V$_{SW}$'
-        
+
+    def _set_attributes(self):
+        '''
+        Set attributes, including units and axes labels.
+        Units should use LaTeX formatting.
+        Labels should be the variable name in human readable format
+        using LaTeX as necessary.
+
+        Plotting functions combine the label and units for y-axis labels
+        and the label for axes legend uses.
+        '''
+        # Vector quantities:
+        for x in 'xyz':
+            # Magnetic field:
+            self['b'+x].attrs['units'] = '$nT$'
+            self['b'+x].attrs['label'] = f'IMF B$_{x.upper()}$'
+
+            # Bulk velocity:
+            self['u'+x].attrs['units'] = '$km/s$'
+            self['u'+x].attrs['label'] = f'U$_{x.upper()}$'
+
+        # Densities & temperature:
+        for v in self.keys():
+            if v[0]=='b' or v[0]=='u': continue
+            if v == 't':
+                self[v].attrs['units'] = '$K$'
+                self[v].attrs['label'] = "T"
+            elif 'rho' in v.lower():
+                self[v].attrs['units'] = r'$cm^{-3}$'
+                self[v].attrs['label'] = r'$\rho_{'+v[:-3]+r'}$'
+            elif v=='n':
+                self[v].attrs['units'] = r'$cm^{-3}$'
+                self[v].attrs['label'] = r'$\rho$'
+            else:
+                self[v].attrs['units'] = ''
+                self[v].attrs['label'] = v
+
+
     def calc_pram(self):
         '''
         Calculate ram pressure from SW conditions.  Output units in nPa.
@@ -1863,8 +1901,8 @@ class ImfInput(PbData):
             print('Not enough variables in IMF object:')
             print('\t%i listed, %i actual.\n' % (len(var),len(key)))
             return False
-        
-        # Each variable corresponds to only one in the dict 
+
+        # Each variable corresponds to only one in the dict
         # and occurs only once:
         for v in var:
             if v not in key:
@@ -2012,43 +2050,6 @@ class ImfInput(PbData):
                     np.char.mod('%10.2f', self[key]) for key in var])
             np.savetxt(out, outarray, delimiter=' ', fmt='%s')
 
-    def _set_attributes(self):
-        '''
-        Set attributes, including units and axes labels.
-        Units should use LaTeX formatting.
-        Labels should be the variable name in human readable format
-        using LaTeX as necessary.
-
-        Plotting functions combine the label and units for y-axis labels
-        and the label for axes legend uses.
-        '''
-
-        # Vector quantities:
-        for x in 'xyz':
-            # Magnetic field:
-            self['b'+x].attrs['units'] = '$nT$'
-            self['b'+x].attrs['label'] = f'IMF B$_{x.upper()}$'
-
-            # Bulk velocity:
-            self['u'+x].attrs['units'] = '$km/s$'
-            self['u'+x].attrs['label'] = f'U$_{x.upper()}$'
-
-        # Densities & temperature:
-        for v in self.keys():
-            if v[0]=='b' or v[0]=='u': continue
-            if v == 't':
-                self[v].attrs['units'] = '$K$'
-                self[v].attrs['label'] = "T"
-            elif 'rho' in v.lower():
-                self[v].attrs['units'] = r'$cm^{-3}$'
-                self[v].attrs['label'] = r'$\rho_{'+v[:-3]+r'}$'
-            elif v=='n':
-                self[v].attrs['units'] = r'$cm^{-3}$'
-                self[v].attrs['label'] = r'$\rho$'
-            else:
-                self[v].attrs['units'] = ''
-                self[v].attrs['label'] = v
-                
     def add_pram_bz(self, target=None, loc=111, pcol='#CC3300', bcol='#3333CC',
                     xlim=None, plim=None, blim=None, epoch=None):
         '''
@@ -2125,7 +2126,7 @@ class ImfInput(PbData):
             a1.set_ylim([ymin, ymax])
 
         return fig, a1
-        
+
     def quicklook(self, plotvars=None, timerange=None, legloc='upper left'):
         '''
         Generate a quick-look plot of solar wind conditions driving the
@@ -2141,7 +2142,7 @@ class ImfInput(PbData):
         if not timerange:
             timerange = [self['time'][0], self['time'][-1]]
         tloc = (self['time']>=timerange[0])&(self['time']<=timerange[1])
-        
+
         # Process plotvars:
         if not plotvars:  # Not given?  Use default!
             plotvars = ['bx','by','bz',self._denvar,'v']
@@ -2158,7 +2159,7 @@ class ImfInput(PbData):
 
         # Plot each variable:
         for p, ax in zip(plotvars,axes):
-            ylim = [0,0] 
+            ylim = [0,0]
             # If multiple values given, plot each:
             if type(p) in (list, tuple):
                 units = []
@@ -2191,13 +2192,21 @@ class ImfInput(PbData):
             ybuff = 0.03*(ylim[1]-ylim[0])
             ylim[0] -= ybuff
             ylim[1] += ybuff
+            # Handle cases where plotted value is constant:
+            if ylim[0] == ylim[1]:
+                if ylim[0] == 0:
+                    # Value is always zero:
+                    ylim = [-1,1]
+                else:
+                    # Value is nonzero constant:
+                    ylim = [.9 * ylim[0], 1.1 * ylim[0]]
             ax.set_ylim(ylim)
 
             # Set horizontal line if data crosses zero marker:
             if ylim[0]<0 and ylim[1]>0:
                 ax.hlines(0, timerange[0], timerange[-1], colors='k',
                           linestyles='dashed')
-            
+
 
         # Set plot title on topmost axes:
         axes[0].set_title(f'Solar Wind Drivers ({self.attrs["coor"]} Coordinates)')
