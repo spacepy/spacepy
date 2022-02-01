@@ -499,8 +499,8 @@ class TestBats2d(unittest.TestCase):
         # Test all calculations:
         self.mhd.calc_all()
 
-        for v in self.calcnames:
-            self.assertEqual(knownCalcSingle[v], self.mhd[v][0])
+        for v, x in zip(self.calcnames, self.knownCalcSingle):
+            self.assertAlmostEqual(x, self.mhd[v][0], places=5)
 
     def testSwitchFrame(self):
         '''Test switching frames and associated calculations'''
