@@ -115,6 +115,7 @@ __contact__ = 'Dan Welling, daniel.welling@uta.edu'
 # Global imports (used ubiquitously throughout this module.
 import os.path
 from functools import wraps
+from turtle import color
 
 from spacepy.datamodel import dmarray, SpaceData
 import numpy as np
@@ -2132,11 +2133,66 @@ class ImfInput(PbData):
 
         return fig, a1, a2
 
-    def quicklook(self, plotvars=None, timerange=None, legloc='upper left'):
+    def quicklook(self, plotvars=None, timerange=None, legloc='best',
+                  colors=None, title=None):
         '''
         Generate a quick-look plot of solar wind conditions driving the
-        SWMF.  Default values show IMF, number density, and Earthward velocity.
-        Returns a figure object containing the plots.
+        SWMF.  Default behavior creates a figure showing the three components
+        of IMF, solar wind density, and Earthward velocity. The resulting figure
+        will be a paper-sized plot with one axes object per entry in `plotvars`.
+
+        The `plotvars` keyword controls the behavior of the resulting plot.
+        For example, `['rho', 'pram', ['bx','by','bz']]` will create three
+        subplots with the three IMF components on a single axes.
+
+        Additional empty axes can be added by specifying a `plotvar` entry
+        that is not a valid key to the `ImfInput` object. This is useful in
+        some circumstances, e.g., cases where the user may want to plot a
+        non-solar wind value, such as Dst, from another source. The `plotvar`
+        string will be used as the y-axis label.
+
+        Other Parameters
+        ----------------
+        plotvars : list of variable names, optional
+            The variables to plot given as a list of ImfInput object keys.
+            Use a nested list to plot more than one variable on a single axes
+            object.
+        colors : list of strings, optional
+            The colors of the resulting lines as a list of Matplotlib color
+            compatible strings (e.g., '#000000', 'k', 'lightgrey'). The shape
+            of the list should match that of `plotvars`; if not, `quicklook`
+            will fill in with default colors. Any axes with multiple `plotvars`
+            specified but only a single color will have that color repeated for
+            each line placed on the axes. Default behavior is to use the
+            current Matplotlib color cycle.
+        timerange : array-like of datetimes
+            An array-like structure of datetimes marking the time range of
+            the resulting plot.
+        title : str, optional
+            Title to place at the top of the figure, defaults to,
+            'Solar Wind Drivers `{self.attrs["coor"]` Coordinates)'
+        legloc : str, default='best'
+            Location of any legends place on axes with more than one variable.
+
+        Examples
+        --------
+        The following examples use the data from the Spacepy test suite.
+        Open an IMF object, create the default quicklook plot:
+
+        >>> import matplotlib.pyplot as plt
+        >>> from spacepy.pybats import ImfInput
+        >>> imf = ImfInput('spacepy/tests/data/pybats_test/imf_single.dat')
+        >>> imf.quicklook()
+        >>> plt.show()
+
+        Create a customized quicklook plot with two axes: one with 3 variables,
+        another with 2 variables. Specify custom line colors.
+
+        >>> imf = ImfInput('spacepy/tests/data/pybats_test/imf_multi.dat')
+        >>> imf.quicklook([['bx', 'by', 'bz'], ['SwRho', 'IonoRho']],
+                          colors=[['r', 'g', 'b'], ['orange', 'cyan']])
+        >>> plt.show()
+
         '''
 
         import matplotlib.pyplot as plt
@@ -2150,8 +2206,35 @@ class ImfInput(PbData):
 
         # Process plotvars:
         if not plotvars:  # Not given?  Use default!
-            plotvars = ['bx', 'by', 'bz', self._denvar, 'v']
+            plotvars = [['bx', 'by'], 'bz', self._denvar, 'v']
         nPlot = len(plotvars)
+
+        # Set up colors. If no color option is given, cycle through
+        # the default MPL line colors.
+        if colors is None:
+            colors, i = [], 0
+            for x in plotvars:
+                if isinstance(x, (list, tuple)):
+                    colors.append([f'C{i+j}' for j in range(len(x))])
+                    i+=len(x)
+                else:
+                    colors.append(f'C{i}')
+                    i+=1
+
+        # Ensure there are enough colors in the `colors` list.
+        if len(plotvars) > len(colors):
+            colors += [None] * (len(plotvars) - len(colors))
+        # Now ensure correct shape of `colors` compared to `plotvars`:
+        for i, x in enumerate(plotvars):
+            # Check for nested lists:
+            if isinstance(x, (tuple,list)):
+                # If colors[i] is a list, ensure correct size:
+                if isinstance(colors[i], (tuple,list)):
+                    if len(x) > len(colors[i]):
+                        colors[i].append([None] * (len(x) - len(colors[i])))
+                else:
+                    # Convert color to list if necessary:
+                    colors[i] = len(x) * [colors[i]]
 
         # Create and configure figure:
         # Figure is larger if nPlot>3.
@@ -2163,14 +2246,14 @@ class ImfInput(PbData):
         axes = fig.subplots(nPlot, 1, sharex='all')
 
         # Plot each variable:
-        for p, ax in zip(plotvars, axes):
+        for p, ax, c in zip(plotvars, axes, colors):
             ylim = [0, 0]
             # If multiple values given, plot each:
-            if type(p) in (list, tuple):
+            if isinstance(p, (list, tuple)):
                 units = []
-                for x in p:
+                for i,x in enumerate(p):
                     # Plot each variable:
-                    ax.plot(self['time'], self[x], lw=1.5,
+                    ax.plot(self['time'], self[x], lw=1.5, c=c[i],
                             alpha=.78, label=self[x].attrs['label'])
                     # Save data range:
                     ylim = [min(ylim[0], self[x][tloc].min()),
@@ -2182,13 +2265,16 @@ class ImfInput(PbData):
                 ax.legend(loc=legloc, frameon=True)
                 ax.set_ylabel(', '.join(units))
 
-            else:
+            elif p in self:
                 # Plot, add label, save y limits:
-                ax.plot(self['time'], self[p], lw=1.5)
+                line = ax.plot(self['time'], self[p], lw=1.5, c=c)
                 label = f"{self[p].attrs['label']} ({self[p].attrs['units']})"
-                ax.set_ylabel(label)
+                ax.set_ylabel(label, color=line[0].get_color())
                 ylim = [self[p][tloc].min(), self[p][tloc].max()]
-
+            else:
+                # Blank axes:
+                ax.set_ylabel(p)
+                ylim = [-1,1]
             # Grid and x-ticks/labels:
             ax.grid(True)
             applySmartTimeTicks(ax, timerange, dolabel=ax == axes[-1])
@@ -2213,7 +2299,11 @@ class ImfInput(PbData):
                           linestyles='dashed')
 
         # Set plot title on topmost axes:
-        axes[0].set_title(f'Solar Wind Drivers ({self.attrs["coor"]} Coordinates)')
+        if title is None:
+            axes[0].set_title(
+                f'Solar Wind Drivers ({self.attrs["coor"]} Coordinates)')
+        else:
+            axes[0].set_title(title)
 
         return fig
 

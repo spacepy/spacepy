@@ -806,16 +806,24 @@ class TestImfInput(unittest.TestCase):
     def testPlot(self):
         import matplotlib.pyplot as plt
 
-        # Create plots:
+        # Create plots, exercise plotting options.
         f1 = self.sing.quicklook()
-        f2 = self.sing.quicklook()
+        # Custom vars, default colors:
+        f2 = self.sing.quicklook(plotvars=[['bx','by','bz'], 'rho', 'v'])
+        # Custom vars, empty color scheme:
+        f3 = self.sing.quicklook(plotvars=[['bx','by','bz'], 'rho', 'v'],
+                                 colors=[])
+        # Custom vars, nested but incomplete colors:
+        f4 = self.mult.quicklook([['bx','by','bz'], ['SwRho','IonoRho'], 'v'],
+                                 colors=[['r', 'g', 'b'], ['orange', 'cyan']])
+        # Custom vars, custom colors/shape mismatch, blank axes:
+        f5 = self.mult.quicklook([['bx','by','bz'], ['ux','uy'], 'blah'],
+                                 colors=['r',['orange','cyan']])
 
-        # Test figures:
-        self.assertTrue(isinstance(f1, plt.Figure))
-        self.assertTrue(isinstance(f2, plt.Figure))
-
-        plt.close(f1)
-        plt.close(f2)
+        # Test figures and close:
+        for f in (f1, f2, f3, f4, f5):
+            self.assertTrue(isinstance(f, plt.Figure))
+            plt.close(f)
 
     def testAppend(self):
         '''
