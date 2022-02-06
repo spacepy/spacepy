@@ -56,8 +56,8 @@ except RuntimeError:
     pass
 import numpy
 
-__all__ = ['add_logo', 'annotate_xaxis', 'applySmartTimeTicks', 'collapse_vertical', 'filter_boxes', 
-           'smartTimeTicks', 'get_biggest_clear', 'get_clear', 'get_used_boxes', 'EventClicker', 
+__all__ = ['add_logo', 'annotate_xaxis', 'applySmartTimeTicks', 'collapse_vertical', 'filter_boxes',
+           'smartTimeTicks', 'get_biggest_clear', 'get_clear', 'get_used_boxes', 'EventClicker',
            'set_target', 'shared_ylabel', 'show_used', 'timestamp', 'add_arrows']
 
 class EventClicker(object):
@@ -73,7 +73,7 @@ class EventClicker(object):
         The subplot to display and grab data from. If not provided, the
         current subplot is grabbed from gca() (Lookup of the current
         subplot is done when :meth:`analyze` is called.)
-        
+
     n_phases : int (optional, default 1)
         number of phases to an event, i.e. number of subevents to mark.
         E.g. for a storm where one wants the onset and the minimum, set
@@ -191,7 +191,7 @@ class EventClicker(object):
             The subplot to display and grab data from. If not provided, the
             current subplot is grabbed from gca() (Lookup of the current
             subplot is done when :meth:`analyze` is called.)
-        
+
         n_phases : int (optional, default 1)
             number of phases to an event, i.e. number of subevents to mark.
             E.g. for a storm where one wants the onset and the minimum, set
@@ -264,13 +264,13 @@ class EventClicker(object):
             and zoom to place that phase near the left of the screeen and
             include one full interval of data (as defined in the constructor).
             The Y axis will be scaled to cover the data in that X range.
-            
+
         Double right click or delete button
             Remove the last marked event phase. If an entire event (i.e., the
             first phase of an event) is removed, the X axis will be scrolled
             left to the previous event and the Y axis will be scaled to cover
             the data in the new range.
-            
+
         Space bar
             Scroll the X axis by one interval. Y axis will be scaled to cover
             the data.
@@ -282,7 +282,7 @@ class EventClicker(object):
         self._lastclick_y = None
         self._lastclick_button = None
         self._curr_phase = 0
-        
+
         if self.ax is None:
             self.ax = plt.gca()
         self.fig = self.ax.get_figure()
@@ -380,7 +380,7 @@ class EventClicker(object):
         Call after :meth:`analyze`.
 
         Returns
-        =======        
+        =======
         out : array
             3-D array of (x, y) values in the data which are closest to each
             point clicked on. Shape is (n_events, n_phases, 2), i.e. indexed
@@ -428,7 +428,7 @@ class EventClicker(object):
                     self._intervalcount = 1
                     self._intervaltotal = self._events[1, 0, 0] - self._events[0, 0, 0]
                     self.interval = self._intervaltotal
-                
+
             self._events.resize((self._events.shape[0] + 1,
                                  self.n_phases, 2
                                  ))
@@ -493,7 +493,7 @@ class EventClicker(object):
             self._relim(rightside)
         if event.key == 'delete':
             self._delete_event_phase()
-        
+
     def _relim(self, left_x):
         """Reset the limits based on a particular X value"""
         if self._x_is_datetime:
@@ -737,10 +737,10 @@ def set_target(target, figsize=None, loc=None, polar=False):
     Other Parameters
     ================
     figsize : tuple
-        A two-item tuple/list giving the dimensions of the figure, in inches.  
+        A two-item tuple/list giving the dimensions of the figure, in inches.
         Defaults to Matplotlib defaults.
-    loc : integer 
-        The subplot triple that specifies the location of the axes object.  
+    loc : integer
+        The subplot triple that specifies the location of the axes object.
         Defaults to matplotlib default (111).
     polar : bool
         Set the axes object to polar coodinates.  Defaults to **False**.
@@ -819,7 +819,7 @@ def collapse_vertical(combine, others=(), leave_axis=False):
     ========
     .. plot::
         :include-source:
-    
+
         >>> import spacepy.plot.utils
         >>> import matplotlib.pyplot as plt
         >>> fig = plt.figure()
@@ -1454,7 +1454,7 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
 
     Notes
     =====
-    The algorithm works by dividing the line in to *n*+1 segments and 
+    The algorithm works by dividing the line in to *n*+1 segments and
     placing an arrow between each segment, endpoints excluded.  Arrows span
     the shortest distance possible, i.e., two adjacent points along a line.
     For lines that are long spatially but sparse in points, the arrows will
@@ -1477,7 +1477,7 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
     from numpy import floor, argmin
     from matplotlib.collections import LineCollection
     from matplotlib.lines import Line2D
-    
+
     # Convert our line, lines, or LineCollection into
     # a series of arrays with the x/y data.
     # Also, grab the axes, colors, and line alpha.
@@ -1487,7 +1487,7 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
         alph = [x.get_alpha()  for x in lines]
         ax   = lines[0].axes
         return data, cols, alph, ax
-    
+
     if hasattr(lines, 'axes'):  # Matplotlib-like objects:
         try: # Collection-like: use "get paths" to extract points into list
             ax   = lines.axes
@@ -1497,13 +1497,13 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
         except AttributeError: # Line2D-like: put in list and parse
             data, cols, alph, ax = _parse_line_list( [lines] )
     elif isinstance(lines, (tuple, list)): # List/tuple of Line-like objects:
-        try: 
+        try:
             data, cols, alph, ax = _parse_line_list( lines )
         except AttributeError:
             raise ValueError('Non-Line2d-like item found in list of lines.')
     else:
         raise ValueError('Unknown input type for lines.')
-    
+
     # Check to make sure that we have as many colors as lines.
     # With LineCollections, this isn't always the case!
     if len(data)>1 and len(cols)==1:
@@ -1517,8 +1517,11 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
         for l, c, a, p in zip(data, cols, alph, positions):
             # Get x-y points of line:
             x, y = l[:,0], l[:,1]
-            # Get point on line closest to desired position:
-            i, j = argmin(abs(x - p[0])), argmin(abs(y - p[1]))
+            # Get point on line closest to desired position.
+            # Ensure we have at least 1 point after to set direction.
+            i = min(argmin(abs(x - p[0])), x.size - 2)
+            j = min(argmin(abs(y - p[1])), y.size - 2)
+
             # Annotate, matching color/alpha:
             ax.annotate('',xytext=(x[i], y[j]), xy=(x[i+1], y[j+1]), alpha=a,
                         arrowprops=dict(arrowstyle=style,color=c),size=size)
@@ -1533,16 +1536,16 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
         if dorestrict:
             loc = (x>=xlim[0])&(x<=xlim[1])&(y>=ylim[0])&(y<=ylim[1])
             x, y = x[loc], y[loc]
-        
+
         # Get size of lines.  Skip those with too few points:
         npts = x.size
         if npts <= 3: continue
-        
+
         # If number of arrows is greater than the number of
         # points along the line/2, reduce the number of arrows.
         # Guarantee at least one arrow per line.
         n_now = max(1, min(n, int(floor(npts/2))) )
-        
+
         # Place evenly-spaced arrows:
         for iArr in range(0,n_now):
             # Get location as fraction of no. of points along line:
