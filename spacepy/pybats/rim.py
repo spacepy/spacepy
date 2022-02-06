@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''
 Classes, functions, and methods for reading, writing, and plotting output
-from the Ridley Ionosphere Model (RIM) and the similar legacy code, 
+from the Ridley Ionosphere Model (RIM) and the similar legacy code,
 Ridley Serial.
 
 Copyright 2010 Los Alamos National Security, LLC.
@@ -34,7 +34,7 @@ from spacepy.pybats import PbData, dmarray
 def get_iono_cb(ct_name='bwr'):
     '''
     Several custom colorbars used by RIM and AMIE have become standard when
-    visualizing data from these models.  These are 'blue_white_red' and 
+    visualizing data from these models.  These are 'blue_white_red' and
     'white_red', used for data that have positive and negative values and
     for data that have only positive values, respectively.  This function
     builds and returns these colorbars when called with the initials of the
@@ -77,7 +77,7 @@ def tex_label(varname):
     Many variable names used in the Ridley Ionosphere Model look much better
     in LaTeX format with their proper Greek letters.  This function takes
     a variable name, and if it is recognized, returns a properly formatted
-    string that uses MatPlotLib's MathText functionality to display the 
+    string that uses MatPlotLib's MathText functionality to display the
     proper characters.  If it is not recognized, the varname is returned.
 
     Parameters
@@ -96,7 +96,7 @@ def tex_label(varname):
 
     if varname[:2]=='n_' or varname[:2]=='s_':
         varname=varname[2:]
-    
+
     known = {
         'phi': r'$\Phi_{Ionosphere}$',
         'sigmah':r'$\sigma_{Hall}$',
@@ -119,7 +119,7 @@ class Iono(PbData):
     '''
     A class for handling 2D output from the Ridley Ionosphere Model.
     Instantiate an object as follows:
-    
+
     >>> iono = rim.Iono('filename.idl')
 
     ...where filename.idl is the name of a RIM 2D output file.
@@ -195,8 +195,8 @@ class Iono(PbData):
                 units[name] = match.group(2).strip()
             else:
                 raise ValueError('Could not parse %s' % raw[j])
-                
-            
+
+
         ### Read all data ###
 
         # Create data arrays
@@ -213,7 +213,7 @@ class Iono(PbData):
         while nvarline<nvars:
             nvarline += len(raw[i+nwrap].split())
             nwrap += 1
-        
+
         # Fill data arrays:
         for j in range(nPts):
             # Build list of variables; accounting for line-wrapping:
@@ -246,22 +246,21 @@ class Iono(PbData):
         '''
         Calculate total horizontal current as related values.  Each will be
         stored into *self* using the typical key-value approach.  Calculations
-        are done for both the northern and southern hemisphere with the 
+        are done for both the northern and southern hemisphere with the
         appropriate prefixes ('n_' and 's_') applied to each key.
 
         | key  | Description |
+        |------|-------------|
         | j    | Total horizontal current, $sqrt(jx^2+jy^2+jz^2)$ |
         | jphi | Azimuthal current, positive values are eastward. |
 
-        
+
         Parameters
         ==========
-
 
         Returns
         =======
         True
-
 
         Examples
         ========
@@ -281,9 +280,9 @@ class Iono(PbData):
             # Calculate total azimuthal current (i.e., electrojets):
             self[h+'jphi'] = self[h+'jy'] * np.cos(np.pi/180. * self[h+'psi']) \
                 - self[h+'jx'] * np.sin(np.pi/180. * self[h+'psi'])
-            
+
         return True
-    
+
     def calc_I(self):
         '''
         Integrate radial current to get the following values:
@@ -310,7 +309,7 @@ class Iono(PbData):
         >>> a = rim.Iono('spacepy/tests/data/pybats_test/it000321_104510_000.idl.gz')
         >>> a.calc_I()
         >>> print(a['n_Iup'])
-        
+
         '''
 
         # Calculate some physically meaningful values/units
@@ -318,7 +317,7 @@ class Iono(PbData):
         R = (6371.0+110.0)*1000.0 # Radius of Earth + iono altitude
         dTheta = np.pi*self.dlat/180.
         dPhi   = np.pi*self.dlon/180.
-        
+
         # -----NORTHERN HEMISPHERE-----
         # Get relevant values:
         colat     = self['n_theta']*np.pi/180.
@@ -340,8 +339,8 @@ class Iono(PbData):
         self['s_I']     = units*R**2 * np.sum(integrand)
         self['s_Iup']   = units*R**2 * np.sum(integrand[loc_up])
         self['s_Idown'] = units*R**2 * np.sum(integrand[loc_do])
-        
-    def add_cont(self, var, target=None, n=50, maxz=False, lines=False, 
+
+    def add_cont(self, var, target=None, n=50, maxz=False, lines=False,
                  cmap=False, add_cbar=False, label=None, loc=111,
                  xticksize=12, yticksize=12, max_colat=40, **kwargs):
         '''
@@ -411,7 +410,7 @@ class Iono(PbData):
         from matplotlib.pyplot import clabel, colorbar
 
         fig, ax = set_target(target, polar=True, loc=loc)
-        
+
         hemi = var[:2]
 
         # user defined variables may not have hemisphere marking.
@@ -445,7 +444,7 @@ class Iono(PbData):
         # Search for legacy maps:
         elif 'l_' in cmap:
             cmap=get_iono_cb(cmap[2:])
-            
+
         # Set the latitude based on hemisphere:
         theta = self[hemi+'theta']
         if 's_' in hemi: theta = 180-self[hemi+'theta']
@@ -458,7 +457,7 @@ class Iono(PbData):
         labels = ax.get_xticklabels()
         for l in labels: l.set_size(xticksize)
         labels[1].set_size(xticksize*1.25)
-        
+
         if lines:
             nk = int(round(n/3.0))
             cnt2 = ax.contour(self[hemi+'psi']*pi/180.0+pi/2., theta,
@@ -504,7 +503,7 @@ class OvalDebugFile(PbData):
         '''
 
         import datetime as dt
-        
+
         # Slurp in lines:
         f = open(self.attrs['file'])
         lines = f.readlines()
@@ -518,11 +517,11 @@ class OvalDebugFile(PbData):
         # Some helper vars:
         nLons = self['lon'].size
         nLine = len(lines)
-    
+
         # Create container arrays:
         self['time'] = np.zeros(nLine, dtype=object)
         self['oval'] = np.zeros( (nLine, nLons) )
-        
+
         # Parse rest of file:
         for j,l in enumerate(lines):
             self['time'][j]   = dt.datetime.strptime(l[:19], '%Y %m %d %H %M %S')
@@ -551,13 +550,13 @@ class OvalDebugFile(PbData):
         Other Parameters
         ================
         interp : bool
-            Set interpolation behavior.  If **True**, linear interpolation is 
+            Set interpolation behavior.  If **True**, linear interpolation is
             used.  If **False**, the oval location nearest to *time* is used
             without interpolation.
 
         Examples
         ========
-        >>> 
+        >>>
         '''
 
         from matplotlib.dates import date2num
@@ -567,11 +566,11 @@ class OvalDebugFile(PbData):
         if time<self['time'][0] or time>self['time'][-1]:
             raise ValueError('Given time outside object range ' +
                              'and requires extrapolation')
-        
+
         # Turn datetimes into numbers.
         time     = date2num(time)
         ovaltime = date2num(self['time'])
-        
+
         # Start by obtaining the indices of the time array that bound
         index = np.arange(self['time'].size)
         i1 = index[time>=ovaltime][-1] # Value before time
@@ -582,7 +581,7 @@ class OvalDebugFile(PbData):
         dT2 = np.abs(ovaltime[i2]-time)
         if dT1==0: return self['oval'][i1]
         if dT2==0: return self['oval'][i2]
-        
+
         # If no interpolation, just send back nearest neighbor:
         if not interp:
             if dT1<dT2:
@@ -594,15 +593,15 @@ class OvalDebugFile(PbData):
         dT = ovaltime[i2]-ovaltime[i1]
         m  = (self['oval'][i2]-self['oval'][i1])/dT
         b  = self['oval'][i2] - m*ovaltime[i2]
-        
+
         # Interpolate and return:
         return m*time + b
-        
-            
+
+
     def add_oval_line(self, time, *args, **kwargs):
         '''
         Adds the location of the auroral oval at time *time* as a line plot on to
-        *target*, which must be a Matplotlib figure/axes.  
+        *target*, which must be a Matplotlib figure/axes.
 
         If *target* not given, a new axes object is created.  If *target* is
         not an existing axes object, a new axes object is created and customized
@@ -640,11 +639,11 @@ class OvalDebugFile(PbData):
         interp : bool
             Control the behavior of time interpolation when the *time* argument
             is given as a datetime object.  Defaults to **True**, meaning that
-            oval location is interpolated in time.  
+            oval location is interpolated in time.
 
         Examples
         ========
-        >>> 
+        >>>
         '''
 
         import datetime as dt
@@ -654,7 +653,7 @@ class OvalDebugFile(PbData):
         if 'target' in kwargs: target=kwargs.pop('target')
         if 'interp' in kwargs: interp=kwargs.pop('interp')
         if 'loc'    in kwargs: loc=kwargs.pop('loc')
-            
+
         # Set plot targets:
         fig, ax = set_target(target, polar=True, loc=loc)
 
@@ -670,4 +669,4 @@ class OvalDebugFile(PbData):
         line = ax.plot(self['lon']+np.pi/2., oval, *args, **kwargs)
 
         return fig, ax, line
-        
+
