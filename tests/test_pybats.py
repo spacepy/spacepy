@@ -551,6 +551,24 @@ class TestBats2d(unittest.TestCase):
         # Test adding streams via "add_stream_scatter":
         self.mhd.add_stream_scatter('ux','uz',target=ax,narrow=1)
 
+        # Ensure the correct object is returned.
+        self.assertTrue(isinstance(fig, plt.Figure))
+
+    def testAddStreamScatter(self):
+        '''Test add_stream_scatter for axes ranges, other edge cases.'''
+        # Test adding a basic contour:
+        out = self.mhd.add_contour('x', 'z', 'p', xlim=[-10,10], ylim=[-10, 10])
+
+        # Test adding streams via "add_stream_scatter":
+        self.mhd.add_stream_scatter('ux', 'uz', target=out[1], narrow=1)
+
+        # Ensure axes ranges did not change:
+        for axrange in (out[1].get_xlim(), out[1].get_ylim()):
+            self.assertEqual((-10,10), axrange)
+
+        # Ensure the correct object is returned.
+        self.assertTrue(isinstance(out[0], plt.Figure))
+
     def testGetStreamBad(self):
         """Get a streamline with a start point outside the input grid"""
         with self.assertRaises(ValueError) as cm:
@@ -647,14 +665,14 @@ class TestSatOrbit(unittest.TestCase):
 
             # Add some info:
             sat.attrs['coor'] = 'SMG'
-            sat.attrs['file'] = 'testsat.dat'
+            sat.attrs['file'] = 'tempsat.dat'
             sat.attrs['head'] = ['test','header','values']
 
             sat.write()
             os.listdir('.')
 
             # Now, test the integrity of the file:
-            sat = SatOrbit('./testsat.dat')
+            sat = SatOrbit('./tempsat.dat')
 
             # Check header:
             self.assertEqual(sorted(sat.attrs['head']),
@@ -666,7 +684,7 @@ class TestSatOrbit(unittest.TestCase):
             assert_array(sat['xyz'], self.pos)
         finally:
             # Get rid of file:
-            remove('./testsat.dat')
+            remove('./tempsat.dat')
 
     def testRead(self):
         from spacepy.pybats import SatOrbit
