@@ -2110,6 +2110,11 @@ class ImfInput(PbData):
         a1.plot(self['time'], self['bz'],   color=bcol)
         a2.plot(self['time'], self['pram'], color=pcol, lw=1.5)
 
+        # Default behavior in some matplotlib style sheets is to always have
+        # grid lines. This is visually very messy with `twinx`.
+        # Turn off grid lines for 2nd axes:
+        a2.grid(False)
+
         # Restrict x-range:
         if not xlim:
             xlim = self['time']
