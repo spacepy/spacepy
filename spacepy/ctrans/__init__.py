@@ -1072,16 +1072,30 @@ def rll_to_geo(rllvec, units='km', geoid=WGS84):
     return geoarr
 
 
-def convert_multitime(coords, ticks, sys_in, sys_out):
+def convert_multitime(coords, ticks, sys_in, sys_out, itol=30):
     # Calculate a CTrans for each unique time
     ctdict = dict()
+    ttused = set()
     tais = ticks.TAI
     for idx, tt in enumerate(tais):
         if tt not in ctdict:
-            ctdict[tt] = CTrans(ticks[idx])
-            ctdict[tt].calcCoreTransforms()
-            if sys_in in magsys or sys_out in magsys:
-                ctdict[tt].calcMagTransforms()
+            # for speed, let's not recalculate transforms
+            # for times very close to each other (defined
+            # by the itol kwarg)
+            if ttused:
+                usedlist = list(ttused)
+                closest = np.argmin(np.abs(tt - usedlist))
+                tdiff = np.abs(tt - usedlist[closest])
+            else:
+                tdiff = itol + 1
+            if tdiff < itol and ctdict:
+                ctdict[tt] = ctdict[usedlist[closest]]
+            else:
+                ctdict[tt] = CTrans(ticks[idx])
+                ctdict[tt].calcCoreTransforms()
+                if sys_in in magsys or sys_out in magsys:
+                    ctdict[tt].calcMagTransforms()
+                ttused.add(tt)
     # Unless speed becomes an issue, let's just loop over each value
     # except the spacial case of only 1 unique time
     loopover = np.atleast_2d(coords)
