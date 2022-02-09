@@ -12,28 +12,22 @@ from spacepy import __path__ as basepath
 from spacepy import DOT_FLN
 import spacepy.time as spt
 
-class IGRF():
-    def __init__(self):
-        self.__status = {'coeffs': False,
-                         'init': False,
-                         'time_set': False,
-                         }
-        self._readCoefficients()
 
-    def _readCoefficients(self, fname=None):
-        '''Read IGRF coefficients from data file
-        '''
+class IGRFCoefficients():
+    '''Read and store IGRF coefficients from data file
+    '''
+    def __init__(self, fname=None):
         # Store coefficients and SV in nested arrays
         # This is triangular, e.g.,
         # g[2] has 3 elements (g[2][0:2])
         # h[5] has 5 elements (h[5][0:5])
         # Store top level as object arrays so the arrays inside
         # can have staggered lengths
-        self.__coeffs = {'g': np.empty(14, dtype=object),
-                         'h': np.empty(14, dtype=object),
-                         'g_SV': np.empty(14, dtype=object),
-                         'h_SV': np.empty(14, dtype=object),
-                         }
+        self.coeffs = {'g': np.empty(14, dtype=object),
+                       'h': np.empty(14, dtype=object),
+                       'g_SV': np.empty(14, dtype=object),
+                       'h_SV': np.empty(14, dtype=object),
+                       }
 
         # Open IGRF coefficients file...
         if fname is None:
@@ -48,19 +42,19 @@ class IGRF():
             header = [fh.readline() for i in range(4)]
             data = fh.readlines()
         epochs = [float(yy) for yy in header[-1].strip().split()[3:-1]]
-        self._epochs = np.array(epochs)
-        self._datelow = dt.datetime(int(self._epochs[0]), 1, 1)
-        self._lastepoch = dt.datetime(int(self._epochs[-1]), 1, 1)
-        self._datehigh = dt.datetime(int(self._epochs[-1])+5, 1, 1)
+        self.epochs = np.array(epochs)
+        self.datelow = dt.datetime(int(self.epochs[0]), 1, 1)
+        self.lastepoch = dt.datetime(int(self.epochs[-1]), 1, 1)
+        self.datehigh = dt.datetime(int(self.epochs[-1])+5, 1, 1)
         n_epochs = len(epochs)
 
         # Now we know how many epochs are in the current IGRF file,
         # we can construct the arrays to store the coefficients
         for n_idx in range(0, 14):
-            self.__coeffs['g'][n_idx] = np.empty((n_idx+1, n_epochs))
-            self.__coeffs['h'][n_idx] = np.empty((n_idx+1, n_epochs))
-            self.__coeffs['g_SV'][n_idx] = np.empty((n_idx+1))
-            self.__coeffs['h_SV'][n_idx] = np.empty((n_idx+1))
+            self.coeffs['g'][n_idx] = np.empty((n_idx+1, n_epochs))
+            self.coeffs['h'][n_idx] = np.empty((n_idx+1, n_epochs))
+            self.coeffs['g_SV'][n_idx] = np.empty((n_idx+1))
+            self.coeffs['h_SV'][n_idx] = np.empty((n_idx+1))
 
         # Parse the file and populat the coefficient arrays
         for line in data:
@@ -69,27 +63,44 @@ class IGRF():
             vals = [float(v) for v in line[3:]]
             n_idx = int(line[1])
             m_idx = int(line[2])
-            self.__coeffs[line[0]][n_idx][m_idx, ...] = vals[:-1]
+            self.coeffs[line[0]][n_idx][m_idx, ...] = vals[:-1]
             svtag = 'g_SV' if line[0] == 'g' else 'h_SV'
-            self.__coeffs[svtag][n_idx][m_idx] = vals[-1]
+            self.coeffs[svtag][n_idx][m_idx] = vals[-1]
 
+        # set arrays to read only
+        for key in ['g', 'h', 'g_SV', 'h_SV']:
+            for arr in self.coeffs[key]:
+                arr.setflags(write=0)
+
+
+# load coefficients so it doesn't get done on instantiation of IGRF class
+igrfcoeffs = IGRFCoefficients()
+
+
+class IGRF():
+    def __init__(self):
+        self.__status = {'coeffs': False,
+                         'init': False,
+                         'time_set': False,
+                         }
+        self.__coeffs = igrfcoeffs.coeffs
         self.__status['coeffs'] = True
 
     def initialize(self, time, limits='warn'):
         errmsg = 'IGRF: Requested time is outside valid range.\n'
-        errmsg += 'Valid range is [{0}, {1}]'.format(self._datelow, self._datehigh)
+        errmsg += 'Valid range is [{0}, {1}]'.format(igrfcoeffs.datelow, igrfcoeffs.datehigh)
         self.time = time
-        if time < self._datelow or time > self._datehigh:
+        if time < igrfcoeffs.datelow or time > igrfcoeffs.datehigh:
             if limits.lower() == 'warn':
-                errmsg += '\nProceeding using effective date {0}'.format(self._datehigh)
+                errmsg += '\nProceeding using effective date {0}'.format(igrfcoeffs.datehigh)
                 warnings.warn(errmsg)
-                self.time = self._datehigh
+                self.time = igrfcoeffs.datehigh
             else:
                 errmsg += '''\nUse "limits='warn'" to force out-of-range times '''
                 errmsg += 'to use the nearest valid endpoint.'
                 raise ValueError(errmsg)
-        self.__valid_extrap = True if (self.time <= self._datehigh
-                                       and self.time > self._lastepoch) else False
+        self.__valid_extrap = True if (self.time <= igrfcoeffs.datehigh
+                                       and self.time > igrfcoeffs.lastepoch) else False
         self.__status['time_set'] = False
         self.__status['init'] = True
 
@@ -112,13 +123,13 @@ class IGRF():
         # __coeffs, interp to time and save as '[g|h][n][m]' e.g., 'h32' (entries in self.coeffs)
         if not self.__valid_extrap:
             # Interpolate coefficients linearly
-            numepochs = [spt.Ticktock(dt.datetime(int(val), 1, 1)).MJD[0] for val in self._epochs]
+            numepochs = [spt.Ticktock(dt.datetime(int(val), 1, 1)).MJD[0] for val in igrfcoeffs.epochs]
             g10 = np.interp(tstamp, numepochs, self.__coeffs['g'][1][0])
             g11 = np.interp(tstamp, numepochs, self.__coeffs['g'][1][1])
             h11 = np.interp(tstamp, numepochs, self.__coeffs['h'][1][1])
         else:
             # Extrapolate using secular variation
-            ref_ep = spt.Ticktock(dt.datetime(int(self._epochs[-1]), 1, 1)).MJD[0]
+            ref_ep = spt.Ticktock(dt.datetime(int(igrfcoeffs.epochs[-1]), 1, 1)).MJD[0]
             diff_years = ((tstamp % 1 + tstamp//1) - (ref_ep % 1 + ref_ep//1))/365.25 # in years
             g10 = self.__coeffs['g_SV'][1][0]*diff_years + self.__coeffs['g'][1][0][-1]
             g11 = self.__coeffs['g_SV'][1][1]*diff_years + self.__coeffs['g'][1][1][-1]
