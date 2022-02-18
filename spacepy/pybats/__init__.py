@@ -392,7 +392,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
     ax.add_artist(body)
 
 
-def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
+def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True, sort_unstructured_data=False):
     '''
     Load a SWMF IDL ascii output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`.
@@ -539,7 +539,18 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
 
-
+    # Unstructured data can be in any order, so let's sort it.
+    if gtyp == 'Unstructured' and sort_unstructured_data:
+        gridtotal = np.zeros(npts)
+        offset = 0.0  # The offset ensures no repeating vals while sorting.
+        for key in pbdat['grid'].attrs['dims']:
+            gridtotal = gridtotal + offset + pbdat[key]
+            offset = offset + np.pi/2.0
+            SortIndex = np.argsort(gridtotal)
+        for key in list(pbdat.keys()):
+            if key=='grid': continue
+            pbdat[key] = pbdat[key][SortIndex]
+                
 def readarray(f, dtype=np.float32, inttype=np.int32):
     '''
     Read an array from an unformatted binary file written out by a
@@ -819,7 +830,7 @@ def _probe_idlfile(filename):
 
 
 def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
-                  headeronly=False):
+                  headeronly=False, sort_unstructured_data=False):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`, which will
@@ -983,7 +994,7 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
                 pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'], order='F')
 
         # Unstructured data can be in any order, so let's sort it.
-        if gtyp == 'Unstructured':
+        if gtyp == 'Unstructured' and sort_unstructured_data:
             gridtotal = np.zeros(npts)
             offset = 0.0  # The offset ensures no repeating vals while sorting.
             for key in pbdat['grid'].attrs['dims']:
@@ -1165,10 +1176,12 @@ class IdlFile(PbData):
     keep_case : boolean
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
+    sort_unstructured_data : boolean
+        If set to True, the postions and data are sorted so nearby positions are arranged as close as possible to each other in the data arrays.
     '''
 
     def __init__(self, filename, iframe=0, header='units',
-                 keep_case=True, *args, **kwargs):
+                 keep_case=True, sort_unstructured_data=False, *args, **kwargs):
         super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
 
         # Gather information about the file: format, endianess (if necessary),
@@ -1198,7 +1211,7 @@ class IdlFile(PbData):
             self._scan_asc_frames()
 
         # Read one entry of the file (defaults to first frame):
-        self.read(iframe=iframe)      # Read file.
+        self.read(iframe=iframe, sort_unstructured_data=sort_unstructured_data)      # Read file.
 
         # Update information about the currently loaded frame.
         self.attrs['iframe'] = iframe
@@ -1315,7 +1328,7 @@ class IdlFile(PbData):
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
 
-    def read(self, iframe=0):
+    def read(self, iframe=0,sort_unstructured_data=False):
         '''
         This method reads an IDL-formatted BATS-R-US output file and places
         the data into the object.  The file read is self.filename which is
@@ -1327,10 +1340,12 @@ class IdlFile(PbData):
 
         if self.attrs['format'] == 'asc':
             _read_idl_ascii(self, header=self._header, start_loc=loc,
-                            keep_case=self._keep_case)
+                            keep_case=self._keep_case,
+                            sort_unstructured_data=sort_unstructured_data)
         elif self.attrs['format'] == 'bin':
             _read_idl_bin(self, header=self._header, start_loc=loc,
-                          keep_case=self._keep_case)
+                          keep_case=self._keep_case,
+                          sort_unstructured_data=sort_unstructured_data)
         else:
             raise ValueError('Unrecognized file format: {}'.format(
                 self._format))
