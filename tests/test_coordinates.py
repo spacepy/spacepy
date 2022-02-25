@@ -90,13 +90,38 @@ class coordsTest(unittest.TestCase):
         self.assertEqual(len(self.cvals), 2)
 
     def test_roundtrip_GEO_ECIMOD(self):
-        """Roundtrip should yield input as answer"""
+        """Roundtrip [GEO->MOD->GEO] should yield input as answer"""
         self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         expected = spc.Coords(self.cvals.data, 'GEO', 'car', use_irbem=False)
         stage1 = self.cvals.convert('ECIMOD', 'car')
         got = stage1.convert('GEO', 'car')
         np.testing.assert_allclose(got.data, expected.data)
         np.testing.assert_equal(got.dtype, 'GEO')
+
+    def test_roundtrip2_GEO_ECIMOD(self):
+        """Roundtrip [GEO->MOD->MAG->GEO] should yield input as answer"""
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        expected = spc.Coords(self.cvals.data, 'GEO', 'car', use_irbem=False)
+        stage1 = self.cvals.convert('ECIMOD', 'car')
+        stage2 = stage1.convert('MAG', 'sph')
+        got = stage2.convert('GEO', 'car')
+        np.testing.assert_allclose(got.data, expected.data)
+        np.testing.assert_equal(got.dtype, 'GEO')
+
+    def test_roundtrip_convoluted(self):
+        """Convoluted roundtrip should yield input as answer"""
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2013-03-03T13:00:00'], 'ISO')
+        expected = spc.Coords(self.cvals.data, 'GEO', 'car', use_irbem=False)
+        stage1 = self.cvals.convert('ECI2000', 'car')
+        stage2 = stage1.convert('GDZ', 'sph')  # should output as km
+        self.assertEqual(stage2.units[0], 'km')
+        got = stage2.convert('GEO', 'car')
+        # test metadata first
+        np.testing.assert_equal(got.dtype, 'GEO')
+        # are units back in Re?
+        self.assertEqual(got.units[0], expected.units[0])
+        # then test for results
+        np.testing.assert_allclose(got.data, expected.data)
 
     def test_IRBEMname1(self):
         """CTrans-based conversion should respect IRBEM-style names on input"""
@@ -139,6 +164,25 @@ class coordsTest(unittest.TestCase):
         got = ccobj.convert('ECI2000', 'car')
         np.testing.assert_allclose(got.data, expected)
 
+    def test_multi_time_conversion_same_as_CTrans(self):
+        """Make sure that multiple times are handled correctly"""
+        tt = Ticktock(['2012-02-12T12:12:12', '2017-07-17T20:17:07'], 'ISO')
+        pos = np.array([[1, 2, 3], [1, 2, 3]])
+        ct1 = ctrans.CTrans(tt[0])
+        ct1.calcCoreTransforms()
+        expect1 = ct1.convert(pos[0], 'GEO', 'ECI2000')
+        ct2 = ctrans.CTrans(tt[1])
+        ct2.calcCoreTransforms()
+        expect2 = ct2.convert(pos[1], 'GEO', 'ECI2000')
+        ccobj = spc.Coords(pos, 'GEO', 'car', ticks=tt, use_irbem=False)
+        got = ccobj.convert('ECI2000', 'car')
+        # Test that the Coords conversion gets the same answer
+        # as using CTrans directly
+        np.testing.assert_allclose(got[0].data, np.atleast_2d(expect1))
+        np.testing.assert_allclose(got[1].data, np.atleast_2d(expect2))
+        # Make sure that the ECI2000 positions for the 2 times are different
+        self.assertFalse((got[0].data==got[1].data).all())
+
     def test_spherical_return_GEO(self):
         """GEO should return correct spherical when requested (no conversion)"""
         tt = Ticktock(['2002-02-02T12:00:00'], 'ISO')
@@ -165,6 +209,27 @@ class coordsTest(unittest.TestCase):
         ccobj = spc.Coords(pos, 'GEO', 'sph', ticks=tt, use_irbem=False)
         got = ccobj.convert('ECIMOD', 'car')
         np.testing.assert_allclose(got.data, np.atleast_2d(expected), rtol=0, atol=1e-7)
+
+    def test_spherical_MAG_roundtrip(self):
+        """Roundtrip from spherical MAG to MOD cartesian and back"""
+        tt = Ticktock(2459213.5, 'JD')
+        pos = [4.0, 45, 0]
+        ccobj = spc.Coords(pos, 'MAG', 'sph', ticks=tt, use_irbem=False)
+        got = ccobj.convert('ECIMOD', 'car').convert('MAG', 'sph')
+        np.testing.assert_allclose(got.data, np.atleast_2d(pos), rtol=0, atol=1e-7)
+
+    def test_spherical_MAG_roundtrip_multi(self):
+        """Roundtrip from spherical MAG to MOD cartesian and back (multipoint)"""
+        tt = Ticktock([2459213.5]*2, 'JD')
+        pos = [[4.0, 45, 0]]*2
+        ccobj = spc.Coords(pos, 'MAG', 'sph', ticks=tt, use_irbem=False)
+        temp = ccobj.convert('ECIMOD', 'car')
+        got = temp.convert('MAG', 'sph')
+        # norm of ECIMOD coordinates should equal radius of input spherical
+        # as they're both Earth-centered
+        np.testing.assert_allclose(ccobj.radi, np.linalg.norm(temp.data, axis=-1))
+        # output of roundtrip should equal input
+        np.testing.assert_allclose(got.data, np.atleast_2d(pos), rtol=0, atol=1e-7)
 
     def test_geodetic_from_GEO_spherical(self):
         """Coords should return correct geodetic (converted)"""
@@ -200,10 +265,53 @@ class coordsTest(unittest.TestCase):
         cc_km = spc.Coords(pos, 'GDZ', 'sph', ticks=tt, units=['km', 'deg', 'deg'],
                            use_irbem=False)
         got = cc_km.convert('GEO', 'sph')
-        expected_rad = ctrans.WGS84['A'] + test_alt
+        expected_rad = (ctrans.WGS84['A'] + test_alt)/ctrans.WGS84['A']
         # same valued output in Re regardless of units of input
         np.testing.assert_approx_equal(expected_rad, got.radi, significant=6)
         self.assertEqual(got.units[0], 'Re')
+
+    def test_GDZ_from_GEO_multi(self):
+        """Multi-point Coords should give same answer as single point calls"""
+        tt = Ticktock([2459218.5]*2, 'JD')
+        pos = [[1.1, -90.0, 180.0]]*2
+        geo = spc.Coords(pos, 'GEO', 'sph', ticks=tt, use_irbem=False)
+        ans0 = geo[0].convert('GDZ', 'sph')
+        ans1 = geo[1].convert('GDZ', 'sph')
+        ansall = geo.convert('GDZ', 'sph')
+        np.testing.assert_allclose(np.r_[ans0.data, ans1.data], ansall.data)
+
+    def test_GDZ_array_at_singularity(self):
+        """Test GDZ conversion doesn't blow up altitude at south pole"""
+        # Note that this is tested as a direct calculation in ctrans,
+        # and this test exercises the convenience routines
+        tt = Ticktock([2459218.5]*3, 'JD')
+        pos = [[1.1, -90.0, -180.0], [1.1, -90.0, 180.0], [1.1, -90.0, 360.0]]
+        geo = spc.Coords(pos, 'GEO', 'sph', ticks=tt, use_irbem=False)
+        ans0 = geo[0].convert('GDZ', 'sph')
+        ans1 = geo[1].convert('GDZ', 'sph')
+        ans2 = geo[2].convert('GDZ', 'sph')
+        ansall = geo.convert('GDZ', 'sph')
+        np.testing.assert_allclose(np.r_[ans0.radi, ans1.radi, ans2.radi], ansall.radi)
+
+    def test_source_units_preserved(self):
+        """Make sure units on source Coords are preserved during conversion to GDZ"""
+        tt = Ticktock([2459218.5], 'JD')
+        pos = [[1.1, -90.0, -180.0]]
+        geo = spc.Coords(pos, 'GEO', 'sph', ticks=tt, use_irbem=False,
+                         units=['Re', 'deg', 'deg'])  # set default units explicitly
+        ans0 = geo.convert('GDZ', 'sph')
+        self.assertEqual(geo.units[0], 'Re')  # ensure unit remains unchanged
+        np.testing.assert_allclose(geo.data, pos)  # ensure values remain unchanged
+
+    def test_source_units_preserved2(self):
+        """Make sure units on source Coords are preserved during conversion from GDZ"""
+        tt = Ticktock([2459218.5], 'JD')
+        pos = [[1.1, -90.0, -180.0]]
+        gdz = spc.Coords(pos, 'GDZ', 'sph', ticks=tt, use_irbem=False,
+                         units=['km', 'deg', 'deg'])  # set default units explicitly
+        ans0 = gdz.convert('GEO', 'sph')
+        self.assertEqual(gdz.units[0], 'km')  # ensure unit remains unchanged
+        np.testing.assert_allclose(gdz.data, pos)  # ensure values remain unchanged
 
     def test_GDZ_cartesian_raises_convert(self):
         """Geodetic coordinates shouldn't be expressed in Cartesian"""
