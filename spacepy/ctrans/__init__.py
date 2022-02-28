@@ -674,8 +674,10 @@ class CTrans(dm.SpaceData):
             String name for target coordinate system. For supported systems,
             see module level documentation.
         """
+        # must be at least 2D for conversion methods
+        gvec = np.atleast_2d(vec)
         # Needs 3xN vectors for a broadcast dot product
-        trvec = np.atleast_2d(vec).T
+        trvec = gvec.T
 
         # Special case geodetic transforms
         to_geodetic = False
@@ -701,7 +703,7 @@ class CTrans(dm.SpaceData):
                     trans1 = '{0}_{1}'.format(sys_in, 'ECIMOD')
                     trans2 = '{0}_{1}'.format('ECIMOD', sys_out)
                     assert trans1 in self['Transform']
-                    assert trans1 in self['Transform']
+                    assert trans2 in self['Transform']
                     tmatr = self['Transform'][trans2].dot(self['Transform'][trans1])
                     self['Transform'][transform] = tmatr
                 except (KeyError, AssertionError):
@@ -719,9 +721,9 @@ class CTrans(dm.SpaceData):
         converted_squeezed = converted.squeeze()
 
         if to_geodetic:
-            converted_squeezed = geo_to_gdz(converted_squeezed)
+            converted_squeezed = geo_to_gdz(converted_squeezed.T)
         elif to_rll:
-            converted_squeezed = geo_to_rll(converted_squeezed)
+            converted_squeezed = geo_to_rll(converted_squeezed.T)
         return converted_squeezed
 
     def gmst(self):
@@ -893,10 +895,10 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
             coordinates," in IEEE Transactions on Aerospace and Electronic Systems, vol. 30,
             no. 3, pp. 957-961, July 1994, doi: 10.1109/7.303772.
     """
-    posarr = np.atleast_2d(geovec)
-    x_geo = posarr[:, 0]
-    y_geo = posarr[:, 1]
-    z_geo = posarr[:, 2]
+    posarr = np.atleast_2d(geovec).T
+    x_geo = posarr[0, :]
+    y_geo = posarr[1, :]
+    z_geo = posarr[2, :]
     if units == 'Re':
         # Make sure positions are in km
         rx = x_geo*geoid['A']
