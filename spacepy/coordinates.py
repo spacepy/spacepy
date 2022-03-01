@@ -433,7 +433,6 @@ class Coords(object):
             NewCoords = Coords(data, returntype if self.use_irbem else returnname,
                                returncarsph, units, self.ticks, use_irbem=self.use_irbem)
 
-        setbreak=False
         # now convert to other coordinate system
         if not is_dtype_returntype:
             assert self.ticks, "Time information required; add a .ticks attribute"
@@ -449,23 +448,20 @@ class Coords(object):
                     # converting from a Cartesian referenced system to an
                     # ellipsoid referenced system, input must be in km
                     data *= self.Re  # geodetic is defined in [km, deg, deg]
-                if (self.dtype == 'GDZ' and
-                    returnname not in ['GDZ', 'RLL'] and
-                    self.units[0] == 'km'):
-                    # if from GDZ to a Cartesian referenced system, convert back to Re
-                    data[:, 0] /= self.Re
                 NewCoords.data = np.atleast_2d(ctrans.convert_multitime(data, self.ticks,
                                                                         self.dtype, returnname))
                 if returnname == 'RLL' and units[0] == 'Re':
                     # RLL is defined in Re, deg, deg, but all geodetic calcs are in km
                     NewCoords.data[:, 0] = NewCoords.data[:, 0]/self.Re
-                if self.dtype in ['RLL', 'GDZ'] and units[0] == 'Re':
+                if (self.dtype in ['RLL', 'GDZ'] and
+                    returnname not in ['RLL', 'GDZ'] and
+                    units[0] == 'km'):
+                    # input was in km, needs to be Earth radii
                     NewCoords.data /= self.Re
                 if returncarsph == 'sph' and returnname not in ['GDZ', 'RLL']:
                     NewCoords.data = car2sph(NewCoords.data)
             if self.dtype == 'GDZ':  # GDZ is defined in km and everything else is strictly Re
                 units[0] = 'Re'  # Converting back from GDZ set units to Re
-                setbreak=True
             NewCoords.carsph = returncarsph
             NewCoords.sysaxes = SYSAXES_TYPES[NewCoords.dtype][NewCoords.carsph]
 
