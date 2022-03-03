@@ -208,6 +208,7 @@ class CTransRegressionTests(unittest.TestCase):
         # to be immutable
         ct14['EarthOrientationParameters'] = ct14._factory['eop'](DUT1=-0.32591566, xp=0,
                                                                   yp=0, ddPsi=0, ddEps=0)
+        ct14._CTrans__status['useEOP'] = True
         self.CTrans2014.calcTimes()
         numpy.testing.assert_almost_equal(self.CTrans2014['GMST'], 14.05453852, decimal=7)
 
