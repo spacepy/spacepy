@@ -233,6 +233,7 @@ class CTrans(dm.SpaceData):
                          'transformMag': False,
                          'timeInProgress': False,
                          'coreInProgress': False,
+                         'useEOP': eop
                          }
 
     def _setconstants(self):
@@ -296,16 +297,19 @@ class CTrans(dm.SpaceData):
         eop = self['EarthOrientationParameters']
         const = self['constants']
         ctime = self.attrs['time']
-        nleaps = ctime.getleapsecs()[0]
 
         # UT1
         self['UTC'] = ctime
         self['UTC_JD'] = ctime.JD[0]
         self['UTC_JC'] = (self['UTC_JD'] - const.j2000_jd)/const.daycentury
-        self['TAI'] = spt.Ticktock(ctime.UTC[0]+dt.timedelta(seconds=float(nleaps)), dtype='UTC')
-        self['TAI_JD'] = self['TAI'].JD[0]
-        self['UT1'] = spt.Ticktock(ctime.UTC[0] + dt.timedelta(seconds=eop.DUT1), dtype='UTC')
-        self['UT1_JD'] = self['UT1'].JD[0]
+        self['TAI_JD'] = spt._days1958(self['UTC'].TAI[0], leaps='continuous') + 2436205.0
+        if self.__status['useEOP']:
+            self['UT1'] = spt.Ticktock(ctime.UTC[0] + dt.timedelta(seconds=eop.DUT1), dtype='UTC')
+            self['UT1_JD'] = self['UT1'].JD[0]
+        else:
+            # no EOP, so UT1 = UTC and we can save time recalculating times
+            self['UT1'] = self['UTC']
+            self['UT1_JD'] = self['UTC_JD']
         self['UT1_JC'] = (self['UT1_JD'] - const.j2000_jd)/const.daycentury
 
         # Terrestrial Time in Julian centuries since J2000
