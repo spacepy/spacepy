@@ -209,7 +209,8 @@ def parse_filename_time(filename):
                             filename).groups()[0]
         t_string = re.findall('(\d{8}\-\d{6})', subname)
         time = [parse(x) for x in t_string]
-        if len(time) == 1: time = time[0] # Reduce to scalar if necessary.
+        if len(time) == 1:
+            time = time[0]  # Reduce to scalar if necessary.
     else:
         time = None
 
@@ -989,7 +990,8 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
             if units: pbdat[names[i]].attrs['units'] = units.pop(nSkip)
             if gtyp != 'Unstructured':
                 # Put data into multidimensional arrays.
-                pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'], order='F')
+                pbdat[names[i]] = pbdat[names[i]].reshape(
+                    pbdat['grid'], order='F')
 
         # Unstructured data can be in any order, so let's sort it.
         if gtyp == 'Unstructured':
