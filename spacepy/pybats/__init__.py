@@ -400,7 +400,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
     ax.add_artist(body)
 
 
-def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
+def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True, sort_unstructured_data=False):
     '''
     Load a SWMF IDL ascii output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`.
@@ -547,7 +547,18 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
 
-
+    # Unstructured data can be in any order, so let's sort it.
+    if gtyp == 'Unstructured' and sort_unstructured_data:
+        gridtotal = np.zeros(npts)
+        offset = 0.0  # The offset ensures no repeating vals while sorting.
+        for key in pbdat['grid'].attrs['dims']:
+            gridtotal = gridtotal + offset + pbdat[key]
+            offset = offset + np.pi/2.0
+            SortIndex = np.argsort(gridtotal)
+        for key in list(pbdat.keys()):
+            if key=='grid': continue
+            pbdat[key] = pbdat[key][SortIndex]
+                
 def readarray(f, dtype=np.float32, inttype=np.int32):
     '''
     Read an array from an unformatted binary file written out by a
@@ -828,7 +839,7 @@ def _probe_idlfile(filename):
 
 
 def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
-                  headeronly=False):
+                  headeronly=False, sort_unstructured_data=True):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`, which will
@@ -993,7 +1004,7 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
                     pbdat['grid'], order='F')
 
         # Unstructured data can be in any order, so let's sort it.
-        if gtyp == 'Unstructured':
+        if gtyp == 'Unstructured' and sort_unstructured_data:
             gridtotal = np.zeros(npts)
             offset = 0.0  # The offset ensures no repeating vals while sorting.
             for key in pbdat['grid'].attrs['dims']:
@@ -1175,10 +1186,16 @@ class IdlFile(PbData):
     keep_case : boolean
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
+    sort_unstructured_data : boolean 9default: None
+        If not set, the behavior of the _read_idl_bin() and _read-idl-ascii() readers reamin, as described below:
+        If set to True, the positions and data are sorted so nearby positions are arranged as close as possible to each other in the data arrays. 
+          True is the default in the _read_idl_bin() reader.
+        If set to False the positions in the unstructured grid data are not rearranged. When reading 3D magnetosphere files, the 3D block structure is preserved and can then be used by the BATSRUS interpolator developed for the Kamodo Heliohysics model readers package (https://github.com/nasa/kamodo) that relies on these Spacepy.pybats readers.
+          False is the default for the _read_idl_ascii() reader where the feature was not implemented before this keyword was added.
     '''
 
     def __init__(self, filename, iframe=0, header='units',
-                 keep_case=True, *args, **kwargs):
+                 keep_case=True, sort_unstructured_data=None, *args, **kwargs):
         super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
 
         # Gather information about the file: format, endianess (if necessary),
@@ -1207,8 +1224,15 @@ class IdlFile(PbData):
         else:
             self._scan_asc_frames()
 
+        # sort_unstructured_data--if None set keyword to preserve old behavior
+        if sort_unstructured_data is None:
+            if fmt=='bin':
+                sort_unstructured_data=True
+            else:
+                sort_unstructured_data=False
+
         # Read one entry of the file (defaults to first frame):
-        self.read(iframe=iframe)      # Read file.
+        self.read(iframe=iframe, sort_unstructured_data=sort_unstructured_data)
 
         # Update information about the currently loaded frame.
         self.attrs['iframe'] = iframe
@@ -1326,22 +1350,32 @@ class IdlFile(PbData):
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
 
-    def read(self, iframe=0):
+    def read(self, iframe=0,sort_unstructured_data=None):
         '''
         This method reads an IDL-formatted BATS-R-US output file and places
         the data into the object.  The file read is self.filename which is
-        set when the object is instantiation.
+        set when the object is instantiated.
+        The new sort_unstructured_data keyword can turn off the data sorting run by default in the binary file reader.
+        The idl_ascii reader now has the option to perform the same sorting as the idl_bin reader when teh keyword is set to True.
         '''
 
         # Get location of frame that we wish to read:
         loc = self._offsets[iframe]
 
         if self.attrs['format'] == 'asc':
+            # set keyword default to preserve behavior
+            if sort_unstructured_data is None:  
+                sort_unstructured_data=False
             _read_idl_ascii(self, header=self._header, start_loc=loc,
-                            keep_case=self._keep_case)
+                            keep_case=self._keep_case,
+                            sort_unstructured_data=sort_unstructured_data)
         elif self.attrs['format'] == 'bin':
+            # set keyword default to preserve behavior
+            if sort_unstructured_data is None:
+                sort_unstructured_data=True
             _read_idl_bin(self, header=self._header, start_loc=loc,
-                          keep_case=self._keep_case)
+                          keep_case=self._keep_case,
+                          sort_unstructured_data=sort_unstructured_data)
         else:
             raise ValueError('Unrecognized file format: {}'.format(
                 self._format))
