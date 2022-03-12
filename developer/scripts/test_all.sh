@@ -33,7 +33,7 @@ TESTS=(
 # So assuming this is an f2py problem, go for 1.18 minimum.
        "3.9|numpy>=1.18.0,<1.19.0|scipy>=1.5.0,<1.6.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0,<0.9 astropy>=2.0,<2.1"
        "3.9|numpy>=1.21.0|scipy matplotlib networkx h5py ffnet astropy"
-       "3.10|numpy>=1.21.0,<1.22.0|scipy>=1.7.2,<1.8.0 matplotlib>=2.2.0,<2.3.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0,<0.9 astropy>=4.0,<4.1"
+       "3.10|numpy>=1.21.0,<1.22.0|scipy>=1.7.2,<1.8.0 matplotlib>=2.2.0,<2.3.0 networkx>=1.3,<1.4 h5py>=3.6,<3.7 ffnet>=0.8.0,<0.9 astropy>=4.0,<4.1"
        "3.10|numpy>=1.21.0|scipy matplotlib networkx h5py ffnet astropy"
       )
 for thisTest in "${TESTS[@]}"
