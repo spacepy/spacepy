@@ -154,7 +154,7 @@ jobs:
         # Make sure new packages don't override numpy version
         pip install "numpy${NUMPY_VERSION}" ${PIPLIST}
         pip freeze
-        if [ ! -d ${HOME}/cdf ]; then wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; cd cdf38_0-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
+        if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; cd cdf38_0-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
 # commit of the PR, not just the tip of the PR.
     - name: checkout
