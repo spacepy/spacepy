@@ -31,7 +31,7 @@ bash ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda
 
 If CDF library isn't installed, download/install CDF, so that the pycdf
 library will import and the docs build:
-wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; pushd cdf38_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME/cdf install; popd
+wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; pushd cdf38_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME/cdf install; popd
 source ${HOME}/cdf/bin/definitions.B
 
 Make a clean isolated environment just for SpacePy build:

@@ -1261,7 +1261,7 @@ def download_library():
         class AppURLopener(u.FancyURLopener):
             version = spacepy.config['user_agent']
         u._urlopener = AppURLopener()
-    baseurl = 'https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/'
+    baseurl = 'https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/'
     url = u.urlopen(baseurl)
     listing = url.read()
     url.close()
