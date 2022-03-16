@@ -243,6 +243,8 @@ class TestIdlFile(unittest.TestCase):
     knownMhdXmin = -220.0
     knownMhdZlim = 124.0
     knownMhdTime = dt.datetime(2014, 4, 10, 0, 0, 50)
+    knownMhdX_unsorted = [-220., -212., -204., -196., -188., -180., -172., -164.] # first 8 X positions in the y0_ascii.out file
+    knownMhdX_sorted = [-220., -212., -220., -204., -220., -212., -212., -204.] # first 8 X positions in the binary y=0_mhd_1_e20140410-000050.out file after sorting of positions
 
     # Known values for multi-frame *.outs files:
     # Time/iteration range covered by files:
@@ -282,6 +284,8 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdXmin, mhd['x'].min())
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
+        for v in range(len(self.knownMhdX_sorted)):
+            self.assertEqual(self.knownMhdX_sorted[v], (mhd['x'])[v])
 
     def testAscii(self):
         # Open file:
@@ -298,7 +302,9 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdXmin, mhd['x'].min())
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
-
+        for v in range(len(self.knownMhdX_unsorted)):
+            self.assertEqual(self.knownMhdX_unsorted[v], (mhd['x'])[v])
+        
     def testReadOuts(self):
         # Start with y=0 slice MHD outs file:
         mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir, 'pybats_test',
