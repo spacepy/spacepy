@@ -64,6 +64,7 @@ Contact: smorley@lanl.gov
 Copyright 2010-2016 Los Alamos National Security, LLC.
 """
 
+from collections import namedtuple
 import numbers
 import warnings
 import numpy as np
@@ -92,6 +93,20 @@ SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
 SYS_EQUIV = {'GEI': 'ECITOD', 'TOD': 'ECITOD', 'J2000': 'ECI2000', 'MAG': 'CDMAG'}
 
 IRBEM_RE = 6371.2  # kilometers
+
+
+class __Defaults(object):
+    def __init__(self):
+        self._fac = namedtuple('values', 'use_irbem, show_warning, ellipsoid, itol')
+        self.set_values()
+
+    def set_values(self, use_irbem=True, show_warning=True, ellipsoid=ctrans.WGS84, itol=30):
+        self.values = self._fac(use_irbem=use_irbem,
+                                show_warning=show_warning,
+                                ellipsoid=ellipsoid,
+                                itol=itol)
+
+DEFAULTS = __Defaults()
 
 
 class Coords(object):
@@ -166,18 +181,21 @@ class Coords(object):
     .. automethod:: from_skycoord
     .. automethod:: to_skycoord
     '''
-    def __init__(self, data, dtype, carsph, units=None, ticks=None, use_irbem=True):
+    def __init__(self, data, dtype, carsph, units=None, ticks=None, use_irbem=None):
+        if use_irbem is None:
+            use_irbem = DEFAULTS.values.use_irbem
+            if use_irbem and DEFAULTS.values.show_warning:
+                warnings.warn('Use of IRBEM to perform coordinate transformations is ' +
+                              'no longer recommended.\n' +
+                              'The default library used for coordinate transforms will ' +
+                              'change in a future release.\n' +
+                              'To ensure forward-compatibility, please set use_irbem=False',
+                              DeprecationWarning)
         if use_irbem:
             from . import irbempy as op
-            warnings.warn('Use of IRBEM to perform coordinate transformations is ' +
-                          'no longer recommended.\n' +
-                          'The default library used for coordinate transforms will ' +
-                          'change in a future release.\n' +
-                          'To ensure forward-compatibility, please set use_irbem=False',
-                          DeprecationWarning)
         self.use_irbem = use_irbem
         # setup units
-        self.Re = IRBEM_RE if use_irbem else ctrans.WGS84['A']  # kilometers
+        self.Re = IRBEM_RE if use_irbem else DEFAULTS.values.ellipsoid['A']  # kilometers
 
         # Make sure that inputs are all formed correctly
         self.data = np.atleast_2d(data).astype(np.float_)
@@ -392,12 +410,8 @@ class Coords(object):
                     carsph = 'sph'
                     units = [self.units[0], 'deg', 'deg']
                     data = car2sph(self.data)
-                with warnings.catch_warnings():
-                    warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                            category=DeprecationWarning,
-                                            module=r'spacepy.coordinates$')
-                    return Coords(data, self.dtype, carsph, units, self.ticks,
-                                  use_irbem=self.use_irbem)
+                return Coords(data, self.dtype, carsph, units, self.ticks,
+                              use_irbem=self.use_irbem)
 
         # check the length of ticks and do the more complex conversions
         if self.ticks and (len(self.ticks) != len(self)):
@@ -421,13 +435,8 @@ class Coords(object):
         if self.use_irbem:
             from . import irbempy as op
             # irbempy.coord_trans needs the passed Coords object to have the "from" dtype
-            with warnings.catch_warnings():
-                # No need to warn on conversion
-                warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                        category=DeprecationWarning,
-                                        module=r'spacepy.coordinates$')
-                NewCoords = Coords(data, self.dtype, carsph, units, self.ticks,
-                                   use_irbem=self.use_irbem)
+            NewCoords = Coords(data, self.dtype, carsph, units, self.ticks,
+                               use_irbem=self.use_irbem)
         else:
             # SpacePy conversion takes input/output type separately, so set to desired output
             NewCoords = Coords(data, returntype if self.use_irbem else returnname,
@@ -449,7 +458,8 @@ class Coords(object):
                     # ellipsoid referenced system, input must be in km
                     data *= self.Re  # geodetic is defined in [km, deg, deg]
                 NewCoords.data = np.atleast_2d(ctrans.convert_multitime(data, self.ticks,
-                                                                        self.dtype, returnname))
+                                                                        self.dtype, returnname,
+                                                                        DEFAULTS.values))
                 if returnname == 'RLL' and units[0] == 'Re':
                     # RLL is defined in Re, deg, deg, but all geodetic calcs are in km
                     NewCoords.data[:, 0] = NewCoords.data[:, 0]/self.Re

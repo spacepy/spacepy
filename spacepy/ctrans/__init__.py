@@ -663,7 +663,7 @@ class CTrans(dm.SpaceData):
         self['Transform']['ECIMOD_CDMAG'] = geo_cdmag.dot(self['Transform']['ECIMOD_GEO'])
         self['Transform']['CDMAG_ECIMOD'] = self['Transform']['ECIMOD_CDMAG'].T
 
-    def convert(self, vec, sys_in, sys_out):
+    def convert(self, vec, sys_in, sys_out, defaults=None):
         """Convert an input vector between two coordinate systems
 
         Parameters
@@ -677,6 +677,11 @@ class CTrans(dm.SpaceData):
         sys_out : str
             String name for target coordinate system. For supported systems,
             see module level documentation.
+
+        Other Parameters
+        ----------------
+        defaults : namedtuple or None
+            Named tuple containing default settings passed from Coordinates module
         """
         # must be at least 2D for conversion methods
         gvec = np.atleast_2d(vec)
@@ -693,10 +698,10 @@ class CTrans(dm.SpaceData):
             sys_out = 'GEO'
             to_rll = True
         if sys_in == 'GDZ':
-            trvec = gdz_to_geo(vec)
+            trvec = gdz_to_geo(vec) if defaults is None else gdz_to_geo(vec, geoid=defaults.ellipsoid)
             sys_in = 'GEO'
         elif sys_in == 'RLL':
-            trvec = rll_to_geo(vec)
+            trvec = rll_to_geo(vec) if defaults is None else rll_to_geo(vec, geoid=defaults.ellipsoid)
             sys_in = 'GEO'
 
         if sys_in != sys_out:
@@ -725,9 +730,15 @@ class CTrans(dm.SpaceData):
         converted_squeezed = converted.squeeze()
 
         if to_geodetic:
-            converted_squeezed = geo_to_gdz(converted_squeezed.T)
+            if defaults is not None:
+                converted_squeezed = geo_to_gdz(converted_squeezed.T, geoid=defaults.ellipsoid)
+            else:
+                converted_squeezed = geo_to_gdz(converted_squeezed.T)
         elif to_rll:
-            converted_squeezed = geo_to_rll(converted_squeezed.T)
+            if defaults is not None:
+                converted_squeezed = geo_to_rll(converted_squeezed.T, geoid=defaults.ellipsoid)
+            else:
+                converted_squeezed = geo_to_rll(converted_squeezed.T)
         return converted_squeezed
 
     def gmst(self):
@@ -1078,7 +1089,31 @@ def rll_to_geo(rllvec, units='km', geoid=WGS84):
     return geoarr
 
 
-def convert_multitime(coords, ticks, sys_in, sys_out, itol=30):
+def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
+    '''
+    Convert coordinates for N times, where N >= 1
+
+    Parameters
+    ----------
+    coords : array-like
+        Coordinates as Nx3 array. Cartesian assumed unless input system is gedetic.
+    ticks : spacepy.time.Ticktock
+        Times for each element of coords. Must contain either N times or 1 time.
+    sys_in : str
+        Name of input coordinate system.
+    sys_out : str
+        Name of output coordinate system.
+
+    Other Parameters
+    ----------------
+    defaults : namedtuple or None
+        Named tuple with parameters from coordinates module
+    itol : float
+        Time tolerance, in seconds, for using a unique set of conversions.
+        Default is 1. Supplying a defaults namedtuple (i.e., if routine is called
+        by spacepy.cooordinates.Coords.convert) will override this value.
+    '''
+    itol = itol if defaults is None else defaults.itol
     # Calculate a CTrans for each unique time
     ctdict = dict()
     ttused = set()
@@ -1106,9 +1141,9 @@ def convert_multitime(coords, ticks, sys_in, sys_out, itol=30):
     # except the spacial case of only 1 unique time
     loopover = np.atleast_2d(coords)
     if len(ctdict) == 1:
-        newcoords = ctdict[tais[0]].convert(loopover, sys_in, sys_out)
+        newcoords = ctdict[tais[0]].convert(loopover, sys_in, sys_out, defaults=defaults)
     else:
         newcoords = np.empty_like(loopover)
         for idx, cc in enumerate(loopover):
-            newcoords[idx] = ctdict[tais[idx]].convert(cc, sys_in, sys_out)
+            newcoords[idx] = ctdict[tais[idx]].convert(cc, sys_in, sys_out, defaults=defaults)
     return newcoords.squeeze()
