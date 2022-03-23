@@ -1,5 +1,3 @@
-.. automodule:: spacepy
-
 *************************************
 SpacePy - A Quick Start Documentation
 *************************************
