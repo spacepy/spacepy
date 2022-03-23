@@ -175,13 +175,29 @@ before modification:
 >>> cdf.readonly(False)
     False
 
-Then new variables can be added
+Then new variables can be added:
 
 >>> cdf['newVar'] = [1.0, 2.0]
 
-Or contents can be changed
+Or contents can be changed:
 
 >>> cdf['data'][0] = 8675309
+
+You can write all new data to an existing variable, leaving the
+variable type, dimensionality, and attributes unchanged:
+
+>>> cdf['Epoch'][...] = [datetime.datetime(2010, 10, 1, 1, val)
+...     for val in range(60)]
+
+This is the common usage when using a CDF file containing all the
+variables and attributes but no data, sometimes called a "master
+CDF". Although the ``[...]`` makes this explicit (writing new records
+not a new variable), the same syntax as for a new variable can also be
+used:
+
+>>> # Either create a new variable or overwrite data in existing
+>>> cdf['Epoch'] = [datetime.datetime(2010, 10, 1, 1, val)
+...     for val in range(60)]
 
 The new variables appear immediately:
 
