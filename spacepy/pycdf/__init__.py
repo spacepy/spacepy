@@ -2244,6 +2244,13 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             Either ``data`` or ``type`` must be specified. If type is not
             specified, it is guessed from ``data``.
 
+        This creates a new variable. If using a "master CDF" with
+        existing variables and no records, simply assign the new data
+        to the variable, or the "whole variable" slice:
+
+            >>> cdf['ExistingVariable'] = data
+            >>> cdf['ExistingVariable'][...] = data
+
         Parameters
         ==========
         name : str
