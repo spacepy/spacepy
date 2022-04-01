@@ -1,4 +1,5 @@
 
+import spacepy_testing
 import unittest
 import spacepy.coordinates as spc
 import glob
@@ -6,7 +7,6 @@ import os
 import datetime
 from numpy import array
 import numpy as np
-import spacepy_testing
 from spacepy.time import Ticktock
 try:
     import spacepy.irbempy as ib
