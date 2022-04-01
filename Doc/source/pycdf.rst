@@ -56,6 +56,7 @@ CDF_TIME_TT2000 types.
     :meth:`~spacepy.pycdf.Library.set_backward`),
     then :class:`~datetime.datetime` objects are degraded to CDF_EPOCH
     (millisecond resolution), not CDF_EPOCH16 (microsecond resolution).
+    Use :meth:`~spacepy.pycdf.CDF.new` to specify a data type.
 
 Create some random data.
 
