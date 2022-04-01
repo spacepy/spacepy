@@ -64,6 +64,21 @@ Note that a PR will not trigger the CI `if there is a merge conflict
 <https://github.community/t/run-actions-on-pull-requests-with-merge-conflicts/
 17104>`_.
 
+Cacheing
+========
+Dependencies for CI are stored in two caches: one for all pip
+dependencies, and one for the NASA CDF library. This minimizes CI time
+use for building dependencies.
+
+Caches expire weekly (the week begins at 00 Monday, UTC). Caches can
+also be force-expired by incrementing the ``CACHE_VERSION``
+`repository secret
+<https://docs.github.com/en/actions/security-guides/encrypted-secrets>`_. This
+applies to all caches in the SpacePy repository CI; there are also
+separate versions in ``ci.yml`` for the pip and CDF cache. The current
+version of this secret is not visible, but the important thing is only
+that it change.
+
 Usage
 =====
 
