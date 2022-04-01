@@ -125,19 +125,23 @@ jobs:
       shell: bash
     - name: Cache pip
       uses: actions/cache@v2
+      env: # Need to tickle this to get it to unlock secrets at all
+        CACHE_VERSION: ${{ secrets.CACHE_VERSION }}
       with:
         path: ~/.cache/pip
         # Force-expire the pip cache weekly
-        key: pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dep-strategy }}
+        key: pip-v${{ env.pip-cache-version}}-${{ secrets.CACHE_VERSION }}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dep-strategy }}
         restore-keys: |
-          pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-
-          pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-
+          pip-v${{ env.pip-cache-version}}-${{ secrets.CACHE_VERSION }}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-
+          pip-v${{ env.pip-cache-version}}-${{ secrets.CACHE_VERSION }}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-
     - name: Cache cdf
       uses: actions/cache@v2
+      env: # Need to tickle this to get it to unlock secrets at all
+        CACHE_VERSION: ${{ secrets.CACHE_VERSION }}
       with:
         path: ~/cdf
         # Force-expire the CDF cache weekly
-        key: cdf-v${{ env.cdf-cache-version}}-3.8.0.1-${{ steps.get-week.outputs.week }}-${{ matrix.os }}
+        key: cdf-v${{ env.cdf-cache-version}}-${{ secrets.CACHE_VERSION }}-3.8.0.1-${{ steps.get-week.outputs.week }}-${{ matrix.os }}
     - name: Install dependencies
       env:
         NUMPY_VERSION: ${{ matrix.numpy-version }}
