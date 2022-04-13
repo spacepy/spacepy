@@ -6,6 +6,8 @@ import spacepy.time as spt
 
 warnings.filterwarnings("ignore")
 
+spc.DEFAULTS.set_values(itol=10)
+
 npos = 20000
 pos = np.ones((npos, 3))
 st_tai = 2000000000
