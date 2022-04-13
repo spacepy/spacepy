@@ -71,13 +71,9 @@ dependencies, and one for the NASA CDF library. This minimizes CI time
 use for building dependencies.
 
 Caches expire weekly (the week begins at 00 Monday, UTC). Caches can
-also be force-expired by incrementing the ``CACHE_VERSION``
-`repository secret
-<https://docs.github.com/en/actions/security-guides/encrypted-secrets>`_. This
-applies to all caches in the SpacePy repository CI; there are also
-separate versions in ``ci.yml`` for the pip and CDF cache. The current
-version of this secret is not visible, but the important thing is only
-that it change.
+also be force-expired by incrementing the versions in ``ci.yml`` for
+the pip and/or CDF cache. Unfortunately this does require pushing a
+commit.
 
 Usage
 =====
