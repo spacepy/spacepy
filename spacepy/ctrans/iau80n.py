@@ -1,4 +1,21 @@
-#IAU 1980 nutation model
+"""IAU 1980 Nutation model
+
+Functions
+---------
+.. autosummary::
+    :toctree:
+    :template: clean_function.rst
+
+    nutation
+
+Data
+----
+.. autosummary::
+   :toctree:
+
+   coeff80
+"""
+
 from math import fmod, fsum
 import numpy as np
 
@@ -109,6 +126,7 @@ coeff80 = np.array([[ 0,  0,  0,  0,  1, -171996.0, -174.2, 92025.0,  8.9],
                     [ 0,  0,  2,  4,  2,      -1.0,    0.0,     0.0,  0.0],
                     [ 0,  1,  0,  1,  0,       1.0,    0.0,     0.0,  0.0]
                     ])
+"""IAU 1980 nutation coefficients"""
 
 def nutation(TT_JC, const, nTerms=106):
     '''Calculate dPsi and dEps for IAU80 nutation model'''

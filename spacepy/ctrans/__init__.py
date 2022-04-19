@@ -2,7 +2,10 @@
 CTrans: Module for backend coordinate transformations in SpacePy
 
 This module is primarily intended to provide a backend for the standard
-`spacepy.coordinates.Coords` class. The `CTrans` class calculates all
+`spacepy.coordinates.Coords` class rather than direct use, and the
+interface is subject to change.
+
+The `CTrans` class calculates all
 of the necessary information to convert between different coordinate
 systems _at a single time_. By using `spacepy.coordinates.Coords` the
 handling of multiple times is built in, and the calling syntax is
@@ -73,6 +76,36 @@ here) use a centered dipole axis.
     the centered dipole axis of date. The y-axis is perpendicular to
     to both the dipole axis and True North, i.e., y is the cross product of
     the z-axis of the GEO system with the dipole axis. The x-axis completes.
+
+
+Classes
+-------
+.. autosummary::
+    :template: clean_class.rst
+    :toctree: autosummary
+
+    CTrans
+    Ellipsoid
+
+Functions
+---------
+.. autosummary::
+    :template: clean_function.rst
+    :toctree: autosummary
+
+    convert_multitime
+    gdz_to_geo
+    geo_to_gdz
+    geo_to_rll
+    rll_to_geo
+
+Submodules
+----------
+.. autosummary::
+    :template: clean_module.rst
+    :toctree: autosummary
+
+    iau80n
 '''
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -109,6 +142,9 @@ class Ellipsoid(dm.SpaceData):
     -------
     out : Ellipsoid
         Ellipsoid instance storing all relevant paramters for geodetic conversion
+
+    Notes
+    -----
 
     .. versionadded:: 0.2.3
     """
@@ -164,16 +200,23 @@ class CTrans(dm.SpaceData):
     --------
     spacepy.coordinates.Coords
 
+    Notes
+    -----
+
     .. versionadded:: 0.2.3
 
+
+    .. rubric:: Methods
+
     .. autosummary::
-        calcTimes
-        calcOrbitParams
-        calcCoreTransforms
-        calcMagTransforms
-        convert
-        getEOP
-        gmst
+
+        ~CTrans.calcTimes
+        ~CTrans.calcOrbitParams
+        ~CTrans.calcCoreTransforms
+        ~CTrans.calcMagTransforms
+        ~CTrans.convert
+        ~CTrans.getEOP
+        ~CTrans.gmst
 
     .. automethod:: calcTimes
     .. automethod:: calcOrbitParams

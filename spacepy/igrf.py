@@ -1,3 +1,19 @@
+"""International Geomagnetic Reference Field
+
+This module is intended primarily to support :mod:`~spacepy.coordinates`
+rather than for direct end use, and the interface is subject to change.
+
+Classes
+-------
+.. autosummary::
+    :template: clean_class.rst
+    :toctree: autosummary
+
+    IGRFCoefficients
+    IGRF
+"""
+
+
 # std. lib.
 from __future__ import division
 import os
@@ -78,6 +94,23 @@ igrfcoeffs = IGRFCoefficients()
 
 
 class IGRF():
+    """
+
+    Notes
+    -----
+
+    .. versionadded:: 0.2.3
+
+    .. rubric:: Methods
+
+    .. autosummary::
+
+        ~IGRF.calcDipoleAxis
+        ~IGRF.initialize
+
+    .. automethod:: calcDipoleAxis
+    .. automethod:: initialize
+    """
     def __init__(self):
         self.__status = {'coeffs': False,
                          'init': False,
