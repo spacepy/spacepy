@@ -114,10 +114,12 @@ Description of all functions within SpacePy, by module.
     spacepy
     ae9ap9
     coordinates
+    ctrans
     datamanager
     datamodel
     data_assimilation
     empiricals
+    igrf
     irbempy
     lanlstar
     omni
