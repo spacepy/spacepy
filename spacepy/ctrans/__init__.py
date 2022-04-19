@@ -1,15 +1,14 @@
-'''
-CTrans: Module for backend coordinate transformations in SpacePy
+"""CTrans: Module for backend coordinate transformations in SpacePy
 
 This module is primarily intended to provide a backend for the standard
-`spacepy.coordinates.Coords` class rather than direct use, and the
+:class:`~spacepy.coordinates.Coords` class rather than direct use, and the
 interface is subject to change.
 
-The `CTrans` class calculates all
-of the necessary information to convert between different coordinate
-systems _at a single time_. By using `spacepy.coordinates.Coords` the
-handling of multiple times is built in, and the calling syntax is
-backwards compatible with the legacy IRBEM-backed coordinate transforms.
+The :class:`CTrans` class calculates all of the necessary information
+to convert between different coordinate systems *at a single time*. By
+using :class:`~spacepy.coordinates.Coords` the handling of multiple
+times is built in, and the calling syntax is backwards compatible with
+the legacy IRBEM-backed coordinate transforms.
 
 Coordinate systems supported by this module can broadly be described
 by two categories. The first category is a broad set of Earth-centered
@@ -21,6 +20,7 @@ Reference Frame (ITRF). All coordinate systems described here are
 right-handed Cartesian systems, except geodetic.
 
 Systems and their relationships:
+
 - ECI2000: Earth-Centered Inertial, J2000 epoch
     This system can be considered equivalent to the ITRF, to within 10s
     of milliarcseconds. The z-axis is aligned with the mean celestial pole
@@ -59,6 +59,7 @@ Systems and their relationships:
 The remaining coordinate systems are also reference to Earth's magnetic field.
 Different versions of these systems exist, but the most common (and those given
 here) use a centered dipole axis.
+
 - GSM: Geocentric Solar Magnetospheric
     This system is similar to GSE, but is defined such that the centered dipole
     lies in the x-z plane. As in all of these systems, z is positive northward.
@@ -76,7 +77,6 @@ here) use a centered dipole axis.
     the centered dipole axis of date. The y-axis is perpendicular to
     to both the dipole axis and True North, i.e., y is the cross product of
     the z-axis of the GEO system with the dipole axis. The x-axis completes.
-
 
 Classes
 -------
@@ -106,7 +106,7 @@ Submodules
     :toctree: autosummary
 
     iau80n
-'''
+"""
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 

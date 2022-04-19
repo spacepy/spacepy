@@ -1,4 +1,4 @@
-"""International Geomagnetic Reference Field
+"""International Geomagnetic Reference Field model
 
 This module is intended primarily to support :mod:`~spacepy.coordinates`
 rather than for direct end use, and the interface is subject to change.
@@ -30,8 +30,13 @@ import spacepy.time as spt
 
 
 class IGRFCoefficients():
-    '''Read and store IGRF coefficients from data file
-    '''
+    """Read and store IGRF coefficients from data file
+
+    Other Parameters
+    ----------------
+    fname : str, optional
+        Filename to read from; defaults from the .spacepy data directory.
+    """
     def __init__(self, fname=None):
         # Store coefficients and SV in nested arrays
         # This is triangular, e.g.,
@@ -94,7 +99,7 @@ igrfcoeffs = IGRFCoefficients()
 
 
 class IGRF():
-    """
+    """International Geomagnetic Reference Field model
 
     Notes
     -----
@@ -108,8 +113,23 @@ class IGRF():
         ~IGRF.calcDipoleAxis
         ~IGRF.initialize
 
+    .. rubric:: Data
+
+    .. autosummary::
+
+        dipole
+        moment
+
     .. automethod:: calcDipoleAxis
     .. automethod:: initialize
+
+    .. attribute:: dipole
+
+        Characteristics of dipole (:class:`dict`).
+
+    .. attribute:: moment
+
+        Dipole moments (:class:`dict`).
     """
     def __init__(self):
         self.__status = {'coeffs': False,
@@ -120,6 +140,19 @@ class IGRF():
         self.__status['coeffs'] = True
 
     def initialize(self, time, limits='warn'):
+        """Initialize model state to a particular time.
+
+        Parameters
+        ----------
+        time : :class:`~datetime.datetime`
+            Time for which to initialize the model
+
+        Other Parameters
+        ----------------
+        limits : :class:`str`, optional
+            Set to ``warn`` to warn about out-of-range times (default);
+            any other value to error.
+        """
         errmsg = 'IGRF: Requested time is outside valid range.\n'
         errmsg += 'Valid range is [{0}, {1}]'.format(igrfcoeffs.datelow, igrfcoeffs.datehigh)
         self.time = time
@@ -141,6 +174,10 @@ class IGRF():
         self.__status['time_set'] = True
 
     def calcDipoleAxis(self):
+        """Calculates dipole axis for initialized time.
+
+        Populates :data:`moment` and :data:`dipole`.
+        """
         if self.__status['time_set']:
             return
         if not self.__status['init']:
