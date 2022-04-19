@@ -104,7 +104,7 @@ class IGRF():
     Notes
     -----
 
-    .. versionadded:: 0.2.3
+    .. versionadded:: 0.3.0
 
     .. rubric:: Methods
 
