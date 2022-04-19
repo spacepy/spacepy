@@ -146,7 +146,7 @@ class Ellipsoid(dm.SpaceData):
     Notes
     -----
 
-    .. versionadded:: 0.2.3
+    .. versionadded:: 0.3.0
     """
     def __init__(self, name='WGS84', A=6378.137, iFlat=298.257223563):
         super(Ellipsoid, self).__init__(A=A, iFlat=iFlat, attrs={'name': name})
@@ -203,7 +203,7 @@ class CTrans(dm.SpaceData):
     Notes
     -----
 
-    .. versionadded:: 0.2.3
+    .. versionadded:: 0.3.0
 
 
     .. rubric:: Methods
@@ -942,7 +942,7 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
 
     Notes
     -----
-    .. versionadded:: 0.2.3
+    .. versionadded:: 0.3.0
 
     References
     ----------
@@ -1039,7 +1039,7 @@ def gdz_to_geo(gdzvec, units='km', geoid=WGS84):
 
     Notes
     -----
-    .. versionadded:: 0.2.3
+    .. versionadded:: 0.3.0
     """
     posarr = np.atleast_2d(gdzvec)
     h = posarr[:, 0] if units == 'km' else posarr[:, 0]*geoid['A']  # convert to km
@@ -1084,7 +1084,7 @@ def geo_to_rll(geovec, units='km', geoid=WGS84):
 
     Notes
     -----
-    .. versionadded:: 0.2.3
+    .. versionadded:: 0.3.0
     """
     rllvec = np.atleast_2d(geo_to_gdz(geovec, units=units, geoid=geoid))
     # Reolace altitude with norm of Cartesian position
@@ -1118,7 +1118,7 @@ def rll_to_geo(rllvec, units='km', geoid=WGS84):
 
     Notes
     -----
-    .. versionadded:: 0.2.3
+    .. versionadded:: 0.3.0
     """
     posarr = np.atleast_2d(rllvec).astype(float)
     surf = np.zeros_like(posarr)
