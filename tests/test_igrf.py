@@ -10,6 +10,8 @@ import unittest
 import warnings
 
 import numpy
+
+import spacepy_testing
 from spacepy import igrf
 
 __all__ = ['IgrfClassTests']
