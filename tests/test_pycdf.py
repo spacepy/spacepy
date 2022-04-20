@@ -149,7 +149,11 @@ class NoCDF(unittest.TestCase):
                     'setting an array element with a sequence.',
                 )
         try:
-            cdf._Hyperslice.dimensions(data)
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    'ignore', 'Creating an ndarray from ragged.*',
+                    module='spacepy.pycdf')
+                cdf._Hyperslice.dimensions(data)
         except ValueError:
             (t, v, tb) = sys.exc_info()
             self.assertTrue(str(v) in messages)

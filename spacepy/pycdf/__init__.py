@@ -4399,20 +4399,30 @@ class _Hyperslice(object):
 
     @staticmethod
     def check_well_formed(data):
-        """Checks if input data is well-formed, regular array"""
-        d = numpy.asanyarray(data)
+        """Checks if input data is well-formed, regular array
+
+        Returns
+        -------
+        :class:`~numpy.ndarray`
+            The input data as a well-formed array; may be the input
+            data exactly.
+        """
+        msg = 'Data must be well-formed, regular array of number, '\
+              'string, or datetime'
+        try:
+            d = numpy.asanyarray(data)
+        except ValueError:
+            raise ValueError(msg)
+        # In a future numpy, the case tested below will raise ValueError,
+        # so can remove entire if block.
         if d.dtype == object: #this is probably going to be bad
             if d.shape != () and not len(d):
                 #Completely empty, so "well-formed" enough
-                return
-            try:
-                len(d.flat[0])
-            except TypeError: #at least it's not a list
-                pass
-            else:
-                raise ValueError(
-                    'Data must be well-formed, regular array of number, '
-                    'string, or datetime')
+                return d
+            if numpy.array(d.flat[0]).shape != ():
+                # Sequence-like, so we know it's ragged
+                raise ValueError(msg)
+        return d
 
     @staticmethod
     def dimensions(data):
@@ -4424,9 +4434,7 @@ class _Hyperslice(object):
         @rtype: list of int
         @raise ValueError: if L{data} has irregular dimensions
         """
-        d = numpy.asanyarray(data)
-        _Hyperslice.check_well_formed(d)
-        return d.shape
+        return _Hyperslice.check_well_formed(data).shape
 
     @staticmethod
     def types(data, backward=False):
