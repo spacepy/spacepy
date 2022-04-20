@@ -62,18 +62,17 @@ Setting options for coordinate transformation
 The backend for coordinate transformations can be provided at instantiation
 of a Coords object use a keyword argument. However, for convenience and
 flexibility the options can be set at the module level. Configurable options
-include the backend used (IRBEM or SpacePy), the reference ellipsoid (only
-configurable for the SpacePy backend), and whether warnings are raised by
-this module on instantiation without explicitly setting the backend. The
+include the backend used (IRBEM or SpacePy) and the reference ellipsoid (only
+configurable for the SpacePy backend). A warning will be raised if the backend
+is not set (either through the defaults or the keyword argument). The
 final configurable option (_itol_) is the maximum separation, in seconds,
 for which the coordinate transformations will not be recalculated. To force
 all transformations to use an exact transform for the time, set itol to zero.
 Values between 10s and 60s are recommended for speed while also preserving
 accuracy, though different applications will require different accuracies.
 For example, assuming this module has been imported as _spc_, to set the 
-SpacePy backend as the default, to set _itol_ to 5 seconds, and to disable
-warnings:
-`spc.DEFAULTS.set_values(use_irbem=False, itol=5, show_warning=False)`
+SpacePy backend as the default, to set _itol_ to 5 seconds:
+`spc.DEFAULTS.set_values(use_irbem=False, itol=5)`
 
 Authors: Steven Morley and Josef Koller
 Institution: Los ALamos National Laboratory
@@ -117,7 +116,7 @@ class __Defaults(object):
     '''Configuration factory for coordinates module default settings
     '''
     def __init__(self):
-        self._fac = namedtuple('values', 'use_irbem, show_warning, ellipsoid, itol')
+        self._fac = namedtuple('values', 'use_irbem, ellipsoid, itol')
         self.set_values()
 
     def __repr__(self):
@@ -125,7 +124,7 @@ class __Defaults(object):
         b1 = full.index('(')
         return 'DEFAULTS{}'.format(full[b1:])
 
-    def set_values(self, use_irbem=None, show_warning=True, ellipsoid=ctrans.WGS84, itol=30):
+    def set_values(self, use_irbem=None, ellipsoid=ctrans.WGS84, itol=30):
         '''Set options for coordinate transforms
 
         Parameters
@@ -133,9 +132,6 @@ class __Defaults(object):
         use_irbem : bool
             If True, use IRBEM as coordinate transform backend. If False, use SpacePy's
             implementations. Default is to use IRBEM (and warn) but this will change.
-        show_warning : bool
-            Set to False to squelch warnings. If True a warning will be displayed when
-            instantiating a Coords object without explicitly setting the backend.
         ellipsoid : spacepy.ctrans.Ellipsoid
             A reference ellipsoid to use for the Earth radius definition and for geodetic
             coordinate conversion. SpacePy defaults to the WGS84 ellipsoid and the semi-major
@@ -143,7 +139,6 @@ class __Defaults(object):
             an Earth radius using 6371.2 km.
         '''
         self.values = self._fac(use_irbem=use_irbem,
-                                show_warning=show_warning,
                                 ellipsoid=ellipsoid,
                                 itol=itol)
 
@@ -228,10 +223,9 @@ class Coords(object):
             use_irbem = DEFAULTS.values.use_irbem
         if use_irbem is None:
             use_irbem = True
-            if DEFAULTS.values.show_warning:
-                warnings.warn('No coordinate backend specified; using IRBEM.'
-                              ' This default will change in the future.',
-                              DeprecationWarning)
+            warnings.warn('No coordinate backend specified; using IRBEM.'
+                          ' This default will change in the future.',
+                          DeprecationWarning)
         if use_irbem:
             from . import irbempy as op
         self.use_irbem = use_irbem
