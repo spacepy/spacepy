@@ -28,7 +28,7 @@ clarifies the different systems.
     * **GEO** Geocentric geographic, aka Earth-centered Earth-fixed
     * **GDZ** Geodetic coordinates
 
-By convention _all_ systems are treated as natively Cartesian except
+By convention *all* systems are treated as natively Cartesian except
 geodetic (GDZ), which is defined in [altitude, latitude, longitude]
 where altitude is relative to a reference ellipsoid. Similarly, distance
 units are assumed to be Earth radii (Re) in all systems except GDZ, where
@@ -65,14 +65,15 @@ flexibility the options can be set at the module level. Configurable options
 include the backend used (IRBEM or SpacePy) and the reference ellipsoid (only
 configurable for the SpacePy backend). A warning will be raised if the backend
 is not set (either through the defaults or the keyword argument). The
-final configurable option (_itol_) is the maximum separation, in seconds,
+final configurable option (``itol``) is the maximum separation, in seconds,
 for which the coordinate transformations will not be recalculated. To force
 all transformations to use an exact transform for the time, set itol to zero.
 Values between 10s and 60s are recommended for speed while also preserving
 accuracy, though different applications will require different accuracies.
-For example, assuming this module has been imported as _spc_, to set the 
-SpacePy backend as the default, to set _itol_ to 5 seconds:
-`spc.DEFAULTS.set_values(use_irbem=False, itol=5)`
+For example, assuming this module has been imported as ``spc``, to set the
+SpacePy backend as the default and set ``itol`` to 5 seconds:
+
+    >>> spc.DEFAULTS.set_values(use_irbem=False, itol=5)
 
 Authors: Steven Morley and Josef Koller
 Institution: Los ALamos National Laboratory
