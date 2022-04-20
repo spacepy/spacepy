@@ -4475,12 +4475,11 @@ class _Hyperslice(object):
         @rtype: 3-tuple of lists ([int], [ctypes.c_long], [int])
         @raise ValueError: if L{data} has irregular dimensions
         """
-        d = numpy.asanyarray(data)
+        d = _Hyperslice.check_well_formed(data)
         dims = d.shape
         elements = 1
         types = []
 
-        _Hyperslice.check_well_formed(d)
         if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
             elements = d.dtype.itemsize
