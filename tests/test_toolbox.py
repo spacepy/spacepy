@@ -776,6 +776,24 @@ class TBTimeFunctionTests(unittest.TestCase):
                      for val in range(-20, 20)]
         self.dt_b2 = [dt1 + datetime.timedelta(hours=val)
                      for val in range(-20, -2)]
+        # random.sample(list(range(100)), 100)
+        self.dt_a_shuf = [
+            dt1 + datetime.timedelta(hours=val)
+            for val in
+            [86, 75, 53, 74, 35, 57, 63, 84, 82, 89, 45, 10, 41, 78, 14, 62, 98,
+             80, 42, 24, 31,  2, 34, 85, 28, 47, 21, 81, 54,  7, 12, 18, 83,  5,
+             9,  3, 15, 40, 69, 38, 97, 36, 70, 25, 66, 23, 59, 94, 99, 60,  1,
+             61, 11, 90, 52, 30, 13, 64, 49, 77, 27,  6, 16,  4, 76, 58, 19, 22,
+             39, 55, 87, 37, 95, 29, 33, 72, 32, 48, 50,  8, 96, 93, 44, 73, 26,
+             71, 88, 51, 79, 17, 20, 92, 68, 65, 91, 46,  0, 67, 56, 43]]
+        # random.sample(list(range(-20, 20)), 40)
+        self.dt_b_shuf = [
+            dt1 + datetime.timedelta(hours=val)
+            for val in
+            [  2,   4,  -4, -11,  15, -20,   9, -15,   1,   3, -19,  -3, -12,
+             -16, -13,  18,  -5,  -9,  -1,  16,  19,  -2,   6,   0,  -8,  11,
+             -14, -10,  13,  14,  17, -17,  12,  -6,  -7,   5,   7,   8, -18,
+             10]]
 
     def tearDown(self):
         super(TBTimeFunctionTests, self).tearDown()
@@ -792,14 +810,11 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_tOverlap_random(self):
         """Shuffle input before calling tOverlap"""
-        real_ans = ([1, 5, 6, 10, 15, 16, 18, 24, 29, 30, 43,
-                     46, 47, 51, 53, 55, 56, 64, 67, 74],
-                    [1, 2, 6, 7, 10, 12, 13, 14, 15, 17, 18,
-                     19, 24, 27, 28, 30, 32, 35, 37, 38])
-        random.seed(0)
-        random.shuffle(self.dt_a, lambda:round(random.random(), 9))
-        random.shuffle(self.dt_b, lambda:round(random.random(), 9))
-        ans = tb.tOverlap(self.dt_a, self.dt_b)
+        real_ans = ([[11, 14, 21, 29, 30, 31, 33, 34, 35, 36, 50, 52,
+                      56, 61, 62, 63, 66, 79, 89, 96],
+                     [ 0,  1,  4,  6,  8,  9, 15, 19, 20, 22, 23, 25,
+                       28, 29, 30, 32, 35, 36, 37, 39]])
+        ans = tb.tOverlap(self.dt_a_shuf, self.dt_b_shuf)
         numpy.testing.assert_array_equal(real_ans, ans)
 
     def test_tOverlapHalf(self):
@@ -811,13 +826,9 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_tOverlapHalf_random(self):
         """Shuffle input before calling tOverlapHalf"""
-        real_ans = [1, 2, 6, 7, 10, 12, 13, 14, 15, 17, 18,
-                     19, 24, 27, 28, 30, 32, 35, 37, 38]
-        random.seed(0)
-        #Cut down the python3 rng to the same precision as python2
-        random.shuffle(self.dt_a, lambda:round(random.random(), 9))
-        random.shuffle(self.dt_b, lambda:round(random.random(), 9))
-        ans = tb.tOverlapHalf(self.dt_a, self.dt_b)
+        real_ans = ([0, 1, 4, 6, 8, 9, 15, 19, 20, 22, 23, 25, 28,
+                    29, 30, 32, 35, 36, 37, 39])
+        ans = tb.tOverlapHalf(self.dt_a_shuf, self.dt_b_shuf)
         self.assertEqual(real_ans, ans)
 
     def test_tOverlapSorted(self):
