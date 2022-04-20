@@ -646,7 +646,9 @@ class Coords(object):
             raise e.__class__("This method requires Astropy to be installed.")
 
         skycoord = astropy.coordinates.SkyCoord(skycoord).itrs  # Astropy ITRS is GEO
-        use_Re = IRBEM_RE if use_irbem else ctrans.WGS84['A']  # kilometers
+        # Ticktock constructor warns if use_irbem is None; just do right thing
+        use_Re = IRBEM_RE if (use_irbem or use_irbem is None)\
+                 else DEFAULTS.values.ellipsoid['A']  # kilometers
         data = (skycoord.cartesian.xyz.to('m').value / (1000 * use_Re)).T  # convert Cartesian to Re units
         ticks = spacepy.time.Ticktock(skycoord.obstime)
 
