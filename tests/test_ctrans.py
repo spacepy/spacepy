@@ -118,7 +118,6 @@ class CTransClassTests(unittest.TestCase):
         self.CTrans2000.calcMagTransforms()
         self.assertIn('DipoleTilt_rad', self.CTrans2000)
 
-    @unittest.expectedFailure
     def test_GMST_versions_different(self):
         """GMST versions should not be identical"""
         ct2k_82 = ctrans.CTrans(self.t2k, pnmodel='IAU82')
@@ -129,7 +128,7 @@ class CTransClassTests(unittest.TestCase):
         # IAU00
         ct2k_00.gmst()
         exp2 = ct2k_00['GMST']
-        numpy.testing.assert_approx_equal(exp1, exp2, significant=10)
+        self.assertNotAlmostEqual(exp1, exp2, places=10)
 
     def test_GMST_versions_similar(self):
         """GMST versions should all be roughly similar (not a regression test)"""
