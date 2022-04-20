@@ -125,14 +125,14 @@ class __Defaults(object):
         b1 = full.index('(')
         return 'DEFAULTS{}'.format(full[b1:])
 
-    def set_values(self, use_irbem=True, show_warning=True, ellipsoid=ctrans.WGS84, itol=30):
+    def set_values(self, use_irbem=None, show_warning=True, ellipsoid=ctrans.WGS84, itol=30):
         '''Set options for coordinate transforms
 
         Parameters
         ----------
         use_irbem : bool
             If True, use IRBEM as coordinate transform backend. If False, use SpacePy's
-            implementations.
+            implementations. Default is to use IRBEM (and warn) but this will change.
         show_warning : bool
             Set to False to squelch warnings. If True a warning will be displayed when
             instantiating a Coords object without explicitly setting the backend.
@@ -226,12 +226,11 @@ class Coords(object):
     def __init__(self, data, dtype, carsph, units=None, ticks=None, use_irbem=None):
         if use_irbem is None:
             use_irbem = DEFAULTS.values.use_irbem
-            if use_irbem and DEFAULTS.values.show_warning:
-                warnings.warn('Use of IRBEM to perform coordinate transformations is ' +
-                              'no longer recommended.\n' +
-                              'The default library used for coordinate transforms will ' +
-                              'change in a future release.\n' +
-                              'To ensure forward-compatibility, please set use_irbem=False',
+        if use_irbem is None:
+            use_irbem = True
+            if DEFAULTS.values.show_warning:
+                warnings.warn('No coordinate backend specified; using IRBEM.'
+                              ' This default will change in the future.',
                               DeprecationWarning)
         if use_irbem:
             from . import irbempy as op
@@ -346,7 +345,7 @@ class Coords(object):
         t_select = self.ticks[idx] if self.ticks else self.ticks
 
         return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units,
-                      t_select, use_irbem=False)
+                      t_select, use_irbem=self.use_irbem)
 
     # -----------------------------------------------
     def __setitem__(self, idx, vals):
@@ -613,7 +612,7 @@ class Coords(object):
 
     # -----------------------------------------------
     @classmethod
-    def from_skycoord(cls, skycoord, use_irbem=True):
+    def from_skycoord(cls, skycoord, use_irbem=None):
         '''
         Create a Coords instance from an Astropy SkyCoord instance
 

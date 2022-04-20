@@ -389,7 +389,7 @@ class coordsTestIrbem(unittest.TestCase):
     def setUp(self):
         try:
             with warnings.catch_warnings():
-                warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+                warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                         category=DeprecationWarning,
                                         module=r'spacepy.coordinates$')
                 self.cvals = spc.Coords([[1, 2, 4], [1, 2, 2]], 'GEO', 'car', use_irbem=True)
@@ -410,7 +410,7 @@ class coordsTestIrbem(unittest.TestCase):
     def test_append(self):
         """Test append functionality"""
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             c2 = spc.Coords([[6, 7, 8], [9, 10, 11]], 'GEO', 'car', use_irbem=True)
@@ -421,7 +421,7 @@ class coordsTestIrbem(unittest.TestCase):
     def test_slice(self):
         """Test slice functionality"""
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=True)
@@ -431,7 +431,7 @@ class coordsTestIrbem(unittest.TestCase):
         """Test slice functionality with ticks attribute"""
         self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=True)
@@ -483,7 +483,11 @@ class coordsTestIrbem(unittest.TestCase):
                                           unit='Mm', frame='itrs',
                                           obstime=['2001-02-03T04:00:00', '2005-06-07T08:00:00'])
 
-        coords = spc.Coords.from_skycoord(sc)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
+                                    category=DeprecationWarning,
+                                    module=r'spacepy.coordinates$')
+            coords = spc.Coords.from_skycoord(sc)
 
         # Check that the data was loaded correctly
         sc_data = sc.cartesian.xyz.to('m').value.T
@@ -499,7 +503,11 @@ class coordsTestIrbem(unittest.TestCase):
                                           obstime=['2001-02-03T04:00:00', '2005-06-07T08:00:00'])
 
         # Convert to a frame other than GEO before calling from_skycoord()
-        coords = spc.Coords.from_skycoord(sc.gcrs)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
+                                    category=DeprecationWarning,
+                                    module=r'spacepy.coordinates$')
+            coords = spc.Coords.from_skycoord(sc.gcrs)
 
         # Check that the data was loaded correctly
         sc_data = sc.cartesian.xyz.to('m').value.T
@@ -512,7 +520,7 @@ class coordsTestIrbem(unittest.TestCase):
         """Roundtrip should yield input as answer"""
         self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             expected = spc.Coords(self.cvals.data, 'GEO', 'car', use_irbem=True)
@@ -524,7 +532,7 @@ class coordsTestIrbem(unittest.TestCase):
     def test_GEO_GSE(self):
         """Regression test for IRBEM call"""
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             test_cc = spc.Coords([1, 2, 3], 'GEO', 'car',
@@ -538,7 +546,7 @@ class coordsTestIrbem(unittest.TestCase):
     def test_GEO_is_SPH(self):
         """GEO in spherical is SPH"""
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             test_gsp = spc.Coords([4, 45, 90], 'GEO', 'sph',
@@ -560,7 +568,7 @@ class coordsTestIrbem(unittest.TestCase):
         pos_km = np.array([2367.83158, -5981.75882, -4263.24591])
         pos_re = pos_km/6371.2
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             cc_km = spc.Coords(pos_km, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'])
@@ -578,7 +586,7 @@ class coordsTestIrbem(unittest.TestCase):
         tt = Ticktock(2459218.5, 'JD')
         pos = np.array([2367.83158, -5981.75882, -4263.24591])
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'])
@@ -603,7 +611,7 @@ class coordsTestIrbem(unittest.TestCase):
         tt = Ticktock(2459218.5, 'JD')
         pos = np.array([2367.83158, -5981.75882, -4263.24591])
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             self.assertRaises(ValueError, spc.Coords, pos, 'GDZ', 'car',
@@ -619,7 +627,7 @@ class coordsTestIrbem(unittest.TestCase):
         """Compare outputs on GSE Cartesian to SM spherical conversion"""
         tt = Ticktock([2459218.5]*2, 'JD')
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             irb = spc.Coords(self.cvals.data, 'GSE', 'car', ticks=tt, use_irbem=True)
@@ -636,7 +644,7 @@ class coordsTestIrbem(unittest.TestCase):
         """Compare outputs on GSE Cartesian to SM spherical conversion"""
         tt = Ticktock([2459218.5]*2, 'JD')
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             irb = spc.Coords(self.cvals.data, 'SM', 'car', ticks=tt, use_irbem=True)
@@ -652,7 +660,7 @@ class coordsTestIrbem(unittest.TestCase):
     def test_units_respected(self):
         """Units should be preserved on all conversions except to/from GDZ"""
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
+            warnings.filterwarnings('ignore', message=r'No coordinate backend',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
             cc_gdz_r = spc.Coords([3, 45, 45], 'GDZ', 'sph',
