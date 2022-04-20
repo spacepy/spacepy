@@ -1036,20 +1036,23 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
     also be used to rebin on the time axis, e.g. for transforming time
     base.
     """
+    makefloat = lambda x: x if isinstance(x, numpy.ndarray)\
+                and issubclass(x.dtype.type, numpy.floating)\
+                else numpy.require(x, dtype=numpy.float_)
     bintype = bintype.lower()
     assert bintype in ('mean', 'count', 'unc')
-    data = numpy.require(data, dtype=numpy.floating)
-    bindata = numpy.require(bindata, dtype=numpy.floating)
+    data = makefloat(data)
+    bindata = makefloat(bindata)
     if axis < 0:
         axis = len(data.shape) + axis
     binnedshape = _find_shape(data.shape, bindata.shape)
     if weights is not None:
-        weights = numpy.require(weights, dtype=numpy.floating)
+        weights = makefloat(weights)
         assert weights.shape == bindata.shape
         weights = numpy.reshape(weights, binnedshape)
     if bindatadelta is not None:
         if not numpy.isscalar(bindatadelta):
-            bindatadelta = numpy.require(bindatadelta, dtype=numpy.floating)
+            bindatadelta = makefloat(bindatadelta)
             assert bindata.shape == bindatadelta.shape
             bindatadelta = numpy.reshape(bindatadelta, binnedshape)
             bindatadelta = numpy.rollaxis(
@@ -1076,8 +1079,8 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
         select = numpy.require(
             numpy.expand_dims(whichbin, axis=-2)
             == numpy.reshape(
-                numpy.arange(nbins, dtype=numpy.int), outbin_shape),
-            dtype=numpy.int)
+                numpy.arange(nbins, dtype=int), outbin_shape),
+            dtype=int)
     else:
         bindatamin = bindata - bindatadelta
         bindatamax = bindata + bindatadelta
@@ -1097,8 +1100,7 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
         # No overlap if top < bottom
         overlap = numpy.maximum(overlap_top - overlap_bottom , 0)
         # Normalize the overlap to fraction of the input bin
-        select = numpy.require(overlap, dtype=numpy.float) \
-                                               / (bindatamax - bindatamin)
+        select = overlap / (bindatamax - bindatamin)
     if weights is not None: # Apply weights to the inputs
         select = select * numpy.expand_dims(weights, axis=-2)
     # Add a degenerate dimension to the end of data, so now

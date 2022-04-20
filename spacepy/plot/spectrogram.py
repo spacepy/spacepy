@@ -246,7 +246,7 @@ class Spectrogram(dm.SpaceData):
         # this is here for in the future when we take a list a SpaceData objects
         sz = (self.specSettings['bins'][1].shape[0]-1, self.specSettings['bins'][0].shape[0]-1)
         overall_sum = dm.dmarray(np.zeros(sz, dtype=np.double))
-        overall_count = dm.dmarray(np.zeros(sz, dtype=np.long))
+        overall_count = dm.dmarray(np.zeros(sz, dtype=np.int_))
 
         # the valid range for the histograms
         _range = [self.specSettings['xlim'], self.specSettings['ylim']]

@@ -1158,9 +1158,9 @@ def toHDF5(fname, SDobject, **kwargs):
     except NameError:
         allowed_attrs = [int,       float, bytes, str, numpy.ndarray, list, tuple, numpy.string_]
     for v in numpy.typecodes['AllInteger']:
-        allowed_attrs.append(numpy.typeDict[v])
+        allowed_attrs.append(numpy.sctypeDict[v])
     for v in numpy.typecodes['AllFloat']:
-        allowed_attrs.append(numpy.typeDict[v])
+        allowed_attrs.append(numpy.sctypeDict[v])
 
     allowed_elems = [SpaceData, dmarray]
 
