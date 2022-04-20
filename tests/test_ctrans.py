@@ -11,6 +11,8 @@ import unittest
 
 import numpy
 from scipy.constants import arcsec
+
+import spacepy_testing
 from spacepy import ctrans
 import spacepy.time
 
