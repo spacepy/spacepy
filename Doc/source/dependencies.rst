@@ -70,6 +70,8 @@ and numerical functions build on top of NumPy.  It is highly
 recommended. The following modules may have limited functionality
 without SciPy:
 
+    * :mod:`~spacepy.coordinates`
+    * :mod:`~spacepy.ctrans`
     * :mod:`~spacepy.empiricals`
     * :mod:`~spacepy.seapy`
     * :mod:`~spacepy.toolbox`
@@ -139,7 +141,10 @@ compiler ``g77``, and the Portland Group PGI compiler.
 If :mod:`~spacepy.irbempy` is to be used, the Fortran compiler (and
 f2py) must be installed before SpacePy.
 
-:mod:`~spacepy.coordinates` requires :mod:`~spacepy.irbempy`.
+:mod:`~spacepy.coordinates` requires :mod:`~spacepy.irbempy` to use
+the IRBEM-based backend, but the new CTrans-based backend can be used
+without Fortran. See the :mod:`~spacepy.coordinates` documentation for
+the ``use_irbem`` option.
 
 .. _dependencies_astropy:
 
@@ -174,12 +179,21 @@ unaffected by that dependency.
      - :ref:`AstroPy <dependencies_astropy>`
    * - :mod:`~spacepy.coordinates`
      -
-     - :class:`~spacepy.coordinates.Coords` (except Windows binaries)
+     - :class:`~spacepy.coordinates.Coords` IRBEM backend (except Windows binaries)
+     -
+     -
+     -
+     -
+     - :mod:`Entire module <spacepy.coordinates>`
+     -
+   * - :mod:`~spacepy.ctrans`
      -
      -
      -
      -
      -
+     -
+     - :mod:`Entire module <spacepy.ctrans>`
      -
    * - :mod:`~spacepy.datamodel`
      - * :meth:`~spacepy.datamodel.SpaceData.toCDF`

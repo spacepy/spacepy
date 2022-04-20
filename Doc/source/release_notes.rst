@@ -54,6 +54,12 @@ Quaternion math functions have been removed from
 :mod:`~spacepy.toolbox`; they are available in
 :mod:`~spacepy.coordinates`. (Deprecated in 0.2.2.)
 
+Dependency requirements
+***********************
+Due to the new backend, scipy is now required for
+:mod:`~spacepy.coordinates` (even if using the old backend). 0.11
+remains the minimum version.
+
 Other changes
 *************
 :mod:`~spacepy.pycdf` now defaults to creating version 3 (not
