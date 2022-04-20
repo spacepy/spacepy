@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Implementation of Coords class functions for coordinate transformations
+"""Implementation of Coords class functions for coordinate transformations
 
 The coordinate systems supported by this module cover the most commonly
 used geophysical and magnetospheric systems. The naming conventions can
@@ -37,6 +36,13 @@ regardless of the input distance units and conversions from GDZ will
 output in Re regardless of input units. In all other cases, the distance
 units will be preserved.
 
+    .. versionchanged:: 0.3.0
+
+    The new CTrans backend was added, which includes support for the names
+    ``ECI2000``, ``ECIMOD``, ``ECITOD``, and ``CDMAG``. With the exception
+    of ``ECIMOD``, these can be used with the existing IRBEM backend, and
+    will be converted to their closest equivalents.
+
 Notes on differences between representations
 --------------------------------------------
 IRBEM's coordinate transformations are low-accuracy and were written for
@@ -59,19 +65,22 @@ and AstroPy. However, for use cases where the required precision is of order
 
 Setting options for coordinate transformation
 ---------------------------------------------
-The backend for coordinate transformations can be provided at instantiation
-of a Coords object use a keyword argument. However, for convenience and
-flexibility the options can be set at the module level. Configurable options
-include the backend used (IRBEM or SpacePy) and the reference ellipsoid (only
-configurable for the SpacePy backend). A warning will be raised if the backend
-is not set (either through the defaults or the keyword argument). The
-final configurable option (``itol``) is the maximum separation, in seconds,
-for which the coordinate transformations will not be recalculated. To force
-all transformations to use an exact transform for the time, set itol to zero.
-Values between 10s and 60s are recommended for speed while also preserving
-accuracy, though different applications will require different accuracies.
-For example, assuming this module has been imported as ``spc``, to set the
-SpacePy backend as the default and set ``itol`` to 5 seconds:
+The backend for coordinate transformations can be provided at
+instantiation of a :class:`Coords` object using a keyword
+argument. However, for convenience and flexibility the options can be
+set at the module level. Configurable options include the backend used
+(:mod:`~spacepy.irbempy` or SpacePy's :mod:`~spacepy.ctrans`) and the
+reference ellipsoid (only configurable for the SpacePy backend). A
+warning will be raised if the backend is not set (either through the
+defaults or the keyword argument). The final configurable option
+(``itol``) is the maximum separation, in seconds, for which the
+coordinate transformations will not be recalculated. To force all
+transformations to use an exact transform for the time, set ``itol``
+to zero. Values between 10s and 60s are recommended for speed while
+also preserving accuracy, though different applications will require
+different accuracies.  For example, assuming this module has been
+imported as ``spc``, to set the SpacePy backend as the default and set
+``itol`` to 5 seconds:
 
     >>> spc.DEFAULTS.set_values(use_irbem=False, itol=5)
 
@@ -80,6 +89,7 @@ Institution: Los ALamos National Laboratory
 Contact: smorley@lanl.gov
 
 Copyright 2010-2016 Los Alamos National Security, LLC.
+
 """
 
 from collections import namedtuple
@@ -184,8 +194,11 @@ class Coords(object):
     ticks : Ticktock instance, optional
         used for coordinate transformations (see a.convert)
     use_irbem : bool
-        Set to True to use IRBEM for coordinate transforms (default). Otherwise use
-        SpacePy's coordinate transform library.
+
+        .. versionadded:: 0.3.0
+
+        Set to True to use IRBEM for coordinate transforms (current default).
+        Otherwise use SpacePy's coordinate transform library.
 
     Returns
     -------

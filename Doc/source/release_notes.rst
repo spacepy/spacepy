@@ -14,6 +14,17 @@ This document presents user-visible changes in each release of SpacePy.
 0.3.0 (2021-xx-xx)
 ------------------
 
+New features
+************
+The :mod:`~spacepy.coordinates` module has been overhauled with a new,
+Python-based backend. This provides comparable performance to the
+existing :mod:`~spacepy.irbempy` backend with higher precision and
+reduces the dependence on Fortran. By default, irbemlib will still be
+built at installation time. The default backend remains IRBEM; in
+0.4.0, this will switch to the new :mod:`~spacepy.ctrans` based
+backend. The new :mod:`~spacepy.igrf` module is part of this support
+but may be of interest on its own.
+
 Deprecations and removals
 *************************
 Colourmaps have been removed from :class:`~spacepy.plot`. The same
