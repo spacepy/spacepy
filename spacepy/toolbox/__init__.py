@@ -1014,7 +1014,7 @@ def _get_cdaweb_omni2(omni2url=None):
     data['Epoch'] = data['Epoch'] + datetime.timedelta(minutes=30)
     #Castings to match ViRBO: everything is an int, and fill turns to NaN
     for k, v in data.items():
-        if v.dtype == np.object: #Skip epoch
+        if v.dtype == object: #Skip epoch
             continue
         if v.dtype == np.int32:
             data[k] = v.astype(np.float32)

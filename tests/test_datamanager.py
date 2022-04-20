@@ -552,7 +552,7 @@ class DataManagerBinningTests(unittest.TestCase):
 
         rebinned = spacepy.datamanager.rebin(indata, bindata, bins,
                                 weights=weights, bintype='count')
-        expected = numpy.empty(dtype=numpy.float, shape=(100, 6, 5))
+        expected = numpy.empty(dtype=float, shape=(100, 6, 5))
         for binno in range(len(bins) - 1):
             idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
             for i in range(100):

@@ -1232,10 +1232,10 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00'])
         expected = t.Ticktock(["2002-01-01T01:00:00", "2002-01-02T00:00:00"], dtype='UTC')
         t1.insert(1, '2002-01-02')
-        numpy.testing.assert_array_equal(t1, expected)
+        numpy.testing.assert_array_equal(t1.ISO, expected.ISO)
         t1 = t.Ticktock(['2002-01-01T01:00:00'])
         t1.insert(1, '2002-01-02', dtype='ISO')
-        numpy.testing.assert_array_equal(t1, expected)
+        numpy.testing.assert_array_equal(t1.ISO, expected.ISO)
 
     def test_MJD(self):
         """conversions to MJD should work"""
@@ -1455,7 +1455,7 @@ class TimeClassTests(unittest.TestCase):
         """testing get UTC from GPS"""
         t1 = t.Ticktock([6.93882013e+08, 6.93964813e+08], 'GPS')
         expected = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
-        numpy.testing.assert_array_equal(t1, expected)
+        numpy.testing.assert_array_equal(t1.ISO, expected.ISO)
 
     def test_GPSinput(self):
         """Regressions on GPS input, correct TAI/UTC conversions"""

@@ -1146,7 +1146,7 @@ def nanfill(v):
     """
     #If input is a zVar, read all the data; if not, this is a no-copy operation
     indata = v[...]
-    badidx = numpy.zeros(shape=v.shape, dtype=numpy.bool)
+    badidx = numpy.zeros(shape=v.shape, dtype=bool)
     if 'FILLVAL' in v.attrs:
         badidx |= (indata == v.attrs['FILLVAL'][...])
     if 'VALIDMIN' in v.attrs:
