@@ -30,12 +30,20 @@ class moduleTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(got, [[4, 90, 0], [4, -90, 0]])
 
 
-class coordsTest(unittest.TestCase):
-    def setUp(self):
-        self.cvals = spc.Coords([[1, 2, 4], [1, 2, 2]], 'GEO', 'car', use_irbem=False)
+class coordsTestBothCTrans(unittest.TestCase):
+    """Tests that are run against both IRBEM and CTrans backends
 
-    def tearDown(self):
-        pass
+    This class runs against CTrans.
+    """
+    use_irbem = False
+
+    def setUp(self):
+        try:
+            self.cvals = spc.Coords([[1, 2, 4], [1, 2, 2]], 'GEO', 'car',
+                                    use_irbem=self.use_irbem)
+        except ImportError:
+            # No irbem: tests will fail, but won't bring down the entire suite
+            pass
 
     def test_coords(self):
         """Coords should create and do simple conversions"""
@@ -44,6 +52,121 @@ class coordsTest(unittest.TestCase):
         np.testing.assert_equal([4, 2], self.cvals.z)
         self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')  # add ticktock
         newcoord = self.cvals.convert('GSM', 'sph')
+
+    def test_append(self):
+        """Test append functionality"""
+        c2 = spc.Coords([[6, 7, 8], [9, 10, 11]], 'GEO', 'car',
+                        use_irbem=self.use_irbem)
+        actual = self.cvals.append(c2)
+        expected = [[1, 2, 4], [1, 2, 2], [6, 7, 8], [9, 10, 11]]
+        np.testing.assert_equal(expected, actual.data.tolist())
+
+    def test_slice(self):
+        """Test slice functionality"""
+        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=self.use_irbem)
+        np.testing.assert_equal(expected.data, self.cvals[0].data)
+
+    def test_slice_with_ticks(self):
+        """Test slice functionality with ticks attribute"""
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=self.use_irbem)
+        np.testing.assert_equal(expected.data, self.cvals[0].data)
+
+    def test_GDZ_in_kilometers(self):
+        """Explicitly set units should be respected"""
+        tt = Ticktock(2459218.5, 'JD')
+        pos_km = np.array([2367.83158, -5981.75882, -4263.24591])
+        pos_re = pos_km / (6371.2 if self.use_irbem else ctrans.WGS84['A'])
+        cc_km = spc.Coords(pos_km, 'GEI', 'car', ticks=tt,
+                           units=['km', 'km', 'km'], use_irbem=self.use_irbem)
+        cc_Re = spc.Coords(pos_re, 'GEI', 'car', ticks=tt,
+                           units=['Re', 'Re', 'Re'], use_irbem=self.use_irbem)
+        got = cc_km.convert('GDZ', 'sph')
+        expected = cc_Re.convert('GDZ', 'sph')
+        # same valued output in km regardless of units of input
+        np.testing.assert_approx_equal(expected.radi, got.radi, significant=6)
+        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
+        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
+        self.assertEqual(got.units[0], 'km')
+        self.assertEqual(expected.units[0], 'km')
+
+    def test_GDZ_cartesian_raises_convert(self):
+        """Geodetic coordinates shouldn't be expressed in Cartesian"""
+        self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
+        self.assertRaises(ValueError, self.cvals.convert, 'GDZ', 'car')
+
+    def test_GDZ_cartesian_raises_creation(self):
+        """Geodetic coordinates shouldn't be expressed in Cartesian"""
+        tt = Ticktock(2459218.5, 'JD')
+        pos = np.array([2367.83158, -5981.75882, -4263.24591])
+        self.assertRaises(ValueError, spc.Coords, pos, 'GDZ', 'car',
+                          ticks=tt, use_irbem=self.use_irbem)
+
+    def test_RLL_kilometer_input(self):
+        """Explicitly set units should be respected"""
+        Re = 6371.2 if self.use_irbem else ctrans.WGS84['A']
+        tt = Ticktock(2459218.5, 'JD')
+        pos = np.array([2367.83158, -5981.75882, -4263.24591])
+        cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt,
+                           units=['km', 'km', 'km'], use_irbem=self.use_irbem)
+        got = cc_km.convert('RLL', 'sph')
+        cc_Re = spc.Coords(pos/Re, 'GEI', 'car', ticks=tt,
+                           units=['Re', 'Re', 'Re'], use_irbem=self.use_irbem)
+        expected = cc_Re.convert('RLL', 'sph')
+        # units should be respected
+        np.testing.assert_approx_equal(expected.radi, got.radi/Re, significant=6)
+        # latitude and longitude should be identical regardles of units of input
+        # geodetic lat/lon are altitude dependent, so this will fail if units
+        # aren't handled correctly
+        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
+        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
+        self.assertEqual(got.units[0], 'km')
+        self.assertEqual(expected.units[0], 'Re')
+
+    def test_units_respected(self):
+        """Units should be preserved on all conversions except to/from GDZ"""
+        cc_gdz_r = spc.Coords(
+            [3, 45, 45], 'GDZ', 'sph', ticks=Ticktock('2008-01-01'),
+            use_irbem=self.use_irbem, units=['Re', 'deg', 'deg'])
+        cc_sph_r = spc.Coords(
+            [3, 45, 45], 'GEO', 'sph', ticks=Ticktock('2008-01-01'),
+            use_irbem=self.use_irbem, units=['Re', 'deg', 'deg'])
+        cc_gdz_k = spc.Coords(
+            [3*ctrans.WGS84['A'], 45, 45], 'GDZ', 'sph',
+            ticks=Ticktock('2008-01-01'), use_irbem=self.use_irbem,
+            units=['km', 'deg', 'deg'])
+        cc_sph_k = spc.Coords(
+            [3*ctrans.WGS84['A'], 45, 45], 'GEO', 'sph',
+            ticks=Ticktock('2008-01-01'), use_irbem=self.use_irbem,
+            units=['km', 'deg', 'deg'])
+        # Conversion from GDZ goes to Re
+        got_gdz_r = cc_gdz_r.convert('GSE', 'car')
+        got_gdz_k = cc_gdz_k.convert('GSE', 'car')
+        self.assertEqual(got_gdz_r.units[0], 'Re')
+        self.assertEqual(got_gdz_k.units[0], 'Re')
+        # Conversion from other (GSE) preserves units
+        got_sph_r = cc_sph_r.convert('GSE', 'car')
+        got_sph_k = cc_sph_k.convert('GSE', 'car')
+        self.assertEqual(got_sph_r.units[0], 'Re')
+        self.assertEqual(got_sph_k.units[0], 'km')
+        # Conversion from other (RLL) preserves units
+        got_sph_r = cc_sph_r.convert('RLL', 'sph')
+        got_sph_k = cc_sph_k.convert('RLL', 'sph')
+        self.assertEqual(got_sph_r.units[0], 'Re')
+        self.assertEqual(got_sph_k.units[0], 'km')
+
+
+class coordsTestBothIRBEM(coordsTestBothCTrans):
+    """Tests that are run against both IRBEM and CTrans backends
+
+    This class runs against IRBEM.
+    """
+    use_irbem = True
+
+
+class coordsTest(unittest.TestCase):
+    def setUp(self):
+        self.cvals = spc.Coords([[1, 2, 4], [1, 2, 2]], 'GEO', 'car', use_irbem=False)
 
     def test_array_input_1D(self):
         """Coords should build correctly and convert with array input"""
@@ -66,24 +189,6 @@ class coordsTest(unittest.TestCase):
     def test_bad_position_fails_scalar(self):
         """Positions nnot supplied as valid 3-vectors should fail"""
         self.assertRaises(ValueError, spc.Coords, 1, 'GEO', 'car', use_irbem=False)
-
-    def test_append(self):
-        """Test append functionality"""
-        c2 = spc.Coords([[6, 7, 8], [9, 10, 11]], 'GEO', 'car', use_irbem=False)
-        actual = self.cvals.append(c2)
-        expected = [[1, 2, 4], [1, 2, 2], [6, 7, 8], [9, 10, 11]]
-        np.testing.assert_equal(expected, actual.data.tolist())
-
-    def test_slice(self):
-        """Test slice functionality"""
-        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=False)
-        np.testing.assert_equal(expected.data, self.cvals[0].data)
-
-    def test_slice_with_ticks(self):
-        """Test slice functionality with ticks attribute"""
-        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
-        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=False)
-        np.testing.assert_equal(expected.data, self.cvals[0].data)
 
     def test_len(self):
         """len of Coords should return number of 3-vectors"""
@@ -240,23 +345,6 @@ class coordsTest(unittest.TestCase):
         got = ccobj.convert('GDZ', 'sph')
         np.testing.assert_allclose(got.data, np.atleast_2d(expected), rtol=0, atol=1e-7)
 
-    def test_GDZ_in_kilometers(self):
-        """Explicitly set units should be respected"""
-        tt = Ticktock(2459218.5, 'JD')
-        pos = np.array([2367.83158, -5981.75882, -4263.24591])
-        cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'],
-                           use_irbem=False)
-        got = cc_km.convert('GDZ', 'sph')
-        cc_Re = spc.Coords(pos/ctrans.WGS84['A'], 'GEI', 'car', ticks=tt,
-                           units=['Re', 'Re', 'Re'], use_irbem=False)
-        expected = cc_Re.convert('GDZ', 'sph')
-        # same valued output in km regardless of units of input
-        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
-        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
-        np.testing.assert_approx_equal(expected.radi, got.radi, significant=6)
-        self.assertEqual(got.units[0], 'km')
-        self.assertEqual(expected.units[0], 'km')
-
     def test_GDZ_to_other_returns_in_Re(self):
         """Docs say everything is Re except GDZ, so make sure"""
         tt = Ticktock(2459218.5, 'JD')
@@ -313,36 +401,6 @@ class coordsTest(unittest.TestCase):
         self.assertEqual(gdz.units[0], 'km')  # ensure unit remains unchanged
         np.testing.assert_allclose(gdz.data, pos)  # ensure values remain unchanged
 
-    def test_GDZ_cartesian_raises_convert(self):
-        """Geodetic coordinates shouldn't be expressed in Cartesian"""
-        self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
-        self.assertRaises(ValueError, self.cvals.convert, 'GDZ', 'car')
-
-    def test_GDZ_cartesian_raises_creation(self):
-        """Geodetic coordinates shouldn't be expressed in Cartesian"""
-        tt = Ticktock(2459218.5, 'JD')
-        pos = np.array([2367.83158, -5981.75882, -4263.24591])
-        self.assertRaises(ValueError, spc.Coords, pos, 'GDZ', 'car', ticks=tt, use_irbem=False)
-
-    def test_RLL_kilometer_input(self):
-        """Explicitly set units should be respected"""
-        tt = Ticktock(2459218.5, 'JD')
-        pos = np.array([2367.83158, -5981.75882, -4263.24591])
-        cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'], use_irbem=False)
-        got = cc_km.convert('RLL', 'sph')
-        cc_Re = spc.Coords(pos/ctrans.WGS84['A'], 'GEI', 'car',
-                           ticks=tt, units=['Re', 'Re', 'Re'], use_irbem=False)
-        expected = cc_Re.convert('RLL', 'sph')
-        # units should be respected
-        np.testing.assert_approx_equal(expected.radi, got.radi/ctrans.WGS84['A'], significant=6)
-        # latitude and longitude should be identical regardles of units of input
-        # geodetic lat/lon are altitude dependent, so this will fail if units
-        # aren't handled correctly
-        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
-        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
-        self.assertEqual(got.units[0], 'km')
-        self.assertEqual(expected.units[0], 'Re')
-
     def test_RLL_cartesian_raises_convert(self):
         """Geodetic coordinates shouldn't be expressed in Cartesian"""
         self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
@@ -354,36 +412,6 @@ class coordsTest(unittest.TestCase):
         pos = np.array([2367.83158, -5981.75882, -4263.24591])
         self.assertRaises(ValueError, spc.Coords, pos, 'RLL', 'car', ticks=tt, use_irbem=False)
 
-    def test_units_respected(self):
-        """Units should be preserved on all conversions except to/from GDZ"""
-        cc_gdz_r = spc.Coords([3, 45, 45], 'GDZ', 'sph',
-                              ticks=Ticktock('2008-01-01'), use_irbem=False,
-                              units=['Re', 'deg', 'deg'])
-        cc_sph_r = spc.Coords([3, 45, 45], 'GEO', 'sph',
-                              ticks=Ticktock('2008-01-01'), use_irbem=False,
-                              units=['Re', 'deg', 'deg'])
-        cc_gdz_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GDZ', 'sph',
-                              ticks=Ticktock('2008-01-01'), use_irbem=False,
-                              units=['km', 'deg', 'deg'])
-        cc_sph_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GEO', 'sph',
-                              ticks=Ticktock('2008-01-01'), use_irbem=False,
-                              units=['km', 'deg', 'deg'])
-        # Conversion from GDZ goes to Re
-        got_gdz_r = cc_gdz_r.convert('GSE', 'car')
-        got_gdz_k = cc_gdz_k.convert('GSE', 'car')
-        self.assertEqual(got_gdz_r.units[0], 'Re')
-        self.assertEqual(got_gdz_k.units[0], 'Re')
-        # Conversion from other (GSE) preserves units
-        got_sph_r = cc_sph_r.convert('GSE', 'car')
-        got_sph_k = cc_sph_k.convert('GSE', 'car')
-        self.assertEqual(got_sph_r.units[0], 'Re')
-        self.assertEqual(got_sph_k.units[0], 'km')
-        # Conversion from other (RLL) preserves units
-        got_sph_r = cc_sph_r.convert('RLL', 'sph')
-        got_sph_k = cc_sph_k.convert('RLL', 'sph')
-        self.assertEqual(got_sph_r.units[0], 'Re')
-        self.assertEqual(got_sph_k.units[0], 'km')
-
 
 class coordsTestIrbem(unittest.TestCase):
     def setUp(self):
@@ -391,35 +419,6 @@ class coordsTestIrbem(unittest.TestCase):
             self.cvals = spc.Coords([[1, 2, 4], [1, 2, 2]], 'GEO', 'car', use_irbem=True)
         except ImportError:
             pass  # tests will fail, but won't bring down the entire suite
-
-    def tearDown(self):
-        pass
-
-    def test_coords(self):
-        """Coords should create and do simple conversions"""
-        np.testing.assert_equal([1, 1], self.cvals.x)
-        np.testing.assert_equal([2, 2], self.cvals.y)
-        np.testing.assert_equal([4, 2], self.cvals.z)
-        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')  # add ticktock
-        newcoord = self.cvals.convert('GSM', 'sph')
-
-    def test_append(self):
-        """Test append functionality"""
-        c2 = spc.Coords([[6, 7, 8], [9, 10, 11]], 'GEO', 'car', use_irbem=True)
-        actual = self.cvals.append(c2)
-        expected = [[1, 2, 4], [1, 2, 2], [6, 7, 8], [9, 10, 11]]
-        np.testing.assert_equal(expected, actual.data.tolist())
-
-    def test_slice(self):
-        """Test slice functionality"""
-        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=True)
-        np.testing.assert_equal(expected.data, self.cvals[0].data)
-
-    def test_slice_with_ticks(self):
-        """Test slice functionality with ticks attribute"""
-        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
-        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=True)
-        np.testing.assert_equal(expected.data, self.cvals[0].data)
 
     @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
     def test_to_skycoord_without_ticks(self):
@@ -534,57 +533,6 @@ class coordsTestIrbem(unittest.TestCase):
         got_car3 = test_ssp.convert('SPH', 'car')
         np.testing.assert_allclose(got_car2.data, got_car3.data)
 
-    def test_GDZ_in_kilometers(self):
-        """Explicitly set units should be respected"""
-        tt = Ticktock(2459218.5, 'JD')
-        pos_km = np.array([2367.83158, -5981.75882, -4263.24591])
-        pos_re = pos_km/6371.2
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'No coordinate backend',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            cc_km = spc.Coords(pos_km, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'])
-            cc_Re = spc.Coords(pos_re, 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'])
-        got = cc_km.convert('GDZ', 'sph')
-        expected = cc_Re.convert('GDZ', 'sph')
-        np.testing.assert_approx_equal(expected.radi, got.radi, significant=6)
-        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
-        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
-        self.assertEqual(got.units[0], 'km')
-        self.assertEqual(expected.units[0], 'km')
-
-    def test_RLL_kilometer_input(self):
-        """Explicitly set units should be respected"""
-        tt = Ticktock(2459218.5, 'JD')
-        pos = np.array([2367.83158, -5981.75882, -4263.24591])
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'No coordinate backend',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'])
-            cc_Re = spc.Coords(pos/6371.2, 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'])
-        got = cc_km.convert('RLL', 'sph')
-        expected = cc_Re.convert('RLL', 'sph')
-        # Given km, RLL returns in km
-        np.testing.assert_approx_equal(expected.radi, got.radi/6371.2, significant=6)
-        # Latitude should be identical regardless of unit input
-        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
-        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
-        self.assertEqual(got.units[0], 'km')
-        self.assertEqual(expected.units[0], 'Re')
-
-    def test_GDZ_cartesian_raises_convert(self):
-        """Geodetic coordinates shouldn't be expressed in Cartesian"""
-        self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
-        self.assertRaises(ValueError, self.cvals.convert, 'GDZ', 'car')
-
-    def test_GDZ_cartesian_raises_creation(self):
-        """Geodetic coordinates shouldn't be expressed in Cartesian"""
-        tt = Ticktock(2459218.5, 'JD')
-        pos = np.array([2367.83158, -5981.75882, -4263.24591])
-        self.assertRaises(ValueError, spc.Coords, pos, 'GDZ', 'car',
-                          ticks=tt, use_irbem=True)
-
     def test_GEI_is_TOD(self):
         """IRBEM inertial isn't labelled, show it's TOD, i.e. GEO Z is TOD Z"""
         self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
@@ -616,36 +564,6 @@ class coordsTestIrbem(unittest.TestCase):
         self.assertEqual(irb_got.dtype, nonirb_got.dtype)
         self.assertEqual(irb_got.carsph, nonirb_got.carsph)
         self.assertEqual(irb_got.units, nonirb_got.units)
-
-    def test_units_respected(self):
-        """Units should be preserved on all conversions except to/from GDZ"""
-        cc_gdz_r = spc.Coords([3, 45, 45], 'GDZ', 'sph',
-                              ticks=Ticktock('2008-01-01'),
-                              use_irbem=True, units=['Re', 'deg', 'deg'])
-        cc_sph_r = spc.Coords([3, 45, 45], 'GEO', 'sph',
-                              ticks=Ticktock('2008-01-01'),
-                              use_irbem=True, units=['Re', 'deg', 'deg'])
-        cc_gdz_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GDZ', 'sph',
-                              ticks=Ticktock('2008-01-01'),
-                              use_irbem=True, units=['km', 'deg', 'deg'])
-        cc_sph_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GEO', 'sph',
-                              ticks=Ticktock('2008-01-01'),
-                              use_irbem=True, units=['km', 'deg', 'deg'])
-        # Conversion from GDZ goes to Re
-        got_gdz_r = cc_gdz_r.convert('GSE', 'car')
-        got_gdz_k = cc_gdz_k.convert('GSE', 'car')
-        self.assertEqual(got_gdz_r.units[0], 'Re')
-        self.assertEqual(got_gdz_k.units[0], 'Re')
-        # Conversion from other (GSE) preserves units
-        got_sph_r = cc_sph_r.convert('GSE', 'car')
-        got_sph_k = cc_sph_k.convert('GSE', 'car')
-        self.assertEqual(got_sph_r.units[0], 'Re')
-        self.assertEqual(got_sph_k.units[0], 'km')
-        # Conversion from other (RLL) preserves units
-        got_sph_r = cc_sph_r.convert('RLL', 'sph')
-        got_sph_k = cc_sph_k.convert('RLL', 'sph')
-        self.assertEqual(got_sph_r.units[0], 'Re')
-        self.assertEqual(got_sph_k.units[0], 'km')
 
 
 class QuaternionFunctionTests(unittest.TestCase):
