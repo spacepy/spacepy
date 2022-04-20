@@ -185,7 +185,8 @@ unaffected by that dependency.
      -
      -
      - :mod:`Entire module <spacepy.coordinates>`
-     -
+     - * :meth:`~spacepy.coordinates.Coords.from_skycoord`
+       * :meth:`~spacepy.coordinates.Coords.to_skycoord`
    * - :mod:`~spacepy.ctrans`
      -
      -
