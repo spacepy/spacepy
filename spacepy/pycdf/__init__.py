@@ -3263,41 +3263,34 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
             `data` converted, including time conversions
         """
         cdf_type = self.type()
+        np_type = self._np_type()
         if cdf_type == const.CDF_EPOCH16.value:
             if not self._raw:
                 try:
                     data = lib.v_datetime_to_epoch16(data)
                 except AttributeError:
                     pass
-            data = numpy.require(data, requirements=('C', 'A', 'W'),
-                                 dtype=numpy.float64)
+            np_type = numpy.float64
         elif cdf_type == const.CDF_EPOCH.value:
             if not self._raw:
                 try:
                     data = lib.v_datetime_to_epoch(data)
                 except AttributeError:
                     pass
-            data = numpy.require(data, requirements=('C', 'A', 'W'),
-                                 dtype=numpy.float64)
         elif cdf_type == const.CDF_TIME_TT2000.value:
             if not self._raw:
                 try:
                     data = lib.v_datetime_to_tt2000(data)
                 except AttributeError:
                     pass
-            data = numpy.require(data, requirements=('C', 'A', 'W'),
-                                 dtype=numpy.int64)
         elif cdf_type in (const.CDF_UCHAR.value, const.CDF_CHAR.value):
             if not self._raw:
                 data = numpy.asanyarray(data)
                 if data.dtype.kind == 'U':
                     data = numpy.char.encode(
                         data, encoding=self.cdf_file.encoding)
-            data = numpy.require(data, requirements=('C', 'A', 'W'),
-                                 dtype=self._np_type())
-        else:
-            data = numpy.require(data, requirements=('C', 'A', 'W'),
-                                 dtype=self._np_type())
+        data = numpy.require(data, requirements=('C', 'A', 'W'),
+                             dtype=np_type)
         return data
 
     def __setitem__(self, key, data):
