@@ -1174,6 +1174,24 @@ class MakeCDF(unittest.TestCase):
                    else [u'\ufffd' * len(asbytes[0])] * 2
         numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
+    def testWarnEncodings(self):
+        """Warn when using nonstandard encoding"""
+        kwargs = {'message': 'Opening CDF for write with nonstandard encoding',
+                  'category': UserWarning}
+        with spacepy_testing.assertWarns(self, **kwargs):
+            with cdf.CDF(self.testfspec, create=True, encoding='latin-1') as f:
+                pass
+        with spacepy_testing.assertDoesntWarn(self, **kwargs):
+            f = cdf.CDF(self.testfspec, encoding='latin-1')
+            f.readonly(True)
+        with spacepy_testing.assertWarns(self, **kwargs):
+            f.readonly(False)
+        f.close()
+        with spacepy_testing.assertDoesntWarn(self, **kwargs):
+            f = cdf.CDF(self.testfspec, encoding='ascii')
+            f.readonly(False)
+        f.close()
+
 
 class CDFTestsBase(unittest.TestCase):
     """Base class for tests involving existing CDF, column or row major"""
