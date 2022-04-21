@@ -15,6 +15,7 @@ Contents
     - `Modify a CDF`_
     - `Non record-varying`_
     - `Slicing and indexing`_
+    - `String handling`_
 - `Classes`_
 - `Functions`_
 - `Submodules`_
@@ -248,6 +249,49 @@ hourly data file created in earlier examples.
 >>> cdf.close()
 
 The :class:`Var` documentation has several additional examples.
+
+.. _pycdf_string_handling:
+
+String handling
+===============
+
+   .. versionchanged:: 0.3.0
+
+   Prior to SpacePy 0.3.0, pycdf treated all strings as ASCII-encoded, and
+   would raise errors when writing or reading strings that were not valid
+   ASCII.
+
+Per the NASA CDF library, variable and attribute names must be in
+ASCII. The contents of ``CDF_CHAR`` and ``CDF_UCHAR`` were redefined
+to be UTF-8 as of CDF 3.8.1. As of SpacePy 0.3.0, pycdf treats all
+``CHAR`` variables with a default encoding of UTF-8. This is true
+regardless of the version of the underlying CDF library.
+
+UTF-8 is a variable-length encoding, so the number of elements in the
+variable may not correspond to the number of characters if data are
+not restricted to the ASCII range.
+
+A different encoding can be specified with the ``encoding`` argument
+to :class:`~spacepy.pycdf.CDF.open` and this encoding will be used on
+all reads and writes to that file. Opening a CDF read-write with
+``encoding`` other than ``utf-8`` or ``ascii`` will issue a warning.
+
+Writing strings which cannot be represented in the desired encoding
+will raise an error. When reading from a CDF, characters which cannot
+be decoded will be replaced with the Unicode "replacement character"
+U+FFFD, which usually displays as a question mark.
+
+It is always possible to write raw bytes data to a variable, if it is
+desired to use a different encoding for one time. For arrays of data,
+this will usually involve :func:`numpy.char.encode`:
+
+   >>> cdf['Variable'] = data.encode('latin-1')
+   >>> cdf['Variable'] = numpy.char.encode(data, encoding='latin-1')
+
+All encoding and decoding can also be skipped using the
+:meth:`~spacepy.pycdf.CDF.raw_var` method to access a variable;
+however, without encoding, only :class:`bytes` can be written to
+string variables.
 
 Access to CDF constants and the C library
 =========================================
