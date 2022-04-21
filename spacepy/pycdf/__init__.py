@@ -1475,6 +1475,9 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         existing CDF; False if creating a new one. A readonly
         CDF with many variables may be slow to close. See
         :meth:`readonly`.
+    encoding : str, optional
+        Text encoding to use when reading and writing strings. Default
+        ``'utf-8'``.
 
     Raises
     ======
@@ -1699,7 +1702,8 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
     .. automethod:: version
 
     """
-    def __init__(self, pathname, masterpath=None, create=None, readonly=None):
+    def __init__(self, pathname, masterpath=None, create=None, readonly=None,
+                 encoding='utf-8'):
         """Open or create a CDF file.
 
         Parameters
@@ -1716,6 +1720,9 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         readonly : bool
             Open the CDF read-only. Default True if opening an
             existing CDF; False if creating a new one.
+        encoding : str, optional
+            Text encoding to use when reading and writing strings.
+            Default ``'utf-8'``.
 
         Raises
         ======
@@ -1746,6 +1753,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
                 'pathname must be string-like: {0}'.format(pathname))
         self._handle = ctypes.c_void_p(None)
         self._opened = False
+        self.encoding = encoding
         if masterpath is None and not create:
             self._open(True if readonly is None else readonly)
         elif masterpath:
@@ -2404,7 +2412,8 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
                 n_elements = 1
         else:
             #This supports getting the type straight from a VarCopy
-            (guess_dims, guess_types, guess_elements) = _Hyperslice.types(data)
+            (guess_dims, guess_types, guess_elements)\
+                = _Hyperslice.types(data, encoding=self.encoding)
             if dims is None:
                 if recVary:
                     if guess_dims == ():
@@ -3266,9 +3275,17 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
                     pass
             data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.int64)
+        elif cdf_type in (const.CDF_UCHAR.value, const.CDF_CHAR.value):
+            if not self._raw:
+                data = numpy.asanyarray(data)
+                if data.dtype.kind == 'U':
+                    data = numpy.char.encode(
+                        data, encoding=self.cdf_file.encoding)
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
+                                 dtype=self._np_type())
         else:
-             data = numpy.require(data, requirements=('C', 'A', 'W'),
-                                  dtype=self._np_type())
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
+                                 dtype=self._np_type())
         return data
 
     def __setitem__(self, key, data):
@@ -4278,8 +4295,10 @@ class _Hyperslice(object):
             if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
                     str != bytes:
                 dt = numpy.dtype('U{0}'.format(result.dtype.itemsize))
-                result = numpy.require(numpy.char.array(result).decode(),
-                                       dtype=dt)
+                result = numpy.require(
+                    numpy.char.array(result).decode(
+                        encoding=self.zvar.cdf_file.encoding, errors='replace'),
+                    dtype=dt)
             elif cdftype == const.CDF_EPOCH.value:
                 result = lib.v_epoch_to_datetime(result)
             elif cdftype == const.CDF_EPOCH16.value:
@@ -4437,7 +4456,7 @@ class _Hyperslice(object):
         return _Hyperslice.check_well_formed(data).shape
 
     @staticmethod
-    def types(data, backward=False):
+    def types(data, backward=False, encoding='utf-8'):
         """Find dimensions and valid types of a nested list-of-lists
 
         Any given data may be representable by a range of CDF types; infer
@@ -4469,6 +4488,8 @@ class _Hyperslice(object):
         @type data: list (of lists)
         @param backward: limit to pre-CDF3 types
         @type backward: bool
+        @param encoding: Encoding to use for Unicode input, default utf-8
+        @type backward: str
         @return: dimensions of L{data}, in order outside-in;
                  CDF types which can represent this data;
                  number of elements required (i.e. length of longest string)
@@ -4482,9 +4503,13 @@ class _Hyperslice(object):
 
         if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
+            # Length of string from type (may be longer than contents)
             elements = d.dtype.itemsize
-            if d.dtype.kind == 'U': #UTF-8 uses 4 bytes per
-                elements //= 4
+            if d.dtype.kind == 'U':
+                # Big enough for contents (bytes/char are encoding-specific)
+                elements = max(
+                    elements // 4, # numpy stores as 4-byte
+                    numpy.char.encode(d, encoding=encoding).dtype.itemsize)
         elif d.size and hasattr(numpy.ma.getdata(d).flat[0], 'microsecond'):
             if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
                 types = [const.CDF_TIME_TT2000, const.CDF_EPOCH16,
@@ -4865,7 +4890,8 @@ class Attr(MutableSequence):
                 typelist[i] = (None, None, None)
                 continue
             (dims, types, elements) = _Hyperslice.types(
-                datum, backward=self._cdf_file.backward)
+                datum, backward=self._cdf_file.backward,
+                encoding=self._cdf_file.encoding)
             if len(types) <= 0:
                 raise ValueError('Cannot find a matching CDF type.')
             if len(dims) > 1:
@@ -5249,7 +5275,8 @@ class Attr(MutableSequence):
             if str == bytes or self._raw: #Py2k, leave as bytes
                 result = bytes(buff)
             else: #Py3k, make unicode
-                result = str(numpy.char.array(buff).decode())
+                result = str(numpy.char.array(buff).decode(
+                    encoding=self._cdf_file.encoding, errors='replace'))
         else:
             if not self._raw:
                 if cdftype == const.CDF_EPOCH.value:
@@ -5281,6 +5308,11 @@ class Attr(MutableSequence):
         """
         n_write = 1 if len(dims) == 0 else dims[0]
         if cdf_type in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
+            if not self._raw:
+                data = numpy.asanyarray(data)
+                if data.dtype.kind == 'U':
+                    data = numpy.char.encode(
+                        data, encoding=self._cdf_file.encoding)
             data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.dtype('S' + str(elements)))
             n_write = elements
