@@ -507,6 +507,7 @@ class NoCDF(unittest.TestCase):
                    numpy.array([5, 6, 7], dtype=numpy.uint8),
                    [4611686018427387904],
                    numpy.array([1], dtype=object),
+                   [u'\U0001f600\U0001f600'],
                    ]
         type8 = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
@@ -549,6 +550,7 @@ class NoCDF(unittest.TestCase):
                          const.CDF_INT4, const.CDF_UINT4, const.CDF_INT8,
                          const.CDF_FLOAT, const.CDF_REAL4,
                          const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((1,), [const.CDF_CHAR, const.CDF_UCHAR], 8),
                  ]
         types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
@@ -591,6 +593,7 @@ class NoCDF(unittest.TestCase):
                          const.CDF_INT4, const.CDF_UINT4,
                          const.CDF_FLOAT, const.CDF_REAL4,
                          const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((1,), [const.CDF_CHAR, const.CDF_UCHAR], 8),
                  ]
         self.assertRaises(ValueError, cdf._Hyperslice.types, [object()])
         if cdf.lib.supports_int8: #explicitly test backward-compatible
@@ -1118,6 +1121,58 @@ class MakeCDF(unittest.TestCase):
         with cdf.CDF(self.testfspec) as f:
             ver, rel, inc = f.version()
         self.assertEqual(3, ver)
+
+    def testBadASCIIEncoding(self):
+        """Read/write UTF-8 to ASCII encoded CDF"""
+        warnings.filterwarnings(
+            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
+            DeprecationWarning, r'^spacepy\.pycdf$')
+        try:
+            with cdf.CDF(self.testfspec, create=True, encoding='ascii') as f:
+                asuni = [u'\U0001f600', u'\U0001f44d']
+                asbytes = [t.encode('utf-8') for t in asuni]
+                with self.assertRaises(UnicodeEncodeError):
+                    f['teststr'] = asuni
+                f['teststr2'] = asbytes
+                out = f['teststr2'][...]
+        finally:
+            del warnings.filters[0]
+        expected = asbytes if str is bytes\
+                   else [u'\ufffd' * len(asbytes[0])] * 2
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
+
+    def testBadASCIINumpy(self):
+        """Read/write UTF-8 ndarray to ASCII encoded CDF"""
+        warnings.filterwarnings(
+            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
+            DeprecationWarning, r'^spacepy\.pycdf$')
+        try:
+            with cdf.CDF(self.testfspec, create=True, encoding='ascii') as f:
+                inarray = numpy.array([u'\U0001f600\U0001f600', u'\U0001f44d'],
+                                      dtype='U6')
+                with self.assertRaises(UnicodeEncodeError):
+                    f['string62'] = inarray
+        finally:
+            del warnings.filters[0]
+
+    def testBadASCIIEntry(self):
+        """Read/write UTF-8 to entry in ASCII encoded CDF"""
+        warnings.filterwarnings(
+            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
+            DeprecationWarning, r'^spacepy\.pycdf$')
+        try:
+            with cdf.CDF(self.testfspec, create=True, encoding='ascii') as f:
+                asuni = [u'\U0001f600', u'\U0001f44d']
+                asbytes = [t.encode('utf-8') for t in asuni]
+                with self.assertRaises(UnicodeEncodeError):
+                    f.attrs['foo'] = asuni
+                f.attrs['foo2'] = asbytes
+                out = f.attrs['foo2'][...]
+        finally:
+            del warnings.filters[0]
+        expected = asbytes if str is bytes\
+                   else [u'\ufffd' * len(asbytes[0])] * 2
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
 
 class CDFTestsBase(unittest.TestCase):
@@ -3201,6 +3256,33 @@ class ChangeCDF(ChangeCDFBase):
         out = self.cdf['teststr'][0:2]
         numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
+    def testUTF8(self):
+        """Read/write UTF-8 to string variable"""
+        asuni = [u'\U0001f600', u'\U0001f44d']
+        asbytes = [t.encode('utf-8') for t in asuni]
+        self.cdf['teststr'] = asuni  # Write unicode
+        out = self.cdf.raw_var('teststr')[:]  # Read bytes
+        numpy.testing.assert_array_equal(asbytes, numpy.char.rstrip(out))
+        out = self.cdf['teststr'][:]  # Read str
+        numpy.testing.assert_array_equal(
+            asbytes if str is bytes else asuni, numpy.char.rstrip(out))
+        self.cdf['teststr2'] = asbytes  # Write bytes
+        out = self.cdf.raw_var('teststr2')[:]  # Read bytes
+        numpy.testing.assert_array_equal(asbytes, numpy.char.rstrip(out))
+        out = self.cdf['teststr2'][:]  # Read str
+        numpy.testing.assert_array_equal(
+            asbytes if str is bytes else asuni, numpy.char.rstrip(out))
+
+    def testUTF8Bad(self):
+        """Read/write invalid UTF-8 to string variable"""
+        asbytes = [b'\xfe',  b'\xff']
+        self.cdf['teststr'] = asbytes  # Write bytes
+        out = self.cdf.raw_var('teststr')[:]  # Read bytes
+        numpy.testing.assert_array_equal(asbytes, numpy.char.rstrip(out))
+        out = self.cdf['teststr'][:]  # Read str
+        expected = asbytes if str is bytes else [u'\ufffd'] * 2
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
+
     def testFloatEpoch(self):
         """Write floats to an Epoch variable"""
         self.cdf.new('epochtest', type=const.CDF_EPOCH)
@@ -3279,13 +3361,22 @@ class ChangeCDF(ChangeCDFBase):
 
     def testCreateVarFromUnicodeArray(self):
         """make a zvar from numpy string array in unicode"""
-        if str is bytes: #Py2k, don't expect unicode handling of char
-            return
         inarray = numpy.array(['hi', 'there'], dtype='U6')
         self.cdf['string62'] = inarray
         self.assertEqual(6, self.cdf['string62'].nelems())
         out = self.cdf['string62'][...]
         numpy.testing.assert_array_equal(inarray, numpy.char.rstrip(out))
+
+    def testCreateVarFromHighUnicodeArray(self):
+        """make a zvar from numpy unicode array, non-ASCII"""
+        inarray = numpy.array([u'\U0001f600\U0001f600', u'\U0001f44d'],
+                              dtype='U6')
+        self.cdf['string62'] = inarray
+        self.assertEqual(8, self.cdf['string62'].nelems())
+        out = self.cdf['string62'][...]
+        expected = numpy.char.encode(inarray, encoding='utf-8') if str is bytes\
+                   else inarray
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
     def testAppendgEntry(self):
         """Append to a gAttr"""
@@ -3901,14 +3992,9 @@ class ChangeAttr(ChangeCDFBase):
         """Assign unicode string to attributes"""
         self.cdf['ATC'].attrs['foo'] = u'C'
         self.assertEqual('C', self.cdf['ATC'].attrs['foo'])
-        try:
-            self.cdf['ATC'].attrs['foo2'] = u'\xb0C'
-        except UnicodeEncodeError:
-            pass
-        else:
-            self.fail('Should have raised UnicodeEncodeError')
-        #This basically fails same way as numpy.array(u'\xb0C', dtype='|S2')
-#        self.assertEqual(b'C', self.cdf['ATC'].attrs['foo2'])
+        self.cdf['ATC'].attrs['foo2'] = u'\u00b0C'
+        expected = b'\xc2\xb0C' if str is bytes else u'\u00b0C'
+        self.assertEqual(expected, self.cdf['ATC'].attrs['foo2'])
 
 
 class ChangeColCDF(ColCDFTests):
