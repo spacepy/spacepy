@@ -25,6 +25,11 @@ built at installation time. The default backend remains IRBEM; in
 backend. The new :mod:`~spacepy.igrf` module is part of this support
 but may be of interest on its own.
 
+In accordance with a change from NASA, :mod:`~spacepy.pycdf` now
+assumes strings in CDFs are UTF-8. It will no longer raise errors on
+reading non-ASCII data from a CDF. See :ref:`pycdf_string_handling` in
+the pycdf documentation for details.
+
 Deprecations and removals
 *************************
 Colourmaps have been removed from :class:`~spacepy.plot`. The same
