@@ -1758,8 +1758,10 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             self._open(True if readonly is None else readonly)
         elif masterpath:
             self._from_master(masterpath.encode())
+            self._check_enc()
         else:
             self._create()
+            self._check_enc()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
         self._attrlistref = weakref.ref(gAttrList(self))
         self.backward = self.version()[0] < 3
@@ -1939,6 +1941,8 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         self._opened = True
         if readonly: #Default is RW
             self.readonly(readonly)
+        else:
+            self._check_enc()
 
     def _create(self):
         """Creates (and opens) a new CDF file
@@ -1988,6 +1992,13 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             raise CDFError(const.CDF_EXISTS)
         shutil.copy2(master_path, self.pathname)
         self._open(False)
+
+    def _check_enc(self):
+        """Check encoding and raise warning if nonstandard"""
+        if self.encoding not in ('ascii', 'utf-8'):
+            warnings.warn(
+                'Opening CDF for write with nonstandard encoding {}'.format(
+                    self.encoding))
 
     @classmethod
     def from_data(cls, filename, sd):
@@ -2148,6 +2159,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         elif ro == False:
             self._call(const.SELECT_, const.CDF_READONLY_MODE_,
                        const.READONLYoff)
+            self._check_enc()
         mode = ctypes.c_long(0)
         self._call(const.CONFIRM_, const.CDF_READONLY_MODE_,
                    ctypes.byref(mode))
