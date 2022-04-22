@@ -3476,6 +3476,24 @@ class ChangeCDF(ChangeCDFBase):
         else:
             self.fail('Should have raised IndexError on 1')
 
+    def testTruthiness(self):
+        """Variables should be falsey if empty, truthy otherwise"""
+        self.cdf.new('Testvar', dims=[2, 3], type=const.CDF_INT1)
+        self.assertFalse(self.cdf['Testvar'])
+        self.cdf['Testvar'][...] = [[[1, 2, 3], [4, 5, 6]],
+                                    [[7, 8, 9], [10, 11, 12]]]
+        self.assertTrue(self.cdf['Testvar'])
+        del self.cdf['Testvar'][...]
+        self.assertFalse(self.cdf['Testvar'])
+        self.cdf.new('TestNRV', dims=[2, 3], recVary=False, type=const.CDF_INT1)
+        self.assertFalse(self.cdf['TestNRV'])
+        self.cdf['TestNRV'][...] = [[1, 2, 3], [4, 5, 6]]
+        self.assertTrue(self.cdf['TestNRV'])
+        self.cdf.new('TestNRVScalar', recVary=False, type=const.CDF_INT1)
+        self.assertFalse(self.cdf['TestNRVScalar'])
+        self.cdf['TestNRVScalar'][...] = 1
+        self.assertTrue(self.cdf['TestNRVScalar'])
+
 
 class ChangezVar(ChangeCDFBase):
     """Tests that modify a zVar"""
