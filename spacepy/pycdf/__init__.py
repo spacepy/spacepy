@@ -2902,6 +2902,13 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
     reading an NRV scalar variable with no data will return an empty
     one-dimensional array. This is really not recommended.
 
+    Variables with no records (RV) or no data (NRV) are considered to be
+    "false"; those with records or data written are considered to be
+    "true", allowing for an easy check of data existence:
+
+    >>> if testcdf['variable']:
+    >>>     # do things that require data to exist
+
     As a list type, variables are also `iterable
     <http://docs.python.org/tutorial/classes.html#iterators>`_; iterating
     over a variable returns a single complete record at a time.
