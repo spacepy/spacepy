@@ -1473,8 +1473,8 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
     readonly : bool
         Open the CDF read-only. Default True if opening an
         existing CDF; False if creating a new one. A readonly
-        CDF with many variables may be slow to close. See
-        :meth:`readonly`.
+        CDF with many variables may be slow to close on CDF library
+        versions before 3.8.1. See :meth:`readonly`.
     encoding : str, optional
         Text encoding to use when reading and writing strings. Default
         ``'utf-8'``.
@@ -2131,12 +2131,13 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         will have no effect.
 
         .. note::
-            Closing a CDF that has been opened readonly, or setting readonly
+            Before version 3.8.1 of the NASA CDF library,
+            closing a CDF that has been opened readonly, or setting readonly
             False, may take a substantial amount of time if there are many
             variables in the CDF, as a (potentially large) cache needs to
-            be cleared. Consider specifying ``readonly=False`` when opening
-            the file if this is an issue. However, this may make some reading
-            operations slower.
+            be cleared. If upgrading to a newer CDF library is not possible,
+            specifying ``readonly=False`` when opening the file is an option.
+            However, this may make some reading operations slower.
 
         Other Parameters
         ================
