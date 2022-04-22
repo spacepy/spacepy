@@ -322,7 +322,7 @@ def _read_config(rcfile):
                 'qindenton_url': 'http://virbo.org/ftp/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
                 'qd_daily_url': 'https://rbsp-ect.newmexicoconsortium.org/data_pub/QinDenton/',
                 'omni2_url': 'https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hourly/',
-                'leapsec_url': 'https://oceandata.sci.gsfc.nasa.gov/Ancillary/LUTs/modis/leapsec.dat',
+                'leapsec_url': 'https://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
                 'support_notice': str(True),
                 'apply_plot_styles': str(True),

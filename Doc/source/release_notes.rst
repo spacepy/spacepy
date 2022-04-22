@@ -73,6 +73,11 @@ a time variable or attribute without specifying a type (EPOCH or
 EPOCH16 are used if TT2000 isn't available). A warning is issued when
 doing so; this warning will be removed in 0.4.0. (Warning added in 0.2.2.)
 
+The default data source for leapsecond files has been reverted from
+NASA/MODIS to the USNO, as USNO data services are back online. If
+present, entries in the :doc:`configuration file <configuration>` will
+still be used instead of the default.
+
 0.2 Series
 ==========
 
