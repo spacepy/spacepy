@@ -1,28 +1,16 @@
-
 ######################################
 pycdf - Python interface to CDF files
 ######################################
 
 .. automodule:: spacepy.pycdf
 
-
 Contents
 --------
 
-- `Quickstart`_
-    - `Create a CDF`_
-    - `Read a CDF`_
-    - `Modify a CDF`_
-    - `Non record-varying`_
-    - `Slicing and indexing`_
-    - `String handling`_
-- `Classes`_
-- `Functions`_
-- `Submodules`_
-- `Data`_
+.. contents::
+   :depth: 2
+   :local:
 
-Quickstart
-----------
 Create a CDF
 ============
 This example presents the entire sequence of creating a CDF and populating
@@ -302,7 +290,7 @@ The underlying C library is represented by the :attr:`~spacepy.pycdf.lib`
 variable.
 
 Classes
--------
+=======
 
 .. autosummary::
     :template: clean_class.rst
@@ -325,7 +313,7 @@ Classes
     EpochError
 
 Functions
----------
+=========
 
 .. autosummary::
     :template: clean_function.rst
@@ -334,7 +322,7 @@ Functions
     concatCDF
 
 Submodules
-----------
+==========
 
 .. autosummary::
     :toctree: autosummary  
@@ -344,7 +332,7 @@ Submodules
     istp
 
 Data
-----
+====
 
 .. attribute:: lib
 
