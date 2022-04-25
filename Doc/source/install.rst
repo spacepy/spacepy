@@ -24,7 +24,7 @@ on Windows.
 If you are familiar with installing Python packages, have particular
 preferences for managing an installation, or if the above doesn't
 work, refer to platform-specific instructions and the details
-below. (In particular, if you will use :mod:`~spacepy.LANLstar`).
+below.
 
 For installing the NASA CDF library to support :mod:`~spacepy.pycdf`,
 see the platform-specific instructions linked below.

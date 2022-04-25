@@ -38,8 +38,7 @@ Make a clean isolated environment just for SpacePy build:
 ~/miniconda/bin/conda create -y -n spacepy_build python=3
 source ~/miniconda/bin/activate spacepy_build
 conda install numpy
-conda install scipy matplotlib networkx h5py astropy sphinx numpydoc
-pip install ffnet
+conda install scipy matplotlib h5py astropy sphinx numpydoc
 
 (Use "conda deactivate" when done, but not done yet...))
 

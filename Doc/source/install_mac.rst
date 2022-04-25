@@ -26,8 +26,7 @@ Installation via ``pip`` will automatically install most Python
 dependencies (but not the :ref:`NASA CDF library <linux_CDF>`). They
 can also be installed from conda::
 
-   conda install numpy scipy matplotlib networkx h5py
-   pip install ffnet
+   conda install numpy scipy matplotlib h5py
 
 Once this is set up, ``pip install spacepy`` should just work. If
 you're installing as a single user (not in a virtual environment) then
@@ -35,13 +34,6 @@ add the ``--user`` flag.
 
 You will also need the :ref:`NASA CDF library <linux_CDF>` to use
 :mod:`~spacepy.pycdf`.
-
-``ffnet`` is required for :mod:`~spacepy.LANLstar`. It is
-automatically installed when SpacePy is installed from source
-(currently the only supported means on Mac). It can also be explicitly
-installed via pip::
-
-  pip install ffnet
 
 To install the latest code from the repository, rather than
 the latest stable release, use::

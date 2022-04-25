@@ -93,14 +93,10 @@ IF "%ACTION%"=="BUILD" (
     :: Testing. Get the latest of everything
     IF "%2"=="310" (
         CALL pip install numpy
-        CALL pip install numpy scipy matplotlib networkx h5py ffnet astropy
+        CALL pip install numpy scipy matplotlib h5py astropy
     ) ELSE (
-        CALL conda install -y numpy scipy matplotlib networkx h5py astropy
+        CALL conda install -y numpy scipy matplotlib h5py astropy
     )
-    :: libpython sets things up to use ming by default, otherwise try distutils.cfg
-    :: note we need libpython or else ffnet requires MSVC to install
-    SET FC_VENDOR=gfortran
-    CALL pip install ffnet
 )
 CALL conda deactivate
 ::This turns off echo!

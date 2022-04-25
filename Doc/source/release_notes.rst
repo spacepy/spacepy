@@ -36,6 +36,12 @@ format is deprecated.
 
 Deprecations and removals
 *************************
+``LANLstar`` requires `ffnet <http://ffnet.sourceforge.net/>`_, which
+does not work on Python 3.7 and later. The SpacePy team is working on
+replacing this dependency, but in the meantime ``LANLstar`` is
+unsupported and will require manually installing ``ffnet`` and
+`networkx <http://networkx.lanl.gov/>`_.
+
 As mentioned above, :mod:`~spacepy.ae9ap9` support for the old ephem
 model file format is deprecated.
 
@@ -71,6 +77,9 @@ Dependency requirements
 Due to the new backend, scipy is now required for
 :mod:`~spacepy.coordinates` (even if using the old backend). 0.11
 remains the minimum version.
+
+Since ``LANLstar`` is not currently supported, ``ffnet`` and
+``networkx`` are no longer treated as SpacePy dependencies.
 
 Other changes
 *************

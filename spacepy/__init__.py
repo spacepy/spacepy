@@ -28,7 +28,6 @@ help available:
     ~spacepy.datamodel
     ~spacepy.empiricals
     ~spacepy.irbempy
-    ~spacepy.LANLstar
     ~spacepy.omni
     ~spacepy.poppy
     ~spacepy.pybats

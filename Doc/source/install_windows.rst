@@ -24,30 +24,6 @@ install older versions to get around this. See :ref:`win_dep_conda`.
 .. contents::
    :local:
 
-.. _windows_fortran:
-
-Fortran and ffnet
-=================
-
-`ffnet <http://ffnet.sourceforge.net/download.html>`_ is required for
-:mod:`~spacepy.LANLstar`. It can be installed either before or after
-SpacePy. Binary wheels are not provided, so a Fortran compiler is
-required.
-
-With Anaconda, the compiler and ffnet can be installed with::
-
-  conda install m2w64-gcc-fortran libpython
-  SET FC_VENDOR=gfortran
-  pip install ffnet
-
-The `FC_VENDOR` line is necessary because ffnet defaults to the
-Microsoft compiler.
-
-Some standalone binary installers (no ``pip`` support) are also
-available on the `ffnet site
-<http://ffnet.sourceforge.net/download.html>`_. These do not require a
-compiler but support only a limited set of Python versions.
-
 .. _windows_compiling:
 
 Compiling
@@ -114,10 +90,10 @@ Dependencies via conda
 ======================
 
 Installation via ``pip`` will automatically install most Python
-dependencies (but not :ref:`ffnet <windows_fortran>` or the :ref:`NASA
-CDF library <windows_CDF>`). They can also be installed from conda::
+dependencies (but not the :ref:`NASA CDF library <windows_CDF>`).
+They can also be installed from conda::
 
-  conda install numpy scipy matplotlib networkx h5py
+  conda install numpy scipy matplotlib h5py
 
 Standalone dependencies
 =======================
