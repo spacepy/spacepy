@@ -104,13 +104,6 @@ history. The oldest version supported according to this policy is in
      - 2.8.0 (2019/2/5)
      - **2.6.0** (2016/11/8)
      - tested from 1.4 (2008/2/27)
-   * - `ffnet <https://github.com/mrkwjc/ffnet/releases>`_
-     - 0.8.4 (2018/10/28)
-     - N/A
-     - N/A
-     - 0.8.4 (2018/10/28)
-     - **0.6.0** (2007/3/22)
-     - tested from 0.7 (2011/8/8)
    * - `h5py <https://github.com/h5py/h5py/releases>`_
      - 3.4.0 (2021/8/3)
      - **2.7.1** (2017/9/1)
@@ -125,13 +118,6 @@ history. The oldest version supported according to this policy is in
      - 3.2.0 (2020/3/3)
      - 3.2.0 (2020/3/3)
      - 1.5.0 (2015/10/29)
-   * - `networkx <https://github.com/networkx/networkx/releases>`_
-     - 2.6.3 (2021/9/9)
-     - **1.11** (2016/1/30)
-     - 2.4 (2019/10/16)
-     - 2.4 (2019/10/16)
-     - 2.4 (2019/10/16)
-     - tested from 1.0 (2010/1/7)
    * - `numpy <https://github.com/numpy/numpy/releases>`_
      - 1.21.2 (2021/8/15)
      - **1.13.3** (2017/7/6)

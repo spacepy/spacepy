@@ -93,20 +93,6 @@ modules may have limited functionality or fail entirely:
     * :mod:`~spacepy.seapy`
     * :mod:`~spacepy.toolbox`
 
-.. _dependencies_ffnet:
-
-ffnet 0.7+
-----------
-`ffnet <http://ffnet.sourceforge.net/>`_ is a neural network package,
-required for :mod:`~spacepy.LANLstar`.
-
-.. _dependencies_networkx:
-
-networkx 1.0+
--------------
-`networkx <http://networkx.lanl.gov/>`_ is a requirement for ffnet,
-and thus :mod:`~spacepy.LANLstar`.
-
 .. _dependencies_h5py:
 
 h5py 2.6+
@@ -171,10 +157,8 @@ unaffected by that dependency.
    * -
      - :ref:`CDF <dependencies_cdf>`
      - :ref:`Fortran compiler <dependencies_fortran>`
-     - :ref:`ffnet <dependencies_ffnet>`
      - :ref:`h5py <dependencies_h5py>`
      - :ref:`matplotlib <dependencies_mpl>`
-     - :ref:`networkx <dependencies_networkx>`
      - :ref:`SciPy <dependencies_scipy>`
      - :ref:`AstroPy <dependencies_astropy>`
    * - :mod:`~spacepy.coordinates`
@@ -182,14 +166,10 @@ unaffected by that dependency.
      - :class:`~spacepy.coordinates.Coords` IRBEM backend (except Windows binaries)
      -
      -
-     -
-     -
      - :mod:`Entire module <spacepy.coordinates>`
      - * :meth:`~spacepy.coordinates.Coords.from_skycoord`
        * :meth:`~spacepy.coordinates.Coords.to_skycoord`
    * - :mod:`~spacepy.ctrans`
-     -
-     -
      -
      -
      -
@@ -201,17 +181,13 @@ unaffected by that dependency.
        * :func:`~spacepy.datamodel.fromCDF`
        * :func:`~spacepy.datamodel.toCDF`
      -
-     -
      - * :meth:`~spacepy.datamodel.SpaceData.toHDF5`
        * :func:`~spacepy.datamodel.fromHDF5`
        * :func:`~spacepy.datamodel.toHDF5`
      -
      -
      -
-     -
    * - :mod:`~spacepy.empiricals`
-     -
-     -
      -
      -
      -
@@ -226,23 +202,17 @@ unaffected by that dependency.
      -
      -
      -
-     -
-     -
    * - :mod:`~spacepy.LANLstar`
      -
-     - May be required to install :ref:`ffnet <dependencies_ffnet>`
-     - :mod:`Entire module <spacepy.LANLstar>`
+     - May be required to install ffnet.
      -
      -
-     - :mod:`Entire module <spacepy.LANLstar>`
      -
      -
    * - :mod:`~spacepy.omni`
      -
      -
-     -
      - :mod:`Entire module <spacepy.omni>`
-     -
      -
      -
      -
@@ -250,13 +220,10 @@ unaffected by that dependency.
      -
      -
      -
-     -
      - :mod:`Entire module <spacepy.plot>`
      -
      -
-     -
    * - :mod:`~spacepy.poppy`
-     -
      -
      -
      -
@@ -266,9 +233,7 @@ unaffected by that dependency.
        * :func:`~spacepy.poppy.plot_two_ppro`
      -
      -
-     -
    * - :mod:`~spacepy.pybats`
-     -
      -
      -
      -
@@ -309,11 +274,8 @@ unaffected by that dependency.
        * :func:`~spacepy.pybats.trace2d.test_dipole`
      -
      -
-     -
    * - :mod:`~spacepy.pycdf`
      - :mod:`Entire module <spacepy.pycdf>`
-     -
-     -
      -
      -
      -
@@ -323,24 +285,18 @@ unaffected by that dependency.
      -
      -
      -
-     -
      - * :meth:`~spacepy.radbelt.RBmodel.plot`
        * :meth:`~spacepy.radbelt.RBmodel.plot_obs`
-     -
      -
      -
    * - :mod:`~spacepy.seapy`
      -
      -
      -
-     -
      - :mod:`Entire module <spacepy.seapy>`
-     -
      - * :func:`~spacepy.seapy.sea_signif`
      -
    * - :mod:`~spacepy.time`
-     -
-     -
      -
      -
      -
@@ -351,15 +307,12 @@ unaffected by that dependency.
      -
      -
      -
-     -
      - * :func:`~spacepy.toolbox.tCommon`
        * :func:`~spacepy.toolbox.linspace` if using
          :class:`~datetime.datetime` inputs
        * :func:`~spacepy.toolbox.logspace` if using
          :class:`~datetime.datetime` inputs
-     -
      - * :func:`~spacepy.toolbox.dist_to_list`
        * :func:`~spacepy.toolbox.intsolve`
        * :func:`~spacepy.toolbox.poisson_fit`
      -
-

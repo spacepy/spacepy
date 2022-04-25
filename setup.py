@@ -959,7 +959,7 @@ setup_kwargs = {
 #download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
 #    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
     'requires': ['numpy (>=1.10, !=1.15.0)', 'scipy (>=0.11)', 'matplotlib (>=1.5)', 'python_dateutil',
-                 'h5py (>=2.6)', 'ffnet (>=0.7)', 'python (>=2.7, !=3.0)'],
+                 'h5py (>=2.6)', 'python (>=2.7, !=3.0)'],
     'packages': packages,
     'package_data': {'spacepy': package_data},
     'classifiers': [
@@ -1001,10 +1001,6 @@ if use_setuptools:
         'scipy>=0.11',
         'matplotlib>=1.5',
         'h5py>=2.6',
-        'ffnet>=0.7',
-        #ffnet needs networkx but not marked as requires, so to get it via pip
-        #we need to ask for it ourselves
-        'networkx>=1.0',
         'python_dateutil>=1.4',
         # AstroPy is only required to convert to/from AstroPy, so either
         # user has it or don't care.
@@ -1012,11 +1008,6 @@ if use_setuptools:
     ]
 if 'bdist_wheel' in sys.argv:
     setup_kwargs['cmdclass']['bdist_wheel'] = bdist_wheel
-    # Don't require ffnet on binary wheels, since ffnet has no binary
-    # (users must hand-install). If user installs from source with pip,
-    # this will get ffnet the first time, but it will cache the wheel
-    # it builds from source, so subsequent installs won't reinstall ffnet!
-    setup_kwargs['install_requires'].remove('ffnet>=0.7')
 
 # run setup from distutil
 with warnings.catch_warnings(record=True) as warnlist:

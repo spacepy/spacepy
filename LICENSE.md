@@ -45,6 +45,3 @@ Copyright 2010 Triad National Security, LLC
 
 The modified version of IRBEMlib distributed with SpacePy is covered by the Lesser
 GNU Public License (LGPL).
-
-The LANLstar module depends on the ffnet package which is distributed under the
-GNU Public License (GPL). The use of LANLstar is therefore covered by the GPL.

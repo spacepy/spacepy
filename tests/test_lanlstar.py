@@ -13,13 +13,16 @@ import unittest
 
 import spacepy_testing
 import spacepy
-import spacepy.LANLstar as sl
+if sys.version_info[:2] <= (3, 6):  # Skip tests on 3.7+
+    import spacepy.LANLstar as sl
 import numpy
 from numpy import array, hstack
 
 __all__ = ['LANLStarFunctionsTest', 'lanlstarTest']
 
 
+@unittest.skipIf(sys.version_info[:2] > (3, 6),
+                 "ffnet not supported on Python > 3.6")
 class LANLStarFunctionsTest(unittest.TestCase):
     """Tests of simple support functions for LANLStar"""
 
@@ -39,6 +42,8 @@ class LANLStarFunctionsTest(unittest.TestCase):
                 str(sys.exc_info()[1]))
 
 
+@unittest.skipIf(sys.version_info[:2] > (3, 6),
+                 "ffnet not supported on Python > 3.6")
 class lanlstarTest(unittest.TestCase):
 
     def setUp(self):
