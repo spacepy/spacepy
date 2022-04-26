@@ -13,6 +13,10 @@ This document presents user-visible changes in each release of SpacePy.
 ==========
 0.3.0 (2021-xx-xx)
 ------------------
+Windows binaries are only provided as 64-bit wheels, installable with
+``pip``, for Python 3.6 and later. Windows executable installers,
+Python 2 binaries, and 32-bit binaries are no longer provided.
+
 
 New features
 ************

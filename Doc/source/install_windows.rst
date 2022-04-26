@@ -4,11 +4,8 @@ Windows Installation
 
 The SpacePy team currently provides binary "wheels" via PyPI so it can
 be installed on Windows without a compiler. Binaries are provided for
-Python 2.7 and 3.6 through 3.9 in 64-bit and 32-bit variants for each.
+Python 3.6 through 3.10 in 64-bit and 32-bit variants for each.
 ``pip install spacepy`` should find and install these binaries.
-
-32-bit Windows binaries will be discontinued with SpacePy 0.3, so
-installing 32-bit SpacePy will require :ref:`compiling <windows_compiling>`.
 
 Our recommended (but not required) Python distribution is `Anaconda
 <https://docs.anaconda.com/anaconda/>`_ running 64-bit
@@ -61,28 +58,6 @@ for 64-bit, `cdf37_1_0-setup-64.exe
 <https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_1/windows/cdf37_1_0-setup-64.exe>`_.
 
 This is a simple self-extracting installer that can be installed either before or after installing SpacePy.
-
-Standalone installers
-=====================
-
-Standalone installers for Windows will be discontinued starting with
-SpacePy 0.3. Binary wheels will still be provided and can be
-downloaded from the same location and installed with ``pip``,
-e.g. ``pip install spacepy-0.2.2-cp38-cp38-win_amd64.whl``.
-
-Self-extracting and self-installing executables are also available for
-download direct from `our github
-<https://github.com/spacepy/spacepy/releases>`__. Be sure to choose the
-file that matches your Python installation, both in Python version and
-word size (64-bit vs. 32-bit.)
-E.g. ``spacepy-0.2.0.win-amd64.py36.exe`` is the installer for Python
-3.6 on 64-bit Windows and ``spacepy-0.2.0.win32.py27.exe`` is the
-installer for Python 2.7 on 32-bit Windows.
-
-Once downloaded, these can be installed without an internet connection.
-
-If using these installers, the :doc:`dependencies` will not be
-installed automatically.
 
 .. _win_dep_conda:
 
