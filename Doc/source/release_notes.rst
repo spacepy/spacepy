@@ -108,6 +108,15 @@ a time variable or attribute without specifying a type (EPOCH or
 EPOCH16 are used if TT2000 isn't available). A warning is issued when
 doing so; this warning will be removed in 0.4.0. (Warning added in 0.2.2.)
 
+On Windows, :mod:`~spacepy.pycdf` now looks in more locations for the
+NASA CDF library. Newer versions of the library by default install to
+a different location (``Program Files``). The DLL is also now placed
+in the ``bin`` directory instead of ``lib``, so ``bin`` is searched
+and the value of environment variable ``CDF_BIN`` in addition to
+``lib`` and ``CDF_LIB``. The net effect should be to increase the
+chance of successfully loading the library, with a small chance of
+accidentally loading the wrong one.
+
 The default data source for leapsecond files has been reverted from
 NASA/MODIS to the USNO, as USNO data services are back online. If
 present, entries in the :doc:`configuration file <configuration>` will
