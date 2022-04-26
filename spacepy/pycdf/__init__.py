@@ -520,9 +520,16 @@ class Library(object):
         if 'CDF_LIB' in os.environ:
             for p in search_dir(os.environ['CDF_LIB']):
                 yield p
+        if sys.platform == 'win32' and 'CDF_BIN' in os.environ:
+            for p in search_dir(os.environ['CDF_BIN']):
+                yield p
         if 'CDF_BASE' in os.environ:
             for p in search_dir(os.path.join(os.environ['CDF_BASE'], 'lib')):
                 yield p
+            if sys.platform == 'win32':
+                for p in search_dir(
+                        os.path.join(os.environ['CDF_BASE'], 'bin')):
+                    yield p
         ctypespath = ctypes.util.find_library(
             'dllcdf.dll' if sys.platform == 'win32' else 'cdf')
         if ctypespath:
@@ -535,27 +542,31 @@ class Library(object):
         #Finally, defaults places CDF gets installed uner
         #CDF_BASE is usually a subdir of these (with "cdf" in the name)
         #Searched in order given here!
-        cdfdists = { 'win32': ['c:\\CDF Distribution\\', 'c:\\CDF_Distribution\\'],
-                    'darwin': ['/Applications/', '/usr/local/',
-                               os.path.expanduser('~')],
-                    'linux2': ['/usr/local/', os.path.expanduser('~')],
-                    'linux': ['/usr/local/', os.path.expanduser('~')],
-                    }
-        if sys.platform in cdfdists:
-            for cdfdist in cdfdists[sys.platform]:
-                if os.path.isdir(cdfdist):
-                    cand = []
-                    for d in os.listdir(cdfdist):
-                        if d[0:3].lower() == 'cdf':
-                            #checking src in case BUILT but not INSTALLED
-                            for subdir in ['lib', os.path.join('src', 'lib')]:
-                                libdir = os.path.join(cdfdist, d, subdir)
-                                if os.path.isdir(libdir):
-                                    cand.append(libdir)
-                    #Sort reverse, so new versions are first FOR THIS cdfdist
-                    for d in sorted(cand)[::-1]:
-                        for p in search_dir(d):
-                            yield p
+        cdfdists = {
+            'win32': [
+                os.getenv('SystemDrive', 'c:') + root + extra
+                for root in ['', '\\Program Files', '\\Program Files (x86)']
+                for extra in ['\\CDF Distribution\\', '\\CDF_Distribution\\']],
+            'darwin': ['/Applications/', '/usr/local/',
+                       os.path.expanduser('~')],
+            'linux2': ['/usr/local/', os.path.expanduser('~')],
+            'linux': ['/usr/local/', os.path.expanduser('~')],
+        }
+        for cdfdist in cdfdists.get(sys.platform, []):
+            if os.path.isdir(cdfdist):
+                cand = []
+                for d in os.listdir(cdfdist):
+                    if d[0:3].lower() == 'cdf':
+                        #checking src in case BUILT but not INSTALLED
+                        for subdir in ['lib', os.path.join('src', 'lib'),
+                                       'bin']:
+                            libdir = os.path.join(cdfdist, d, subdir)
+                            if os.path.isdir(libdir):
+                                cand.append(libdir)
+                #Sort reverse, so new versions are first FOR THIS cdfdist
+                for d in sorted(cand)[::-1]:
+                    for p in search_dir(d):
+                        yield p
 
     def check_status(self, status, ignore=()):
         """
