@@ -10,8 +10,7 @@ If running the ipython shell, simply type '?' after any command for help.
 ipython also offers tab completion, so hitting tab after '<module name>.'
 will list all available functions, classes and variables.
 
-Detailed HTML documentation is available locally in the spacepy/doc directory
-and can be launched by typing:
+Detailed HTML documentation is available online by typing:
 
     >>> spacepy.help()
 
@@ -64,20 +63,18 @@ import re
 import shutil
 import sys
 import warnings
+import webbrowser
+
 
 def help():
-    """Launches web browser with local HTML help"""
-    
-    import webbrowser
-    fspec = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         'Doc', 'index.html')
-    if not os.path.exists(fspec):
-        fspec = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
-                             'Doc', 'build', 'html', 'index.html')
-    if os.path.exists(fspec):
-        webbrowser.open('file://' + fspec)
-    else:
-        print("Can't find help files in {0}".format(__path__[0]))
+    """Launches web browser with SpacePy documentation
+
+    Online help is always for the latest release of SpacePy.
+    """
+    print('Opening docs for latest release. Installed SpacePy is {}.'.format(
+        __version__))
+    webbrowser.open('https://spacepy.github.io/')
+
 
 # put modules here that you want to be accessible through 'from spacepy import *'
 __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", 

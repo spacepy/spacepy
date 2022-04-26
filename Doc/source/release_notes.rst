@@ -36,6 +36,16 @@ format is deprecated.
 
 Deprecations and removals
 *************************
+HTML documentation is no longer installed with
+SpacePy. :func:`~spacepy.help` now opens the latest `online
+documentation <https://spacepy.github.io/>`_. Offline documentation
+are available separately (files named like ``spacepy-x.y.z-doc.zip``
+and ``spacepy-x.y.z-doc.pdf``) and as part of the source distribution
+(``spacepy-x.y.z.tar.gz`` or ``spacepy-x.y.z.zip``). These files can
+be downloaded from SpacePy's `releases on GitHub
+<https://github.com/spacepy/spacepy/releases>`_; the source can also
+be found on `PyPI <https://pypi.org/project/spacepy/#files>`_.
+
 ``LANLstar`` requires `ffnet <http://ffnet.sourceforge.net/>`_, which
 does not work on Python 3.7 and later. The SpacePy team is working on
 replacing this dependency, but in the meantime ``LANLstar`` is

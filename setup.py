@@ -400,24 +400,15 @@ class build(_build):
     if not egginfo_only:
         sub_commands = [('config_fc', lambda *args:True)] + _build.sub_commands
 
-    user_options = _build.user_options + compiler_options + [
-        ('build-docs', None,
-         'Build documentation with Sphinx (default: copy pre-built) [False]'),
-        ]
+    user_options = _build.user_options + compiler_options
 
     def initialize_options(self):
-        self.build_docs = None
         _build.initialize_options(self)
         initialize_compiler_options(self)
 
     def finalize_options(self):
         _build.finalize_options(self)
         finalize_compiler_options(self)
-        if self.build_docs == None:
-            self.build_docs = self.distribution.get_command_obj(
-                'install').build_docs
-            if self.build_docs == None:
-                self.build_docs = False
 
     def compile_irbempy(self):
         fcompiler = self.fcompiler
@@ -730,49 +721,6 @@ class build(_build):
             (t, v, tb) = sys.exc_info()
             print(v)
 
-    def copy_docs(self):
-        """Copy documentation from pre-build Doc directory."""
-        outdir = os.path.join(os.path.abspath(self.build_lib),
-                              'spacepy', 'Doc')
-        indir = os.path.join('Doc', 'build', 'html')
-        if os.path.exists(outdir):
-            return
-        if not os.path.exists(indir):
-            print("No pre-built documentation, attempting to build...")
-            self.make_docs()
-            return
-        shutil.copytree(indir, outdir)
-
-    def make_docs(self):
-        """Create/update documentation with Sphinx."""
-        try:
-            import sphinx
-            import numpydoc
-        except:
-            if self.build_docs:
-                warnings.warn(
-                "Numpydoc and sphinx required to build documentation.\n"
-                "Help will not be available; try without --build-docs.")
-                return
-            else:
-                warnings.warn(
-                "Numpydoc and sphinx required to build documentation.\n"
-                "Help will not be available.")
-                return
-        builddir = os.path.join(os.path.join(self.build_temp, 'doctrees'))
-        indir = os.path.join('Doc', 'source')
-        outdir = os.path.join(os.path.abspath(self.build_lib),
-                              'spacepy', 'Doc')
-        cmd = '{0} -b html -d {1} {2} {3}'.format(
-            os.environ['SPHINXBUILD'] if 'SPHINXBUILD' in os.environ
-            else 'sphinx-build',
-            builddir, indir, outdir)
-        try:
-            subprocess.check_call(cmd.split())
-        except:
-            warnings.warn(
-                "Building docs failed. Help will not be available.")
-
     def run(self):
         """Actually perform the build"""
         self.compile_libspacepy()
@@ -784,22 +732,14 @@ class build(_build):
         _build.run(self) #need subcommands BEFORE building irbem
         self.compile_irbempy()
         delete_old_files(self.build_lib)
-        if self.build_docs:
-            self.make_docs()
-        else:
-            self.copy_docs()
 
 
 class install(_install):
     """Extends base distutils install to fix compiler options"""
 
-    user_options = _install.user_options + compiler_options + [
-        ('build-docs', None,
-         'Build documentation with Sphinx (default: copy pre-built) [False]'),
-        ]
+    user_options = _install.user_options + compiler_options
 
     def initialize_options(self):
-        self.build_docs = False
         initialize_compiler_options(self)
         _install.initialize_options(self)
 
@@ -814,12 +754,6 @@ class install(_install):
     def get_outputs(self):
         """Tell distutils about files we put in build by hand"""
         outputs = _install.get_outputs(self)
-        docs = [
-            os.path.join(
-                self.install_libbase, dirpath[len(self.build_lib) + 1:], f)
-            for (dirpath, dirnames, filenames)
-            in os.walk(os.path.join(self.build_lib, 'spacepy', 'Doc'))
-            for f in filenames]
         #This is just so we know what a shared library is called
         comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
         if hasattr(distutils.ccompiler, 'customize_compiler'):
@@ -837,7 +771,7 @@ class install(_install):
         irbemlibs = [
             os.path.join(self.install_libbase, f) for f in irbemlibfiles
             if os.path.exists(os.path.join(self.build_lib, f))]
-        return outputs + docs + spacepylibs + irbemlibs
+        return outputs + spacepylibs + irbemlibs
 
 
 def copy_dlls(outdir):
