@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-SpacePy documentation
-===================================
+SpacePy |version| documentation
+===============================
 
 SpacePy is a package for Python, targeted at the space sciences, that aims to
 make basic data analysis, modeling and visualization easier. It builds on the
