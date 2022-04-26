@@ -22,18 +22,6 @@ CALL conda create -y -n py39_64 python=3.9
 CALL conda create -y -n py38_64 python=3.8
 CALL conda create -y -n py37_64 python=3.7
 CALL conda create -y -n py36_64 python=3.6
-CALL conda create -y -n py27_64 python=2.7
-
-set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS32
-set CONDA_SUBDIR=win-32
-set CONDA_FORCE_32_BIT=1
-CALL conda create -y -n py310_32 python=3.9
-CALL conda create -y -n py39_32 python=3.9
-CALL conda create -y -n py38_32 python=3.8
-CALL conda create -y -n py37_32 python=3.7
-CALL conda create -y -n py36_32 python=3.6
-CALL conda create -y -n py27_32 python=2.7
-CALL conda deactivate
 
 IF "%1"=="build" (
     set ACTION=BUILD
@@ -41,20 +29,15 @@ IF "%1"=="build" (
     set ACTION=TEST
 )
 
-FOR %%B in (32 64) DO (FOR %%P in (27 36 37 38 39 310) DO CALL :installs %%B %%P)
+FOR %%B in (64) DO (FOR %%P in (36 37 38 39 310) DO CALL :installs %%B %%P)
 
 GOTO :EOF
 
 :installs
-IF "%1"=="32" (
-    set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS32
-    set CONDA_SUBDIR=win-32
-    set CONDA_FORCE_32_BIT=1
-) ELSE (
-    set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS64
-    set CONDA_SUBDIR=win-64
-    set CONDA_FORCE_32_BIT=
-)
+set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS64
+set CONDA_SUBDIR=win-64
+set CONDA_FORCE_32_BIT=
+
 CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%2_%1
 
 :: Are we building SpacePy wheels, or testing?
@@ -83,9 +66,6 @@ IF "%ACTION%"=="BUILD" (
         set NUMPY="numpy>=1.13.0,<1.14.0"
     )
     IF "%2"=="35" (
-        set NUMPY="numpy>=1.10.0,<1.11.0"
-    )
-    IF "%2"=="27" (
         set NUMPY="numpy>=1.10.0,<1.11.0"
     )
     CALL pip install !NUMPY!
