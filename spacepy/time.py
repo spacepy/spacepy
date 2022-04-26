@@ -739,7 +739,7 @@ class Ticktock(MutableSequence):
                 a string from the list of time systems
                     'UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'DOY', 'eDOY', 'leaps'
         Returns
-        ========
+        =======
             out: list, array
                 requested values as either list/numpy array
 
@@ -1208,7 +1208,7 @@ class Ticktock(MutableSequence):
         Updates the ``MJD`` attribute.
 
         Returns
-        ========
+        =======
         out : numpy array
             elapsed days since 1858-11-17T00:00
             (Julian date of 1858-11-17T12:00 was 2 400 000)
@@ -1265,7 +1265,7 @@ class Ticktock(MutableSequence):
         Updates the ``UNX`` attribute.
 
         Returns
-        ========
+        =======
         out : numpy array
             elapsed secs since 1970-1-1 (not counting leap secs)
 
@@ -1276,7 +1276,7 @@ class Ticktock(MutableSequence):
         array([  1.01265120e+09])
 
         See Also
-        =========
+        ========
         getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY,
         getAPT
         """
@@ -1309,7 +1309,7 @@ class Ticktock(MutableSequence):
         Updates the ``RDT`` attribute.
 
         Returns
-        ========
+        =======
         out : numpy array
             elapsed days counting 1/1/1 as day 1.
 
@@ -1320,7 +1320,7 @@ class Ticktock(MutableSequence):
         array([ 730883.5])
 
         See Also
-        =========
+        ========
         getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY,
         getAPT
         """
@@ -1358,7 +1358,7 @@ class Ticktock(MutableSequence):
         Updates the ``UTC`` attribute.
 
         Returns
-        ========
+        =======
         out : list of datetime objects
             datetime object in UTC time
 
@@ -1369,7 +1369,7 @@ class Ticktock(MutableSequence):
         [datetime.datetime(2002, 2, 2, 12, 0)]
 
         See Also
-        =========
+        ========
         getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY,
         getAPT
         """
@@ -1428,7 +1428,7 @@ class Ticktock(MutableSequence):
         Updates the ``GPS`` attribute.
 
         Returns
-        ========
+        =======
             out : numpy array
                 elapsed secs since 1980-1-6. Leap seconds are counted;
                 i.e. there are no discontinuities.
@@ -1440,7 +1440,7 @@ class Ticktock(MutableSequence):
         dmarray([6.96686413e+08])
 
         See Also
-        =========
+        ========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY,
         getAPT
         """
@@ -1466,7 +1466,7 @@ class Ticktock(MutableSequence):
         Updates the ``APT`` attribute.
 
         Returns
-        ========
+        =======
             out : astropy.time.Time
                 AstroPy Time object
 
@@ -1487,7 +1487,7 @@ class Ticktock(MutableSequence):
         <Time object: scale='tai' format='gps' value=696686413.0>
 
         See Also
-        =========
+        ========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY,
         getGPS
         """
@@ -1714,7 +1714,7 @@ class Ticktock(MutableSequence):
         array([32])
 
         See Also
-        =========
+        ========
         getTAI
 
         """

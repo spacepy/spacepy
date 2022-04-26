@@ -1412,7 +1412,7 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
     of lines, or a :class:`~matplotlib.collections.LineCollection` object.
 
     For each line, arrows will be added using 
-    :method:`~matplotlib.axes.Axes.annotate`.  Arrows will be spread evenly
+    :meth:`~matplotlib.axes.Axes.annotate`.  Arrows will be spread evenly
     over the line using the number of points in the line as the metric for
     spacing.  For example, if a line has 120 points and 3 arrows are requested,
     an arrow will be added at point number 30, 60, and 90.

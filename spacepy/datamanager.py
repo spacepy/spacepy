@@ -85,7 +85,7 @@ class DataManager(object):
         smallest unit in the format string.
 
     Examples
-    =======
+    ========
     """
     def __init__(self, directories, file_fmt, descend=False, period=None):
         """
