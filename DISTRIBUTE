@@ -1,4 +1,4 @@
-Building spacepy for distribution (20201226)
+Building spacepy for distribution (20220426)
 ============================================
 Since this has to happen on multiple platforms, a single script doesn't work.
 
@@ -37,8 +37,8 @@ source ${HOME}/cdf/bin/definitions.B
 Make a clean isolated environment just for SpacePy build:
 ~/miniconda/bin/conda create -y -n spacepy_build python=3
 source ~/miniconda/bin/activate spacepy_build
-conda install numpy
-conda install scipy matplotlib h5py astropy sphinx numpydoc
+conda install -y numpy
+conda install -y scipy matplotlib h5py astropy sphinx numpydoc
 
 (Use "conda deactivate" when done, but not done yet...))
 
@@ -56,10 +56,8 @@ Clear out old builds:
 Be sure that LD_LIBRARY_PATH and similar aren't set so that the conda
 environment isn't pulling in anything from the host environment.
 
-Build and install so getting the latest inputs for the autodocs:
+Build so getting the latest inputs for the autodocs:
     PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py build
-    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py install
-(No --user because it's being installed in the conda env.)
 
 Build the docs:
     cd Doc
@@ -83,7 +81,7 @@ are not included in the source distribution. They need to be put in
 developer/scripts in the unzipped source so they can find the rest of
 SpacePy. Yes this could be improved.
 
-Download latest (currently 3.7) 64-bit Miniconda from
+Download latest (currently 3.9) 64-bit Miniconda from
 https://docs.conda.io/en/latest/miniconda.html and put it in the
 system-default download directory (%USERPROFILE%\Downloads)
 
@@ -153,7 +151,7 @@ purposes. History going through commits of setup_common.py is:
 1.13.0: 0x0000000b
 1.14.0, 1.15.0: 0x0000000c
 1.16.0, 1.17.0, 1.18.0, 1.19.0: 0x0000000d
-1.20.0: 0x0000000e
+1.20.0, 1.21.0: 0x0000000e
 
 The list in the latest setup_common.py is incomplete (it seems to
 imply that gaps are filled with the same value.)
