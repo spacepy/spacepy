@@ -13,9 +13,18 @@ This document presents user-visible changes in each release of SpacePy.
 ==========
 0.3.0 (2021-xx-xx)
 ------------------
+This release continues the phaseout of :doc:`Python 2 <py2k_eol>`
+support. No Python 2 binaries are provided, and 0.3.0 will not install
+on Python 2 with ``pip``. Installation via ``setup.py`` from a source
+distribution is still available.
+
+This is the last release with Python 2 bugfix support. SpacePy 0.4.0
+will make no attempt to maintain functionality for Python 2 and
+SpacePy 0.5.0 will not function without Python 3.
+
 Windows binaries are only provided as 64-bit wheels, installable with
-``pip``, for Python 3.6 and later. Windows executable installers,
-Python 2 binaries, and 32-bit binaries are no longer provided.
+``pip``, for Python 3.6 and later. Windows executable installers and
+32-bit binaries are no longer provided.
 
 
 New features

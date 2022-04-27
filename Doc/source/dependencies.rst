@@ -21,9 +21,7 @@ Python 2.7+
 -----------
 
 `Python <http://www.python.org/>`_ is the core language for SpacePy.
-Python 3 is strongly recommended; while SpacePy currently supports
-Python 2.7, this support will be phased out over the course
-of 2020. See :doc:`py2k_eol`.
+Python 3 is strongly recommended and will be required soon. See :doc:`py2k_eol`.
 
 Required to install SpacePy.
 
