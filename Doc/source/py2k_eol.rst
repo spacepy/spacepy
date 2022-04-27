@@ -2,8 +2,8 @@
 Python 2 End of Support
 =======================
 
-Python 3 is fully supported by SpacePy and used in daily work by most
-of the SpacePy team.
+Python 3 is fully supported by SpacePy and used in daily work by the
+SpacePy team.
 
 On January 1, 2020, Python 2 reached `end of life
 <https://www.python.org/doc/sunset-python-2/>`_. Most of the
