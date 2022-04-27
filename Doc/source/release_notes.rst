@@ -11,7 +11,7 @@ This document presents user-visible changes in each release of SpacePy.
 
 0.3 Series
 ==========
-0.3.0 (2021-xx-xx)
+0.3.0 (2022-04-27)
 ------------------
 This release continues the phaseout of :doc:`Python 2 <py2k_eol>`
 support. No Python 2 binaries are provided, and 0.3.0 will not install

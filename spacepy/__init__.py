@@ -211,7 +211,7 @@ dmarray = datamodel.dmarray
 SpaceData = datamodel.SpaceData
 
 #package info
-__version__ = 'UNRELEASED'
+__version__ = '0.3.0'
 __author__ = 'The SpacePy Team'
 __team__ = ['Steve Morley', 'Josef Koller', 'Dan Welling', 'Brian Larsen', 'Jon Niehof', 'Mike Henderson']
 __contact__ = 'spacepy@lanl.gov'
