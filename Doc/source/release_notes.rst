@@ -13,6 +13,19 @@ This document presents user-visible changes in each release of SpacePy.
 ==========
 0.4.0 (2022-xx-xx)
 ------------------
+This release marks the end of support and/or fixes for bugs that cannot
+be reproduced on Python 3. As with the previous release series, SpacePy
+0.4.0 can still be built and installed "by hand" on Python 2, but no
+Python 2 binaries are provided and this version will not install on Python 2
+using ``pip``.
+
+New features
+************
+The :mod:`~spacepy.LANLstar` module has been rewritten to use numpy to
+evaluate the neural networks instead of relying on ``ffnet``. The
+temporary removal of support for this module in SpacePy 0.3.0 has therefore
+been lifted. The new implementation provides a slight performance increase
+with no change in results or accuracy.
 
 Deprecations and removals
 *************************
@@ -24,6 +37,14 @@ Major bugfixes
 **************
 :mod:`~spacepy.pycdf` has been updated for Apple Silicon (ARM/M1);
 Python 3.8 is required for this support.
+
+Dependency requirements
+***********************
+:mod:`~spacepy.LANLstar` now uses a numpy-based implementation (based on
+contributions from Aaron Hendry) so neither ``ffnet`` or ``networkx`` are
+required to use it. These dependencies were removed in SpacePy 0.3.0, but
+were still required for use of ``LANLstar``. Support for ``LANLstar`` is
+reinstated in SpacePy 0.4.0.
 
 Other changes
 *************
