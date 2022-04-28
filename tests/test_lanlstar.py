@@ -15,9 +15,9 @@ import spacepy_testing
 import spacepy
 import spacepy.LANLstar as sl
 import numpy
-from numpy import array, hstack, vstack
+from numpy import array, hstack
 
-__all__ = ['LANLStarFunctionsTest', 'lanlstarTest']
+__all__ = ['LANLStarFunctionsTest', 'lanlstarTest', 'lanlstarTestMulti']
 
 
 class LANLStarFunctionsTest(unittest.TestCase):
@@ -29,13 +29,13 @@ class LANLStarFunctionsTest(unittest.TestCase):
         #but at least it checks for syntax errors....
         self.assertEqual(
             os.path.join(
-            os.path.split(spacepy.__file__)[0], 'data', 'LANLstar', 'Lmax_T89.net'),
-            sl._get_net_path('Lmax_T89.net'))
+            os.path.split(spacepy.__file__)[0], 'data', 'LANLstar', 'Lmax_T89.txt'),
+            sl._get_net_path('Lmax_T89.txt'))
         try:
-            q = sl._get_net_path('sample.net')
+            q = sl._get_net_path('sample.txt')
         except RuntimeError:
             self.assertEqual(
-                'Could not find neural network file sample.net',
+                'Could not find neural network file sample.txt',
                 str(sys.exc_info()[1]))
 
 
