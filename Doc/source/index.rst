@@ -121,6 +121,7 @@ Description of all functions within SpacePy, by module.
     empiricals
     igrf
     irbempy
+    lanlstar
     omni
     plot
     poppy

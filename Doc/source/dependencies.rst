@@ -202,7 +202,7 @@ unaffected by that dependency.
      -
    * - :mod:`~spacepy.LANLstar`
      -
-     - May be required to install ffnet.
+     -
      -
      -
      -
