@@ -3,11 +3,8 @@
 """
 Lstar and Lmax calculation using artificial neural network (ANN) technique.
 
-This module requires the `ffnet <http://ffnet.sourceforge.net/>`_ package.
-
-Authors: Josef Koller, Yiqun Yu
-Institution: Los Alamos National Laboratory
-Contact: jkoller@lanl.gov, yiqun@lanl.gov
+Authors: Steve Morley, Josef Koller, Yiqun Yu, Aaron Hendry
+Contact: smorley@lanl.gov, yiqunyu17@gmail.com
 
 Copyright 2012 Los Alamos National Security, LLC.
 
@@ -21,27 +18,29 @@ import os.path
 import sys
 import warnings
 
-import ffnet
 import numpy as np
 from . import toolbox
+from . import datamodel as dm
 
 
 def _get_net_path(filename):
     """Gets the full path for a network file given the filename"""
     fspec = os.path.join(
         os.path.split(__file__)[0], 'data', 'LANLstar', filename)
-    if os.path.exists(fspec) or os.path.exists(fspec + '.gz'):
+    if os.path.exists(fspec) or os.path.exists(fspec + '.txt'):
         return fspec
     else:
         raise RuntimeError("Could not find neural network file " + filename)
 
 # ------------------------------------------------
-def _LANLcommon(indict, extMag, domax):
+def _LANLcommon(indict, extmag, lmax=False):
     """
     Shared code between LANLstar and LANLmax
 
-    domax is True for LANLmax, False for LANLstar
+    lmax is True for LANLmax, False for LANLstar
     """
+    n = len(indict['Year'])
+    
     lstar_keylists = {
         'OPDYN': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF',
                   'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
@@ -63,6 +62,7 @@ def _LANLcommon(indict, extMag, domax):
         'RAMSCB':['Year','DOY','Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF',
                   'PA','SMx', 'SMy', 'SMz'],
          }
+
     lmax_keylists = {
         'OPDYN': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 'PA'],
         'OPQUIET': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF','PA'],
@@ -75,76 +75,86 @@ def _LANLcommon(indict, extMag, domax):
         'T89': ['Year', 'DOY', 'Hr', 'Kp', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
         'T96': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
                  }
-    lstar_nets = { 'OPDYN'   : 'LANLstar_OPDyn.net',
-                   'OPQUIET' : 'LANLstar_OPQuiet.net',
-                   'T01QUIET': 'LANLstar_T01QUIET.net',
-                   'T01STORM': 'LANLstar_T01STORM.net',
-                   'RAMSCB': 'LANLstar_RAMSCB.net',
-                   'T05': 'LANLstar_T05.net',
-                   'T89': 'LANLstar_T89.net',
-                   'T96': 'LANLstar_T96.net',
-                    }
-    lmax_nets = {  'OPDYN'   : 'Lmax_OPDyn.net',
-                   'OPQUIET' : 'Lmax_OPQuiet.net',
-                   'T01QUIET': 'Lmax_T01QUIET.net',
-                   'T01STORM': 'Lmax_T01STORM.net',
-                   'T05': 'Lmax_T05.net',
-                   'T89': 'Lmax_T89.net',
-                   'T96': 'Lmax_T96.net',
-                    }
+
+    ls = dm.SpaceData()
+
+    if isinstance(extmag, str):
+        extmag = [extmag]
+
     inputdict = indict.copy()
-    npt = len(inputdict['Year'])
-    Lstar_out = {} 
     if 'G' in inputdict:
-        for n in range(1,4):
-            dum = inputdict['G'][...,n-1]
+        for x in range(1,4):
+            dum = inputdict['G'][...,x-1]
             if dum.ndim == 0: dum = np.array([dum])
-            inputdict['G{0}'.format(n)] = dum
+            inputdict['G{0}'.format(x)] = dum
         del inputdict['G']
     if 'W' in inputdict:
-        for n in range(1,7):
-            dum = inputdict['W'][...,n-1]
+        for x in range(1,7):
+            dum = inputdict['W'][...,x-1]
             if dum.ndim == 0: dum = np.array([dum])
-            inputdict['W{0}'.format(n)] = dum
+            inputdict['W{0}'.format(x)] = dum
         del inputdict['W']
-    if isinstance(extMag, str): extMag = [extMag]
 
-    for modelkey in extMag:
-        if domax:
-            keylist = lmax_keylists[modelkey]
+    parlist = lstar_keylists if not lmax else lmax_keylists
+    for modname in extmag:
+        # Concatenate the input parameters into single array
+        parset = [inputdict[kk] for kk in parlist[modname]]
+        if n == 1:
+            params = np.hstack(parset)
         else:
-            keylist = lstar_keylists[modelkey]
-        #T89 checks Kp, everything else Dst
-        specialkey = 'Dst' if 'Dst' in keylist else 'Kp'
-        if isinstance(inputdict[specialkey], float):
-            arrayflag = False
-            for key in list(inputdict.keys()):
-                inputdict[key] = [inputdict[key]]
-        else:
-            arrayflag = True
-            ncalc = len(inputdict['Dst'])
-	
-        ncalc = len(inputdict[specialkey])
-        Lstar = np.zeros(ncalc)
-        inpar = np.zeros(len(keylist))
+            params = np.vstack(parset).T
+        # Load the ANN parameters from the ported text files
+        net = get_model(modelstr=modname, lmax=lmax)
+        # Make output array filled with badvals
+        ls[modname] = dm.dmfilled((n), fillval=np.nan)
 
-        if domax:
-            netfile = lmax_nets[modelkey]
-        else:
-            netfile = lstar_nets[modelkey]
-        network = toolbox.loadpickle(_get_net_path(netfile))
-        for i in range(ncalc):	
-            # copy over keylist into inpar
-            for ikey, key in enumerate(keylist):
-                inpar[ikey] = inputdict[key][i]
-            Lstar[i] = network(inpar)
-            
-        if arrayflag is False:
-            Lstar_out[modelkey] = Lstar[0]
-        else:
-            Lstar_out[modelkey] = Lstar
+        # This can/should be done as a single matrix op. Need to check the dimensionality and how it all broadcasts...
+        for idx, row in enumerate(np.atleast_2d(params)): 
+            # This is the actual neural network calculation
+            inlayer = (net['inweights'].T*row + net['inbias'].T)
+            hidden = 1.0/(1+np.exp(-(net['ihbias'].T + (inlayer[::-1]*net['ihweights']).sum(axis=1))))
+            if net['two_layers']:
+                # If we have two hidden layers, we need to include them both
+                hidden = 1.0/(1+np.exp(-(net['hhbias'].T + (hidden[:, np.newaxis]*net['hhweights']).sum(axis=0))))
+            output = 1.0/(1+np.exp(-(net['hobias'] + (hidden*net['howeights'].T).sum())))
+    
+            # apply linear output function to get L*
+            ls[modname][idx] = net['outweight']*output + net['outbias']
 
-    return Lstar_out
+    return ls
+
+
+def get_model(modelstr=None, lmax=False):
+    name = modelstr.upper()
+    optl = {'OPDYN': 'LANLstar_OPDyn.txt',
+            'OPQUIET': 'LANLstar_OPQuiet.txt',
+            'T01QUIET': 'LANLstar_T01QUIET.txt',
+            'T01STORM': 'LANLstar_T01STORM.txt',
+            'T05': 'LANLstar_T05.txt',
+            'T89': 'LANLstar_T89.txt',
+            'T96': 'LANLstar_T96.txt',
+            'RAMSCB': 'LANLstar_RAMSCB.txt'
+            }
+    optm = {'OPDYN': 'Lmax_OPDyn.txt',
+            'OPQUIET': 'Lmax_OPQuiet.txt',
+            'T01QUIET': 'Lmax_T01QUIET.txt',
+            'T01STORM': 'Lmax_T01STORM.txt',
+            'T05': 'Lmax_T05.txt',
+            'T89': 'Lmax_T89.txt',
+            'T96': 'Lmax_T96.txt',
+            }
+    optdict = optl if not lmax else optm
+    model = dm.readJSONheadedASCII(_get_net_path(optdict[name]))
+    model['ihbias'] = model['ihbias'].T
+    model['hobias'] = model['hobias'].T
+    model['hhweights'] = model['hhweights'].T
+    model['howeights'] = model['howeights'].T
+    model['two_layers'] = model['two_layers'][0]
+    model['two_layers'] = True if (model['two_layers'] in [1.0, 'True']) else False
+
+    return model
+
+
 
 # ------------------------------------------------
 def LANLstar(inputdict, extMag):
@@ -248,7 +258,7 @@ def LANLstar(inputdict, extMag):
      'TS05': array([4.7174]),
      'RAMSCB','array([5.9609])}
      """
-    return _LANLcommon(inputdict, extMag, False)
+    return _LANLcommon(inputdict, extMag, lmax=False)
 
 def LANLmax(inputdict, extMag):
 
@@ -332,7 +342,7 @@ def LANLmax(inputdict, extMag):
      'T96': array([9.2410]),
      'T05': array([9.9295])}
      """
-    return _LANLcommon(inputdict, extMag, True)
+    return _LANLcommon(inputdict, extMag, lmax=True)
 
 def addPA(indict, PA):
     '''Function to add pitch angle to input dictionary from, e.g., omni module
