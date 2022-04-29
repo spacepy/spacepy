@@ -41,7 +41,7 @@ if 'TS07_DATA_PATH' not in os.environ:
 
 # -----------------------------------------------
 def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
-    '''Update coefficients for TS07 magnetic field model
+    """Update coefficients for TS07 magnetic field model
 
     Parameters
     ----------
@@ -58,7 +58,7 @@ def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
     end : datetime.datetime or string
         End time for archive retrieval. Required format same as start.
         Defaults to time of query (i.e. latest available).
-    '''
+    """
     import glob
     import tarfile
     import spacepy.time as spt
@@ -149,7 +149,7 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     strenght.
 
     Parameters
-    ==========
+    ----------
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - extMag (string) : optional; will choose the external magnetic field model
@@ -161,23 +161,28 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
         - (see Lstar documentation for further explanation)
 
     Returns
-    =======
+    -------
         - results (dictionary) : containing keys: Bvec, and Blocal
 
     Examples
-    ========
+    --------
     >>> import spacepy.time as spt
     >>> import spacepy.coordinates as spc
     >>> import spacepy.irbempy as ib
     >>> t = spt.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> y = spc.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> y = spc.Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
     >>> ib.get_Bfield(t,y)
     {'Blocal': array([  976.42565251,  3396.25991675]),
        'Bvec': array([[ -5.01738885e-01,  -1.65104338e+02,   9.62365503e+02],
        [  3.33497974e+02,  -5.42111173e+02,   3.33608693e+03]])}
 
+    Notes
+    -----
+    Most parameterized external field models are subject to limits on the valid
+    range of input parameters and will return NaN if evaluated outside the bounds.
+
     See Also
-    ========
+    --------
     get_Lstar, find_Bmirror, find_magequator
 
     """
@@ -223,7 +228,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     Blocal, Bmirr and the GEO (cartesian) coordinates of the mirror point
 
     Parameters
-    ==========
+    ----------
     ticks : Ticktock class
         containing time information
     loci : Coords class
@@ -242,14 +247,14 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
         (see get_Lstar documentation for further explanation)
 
     Returns
-    =======
+    -------
     results : dictionary
         containing keys: Blocal, Bmirr, GEOcar
 
     Examples
-    ========
+    --------
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
     >>> ib.find_Bmirror(t,y,[90,80,60,10])
     {'Blocal': array([ 0.,  0.]),
      'Bmirr': array([ 0.,  0.]),
@@ -257,7 +262,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
      [ NaN  NaN  NaN]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
 
     See Also
-    ========
+    --------
     get_Lstar, get_Bfield, find_magequator
     """
 
@@ -315,7 +320,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omn
     Bmin and the GEO (cartesian) coordinates of the magnetic equator
 
     Parameters
-    ==========
+    ----------
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - extMag (string) : optional; will choose the external magnetic field model
@@ -327,21 +332,21 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omn
         - (see Lstar documentation for further explanation)
 
     Returns
-    =======
+    -------
         - results (dictionary) : containing keys: Bmin, Coords instance with GEO coordinates of
             the magnetic equator
 
     Examples
-    ========
+    --------
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
     >>> op.find_magequator(t,y)
     {'Bmin': array([  945.63652413,  3373.64496167]),
         'loci': Coords( [[ 2.99938371  0.00534151 -0.03213603]
         [ 2.00298822 -0.0073077   0.04584859]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
 
     See Also
-    ========
+    --------
     get_Lstar, get_Bfield, find_Bmirr
     """
     # prepare input values for irbem call
@@ -391,9 +396,12 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 
     Uses the IRBEM library to determine L* and searches via bisection to find LCDS
     to a given tolerance in R (radial distance along GSM equator at local midnight).
+    Note that this function is present to aid in reproducibility of older work, however
+    it should be noted that drift shells are defined by constant K, not constant
+    equatorial pitch angle. Therefore find_LCDS_K should be used for obtaining the LCDS.
 
     Parameters
-    ==========
+    ----------
         - ticks (Ticktock class) : containing time information **for a single time**
         - alpha (numeric) : equatorial pitch angle for search
         - extMag (string) : optional; will choose the external magnetic field model
@@ -407,17 +415,17 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
         - bracket (list): X-GSM coordinates to bracket bisection search
 
     Returns
-    =======
+    -------
         results (SpaceData, dictionary-like): contains keys LCDS, K, AlphaEq and UTC
 
     Examples
-    ========
+    --------
     >>> t = spacepy.time.Ticktock(['2002-02-02T12:00:00'], 'ISO')
     >>> spacepy.irbempy.find_LCDS(t, 90, extMag='T89')
 
     See Also
-    ========
-    get_Lstar, get_Bfield, find_Bmirr
+    --------
+    find_LCDS_K, get_Lstar, get_Bfield, find_Bmirr
     """
     # prepare input values for irbem call
     nTAI = len(ticks)
@@ -467,7 +475,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
         for idxa, pa in enumerate(alpha):
             b1x = -1.0*bracket[0]*np.cos(mlt)
             b1y = -1.0*bracket[0]*np.sin(mlt)
-            loci_brac1 = spc.Coords([b1x, b1y, 0], 'GSM', 'car')
+            loci_brac1 = spc.Coords([b1x, b1y, 0], 'GSM', 'car', use_irbem=True)
             if 'verbose' in kwargs:
                 print('Initial inner bracket: {0}'.format(loci_brac1))
 
@@ -494,7 +502,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
             # Now get Lstar at this location...
             if GEOcoord[0] != np.NaN:
-                pos1 = spc.Coords(GEOcoord, 'GEO', 'car')
+                pos1 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
                 LS1 = get_Lstar(tt, pos1, pa, extMag=extMag, options=options, omnivals=omnivals)
                 if np.isnan(LS1['Lstar']).any():
                     raise ValueError('Specified inner bracket ({0}) is on an open drift shell'.format(loci_brac1))
@@ -507,7 +515,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             # Set outer bracket (default to R of 12)
             b2x = -1.0*bracket[1]*np.cos(mlt)
             b2y = -1.0*bracket[1]*np.sin(mlt)
-            loci_brac2 = spc.Coords([b2x, b2y, 0], 'GSM', 'car')
+            loci_brac2 = spc.Coords([b2x, b2y, 0], 'GSM', 'car', use_irbem=True)
             if 'verbose' in kwargs:
                 print('Initial outer bracket: {0}'.format(loci_brac2))
 
@@ -533,7 +541,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
             # Now get Lstar at this location...
             if GEOcoord[0] != np.NaN:
-                pos2 = spc.Coords(GEOcoord, 'GEO', 'car')
+                pos2 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
                 LS2 = get_Lstar(tt, pos2, pa, extMag=extMag, options=options, omnivals=omnivals)
                 if not np.isnan(LS2['Lstar']).any():
                     raise ValueError('Specified outer bracket is on a closed drift shell')
@@ -546,7 +554,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                 newdist = (tb.hypot(loci_brac2.x, loci_brac2.y) + tb.hypot(loci_brac1.x, loci_brac1.y))/2.0
                 newx = -1.0*newdist*np.cos(mlt)
                 newy = -1.0*newdist*np.sin(mlt)
-                pos_test = spc.Coords([newx, newy, 0], 'GSM', 'car')
+                pos_test = spc.Coords([newx, newy, 0], 'GSM', 'car', use_irbem=True)
 
                 dtest = prep_irbem(tt, pos_test, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
                 badval = dtest['badval']
@@ -570,7 +578,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                 # print('bmin, GEOcoord = {0},{1}'.format(bmin, GEOcoord))
                 if not (np.isnan(bmin)):
                     # Now get Lstar at this location...
-                    postry = spc.Coords(GEOcoord, 'GEO', 'car')
+                    postry = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
                     LStry = get_Lstar(tt, postry, pa, extMag=extMag, options=options, omnivals=omnivals)
                     LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
                 else:
@@ -600,15 +608,15 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=None,
                 tol=0.05, bracket=[3, 12], mlt=0, **kwargs):
     """
-    Find the last closed drift shell (LCDS) for a given equatorial pitch angle.
+    Find the last closed drift shell (LCDS) for a given K (modified 2nd invariant).
 
     Uses the IRBEM library to determine L* and searches via bisection to find LCDS
     to a given tolerance in R (radial distance along GSM equator at local midnight).
 
     Parameters
-    ==========
+    ----------
         - ticks (Ticktock class) : containing time information **for a single time**
-        - alpha (numeric) : equatorial pitch angle for search
+        - K (numeric) : K (modified 2nd adiabatic invariant) for search
         - extMag (string) : optional; will choose the external magnetic field model
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
@@ -620,16 +628,16 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
         - bracket (list): X-GSM coordinates to bracket bisection search
 
     Returns
-    =======
+    -------
         results (SpaceData, dictionary-like): contains keys LCDS, K, AlphaEq and UTC
 
     Examples
-    ========
+    --------
     >>> t = spacepy.time.Ticktock(['2002-02-02T12:00:00'], 'ISO')
-    >>> spacepy.irbempy.find_LCDS(t, 90, extMag='T89')
+    >>> spacepy.irbempy.find_LCDS_K(t, 0.2, extMag='T89')
 
     See Also
-    ========
+    --------
     get_Lstar, get_Bfield, find_Bmirr
     """
     # prepare input values for irbem call
@@ -676,7 +684,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
         for idxk, k_i in enumerate(K):
             b1x = -1.0*bracket[0]*np.cos(mlt)
             b1y = -1.0*bracket[0]*np.sin(mlt)
-            loci_brac1 = spc.Coords([b1x, b1y, 0], 'GSM', 'car')
+            loci_brac1 = spc.Coords([b1x, b1y, 0], 'GSM', 'car', use_irbem=True)
             if 'verbose' in kwargs:
                 print('Initial inner bracket: {0}'.format(loci_brac1))
 
@@ -704,7 +712,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
             # Now get Lstar at this location...
             if np.isfinite(GEOcoord[0]):
-                pos1 = spc.Coords(GEOcoord, 'GEO', 'car')
+                pos1 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
                 pa = AlphaOfK(tt, pos1, k_i, extMag=extMag, options=Aopt, omnivals=omnivals)
                 LS1 = get_Lstar(tt, pos1, pa, extMag=extMag, options=options, omnivals=omnivals)
                 if np.isnan(LS1['Lstar']).any():
@@ -735,7 +743,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             # Set outer bracket (default to R of 12)
             b2x = -1.0*bracket[1]*np.cos(mlt)
             b2y = -1.0*bracket[1]*np.sin(mlt)
-            loci_brac2 = spc.Coords([b2x, b2y, 0], 'GSM', 'car')
+            loci_brac2 = spc.Coords([b2x, b2y, 0], 'GSM', 'car', use_irbem=True)
             if 'verbose' in kwargs:
                 print('Initial outer bracket: {0}'.format(loci_brac2))
 
@@ -761,7 +769,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
             # Now get Lstar at this location...
             if np.isfinite(GEOcoord[0]):
-                pos2 = spc.Coords(GEOcoord, 'GEO', 'car')
+                pos2 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
                 pa = AlphaOfK(tt, pos2, k_i, extMag=extMag, options=Aopt, omnivals=omnivals)
                 LS2 = get_Lstar(tt, pos2, pa, extMag=extMag, options=options, omnivals=omnivals)
                 if not np.isnan(LS2['Lstar']).any():
@@ -783,7 +791,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 newdist = (tb.hypot(loci_brac2.x, loci_brac2.y) + tb.hypot(loci_brac1.x, loci_brac1.y))/2.0
                 newx = -1.0*newdist*np.cos(mlt)
                 newy = -1.0*newdist*np.sin(mlt)
-                pos_test = spc.Coords([newx, newy, 0], 'GSM', 'car')
+                pos_test = spc.Coords([newx, newy, 0], 'GSM', 'car', use_irbem=True)
 
                 dtest = prep_irbem(tt, pos_test, extMag=extMag, options=options, omnivals=omnivals)
                 badval = dtest['badval']
@@ -807,7 +815,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 # print('bmin, GEOcoord = {0},{1}'.format(bmin, GEOcoord))
                 if not (np.isnan(bmin)):
                     # Now get Lstar at this location...
-                    postry = spc.Coords(GEOcoord, 'GEO', 'car')
+                    postry = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
                     pa = AlphaOfK(tt, postry, k_i, extMag=extMag, options=Aopt, omnivals=omnivals)
                     LStry = get_Lstar(tt, postry, pa, extMag=extMag, options=options, omnivals=omnivals)
                     LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
@@ -842,7 +850,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
     Uses the IRBEM library to determine K and searches via bisection to find Alpha(K).
 
     Parameters
-    ==========
+    ----------
         - ticks (Ticktock class) : containing time information **for a single time**
         - loci (Coords class) : containing position information **for a single point**
         - K (numeric) : value of second invariant (K) for search
@@ -857,19 +865,19 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
         - bracket (list): X-GSM coordinates to bracket bisection search
 
     Returns
-    =======
+    -------
         AlphaEq : equatorial pitch angle corresponding to K
 
     Examples
-    ========
+    --------
     >>> t = spacepy.time.Ticktock(['2002-09-01T04:00:00'], 'ISO')
-    >>> loci = spacepy.coordinates.Coords([-4,0,0], 'GSM', 'car')
+    >>> loci = spacepy.coordinates.Coords([-4,0,0], 'GSM', 'car', use_irbem=True)
     >>> spacepy.irbempy.AlphaOfK(t, loci, 0.11, extMag='T89')
     48.984375
 
     See Also
-    ========
-    get_Lstar, get_Bfield, find_Bmirr, find_LCDS
+    --------
+    find_LCDS_K, get_Lstar, get_Bfield, find_Bmirr
     """
     # prepare input values for irbem call
     d = prep_irbem(ticks, loci, extMag=extMag, options=options, omnivals=omnivals)
@@ -959,7 +967,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
     Bmin and the GEO (cartesian) coordinates of the magnetic equator
 
     Parameters
-    ==========
+    ----------
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - extMag (string) : optional; will choose the external magnetic field model
@@ -974,16 +982,16 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
         - alt (numeric) : optional keyword to set stop height [km] of fieldline trace (default 100km)
 
     Returns
-    =======
+    -------
         - results (spacepy.datamodel.SpaceData) : containing keys
                    Bfoot    - Magnitude of B-field at footpoint [nT]
                    loci     - Coords instance with GDZ coordinates of the magnetic footpoint [alt, lat, lon]
                    Bfootvec - Components of B-field at footpoint in cartesian GEO coordinates [nT]
 
     Examples
-    ========
+    --------
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> y = Coords([[3,0,0],[3,0,0]], 'GEO', 'car')
+    >>> y = Coords([[3,0,0],[3,0,0]], 'GEO', 'car', use_irbem=True)
     >>> spacepy.irbempy.find_footpoint(t, y)
     {'Bfoot': array([ 47559.04643444,  47542.84688657]),
      'Bfootvec': array([[-38428.07217246,   4497.31549786, -27657.19291928],
@@ -992,7 +1000,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
      [ 99.99397026  55.70716296 -10.22797462]] ), dtype=GDZ,sph, units=['km', 'deg', 'deg']}
 
     See Also
-    ========
+    --------
     get_Lstar, get_Bfield, find_Bmirr, find_magequator
     """
     # prepare input values for irbem call
@@ -1053,25 +1061,25 @@ def coord_trans(loci, returntype, returncarsph):
     this will convert between systems GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
 
     Parameters
-    ==========
+    ----------
         - loci (Coords instance) : containing coordinate information, can contain n points
         - returntype (str) : describing system as GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
         - returncarsph (str) : cartesian or spherical units 'car', 'sph'
 
     Returns
-    =======
+    -------
         - xout (ndarray) : values after transformation in (n,3) dimensions
 
     Examples
-    ========
-    >>> c = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    --------
+    >>> c = Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
     >>> c.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> coord_trans(c, 'GSM', 'car')
     array([[ 2.8639301 , -0.01848784,  0.89306361],
     [ 1.9124434 ,  0.07209424,  0.58082929]])
 
     See Also
-    ========
+    --------
     sph2car, car2sph
 
     """
@@ -1225,21 +1233,21 @@ def get_dtype(sysaxes):
     will return the coordinate system type as string
 
     Parameters
-    ==========
+    ----------
         - sysaxes (int) : number according to the irbem, possible values: 0-8
 
     Returns
-    =======
+    -------
         - dtype (str) : coordinate system GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
         - carsph (str) : cartesian or spherical 'car', 'sph'
 
     Examples
-    ========
+    --------
     >>> get_dtype(3)
     ('GSE', 'car')
 
     See Also
-    ========
+    --------
     get_sysaxes
 
     """
@@ -1258,7 +1266,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     will return the flux from the AE8-AP8 model
 
     Parameters
-    ==========
+    ----------
         - energy (float) : center energy in MeV; if fluxtype=RANGE, then needs to be a list [Emin, Emax]
         - loci (Coords)  : a Coords instance with the location inside the magnetosphere
              optional      instead of a Coords instance, one can also provide a list with [BBo, L] combination
@@ -1267,18 +1275,18 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         - particles (str): e or p or electrons or protons
 
     Returns
-    =======
+    -------
         - float : flux from AE8/AP8 model
 
     Examples
-    ========
+    --------
     >>> spacepy.irbempy.get_aep8()
 
     >>> import spacepy.time as spt
     >>> import spacepy.coordinates as spc
     >>> import spacepy.irbempy as ib
     >>> t = spt.Ticktock(['2017-02-02T12:00:00'], 'ISO')
-    >>> y = spc.Coords([3,0,0], 'GEO', 'car')
+    >>> y = spc.Coords([3,0,0], 'GEO', 'car', use_irbem=True)
     >>> y.ticks = t
     >>> energy = 1.0 #MeV
     >>> ib.get_AEP8(energy, y, model='max')
@@ -1364,7 +1372,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     are not provided, then no drift shell splitting is calculated and "Blocal" is returned.
 
     Parameters
-    ==========
+    ----------
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : pitch angles in degrees; if provided will
@@ -1379,16 +1387,16 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
             routine can only be used with OPQUIET+IGRF magnetic field models.
 
     Returns
-    =======
+    -------
         - results (dictionary) : containing keys: Lm, Lstar, Bmin, Blocal (or Bmirr),
             Xj (I - the 2nd invariant), MLT
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr"
             is returned if not provided, then "Blocal" at spacecraft is returned.
 
     Examples
-    ========
+    --------
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
     >>> spacepy.irbempy.Lstar(t,y)
     {'Blocal': array([ 1020.40493286,  3446.08845227]),
         'Bmin': array([ 1019.98404311,  3437.63865243]),
@@ -1399,7 +1407,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
 
 
     Notes
-    =====
+    -----
     External Field
         - 0	   : no external field
         - MEAD	: Mead & Fairfield [1975] (uses 0<=Kp<=9 - Valid for rGEO<=17. Re)
@@ -1523,7 +1531,7 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
     Return the MacIlwain L value for a given location, time and model
 
     Parameters
-    ==========
+    ----------
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : pitch angles in degrees
@@ -1537,7 +1545,7 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
         - omni values as dictionary (optional) : if not provided, will use lookup table
 
     Returns
-    =======
+    -------
 
         - results (dictionary) : containing keys: Lm, Bmin, Blocal (or Bmirr), Xj, MLT
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr"
@@ -1546,11 +1554,11 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
             atmosphere; the absolute value indicates the L value.
 
     Examples
-    ========
+    --------
 
 
     Notes
-    =====
+    -----
 
 
 
@@ -1609,7 +1617,7 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     Examples
     ========
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
     >>> spacepy.irbempy.Lstar(t,y)
     {'Blocal': array([ 1020.40493286,  3446.08845227]),
         'Bmin': array([ 1019.98404311,  3437.63865243]),
