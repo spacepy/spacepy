@@ -32,7 +32,7 @@ class IRBEMBigTests(unittest.TestCase):
             warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
-            self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+            self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
         self.omnivals = spacepy.omni.get_omni(self.ticks, dbase='Test')
 
     def test_prep_irbem(self):
@@ -162,7 +162,7 @@ class IRBEMBigTests(unittest.TestCase):
         try:
             ticks = spacepy.time.tickrange(self.ticks.ISO[0], self.ticks.ISO[-1], 1/1440.)
             ncalc = len(ticks)  # Forced 10 times in test data range
-            loci = spacepy.coordinates.Coords([[nc-4, 6-nc, 0] for nc in range(ncalc)], 'GEO', 'car')
+            loci = spacepy.coordinates.Coords([[nc-4, 6-nc, 0] for nc in range(ncalc)], 'GEO', 'car', use_irbem=True)
             omnivals = spacepy.omni.get_omni(ticks, dbase='Test')
             expected = {'Lstar': array([[6.84698], [5.58814], [4.35608],
                                         [3.13613], [1.97344], [1.41439],
@@ -214,7 +214,7 @@ class IRBEMBigTests(unittest.TestCase):
             warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
-            loci = spacepy.coordinates.Coords([-4,0,0], 'GSM', 'car')
+            loci = spacepy.coordinates.Coords([-4,0,0], 'GSM', 'car', use_irbem=True)
         ans = spacepy.irbempy.AlphaOfK(t, loci, 0.11, extMag='T89', omnivals=self.omnivals)
         numpy.testing.assert_almost_equal(ans, 50.625, decimal=5)
 
@@ -228,8 +228,9 @@ class IRBEMBigTests(unittest.TestCase):
             expected['loci'] = spacepy.coordinates.Coords([[ 99.28759,  56.14644, -10.29427],
                                                            [ 99.33375,  56.14603, -10.29737]],
                                                            dtype='GDZ', carsph='sph',
-                                                           units=['km', 'deg', 'deg'])
-            y = spacepy.coordinates.Coords([[3,0,0],[3,0,0]], 'GEO', 'car')
+                                                           units=['km', 'deg', 'deg'],
+                                                           use_irbem=True)
+            y = spacepy.coordinates.Coords([[3,0,0],[3,0,0]], 'GEO', 'car', use_irbem=True)
         ans = spacepy.irbempy.find_footpoint(self.ticks, y, omnivals=self.omnivals)
         numpy.testing.assert_almost_equal(expected['Bfoot'], ans['Bfoot'], decimal=5)
         numpy.testing.assert_almost_equal(expected['loci'].data, ans['loci'].data, decimal=5)
@@ -243,24 +244,12 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
             warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
                                     category=DeprecationWarning,
                                     module=r'spacepy.coordinates$')
-            self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+            self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
 
     def test_get_dtype(self):
         sysaxes = 3
         expected = ('GSE', 'car')
         self.assertEqual(expected, ib.get_dtype(sysaxes))
-
-    def test_get_sysaxes(self):
-        """Test that expected value is returned for sysaxes query"""
-        dtype = 'GSE'
-        with spacepy_testing.assertWarns(
-                self, 'always', r'get_sysaxes marked for removal',
-                DeprecationWarning, r'spacepy'):
-            self.assertEqual(3, ib.get_sysaxes(dtype, 'car'))
-        with spacepy_testing.assertWarns(
-                self, 'always', r'get_sysaxes marked for removal',
-                DeprecationWarning, r'spacepy'):
-            self.assertEqual(None, ib.get_sysaxes(dtype, 'sph'))
 
     def test_prep_irbem_sysaxesnone(self):
         """prep_irbem should handle 'car' and 'sph' version of systems identically"""
@@ -284,24 +273,6 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         numpy.testing.assert_almost_equal(out1['xin1'], out2['xin1'])
         numpy.testing.assert_almost_equal(out1['xin2'], out2['xin2'])
         numpy.testing.assert_almost_equal(out1['xin3'], out2['xin3'])
-
-    def test_sph2car(self):
-        loc = [1,45,45]
-        expected = array([ 0.5,  0.5,  0.70710678])
-        with spacepy_testing.assertWarns(
-                self, 'always', r'moved to spacepy\.coordinates',
-                DeprecationWarning, r'spacepy'):
-            tst = ib.sph2car(loc)
-        numpy.testing.assert_almost_equal(expected, tst)
-
-    def test_car2sph(self):
-        loc = [ 0.5,  0.5,  0.70710678]
-        expected = [1,45,45]
-        with spacepy_testing.assertWarns(
-                self, 'always', r'moved to spacepy\.coordinates',
-                DeprecationWarning, r'spacepy'):
-            tst = ib.car2sph(loc)
-        numpy.testing.assert_almost_equal(expected, tst)
 
     def test_coord_trans(self):
         self.loci.ticks = self.ticks
