@@ -1,12 +1,13 @@
 
-#################################################
-irbempy - Python interface to irbem/ONERA library
-#################################################
+###########################################
+irbempy - Python interface to IRBEM library
+###########################################
 
 .. automodule:: spacepy.irbempy
 .. currentmodule:: spacepy.irbempy
 
-This module provides a Python interface to the IRBEM library
+This module provides a Python interface to the IRBEM (formerly known
+as ONERA-DESP) library.
 
 Reference for this library https://sourceforge.net/projects/irbem/
 
