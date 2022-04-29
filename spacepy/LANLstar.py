@@ -32,7 +32,7 @@ def _get_net_path(filename):
     else:
         raise RuntimeError("Could not find neural network file " + filename)
 
-# ------------------------------------------------
+
 def _LANLcommon(indict, extmag, lmax=False):
     """
     Shared code between LANLstar and LANLmax
@@ -81,16 +81,17 @@ def _LANLcommon(indict, extmag, lmax=False):
     if isinstance(extmag, str):
         extmag = [extmag]
 
+    # make sure that if we futz with Gs/Ws we need to not modify the inputs
     inputdict = indict.copy()
     if 'G' in inputdict:
-        for x in range(1,4):
-            dum = inputdict['G'][...,x-1]
+        for x in range(1, 4):
+            dum = inputdict['G'][..., x-1]
             if dum.ndim == 0: dum = np.array([dum])
             inputdict['G{0}'.format(x)] = dum
         del inputdict['G']
     if 'W' in inputdict:
-        for x in range(1,7):
-            dum = inputdict['W'][...,x-1]
+        for x in range(1, 7):
+            dum = inputdict['W'][..., x-1]
             if dum.ndim == 0: dum = np.array([dum])
             inputdict['W{0}'.format(x)] = dum
         del inputdict['W']
@@ -104,7 +105,7 @@ def _LANLcommon(indict, extmag, lmax=False):
         else:
             params = np.vstack(parset).T
         # Load the ANN parameters from the ported text files
-        net = get_model(modelstr=modname, lmax=lmax)
+        net = _get_model(modelstr=modname, lmax=lmax)
         # Make output array filled with badvals
         ls[modname] = dm.dmfilled((n), fillval=np.nan)
 
@@ -124,7 +125,20 @@ def _LANLcommon(indict, extmag, lmax=False):
     return ls
 
 
-def get_model(modelstr=None, lmax=False):
+def _get_model(modelstr=None, lmax=False):
+    '''Find and load coefficient set defining neural network model
+
+    Other Parameters
+    ================
+    modelstr : string
+        Name of external magnetic field model. Valid choices are [OPDYN, OPQUIET,
+        T89, T96, T01QUIET, T01STORM, T05, RAMSCB]. Note that RAMSCB is only defined
+        for the LANLstar model and not for the LANLmax model.
+    lmax : bool
+        If True, load the coefficient set for the LANLmax network. Otherwise, load
+        the coefficient set for the LANLstar network. Note that RAMSCB is not defined
+        if this is set to True.
+    '''
     name = modelstr.upper()
     optl = {'OPDYN': 'LANLstar_OPDyn.txt',
             'OPQUIET': 'LANLstar_OPQuiet.txt',
@@ -153,7 +167,6 @@ def get_model(modelstr=None, lmax=False):
     model['two_layers'] = True if (model['two_layers'] in [1.0, 'True']) else False
 
     return model
-
 
 
 # ------------------------------------------------
@@ -215,7 +228,6 @@ def LANLstar(inputdict, extMag):
     Examples
     ========
     >>> import spacepy.LANLstar as LS
-    >>>
     >>> inputdict = {}
     >>> inputdict['Kp']     = [2.7      ]            # Kp index
     >>> inputdict['Dst']    = [7.7777   ]            # Dst index (nT)
@@ -233,11 +245,11 @@ def LANLstar(inputdict, extMag):
     >>> inputdict['W4']     = [0.0478   ]
     >>> inputdict['W5']     = [0.2258   ]
     >>> inputdict['W6']     = [1.0461   ]
-    >>>
+    >>> # now add date
     >>> inputdict['Year']   = [1996     ]
     >>> inputdict['DOY']    = [6        ]
     >>> inputdict['Hr']     = [1.2444   ]
-    >>>
+    >>> # and pitch angle, which doesn't come if taking params from OMNI
     >>> inputdict['Lm']     = [4.9360   ]             # McIllwain L
     >>> inputdict['Bmirr']  = [315.6202 ]             # magnetic field strength at the mirror point
     >>> inputdict['rGSM']   = [4.8341   ]             # radial coordinate in GSM [Re]
@@ -247,7 +259,7 @@ def LANLstar(inputdict, extMag):
     >>> inputdict['SMx']    = [3.9783   ]
     >>> inputdict['SMy']    = [-2.51335 ]
     >>> inputdict['SMz']    = [1.106617 ]
-    >>> 
+    >>> # and then call the neural network
     >>> LS.LANLstar(inputdict, ['OPDYN','OPQUIET','T01QUIET','T01STORM','T89','T96','T05','RAMSCB'])
     {'OPDYN': array([4.7171]),
      'OPQUIET': array([4.6673]),
@@ -260,8 +272,8 @@ def LANLstar(inputdict, extMag):
      """
     return _LANLcommon(inputdict, extMag, lmax=False)
 
-def LANLmax(inputdict, extMag):
 
+def LANLmax(inputdict, extMag):
     """
     Calculate last closed drift shell (Lmax)
 
@@ -308,7 +320,6 @@ def LANLmax(inputdict, extMag):
     Examples
     ========
     >>> import spacepy.LANLstar as LS
-    >>>
     >>> inputdict = {}
     >>> inputdict['Kp']     = [2.7      ]            # Kp index
     >>> inputdict['Dst']    = [7.7777   ]            # Dst index (nT)
@@ -326,13 +337,13 @@ def LANLmax(inputdict, extMag):
     >>> inputdict['W4']     = [0.0478   ]
     >>> inputdict['W5']     = [0.2258   ]
     >>> inputdict['W6']     = [1.0461   ]
-    >>>
+    >>> # now add date
     >>> inputdict['Year']   = [1996     ]
     >>> inputdict['DOY']    = [6        ]
     >>> inputdict['Hr']     = [1.2444   ]
-    >>>
+    >>> # and pitch angle, which doesn't come if taking params from OMNI
     >>> inputdict['PA']     = [57.3874  ]             # pitch angle [deg]
-    >>> 
+    >>> # and then call the neural network
     >>> LS.LANLmax(inputdict, ['OPDYN','OPQUIET','T01QUIET','T01STORM','T89','T96','T05'])
     {'OPDYN': array([10.6278]),
      'OPQUIET': array([9.3352]),
@@ -363,8 +374,10 @@ def addPA(indict, PA):
     Examples
     ========
     >>> import spacepy.LANLstar as LS
-    >>>
     >>> inputdict = {}
+    >>> inputdict['Year']
+    >>> # additional keys would be defined here
+    >>> LS.addPA(indict, PA)
 
     '''
     ll = len(indict['Year'])
