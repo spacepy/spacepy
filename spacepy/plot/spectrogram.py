@@ -461,10 +461,10 @@ class Spectrogram(dm.SpaceData):
 
         if self.plotSettings['zlog']:
             pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb),
-                                norm=LogNorm(), cmap=self.plotSettings['cmap'], vmin=self.plotSettings['zlim'][0],
-                                vmax=self.plotSettings['zlim'][1])
+                                norm=LogNorm(vmin=self.plotSettings['zlim'][0], vmax=self.plotSettings['zlim'][1]),
+                                cmap=self.plotSettings['cmap'])
         else:
-            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb), 
+            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb),
                                 cmap=self.plotSettings['cmap'], vmin=self.plotSettings['zlim'][0],
                                 vmax=self.plotSettings['zlim'][1])
 
@@ -580,7 +580,7 @@ def simpleSpectrogram(*args, **kwargs):
     zlog : bool
         Plot the color with a log colorbar (default: True)
     ylog : bool
-        Plot the Y axis with a log scale (default: True) 
+        Plot the Y axis with a log scale (default: True)
     alpha : scalar (0-1)
         The alpha blending value (default: None)
     cmap : string
@@ -595,7 +595,7 @@ def simpleSpectrogram(*args, **kwargs):
         Plot a colorbar (default: True)
     cbtitle : string
         Label to go on the colorbar (default: None)
-    
+
     Returns
     =======
     ax : matplotlib.axes._subplots.AxesSubplot
@@ -628,8 +628,8 @@ def simpleSpectrogram(*args, **kwargs):
                 for ii in range(Y.shape[0]):
                     Y_tmp[ii] = tb.bin_center_to_edges(Y[ii])
                 Y = Y_tmp
-                
-    # deal with all the default keywords 
+
+    # deal with all the default keywords
     zlog    = kwargs.pop('zlog', True)
     ylog    = kwargs.pop('ylog', True)
     alpha   = kwargs.pop('alpha', None)
@@ -639,7 +639,7 @@ def simpleSpectrogram(*args, **kwargs):
     ax      = kwargs.pop('ax', None)
     cb      = kwargs.pop('cb', True)
     cbtitle = kwargs.pop('cbtitle', None)
-    
+
     # the first case is that X, Y are 1d and Z is 2d, just make the plot
     if ax is None:
         fig = plt.figure()
@@ -664,7 +664,7 @@ def simpleSpectrogram(*args, **kwargs):
                            cmap=cmap,
                            alpha=alpha)
     if ylog: ax.set_yscale('log')
-    
+
     if cb: # add a colorbar
         cb_ = fig.colorbar(pc)
         if cbtitle is not None:
