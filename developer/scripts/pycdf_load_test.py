@@ -3,25 +3,30 @@
 """Test the loading of the CDF library and calls to each function"""
 
 import ctypes
+import os
 import subprocess
 import sys
 
 
+# 32-bit arm needs special treatment for variadic floats
+typepun = os.uname()[4].startswith('arm') and sys.maxsize <= 2 ** 32
+
 call_dict = {
     'breakdownTT2000': [None, ctypes.c_longlong]\
-        + [ctypes.POINTER(ctypes.c_double)] * 9,
+        + [ctypes.POINTER(ctypes.c_double)] * 3,
     'CDF_TT2000_from_UTC_EPOCH': [ctypes.c_longlong, ctypes.c_double],
     'CDF_TT2000_from_UTC_EPOCH16': [ctypes.c_longlong,
                                     ctypes.POINTER(ctypes.c_double * 2)],
     'CDF_TT2000_to_UTC_EPOCH': [ctypes.c_double, ctypes.c_longlong],
     'CDF_TT2000_to_UTC_EPOCH16': [ctypes.c_double, ctypes.c_longlong,
                                   ctypes.POINTER(ctypes.c_double * 2)],
-    'CDFlib': [ctypes.c_long],
+    'CDFlib': [ctypes.c_long, ctypes.c_long],
     'CDFsetFileBackward': [None, ctypes.c_long],
     'computeEPOCH': [ctypes.c_double] + [ctypes.c_long] * 7,
     'computeEPOCH16': [ctypes.c_double] + [ctypes.c_long] * 10\
         + [ctypes.POINTER(ctypes.c_double * 2)],
-    'computeTT2000': [ctypes.c_longlong] +  [ctypes.c_double] * 9,
+    'computeTT2000': [ctypes.c_longlong]\
+        + [ctypes.c_longlong if typepun else ctypes.c_double] * 3,
     'EPOCH16breakdown': [None, ctypes.c_double * 2]\
         + [ctypes.POINTER(ctypes.c_long)] * 10,
     'EPOCHbreakdown': [ctypes.c_long, ctypes.c_double]\
@@ -42,6 +47,12 @@ def load_lib():
     return lib
 
 
+def cast_ll(x):
+    """Reinterpret-cast a float to a long long"""
+    return ctypes.cast(ctypes.pointer(ctypes.c_double(x)),
+                       ctypes.POINTER(ctypes.c_longlong)).contents
+
+
 def test_breakdownTT2000(lib):
     yyyy = ctypes.c_double(0)
     mm = ctypes.c_double(0)
@@ -53,7 +64,7 @@ def test_breakdownTT2000(lib):
     usec = ctypes.c_double(0)
     nsec = ctypes.c_double(0)
     tt2000 = 315673512171654000
-    lib.breakdownTT2000(tt2000, yyyy, mm, dd, hh, mn, sec, msec, usec, nsec)
+    lib.breakdownTT2000(tt2000, yyyy, mm, dd, ctypes.byref(hh), ctypes.byref(mn), ctypes.byref(sec), ctypes.byref(msec), ctypes.byref(usec), ctypes.byref(nsec))
     print('Expect 2010-1-2 3:4:5.987654000')
     print(
         'Actual {:.0f}-{:.0f}-{:.0f} {:.0f}:{:.0f}:{:.0f}'\
@@ -128,9 +139,9 @@ def test_computeEPOCH16(lib):
 
 
 def test_computeTT2000(lib):
-    tt = lib.computeTT2000(2010, 1, 2,
-                           3, 4, 5,
-                           987, 654, 0)
+    args = (2010, 1, 2, 3, 4, 5, 987, 654, 0)
+    tt = lib.computeTT2000(*[(cast_ll if typepun else ctypes.c_double)(a)
+                             for a in args])
     print('Expect 315673512171654000')
     print('Actual {}'.format(tt))
 
