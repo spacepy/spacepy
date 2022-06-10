@@ -3758,17 +3758,6 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         self._call(const.GET_, const.zVAR_NUMELEMS_, ctypes.byref(nelems))
         return nelems.value
 
-    def _nelems(self):
-        """Number of elements for each value in this variable
-
-        .. deprecated:: 0.2.2
-            This method will be removed in the future. Use the public
-            interface `nelems` instead.
-        """
-        warnings.warn("_nelems is deprecated and will be removed. Use nelems.",
-                      DeprecationWarning)
-        return self.nelems()
-
     def name(self):
         """
         Returns the name of this variable
