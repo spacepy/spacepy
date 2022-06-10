@@ -3,13 +3,13 @@
 """Test the loading of the CDF library and calls to each function"""
 
 import ctypes
-import os
+import platform
 import subprocess
 import sys
 
 
 # 32-bit arm needs special treatment for variadic floats
-typepun = os.uname()[4].startswith('arm') and sys.maxsize <= 2 ** 32
+typepun = platform.uname()[4].startswith('arm') and sys.maxsize <= 2 ** 32
 
 call_dict = {
     'breakdownTT2000': [None, ctypes.c_longlong]\

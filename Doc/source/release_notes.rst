@@ -20,6 +20,11 @@ The ``_nelems`` method of :class:`~spacepy.pycdf.Var` has been removed;
 use the public interface :meth:`~spacepy.pycdf.Var.nelems`. (Deprecated
 in 0.2.2).
 
+Major bugfixes
+**************
+:mod:`~spacepy.pycdf` has been updated for Apple Silicon (ARM/M1);
+Python 3.8 is required for this support.
+
 Other changes
 *************
 :mod:`~spacepy.pycdf` no longer warns when defaulting to version 3 CDFs
