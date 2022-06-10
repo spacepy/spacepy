@@ -59,6 +59,7 @@ import itertools
 import operator
 import os
 import os.path
+import platform
 import shutil
 import sys
 import tempfile
@@ -82,6 +83,15 @@ try:
     str_classes = (str, bytes, unicode)
 except NameError:
     str_classes = (str, bytes)
+
+
+def _cast_ll(x):
+    """Reinterpret-cast a float to a long long
+
+    Used for typepunning ARM32 arguments.
+    """
+    return ctypes.cast(ctypes.pointer(ctypes.c_double(x)),
+                       ctypes.POINTER(ctypes.c_longlong)).contents
 
 
 class Library(object):
@@ -222,6 +232,34 @@ class Library(object):
 
        Version of the CDF library, (version, release, increment, subincrement)
     """
+
+    _arm32 = platform.uname()[4].startswith('arm') and sys.maxsize <= 2 ** 32
+    """Excuting on 32-bit ARM, which requires typepunned arguments"""
+
+    _signatures = {
+        'breakdownTT2000': [None, ctypes.c_longlong]
+            + [ctypes.POINTER(ctypes.c_double)] * 3,
+        'CDF_TT2000_from_UTC_EPOCH': [ctypes.c_longlong, ctypes.c_double],
+        'CDF_TT2000_from_UTC_EPOCH16': [ctypes.c_longlong,
+                                        ctypes.POINTER(ctypes.c_double * 2)],
+        'CDF_TT2000_to_UTC_EPOCH': [ctypes.c_double, ctypes.c_longlong],
+        'CDF_TT2000_to_UTC_EPOCH16': [ctypes.c_double, ctypes.c_longlong,
+                                      ctypes.POINTER(ctypes.c_double * 2)],
+        'CDFlib': [ctypes.c_long, ctypes.c_long],
+        'CDFsetFileBackward': [None, ctypes.c_long],
+        'computeEPOCH': [ctypes.c_double] + [ctypes.c_long] * 7,
+        'computeEPOCH16': [ctypes.c_double] + [ctypes.c_long] * 10\
+            + [ctypes.POINTER(ctypes.c_double * 2)],
+        'computeTT2000': [ctypes.c_longlong]
+            + [ctypes.c_longlong if _arm32 else ctypes.c_double] * 3,
+        'EPOCH16breakdown': [None, ctypes.c_double * 2]\
+            + [ctypes.POINTER(ctypes.c_long)] * 10,
+        'EPOCHbreakdown': [ctypes.c_long, ctypes.c_double]\
+            + [ctypes.POINTER(ctypes.c_long)] * 7,
+    }
+    """Call signatures for functions in C library. Keyed by function name;
+       values are return type (first element) and then argument types."""
+
     def __init__(self, libpath=None, library=None):
         """Load the CDF C library.
 
@@ -249,49 +287,22 @@ class Library(object):
         else:
             self._library = library
             self.libpath = libpath
-        self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
-        self._library.EPOCHbreakdown.restype = ctypes.c_long
-        self._library.computeEPOCH.restype = ctypes.c_double
-        self._library.computeEPOCH.argtypes = [ctypes.c_long] * 7
-        self._library.computeEPOCH16.restype = ctypes.c_double
-        self._library.computeEPOCH16.argtypes = [ctypes.c_long] * 10 + \
-            [ctypes.POINTER(ctypes.c_double * 2)]
-        if hasattr(self._library, 'CDFsetFileBackward'):
-            self._library.CDFsetFileBackward.restype = None
-            self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
         #Map old name to the 3.7.1+ name
         if not hasattr(self._library, 'computeTT2000') \
            and hasattr(self._library, 'CDF_TT2000_from_UTC_parts'):
             self._library.computeTT2000 \
                 = self._library.CDF_TT2000_from_UTC_parts
-        if hasattr(self._library, 'computeTT2000'):
-            self._library.computeTT2000.restype = ctypes.c_longlong
-            self._library.computeTT2000.argtypes = \
-                [ctypes.c_double] *9
-        #Map old name to the 3.7.1+ name
         if not hasattr(self._library, 'breakdownTT2000') \
            and hasattr(self._library, 'CDF_TT2000_to_UTC_parts'):
             self._library.breakdownTT2000 \
                 = self._library.CDF_TT2000_to_UTC_parts
-        if hasattr(self._library, 'breakdownTT2000'):
-            self._library.breakdownTT2000.restype = None
-            self._library.breakdownTT2000.argtypes = \
-                [ctypes.c_longlong] + [ctypes.POINTER(ctypes.c_double)] * 9
-        if hasattr(self._library, 'CDF_TT2000_to_UTC_EPOCH'):
-            self._library.CDF_TT2000_to_UTC_EPOCH.restype = ctypes.c_double
-            self._library.CDF_TT2000_to_UTC_EPOCH.argtypes = [ctypes.c_longlong]
-        if hasattr(self._library, 'CDF_TT2000_from_UTC_EPOCH'):
-            self._library.CDF_TT2000_from_UTC_EPOCH.restype = ctypes.c_longlong
-            self._library.CDF_TT2000_from_UTC_EPOCH.argtypes = [ctypes.c_double]
-        if hasattr(self._library, 'CDF_TT2000_to_UTC_EPOCH16'):
-            self._library.CDF_TT2000_to_UTC_EPOCH16.restype = ctypes.c_double
-            self._library.CDF_TT2000_to_UTC_EPOCH16.argtypes = \
-                [ctypes.c_longlong, ctypes.POINTER(ctypes.c_double * 2)]
-        if hasattr(self._library, 'CDF_TT2000_from_UTC_EPOCH16'):
-            self._library.CDF_TT2000_from_UTC_EPOCH16.restype = \
-                ctypes.c_longlong
-            self._library.CDF_TT2000_from_UTC_EPOCH16.argtypes = \
-                [ctypes.POINTER(ctypes.c_double * 2)]
+        for funcname in self._signatures:
+            func = getattr(self._library, funcname, None)
+            if func is None:
+                continue
+            args = self._signatures[funcname]
+            func.restype = args[0]
+            func.argtypes = None if len(args) <= 1 else args[1:]
 
         #Get CDF version information
         ver = ctypes.c_long(0)
@@ -357,44 +368,20 @@ class Library(object):
             del self.numpytypedict[const.CDF_INT8.value]
             del self.cdftypenames[const.CDF_TIME_TT2000.value]
             del self.numpytypedict[const.CDF_TIME_TT2000.value]
-        elif sys.platform.startswith('linux') \
-             and os.uname()[4].startswith('arm') \
-             and hasattr(self._library, 'computeTT2000') \
-             and self._library.computeTT2000(
-                 2010, 1, 1, 0, 0, 0, 0, 0, 0) != 315576066184000000:
-            #TT2000 call failed, so probably need to type-pun
-            #double arguments to variadic functions.
-            #Calling convention for non-variadic functions with floats
-            #is unique, but convention for ints is same as variadic.
-            #So type-pun arguments to integers to force that calling
-            #convention.
+        elif self._arm32:
+            # Type-pun double arguments to variadic functions.
+            # Calling convention for non-variadic functions with floats
+            # is unique, but convention for ints is same as variadic.
             if ctypes.sizeof(ctypes.c_longlong) != \
                ctypes.sizeof(ctypes.c_double):
                 warnings.warn('ARM with unknown type sizes; '
                               'TT2000 functions will not work.')
             else:
-                self._library.computeTT2000.argtypes = \
-                    [ctypes.c_longlong] * 9
-                c_ll_p = ctypes.POINTER(ctypes.c_longlong)
                 if self._library.computeTT2000(
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        2010)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        1)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        1)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        0)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        0)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        0)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        0)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        0)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        0)), c_ll_p).contents) != 315576066184000000:
+                        _cast_ll(2010), _cast_ll(1), _cast_ll(1),
+                        _cast_ll(0), _cast_ll(0), _cast_ll(0),
+                        _cast_ll(0), _cast_ll(0), _cast_ll(0)
+                ) != 315576066184000000:
                     warnings.warn('ARM with unknown calling convention; '
                                   'TT2000 functions will not work.')
                 self.datetime_to_tt2000 = self._datetime_to_tt2000_typepunned
@@ -700,19 +687,15 @@ class Library(object):
         mm = ctypes.c_long(0)
         dd = ctypes.c_long(0)
         hh = ctypes.c_long(0)
-        min = ctypes.c_long(0)
+        mn = ctypes.c_long(0)
         sec = ctypes.c_long(0)
         msec = ctypes.c_long(0)
-        self._library.EPOCHbreakdown(ctypes.c_double(epoch),
-                                     ctypes.byref(yyyy), ctypes.byref(mm),
-                                     ctypes.byref(dd),
-                                     ctypes.byref(hh), ctypes.byref(min),
-                                     ctypes.byref(sec), ctypes.byref(msec))
+        self._library.EPOCHbreakdown(epoch, yyyy, mm, dd, hh, mn, sec, msec)
         if yyyy.value <= 0:
             return datetime.datetime(9999, 12, 13, 23, 59, 59, 999000)
         else:
             return datetime.datetime(yyyy.value, mm.value, dd.value,
-                                     hh.value, min.value, sec.value,
+                                     hh.value, mn.value, sec.value,
                                      msec.value * 1000)
 
     def datetime_to_epoch(self, dt):
@@ -779,32 +762,29 @@ class Library(object):
         mm = ctypes.c_long(0)
         dd = ctypes.c_long(0)
         hh = ctypes.c_long(0)
-        min = ctypes.c_long(0)
+        mn = ctypes.c_long(0)
         sec = ctypes.c_long(0)
         msec = ctypes.c_long(0)
         usec = ctypes.c_long(0)
         nsec = ctypes.c_long(0)
         psec = ctypes.c_long(0)
-        self._library.EPOCH16breakdown((ctypes.c_double * 2)(epoch0, epoch1),
-                                     ctypes.byref(yyyy), ctypes.byref(mm),
-                                     ctypes.byref(dd),
-                                     ctypes.byref(hh), ctypes.byref(min),
-                                     ctypes.byref(sec), ctypes.byref(msec),
-                                     ctypes.byref(usec), ctypes.byref(nsec),
-                                     ctypes.byref(psec))
+        self._library.EPOCH16breakdown(
+            (ctypes.c_double * 2)(epoch0, epoch1),
+            yyyy, mm, dd, hh, mn, sec,
+            msec, usec, nsec, psec)
         if yyyy.value <= 0:
             return datetime.datetime(9999, 12, 13, 23, 59, 59, 999999)
         micro = int(float(msec.value) * 1000 + float(usec.value) +
                     float(nsec.value) / 1000 + float(psec.value) / 1e6 + 0.5)
         if micro < 1000000:
             return datetime.datetime(yyyy.value, mm.value, dd.value,
-                                     hh.value, min.value, sec.value,
+                                     hh.value, mn.value, sec.value,
                                      micro)
         else:
             add_sec = int(micro / 1000000)
             try:
                 return datetime.datetime(yyyy.value, mm.value, dd.value,
-                                         hh.value, min.value, sec.value,
+                                         hh.value, mn.value, sec.value,
                                          micro - add_sec * 1000000) + \
                                          datetime.timedelta(seconds=add_sec)
             except OverflowError:
@@ -958,15 +938,14 @@ class Library(object):
         mm = ctypes.c_double(0)
         dd = ctypes.c_double(0)
         hh = ctypes.c_double(0)
-        min = ctypes.c_double(0)
+        mn = ctypes.c_double(0)
         sec = ctypes.c_double(0)
         msec = ctypes.c_double(0)
         usec = ctypes.c_double(0)
         nsec = ctypes.c_double(0)
         self._library.breakdownTT2000(
-            ctypes.c_longlong(tt2000),
-            ctypes.byref(yyyy), ctypes.byref(mm), ctypes.byref(dd),
-            ctypes.byref(hh), ctypes.byref(min), ctypes.byref(sec),
+            tt2000, yyyy, mm, dd,
+            ctypes.byref(hh), ctypes.byref(mn), ctypes.byref(sec),
             ctypes.byref(msec), ctypes.byref(usec), ctypes.byref(nsec))
         if yyyy.value <= 0:
             return datetime.datetime(9999, 12, 13, 23, 59, 59, 999999)
@@ -974,18 +953,18 @@ class Library(object):
         if sec >= 60:
             return datetime.datetime(
                 int(yyyy.value), int(mm.value), int(dd.value),
-                int(hh.value), int(min.value), 59, 999999)
+                int(hh.value), int(mn.value), 59, 999999)
         micro = int(msec.value * 1000 + usec.value + nsec.value / 1000 + 0.5)
         if micro < 1000000:
             return datetime.datetime(
                 int(yyyy.value), int(mm.value), int(dd.value),
-                int(hh.value), int(min.value), sec, micro)
+                int(hh.value), int(mn.value), sec, micro)
         else:
             add_sec = int(micro / 1000000)
             try:
                 return datetime.datetime(
                     int(yyyy.value), int(mm.value), int(dd.value),
-                    int(hh.value), int(min.value), sec,
+                    int(hh.value), int(mn.value), sec,
                     micro - add_sec * 1000000) + \
                     datetime.timedelta(seconds=add_sec)
             except OverflowError:
@@ -1016,10 +995,11 @@ class Library(object):
         if dt  == datetime.datetime.max:
             return -2**63
         return self._library.computeTT2000(
-            dt.year, dt.month, dt.day, dt.hour,
-            dt.minute, dt.second,
-            int(dt.microsecond / 1000),
-            dt.microsecond % 1000, 0)
+            dt.year, dt.month, dt.day,
+            ctypes.c_double(dt.hour), ctypes.c_double(dt.minute),
+            ctypes.c_double(dt.second),
+            ctypes.c_double(int(dt.microsecond / 1000)),
+            ctypes.c_double(dt.microsecond % 1000), ctypes.c_double(0))
 
     def _datetime_to_tt2000_typepunned(self, dt):
         """
@@ -1042,31 +1022,16 @@ class Library(object):
         ========
         v_datetime_to_tt2000
         """
-        c_ll_p = ctypes.POINTER(ctypes.c_longlong)
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
         dt = dt.replace(tzinfo=None)
         if dt  == datetime.datetime.max:
             return -2**63
         return self._library.computeTT2000(
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        dt.year)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        dt.month)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        dt.day)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        dt.hour)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        dt.minute)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        dt.second)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        dt.microsecond // 1000)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        dt.microsecond % 1000)), c_ll_p).contents,
-                    ctypes.cast(ctypes.pointer(ctypes.c_double(
-                        0)), c_ll_p).contents)
+            _cast_ll(dt.year), _cast_ll(dt.month), _cast_ll(dt.day),
+            _cast_ll(dt.hour), _cast_ll(dt.minute), _cast_ll(dt. second),
+            _cast_ll(dt.microsecond // 1000), _cast_ll(dt.microsecond % 1000),
+            _cast_ll(0))
 
     def epoch_to_tt2000(self, epoch):
         """
