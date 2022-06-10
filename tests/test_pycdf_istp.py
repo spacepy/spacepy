@@ -26,18 +26,9 @@ class ISTPTestsBase(unittest.TestCase):
     def setUp(self):
         """Setup: make an empty, open, writeable CDF"""
         self.tempdir = tempfile.mkdtemp()
-        # We know what the backward-compatible default is, suppress it.
-        warnings.filterwarnings(
-            'ignore',
-            message=r'^spacepy\.pycdf\.lib\.set_backward not called.*$',
-            category=DeprecationWarning,
-            module='^spacepy.pycdf$')
-        try:
-            self.cdf = spacepy.pycdf.CDF(os.path.join(
-                self.tempdir, 'source_descriptor_datatype_19990101_v00.cdf'),
-                                         create=True)
-        finally:
-            del warnings.filters[0]
+        self.cdf = spacepy.pycdf.CDF(os.path.join(
+            self.tempdir, 'source_descriptor_datatype_19990101_v00.cdf'),
+                                     create=True)
 
     def tearDown(self):
         """Delete the empty cdf"""
@@ -740,16 +731,8 @@ class FileTests(ISTPTestsBase):
 
     def testTimes(self):
         """Compare filename to Epoch times"""
-        warnings.filterwarnings(
-            'ignore',
-            message=r'^No type specified for time input; assuming .*$',
-            category=DeprecationWarning,
-            module='^spacepy.pycdf$')
-        try:
-            self.cdf['Epoch'] = [datetime.datetime(1999, 1, 1, i)
-                                 for i in range(3)]
-        finally:
-            del warnings.filters[0]
+        self.cdf['Epoch'] = [datetime.datetime(1999, 1, 1, i)
+                             for i in range(3)]
         self.cdf['Epoch'].append(datetime.datetime(1999, 1, 2, 0))
         errs = spacepy.pycdf.istp.FileChecks.times(self.cdf)
         self.assertEqual(1, len(errs))
@@ -757,16 +740,8 @@ class FileTests(ISTPTestsBase):
         del self.cdf['Epoch'][-1]
         errs = spacepy.pycdf.istp.FileChecks.times(self.cdf)
         self.assertEqual(0, len(errs))
-        warnings.filterwarnings(
-            'ignore',
-            message=r'^No type specified for time input; assuming .*$',
-            category=DeprecationWarning,
-            module='^spacepy.pycdf$')
-        try:
-            self.cdf['Epoch'] = [datetime.datetime(1999, 1, 2, i)
-                                 for i in range(3)]
-        finally:
-            del warnings.filters[0]
+        self.cdf['Epoch'] = [datetime.datetime(1999, 1, 2, i)
+                             for i in range(3)]
         errs = spacepy.pycdf.istp.FileChecks.times(self.cdf)
         self.assertEqual(1, len(errs))
         self.assertEqual('Epoch: date 19990102 doesn\'t match file '

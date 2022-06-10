@@ -465,9 +465,6 @@ class Library(object):
             self.tt2000_to_epoch16 = self._bad_tt2000
             self.v_tt2000_to_epoch16 = self._bad_tt2000
 
-        # User has not explicitly called set_backward
-        self._explicit_backward = False
-
     @staticmethod
     def _find_lib():
         """
@@ -671,8 +668,6 @@ class Library(object):
         ======
         ValueError : if backward=False and underlying CDF library is V2
         """
-        # User has explicitly chosen backward compat or not
-        self._explicit_backward = True
         if self.version[0] < 3:
             if not backward:
                 raise ValueError(
@@ -1610,11 +1605,11 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
     When CDFs are created in this way, they are opened read-write, see
     :py:meth:`readonly` to change.
 
-    By default, new CDFs (without a master) are created in version 2
-    (backward-compatible) format. To create a version 3 CDF, use
+    By default, new CDFs (without a master) are created in version 3
+    format. To create a version 2 (backward-compatible) CDF, use
     :meth:`Library.set_backward`:
 
-        >>> pycdf.lib.set_backward(False)
+        >>> pycdf.lib.set_backward(True)
         >>> cdffile = pycdf.CDF('cdf_filename.cdf', '')
 
     Add variables by direct assignment, which will automatically set type
@@ -1970,11 +1965,6 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             Not intended for direct call; pass parameters to
             :py:class:`pycdf.CDF` constructor.
         """
-        if not lib._explicit_backward:
-            warnings.warn(
-                'spacepy.pycdf.lib.set_backward not called;'
-                ' making v3-compatible CDF.',
-                DeprecationWarning)
         lib.call(const.CREATE_, const.CDF_, self.pathname, ctypes.c_long(0),
                               (ctypes.c_long * 1)(0), ctypes.byref(self._handle))
         self._opened = True
@@ -2345,18 +2335,6 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         ValueError : if neither data nor sufficient typing information
                      is provided.
 
-        Warns
-        =====
-        DeprecationWarning
-            if no type is provided and data is datetime, warn
-            that a default type was chosen (usually TIME_TT2000).
-
-            .. versionchanged:: 0.3.0
-               Before 0.3.0 (when the default changed from EPOCH/EPOCH16
-               to TIME_TT2000), this warned that the default would change.
-
-            .. versionadded:: 0.2.3
-
         Notes
         =====
         Any given data may be representable by a range of CDF types; if
@@ -2452,11 +2430,6 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
                 if type in (const.CDF_EPOCH16.value,
                             const.CDF_TIME_TT2000.value) and self.backward:
                     type = const.CDF_EPOCH
-                if type in lib.timetypes and len(guess_types) > 1:
-                    warnings.warn(
-                        'No type specified for time input; assuming {}.'
-                        .format(lib.cdftypenames[type]),
-                        DeprecationWarning)
             if n_elements is None:
                 n_elements = guess_elements
         if dimVarys is None:
@@ -4936,11 +4909,6 @@ class Attr(MutableSequence):
                     entry_type = vartype
             if entry_type is None:
                 entry_type = types[0]
-                if entry_type in lib.timetypes and len(types) > 1:
-                    warnings.warn(
-                        'Assuming {} for time input.'
-                        .format(lib.cdftypenames[entry_type]),
-                        DeprecationWarning)
             if not entry_type in lib.numpytypedict:
                 raise ValueError('Cannot find a matching numpy type.')
             typelist.append((dims, entry_type, elements))

@@ -9,6 +9,20 @@ This document presents user-visible changes in each release of SpacePy.
    :local:
 
 
+0.4 Series
+==========
+0.4.0 (2022-xx-xx)
+------------------
+
+Other changes
+*************
+:mod:`~spacepy.pycdf` no longer warns when defaulting to version 3 CDFs
+and TIME_TT2000 time type if not specified; the warning was added in
+0.2.2 and the default changed in 0.3.0. Use
+:meth:`~spacepy.pycdf.Library.set_backward` to create version 2 CDFs and
+explicitly specify a time type (e.g. with :meth:`~spacepy.pycdf.CDF.new`)
+if TT2000 is not desired.
+
 0.3 Series
 ==========
 0.3.0 (2022-04-27)

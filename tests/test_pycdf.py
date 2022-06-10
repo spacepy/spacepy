@@ -638,12 +638,6 @@ class NoCDF(unittest.TestCase):
     def testConcatCDF(self):
         """Read from two sequential CDFs"""
         td = tempfile.mkdtemp()
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        warnings.filterwarnings(
-            'ignore', r'^No type specified for time input.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
         try:
             with cdf.CDF(os.path.join(td, 'one.cdf'), create=True) as cdffile:
                 cdffile.attrs['gattrone'] = 1
@@ -677,7 +671,6 @@ class NoCDF(unittest.TestCase):
                         [cdf1, cdf2], ['var1', 'var2', 'var4', 'Epoch'],
                         raw=True)
         finally:
-            del warnings.filters[0:2]
             shutil.rmtree(td)
         self.assertEqual(
             ['gattrone', 'gattrthree', 'gattrtwo'],
@@ -713,13 +706,7 @@ class MakeCDF(unittest.TestCase):
     def testOpenCDFNew(self):
         """Create a new CDF"""
 
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            newcdf = cdf.CDF(self.testfspec, '')
-        finally:
-            del warnings.filters[0]
+        newcdf = cdf.CDF(self.testfspec, '')
         self.assertTrue(os.path.isfile(self.testfspec))
         self.assertFalse(newcdf.readonly())
         newcdf.close()
@@ -727,13 +714,7 @@ class MakeCDF(unittest.TestCase):
 
     def testCreateCDFKeyword(self):
         """Create a CDF specifying the create keyword"""
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            newcdf = cdf.CDF(self.testfspec, create=True)
-        finally:
-            del warnings.filters[0]
+        newcdf = cdf.CDF(self.testfspec, create=True)
         self.assertTrue(os.path.isfile(self.testfspec))
         self.assertFalse(newcdf.readonly())
         newcdf.close()
@@ -751,13 +732,7 @@ class MakeCDF(unittest.TestCase):
 
     def testCDFNewMajority(self):
         """Creates a new CDF and changes majority"""
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            newcdf = cdf.CDF(self.testfspec, '')
-        finally:
-            del warnings.filters[0]
+        newcdf = cdf.CDF(self.testfspec, '')
         newcdf.col_major(True)
         self.assertTrue(newcdf.col_major())
         newcdf.col_major(False)
@@ -813,13 +788,7 @@ class MakeCDF(unittest.TestCase):
 
     def testCreateCDFLeak(self):
         """Make a CDF that doesn't get collected"""
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            newcdf = cdf.CDF(self.testfspec, '')
-        finally:
-            del warnings.filters[0]
+        newcdf = cdf.CDF(self.testfspec, '')
         newcdf.close()
         gc.collect()
         old_garblen = len(gc.garbage)
@@ -842,16 +811,7 @@ class MakeCDF(unittest.TestCase):
             },
             attrs={'project': 'junk'}
             )
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        warnings.filterwarnings(
-            'ignore', r'^No type specified for time input.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            cdf.CDF.from_data(self.testfspec, sd)
-        finally:
-            del warnings.filters[0:2]
+        cdf.CDF.from_data(self.testfspec, sd)
         with cdf.CDF(self.testfspec) as cdffile:
             self.assertEqual(['project'], list(cdffile.attrs.keys()))
             self.assertEqual(['min'], list(cdffile['Epoch'].attrs.keys()))
@@ -870,13 +830,7 @@ class MakeCDF(unittest.TestCase):
         """Create backward-compatible CDF with EPOCH16"""
         msg = 'Cannot use EPOCH16, INT8, or TIME_TT2000 ' \
             'in backward-compatible CDF'
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            newcdf = cdf.CDF(self.testfspec, '')
-        finally:
-            del warnings.filters[0]
+        newcdf = cdf.CDF(self.testfspec, '')
         try:
             newcdf.new('foo', type=const.CDF_EPOCH16)
         except ValueError:
@@ -931,158 +885,112 @@ class MakeCDF(unittest.TestCase):
     def testEntryType(self):
         """Entry type should match variable type in some cases"""
         #This is very hard to reproduce, thus creating a new CDF just for it
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, '') as f:
-                f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
-                f.new('two', data=numpy.array([1, 2, 3], dtype=numpy.float32))
-                f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
-                self.assertEqual(const.CDF_UINT1.value, f['three'].type())
-                for k in f:
-                    f[k].attrs['foo'] = 5
-                self.assertNotEqual(const.CDF_FLOAT.value,
-                                    f['three'].attrs.type('foo'))
-                self.assertEqual(const.CDF_UINT1.value,
-                                 f['three'].attrs.type('foo'))
-        finally:
-            del warnings.filters[0]
+        with cdf.CDF(self.testfspec, '') as f:
+            f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('two', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            self.assertEqual(const.CDF_UINT1.value, f['three'].type())
+            for k in f:
+                f[k].attrs['foo'] = 5
+            self.assertNotEqual(const.CDF_FLOAT.value,
+                                f['three'].attrs.type('foo'))
+            self.assertEqual(const.CDF_UINT1.value,
+                             f['three'].attrs.type('foo'))
 
     def testEntryType2(self):
         """Entry type should match variable if no One True entry type"""
         #This is very hard to reproduce, thus creating a new CDF just for it
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, '') as f:
-                f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
-                f.new('two', data=numpy.array([1, 2, 3], dtype=numpy.float32))
-                f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
-                self.assertEqual(const.CDF_UINT1.value, f['three'].type())
-                f['one'].attrs.new('foo', 5, type=const.CDF_INT2)
-                f['two'].attrs.new('foo', 5, type=const.CDF_INT4)
-                f['three'].attrs['foo'] = 5
-                self.assertNotEqual(const.CDF_FLOAT.value,
-                                    f['three'].attrs.type('foo'))
-                self.assertEqual(const.CDF_UINT1.value,
-                                 f['three'].attrs.type('foo'))
-        finally:
-            del warnings.filters[0]
+        with cdf.CDF(self.testfspec, '') as f:
+            f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('two', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            self.assertEqual(const.CDF_UINT1.value, f['three'].type())
+            f['one'].attrs.new('foo', 5, type=const.CDF_INT2)
+            f['two'].attrs.new('foo', 5, type=const.CDF_INT4)
+            f['three'].attrs['foo'] = 5
+            self.assertNotEqual(const.CDF_FLOAT.value,
+                                f['three'].attrs.type('foo'))
+            self.assertEqual(const.CDF_UINT1.value,
+                             f['three'].attrs.type('foo'))
 
     def testEntryType3(self):
         """Entry type should not match variable type in other cases"""
         #Another hard to reproduce
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, '') as f:
-                f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
-                f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
-                f['one'].attrs.new('foo', data=5, type=const.CDF_INT2)
-                f['three'].attrs['foo'] = 5
-                self.assertEqual(const.CDF_INT2.value,
-                                 f['three'].attrs.type('foo'))
-        finally:
-            del warnings.filters[0]
+        with cdf.CDF(self.testfspec, '') as f:
+            f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            f['one'].attrs.new('foo', data=5, type=const.CDF_INT2)
+            f['three'].attrs['foo'] = 5
+            self.assertEqual(const.CDF_INT2.value,
+                             f['three'].attrs.type('foo'))
 
     def testEntryType3WithNew(self):
         """Entry type should not match variable type in other cases"""
         #Another hard to reproduce
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, '') as f:
-                f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
-                f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
-                f['one'].attrs.new('foo', data=5, type=const.CDF_INT2)
-                f['three'].attrs.new('foo', 5)
-                self.assertEqual(const.CDF_INT2.value,
-                                 f['three'].attrs.type('foo'))
-        finally:
-            del warnings.filters[0]
+        with cdf.CDF(self.testfspec, '') as f:
+            f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            f['one'].attrs.new('foo', data=5, type=const.CDF_INT2)
+            f['three'].attrs.new('foo', 5)
+            self.assertEqual(const.CDF_INT2.value,
+                             f['three'].attrs.type('foo'))
 
     def testEntryType4(self):
         """Another case where Entry type should match variable type"""
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, create=True) as f:
-                v = f.new('newvar', data=[1, 2, 3])
-                v.attrs['foo'] = 5
-                self.assertEqual(v.type(), v.attrs.type('foo'))
-        finally:
-            del warnings.filters[0]
+        with cdf.CDF(self.testfspec, create=True) as f:
+            v = f.new('newvar', data=[1, 2, 3])
+            v.attrs['foo'] = 5
+            self.assertEqual(v.type(), v.attrs.type('foo'))
 
     def testEntryType4MultiElements(self):
         """Entry with multiple elements, type should match variable type"""
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, create=True) as f:
-                v = f.new('newvar', data=[1, 2, 3])
-                v.attrs['foo'] = [5, 3]
-                self.assertEqual(v.type(), v.attrs.type('foo'))
-        finally:
-            del warnings.filters[0]
+        with cdf.CDF(self.testfspec, create=True) as f:
+            v = f.new('newvar', data=[1, 2, 3])
+            v.attrs['foo'] = [5, 3]
+            self.assertEqual(v.type(), v.attrs.type('foo'))
 
     def testEmptyNRV(self):
         """Read an empty NRV variable, should be empty"""
         #This is strictly a READ test, but creating a new CDF and
         #new variable is the easiest way to get to it
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, '') as f:
-                v = f.new('nrv_test', recVary=False, dims=[5, 3],
-                          type=const.CDF_INT1)
-                hslice = cdf._Hyperslice(v, (0, 0))
-                self.assertEqual(3, hslice.dims)
-                #This is 1 for both NRV and RV but it still raises index error,
-                #in the actual __getitem__
-                numpy.testing.assert_array_equal(hslice.counts, [1, 1, 1])
-                numpy.testing.assert_array_equal(hslice.degen, [True, True, True])
-                numpy.testing.assert_array_equal(hslice.dimsizes, [0, 5, 3])
-                self.assertRaises(IndexError, operator.getitem, v, 0)
+        with cdf.CDF(self.testfspec, '') as f:
+            v = f.new('nrv_test', recVary=False, dims=[5, 3],
+                      type=const.CDF_INT1)
+            hslice = cdf._Hyperslice(v, (0, 0))
+            self.assertEqual(3, hslice.dims)
+            #This is 1 for both NRV and RV but it still raises index error,
+            #in the actual __getitem__
+            numpy.testing.assert_array_equal(hslice.counts, [1, 1, 1])
+            numpy.testing.assert_array_equal(hslice.degen, [True, True, True])
+            numpy.testing.assert_array_equal(hslice.dimsizes, [0, 5, 3])
+            self.assertRaises(IndexError, operator.getitem, v, 0)
 
-                hslice = cdf._Hyperslice(v, Ellipsis)
-                self.assertEqual(3, hslice.dims)
-                self.assertEqual((0, 0, 1, False),
-                                 hslice.convert_range(None, None, None, 0))
-                #For RV, this is zero, since it's a slice.
-                #For NRV, this is a 1, since there's an implicit 0,
-                #at the front.
-                numpy.testing.assert_array_equal(hslice.counts, [1, 5, 3])
-                numpy.testing.assert_array_equal(hslice.degen, [True, False, False])
-                numpy.testing.assert_array_equal(hslice.dimsizes, [0, 5, 3])
-                data = v[...]
-                self.assertEqual((0, 0), data.shape)
+            hslice = cdf._Hyperslice(v, Ellipsis)
+            self.assertEqual(3, hslice.dims)
+            self.assertEqual((0, 0, 1, False),
+                             hslice.convert_range(None, None, None, 0))
+            #For RV, this is zero, since it's a slice.
+            #For NRV, this is a 1, since there's an implicit 0,
+            #at the front.
+            numpy.testing.assert_array_equal(hslice.counts, [1, 5, 3])
+            numpy.testing.assert_array_equal(hslice.degen, [True, False, False])
+            numpy.testing.assert_array_equal(hslice.dimsizes, [0, 5, 3])
+            data = v[...]
+            self.assertEqual((0, 0), data.shape)
 
-                #One more test: NRV scalar with no records
-                v = f.new('nrv_scalar', recVary=False, dims=[],
-                          type=const.CDF_INT1)
-                hslice = cdf._Hyperslice(v, Ellipsis)
-                data = v[...]
-                #TODO: This is an awful special case, but it's impossible to
-                #have a SCALAR with no value! i.e. you cannot be both
-                #zero-dimensional and empty
-                self.assertEqual((0,), data.shape)
-        finally:
-            del warnings.filters[0]
+            #One more test: NRV scalar with no records
+            v = f.new('nrv_scalar', recVary=False, dims=[],
+                      type=const.CDF_INT1)
+            hslice = cdf._Hyperslice(v, Ellipsis)
+            data = v[...]
+            #TODO: This is an awful special case, but it's impossible to
+            #have a SCALAR with no value! i.e. you cannot be both
+            #zero-dimensional and empty
+            self.assertEqual((0,), data.shape)
 
     def testNoSetBackward(self):
-        """Warn if create a CDF without explicitly setting backward/not"""
-        # Awkward, but need to make sure the default state at load "knows" that
-        # set_backward has not been called.
-        cdf.lib = cdf.Library(libpath=cdf.lib, library=cdf._library)
-        self.assertFalse(cdf.lib._explicit_backward)
-        with spacepy_testing.assertWarns(
+        """Default to v3 cdf, do not warn"""
+        with spacepy_testing.assertDoesntWarn(
                 self, 'always',
                 r'spacepy\.pycdf\.lib\.set_backward not called\; making'
                 r' v3-compatible CDF\.$',
@@ -1093,11 +1001,7 @@ class MakeCDF(unittest.TestCase):
         self.assertEqual(3, ver) # Still the default
 
     def testSetBackward(self):
-        """But no warn if explicit set"""
-        # Awkward, but need to make sure the default state at load "knows" that
-        # set_backward has not been called.
-        cdf.lib = cdf.Library(libpath=cdf.lib, library=cdf._library)
-        self.assertFalse(cdf.lib._explicit_backward)
+        """Do not warn if make backward-compat CDF"""
         cdf.lib.set_backward(True)
         with spacepy_testing.assertDoesntWarn(
                 self, 'always', category=DeprecationWarning,
@@ -1110,9 +1014,7 @@ class MakeCDF(unittest.TestCase):
         cdf.lib.set_backward(False)
 
     def testSetBackwardFalse(self):
-        """But no warn if explicit set"""
-        cdf.lib = cdf.Library(libpath=cdf.lib, library=cdf._library)
-        self.assertFalse(cdf.lib._explicit_backward)
+        """Do not warn if make v3 CDF"""
         cdf.lib.set_backward(False)
         with spacepy_testing.assertDoesntWarn(
                 self, 'always', category=DeprecationWarning,
@@ -1124,52 +1026,34 @@ class MakeCDF(unittest.TestCase):
 
     def testBadASCIIEncoding(self):
         """Read/write UTF-8 to ASCII encoded CDF"""
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, create=True, encoding='ascii') as f:
-                asuni = [u'\U0001f600', u'\U0001f44d']
-                asbytes = [t.encode('utf-8') for t in asuni]
-                with self.assertRaises(UnicodeEncodeError):
-                    f['teststr'] = asuni
-                f['teststr2'] = asbytes
-                out = f['teststr2'][...]
-        finally:
-            del warnings.filters[0]
+        with cdf.CDF(self.testfspec, create=True, encoding='ascii') as f:
+            asuni = [u'\U0001f600', u'\U0001f44d']
+            asbytes = [t.encode('utf-8') for t in asuni]
+            with self.assertRaises(UnicodeEncodeError):
+                f['teststr'] = asuni
+            f['teststr2'] = asbytes
+            out = f['teststr2'][...]
         expected = asbytes if str is bytes\
                    else [u'\ufffd' * len(asbytes[0])] * 2
         numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
     def testBadASCIINumpy(self):
         """Read/write UTF-8 ndarray to ASCII encoded CDF"""
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, create=True, encoding='ascii') as f:
-                inarray = numpy.array([u'\U0001f600\U0001f600', u'\U0001f44d'],
-                                      dtype='U6')
-                with self.assertRaises(UnicodeEncodeError):
-                    f['string62'] = inarray
-        finally:
-            del warnings.filters[0]
+        with cdf.CDF(self.testfspec, create=True, encoding='ascii') as f:
+            inarray = numpy.array([u'\U0001f600\U0001f600', u'\U0001f44d'],
+                                  dtype='U6')
+            with self.assertRaises(UnicodeEncodeError):
+                f['string62'] = inarray
 
     def testBadASCIIEntry(self):
         """Read/write UTF-8 to entry in ASCII encoded CDF"""
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            with cdf.CDF(self.testfspec, create=True, encoding='ascii') as f:
-                asuni = [u'\U0001f600', u'\U0001f44d']
-                asbytes = [t.encode('utf-8') for t in asuni]
-                with self.assertRaises(UnicodeEncodeError):
-                    f.attrs['foo'] = asuni
-                f.attrs['foo2'] = asbytes
-                out = f.attrs['foo2'][...]
-        finally:
-            del warnings.filters[0]
+        with cdf.CDF(self.testfspec, create=True, encoding='ascii') as f:
+            asuni = [u'\U0001f600', u'\U0001f44d']
+            asbytes = [t.encode('utf-8') for t in asuni]
+            with self.assertRaises(UnicodeEncodeError):
+                f.attrs['foo'] = asuni
+            f.attrs['foo2'] = asbytes
+            out = f.attrs['foo2'][...]
         expected = asbytes if str is bytes\
                    else [u'\ufffd' * len(asbytes[0])] * 2
         numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
@@ -2023,15 +1907,11 @@ class ReadCDF(CDFTests):
         """VarCopy of NRV makes an NRV variable"""
         varcopy = self.cdf['RateScalerNames'].copy()
         testdir = tempfile.mkdtemp()
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
         try:
             with cdf.CDF(os.path.join(testdir, 'temp.cdf'), create=True) as f:
                 f['newvar'] = varcopy
                 self.assertFalse(f['newvar'].rv())
         finally:
-            del warnings.filters[0]
             shutil.rmtree(testdir)
 
     @unittest.skipIf(cdf.lib.version[0] < 3,
@@ -2056,9 +1936,6 @@ class ReadCDF(CDFTests):
         varcopy = self.cdf['MeanCharge'].copy()
         varcopy.set('type', const.CDF_DOUBLE)
         testdir = tempfile.mkdtemp()
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
         try:
             with cdf.CDF(os.path.join(testdir, 'temp.cdf'), create=True) as f:
                 f.new('newvar', data=varcopy)
@@ -2068,7 +1945,6 @@ class ReadCDF(CDFTests):
                 self.assertEqual(const.CDF_DOUBLE.value,
                                  f['newvar2'].type())
         finally:
-            del warnings.filters[0]
             shutil.rmtree(testdir)
 
     def testVarCopyBadAssign(self):
@@ -2784,14 +2660,14 @@ class ChangeCDF(ChangeCDFBase):
             [[1, 2, 3], [4, 5, 6]], self.cdf['newzVar'][...])
 
     def testNewVarTime(self):
-        with spacepy_testing.assertWarns(
+        with spacepy_testing.assertDoesntWarn(
                 self, 'always',
                 r'No type specified for time input\; assuming'
                 r' CDF_TIME_TT2000\.$',
                 DeprecationWarning, r'spacepy\.pycdf$'):
             self.cdf['newzVar'] = [datetime.datetime(2010, 1, 1)]
         # Most of the type-guessing testing is in NoCDF, but this is here
-        # because the warning of the default changing is associated with
+        # because the warning of the default changing was associated with
         # creating a zVar.
         expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
                    else cdf.const.CDF_EPOCH.value
@@ -2839,13 +2715,7 @@ class ChangeCDF(ChangeCDFBase):
 
     def testNewVarDatetimeArray(self):
         """Create a variable with a datetime numpy array"""
-        warnings.filterwarnings(
-            'ignore', r'^No type specified for time input.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            self.cdf['newvar'] = numpy.array([datetime.datetime(2010, 1, 1)])
-        finally:
-            del warnings.filters[0]
+        self.cdf['newvar'] = numpy.array([datetime.datetime(2010, 1, 1)])
         self.assertEqual((const.CDF_TIME_TT2000 if cdf.lib.supports_int8
                           else const.CDF_EPOCH).value,
                          self.cdf['newvar'].type())
@@ -3211,13 +3081,7 @@ class ChangeCDF(ChangeCDFBase):
 
     def testAssignEpoch16Entry(self):
         """Assign to an Epoch16 entry"""
-        warnings.filterwarnings(
-            'ignore', r'^Assuming CDF_.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            self.cdf['ATC'].attrs['FILLVAL'] = datetime.datetime(2010,1,1)
-        finally:
-            del warnings.filters[0]
+        self.cdf['ATC'].attrs['FILLVAL'] = datetime.datetime(2010,1,1)
         self.assertEqual(datetime.datetime(2010,1,1),
                          self.cdf['ATC'].attrs['FILLVAL'])
 
@@ -3730,13 +3594,7 @@ class ChangeAttr(ChangeCDFBase):
         self.assertEqual('not much',
                          self.cdf.attrs['Project'][0])
 
-        warnings.filterwarnings(
-            'ignore', r'^Assuming CDF_.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
-        try:
-            self.cdf.attrs['Source_name'][0] = datetime.datetime(2009, 1, 1)
-        finally:
-            del warnings.filters[0]
+        self.cdf.attrs['Source_name'][0] = datetime.datetime(2009, 1, 1)
         self.assertEqual([datetime.datetime(2009, 1, 1)],
                          self.cdf.attrs['Source_name'][:])
 
@@ -3923,7 +3781,7 @@ class ChangeAttr(ChangeCDFBase):
         self.cdf['ATC'].attrs['testtime'] = datetime.datetime(2010, 1, 1)
         expected = cdf.const.CDF_EPOCH16.value # Matches var
         self.assertEqual(expected, self.cdf['ATC'].attrs.type('testtime'))
-        with spacepy_testing.assertWarns(
+        with spacepy_testing.assertDoesntWarn(
                 self, 'always',
                 r'Assuming CDF_TIME_TT2000 for time input\.$',
                 DeprecationWarning, r'spacepy\.pycdf$'):
@@ -3938,7 +3796,7 @@ class ChangeAttr(ChangeCDFBase):
 
     def testgAttrsAssignTimeType(self):
         """Assign a time type to a gAttr"""
-        with spacepy_testing.assertWarns(
+        with spacepy_testing.assertDoesntWarn(
                 self, 'always',
                 r'Assuming CDF_TIME_TT2000 for time input\.$',
                 DeprecationWarning, r'spacepy\.pycdf$'):
@@ -3977,9 +3835,6 @@ class ChangeAttr(ChangeCDFBase):
 
     def testCloneAttrList(self):
         """Copy an entire attribute list from one CDF to another"""
-        warnings.filterwarnings(
-            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
-            DeprecationWarning, r'^spacepy\.pycdf$')
         try:
             with cdf.CDF('attrcopy.cdf', '') as newcdf:
                 newcdf.attrs['deleteme'] = ['hello']
@@ -4000,7 +3855,6 @@ class ChangeAttr(ChangeCDFBase):
                 for attrname in newcdf.attrs:
                     self.assertTrue(attrname in self.cdf.attrs)
         finally:
-            del warnings.filters[0]
             os.remove('attrcopy.cdf')
 
     def testClonezAttrList(self):
