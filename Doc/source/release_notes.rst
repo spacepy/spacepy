@@ -14,6 +14,12 @@ This document presents user-visible changes in each release of SpacePy.
 0.4.0 (2022-xx-xx)
 ------------------
 
+Deprecations and removals
+*************************
+The ``_nelems`` method of :class:`~spacepy.pycdf.Var` has been removed;
+use the public interface :meth:`~spacepy.pycdf.Var.nelems`. (Deprecated
+in 0.2.2).
+
 Other changes
 *************
 :mod:`~spacepy.pycdf` no longer warns when defaulting to version 3 CDFs
