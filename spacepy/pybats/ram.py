@@ -818,7 +818,7 @@ class RamSat(SpaceData):
         # print("Need better energy grid setup for pcolormesh.")
         flx = ax.pcolormesh(time, eboundary,
                             np.asarray(self[nameflux]).transpose(),
-                            norm=LogNorm(), vmin=zlim[0], vmax=zlim[1])
+                            norm=LogNorm(vmin=zlim[0], vmax=zlim[1]))
         ax.set_yscale('log')
         ax.set_ylim([eboundary[0], eboundary[-1]])
         if not timelim:
@@ -1511,8 +1511,9 @@ class BoundaryFluxFile(object):
         egrid = np.array(range(self.nE))
         flux = self.flux.transpose()
         flux[flux<0.01] = 0.01
-        flx = ax.pcolor(self.LT, egrid, flux, norm=LogNorm(), vmin=zlim[0],
-                        vmax=zlim[-1], cmap=plt.get_cmap('inferno'))
+        flx = ax.pcolor(self.LT, egrid, flux,
+                        norm=LogNorm(vmin=zlim[0], vmax=zlim[-1]),
+                        cmap=plt.get_cmap('inferno'))
         cbar = plt.colorbar(flx, pad=0.01, shrink=0.85, ticks=LogLocator(),
                             format=LogFormatterMathtext())
         cbar.set_label('$cm^{-2}s^{-1}ster^{-1}keV^{-1}$')
@@ -2126,8 +2127,8 @@ class GeoMltFile(object):
         lgrid = np.array(range(len(self.lgrid)+1))
         flux = self.flux[epoch,:,:].transpose()
         flux[flux<0.01] = 0.01
-        flx = ax.pcolormesh(lgrid, egrid, flux, norm=LogNorm(),
-                            vmin=0.01, vmax=1e10,
+        flx = ax.pcolormesh(lgrid, egrid, flux,
+                            norm=LogNorm(vmin=0.01, vmax=1e10),
                             cmap=plt.get_cmap('inferno'))
         cbar = plt.colorbar(flx, pad=0.01, shrink=0.85, ticks=LogLocator(),
                             format=LogFormatterMathtext())
