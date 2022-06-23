@@ -4,27 +4,25 @@
 # Basically superfluous to the CI, but nice to be able to test easily without
 # having to put in the PR....
 
-# ffnet install will fail if LD_LIBRARY_PATH is set!
-
 # This might be necessary for some versions of scipy that don't have binaries
 sudo aptitude install libblas-dev liblapack-dev
 # download/install miniconda
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda
 # download/install CDF
-wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; pushd cdf38_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME/cdf install; popd
+wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_1/linux/cdf38_1-dist-cdf.tar.gz; tar xzf cdf38_1-dist-cdf.tar.gz; pushd cdf38_1-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME/cdf install; popd
 source ${HOME}/cdf/bin/definitions.B
 
 # For the most part, these versions are: what's the earliest we support,
 # coupled with what's the earliest and latest version of each dep
 # which works with that Python.
 TESTS=(
-       "2.7|numpy>=1.10.0,<1.11.0|scipy>=0.11.0,<0.12.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.0,<1.1 h5py>=2.6,<2.7 ffnet>=0.7.0,<0.8 astropy>=1.0,<1.1"
-       "2.7|numpy>=1.16.0,<1.17.0|scipy matplotlib networkx h5py ffnet astropy"
-       "3.5|numpy>=1.10.0,<1.11.0|scipy>=0.17.0,<0.18.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0,<0.9 astropy>=1.0,<1.1"
-       "3.5|numpy>=1.18.0,<1.19.0|scipy matplotlib networkx h5py ffnet astropy"
-       "3.6|numpy>=1.12.0,<1.13.0|scipy>=0.19.0,<0.20.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0,<0.9 astropy>=1.0,<1.1"
-       "3.6|numpy>=1.19.0,<1.20.0|scipy matplotlib networkx h5py ffnet astropy"
+       "2.7|numpy>=1.10.0,<1.11.0|scipy>=0.11.0,<0.12.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=1.0,<1.1"
+       "2.7|numpy>=1.16.0,<1.17.0|scipy matplotlib h5py astropy"
+       "3.5|numpy>=1.10.0,<1.11.0|scipy>=0.17.0,<0.18.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=1.0,<1.1"
+       "3.5|numpy>=1.18.0,<1.19.0|scipy matplotlib h5py astropy"
+       "3.6|numpy>=1.12.0,<1.13.0|scipy>=0.19.0,<0.20.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=1.0,<1.1"
+       "3.6|numpy>=1.19.0,<1.20.0|scipy matplotlib h5py astropy"
        "3.7|numpy>=1.15.1,<1.16.0|scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=2.0,<2.1"
        "3.7|numpy>=1.21.0|scipy matplotlib h5py astropy"
        "3.8|numpy>=1.17.0,<1.18.0|scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=2.0,<2.1"
