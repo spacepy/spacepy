@@ -118,7 +118,7 @@ SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
                  'ECITOD': {'sph': None, 'car': 12}, 'J2000': {'sph': None, 'car': 13},
                  'ECI2000': {'sph': None, 'car': 13}, 'ECIMOD': {'sph': None, 'car': 14}}
 
-SYS_EQUIV = {'GEI': 'ECITOD', 'TOD': 'ECITOD', 'J2000': 'ECI2000', 'MAG': 'CDMAG'}
+SYS_EQUIV = {'SPH': 'GEO', 'GEI': 'ECITOD', 'TOD': 'ECITOD', 'J2000': 'ECI2000', 'MAG': 'CDMAG'}
 
 IRBEM_RE = 6371.2  # kilometers
 
