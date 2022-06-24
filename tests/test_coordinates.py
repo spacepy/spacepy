@@ -194,6 +194,24 @@ class coordsTest(unittest.TestCase):
         """len of Coords should return number of 3-vectors"""
         self.assertEqual(len(self.cvals), 2)
 
+    def test_SPH_output_noconvert(self):
+        """SPH is a synonym of GEO in spherical"""
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        expected = spc.Coords([[2, 45, 90], [3.0, 31, 31]], 'GEO', 'sph', use_irbem=False)
+        got = expected.convert('SPH', 'sph')
+        np.testing.assert_allclose(got.data, expected.data)
+        np.testing.assert_equal(got.dtype, 'GEO')
+
+    def test_SPH_output_convert(self):
+        """SPH is a synonym of GEO in spherical"""
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        expected = spc.Coords([[2, 45, 90], [3.0, 31, 31]], 'GEO', 'sph', use_irbem=False)
+        expected.ticks = self.cvals.ticks
+        stage1 = expected.convert('GSE', 'car')
+        got = stage1.convert('SPH', 'sph')
+        np.testing.assert_allclose(got.data, expected.data)
+        np.testing.assert_equal(got.dtype, 'GEO')
+
     def test_roundtrip_GEO_ECIMOD(self):
         """Roundtrip [GEO->MOD->GEO] should yield input as answer"""
         self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
