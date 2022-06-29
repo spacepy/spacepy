@@ -196,7 +196,6 @@ class coordsTest(unittest.TestCase):
 
     def test_SPH_output_noconvert(self):
         """SPH is a synonym of GEO in spherical"""
-        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         expected = spc.Coords([[2, 45, 90], [3.0, 31, 31]], 'GEO', 'sph', use_irbem=False)
         got = expected.convert('SPH', 'sph')
         np.testing.assert_allclose(got.data, expected.data)
@@ -204,9 +203,8 @@ class coordsTest(unittest.TestCase):
 
     def test_SPH_output_convert(self):
         """SPH is a synonym of GEO in spherical"""
-        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         expected = spc.Coords([[2, 45, 90], [3.0, 31, 31]], 'GEO', 'sph', use_irbem=False)
-        expected.ticks = self.cvals.ticks
+        expected.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         stage1 = expected.convert('GSE', 'car')
         got = stage1.convert('SPH', 'sph')
         np.testing.assert_allclose(got.data, expected.data)
