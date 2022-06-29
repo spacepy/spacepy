@@ -1039,7 +1039,11 @@ def toHDF5(fname, SDobject, **kwargs):
     mode : str (optional)
         HDF5 file open mode (a, w, r) (default 'a')
     compression : str (optional)
-        compress all the variables using this method (default None) (gzip, shuffle, fletcher32, szip, lzf)
+        compress all non-scalar variables using this method (default None) (gzip, shuffle, fletcher32, szip, lzf)
+
+        .. versionchanged:: 0.4.0
+            No longer compresses scalars (which usually fails).
+
     compression_opts : str (optional)
         options to the compression, see h5py documentation for more details
 
@@ -1175,13 +1179,15 @@ def toHDF5(fname, SDobject, **kwargs):
                 hfile[path].create_group(key)
                 toHDF5(hfile, SDobject[key], path=path+'/'+key, compression=h5_compr_type, compression_opts=h5_compr_opts)
             elif isinstance(value, allowed_elems[1]):
+                comptype, compopts = (None, None) if value.shape == ()\
+                                     else (h5_compr_type, h5_compr_opts)
                 try:
-                    hfile[path].create_dataset(key, data=value, compression=h5_compr_type, compression_opts=h5_compr_opts)
+                    hfile[path].create_dataset(key, data=value, compression=comptype, compression_opts=compopts)
                 except:
                     dumval = value.copy()
                     if isinstance(value[0], datetime.datetime):
                         for i, val in enumerate(value): dumval[i] = val.isoformat()
-                    hfile[path].create_dataset(key, data=dumval.astype('|S35'), compression=h5_compr_type, compression_opts=h5_compr_opts)
+                    hfile[path].create_dataset(key, data=dumval.astype('|S35'), compression=comptype, compression_opts=compopts)
                     #else:
                     #    hfile[path].create_dataset(key, data=value.astype(float))
                 SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
