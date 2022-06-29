@@ -1010,7 +1010,14 @@ def fromHDF5(fname, **kwargs):
                 SDobject[key] = SpaceData()
                 SDobject[key] = fromHDF5(hfile, path=path+'/'+key)
             elif type(value) is allowed_elems[1]: #if a dataset
+                isuni = (hdf.check_vlen_dtype(value.dtype)  # h5py 3+
+                         if hasattr(hdf, 'check_vlen_dtype')
+                         else hdf.check_dtype(vlen=value.dtype)) is unicode
                 try:
+                    if isuni:
+                        if hasattr(value, 'asstr'):  # h5py 3+
+                            value = value.asstr()
+                        value = numpy.require(value[...], dtype=unicode)
                     SDobject[key] = dmarray(value)
                 except (TypeError, ZeroDivisionError): #ZeroDivisionError catches zero-sized DataSets
                     SDobject[key] = dmarray(None)
@@ -1184,10 +1191,19 @@ def toHDF5(fname, SDobject, **kwargs):
                 try:
                     hfile[path].create_dataset(key, data=value, compression=comptype, compression_opts=compopts)
                 except:
-                    dumval = value.copy()
-                    if isinstance(value[0], datetime.datetime):
+                    dumval = numpy.asanyarray(value.copy())
+                    dtype = None
+                    if dumval.dtype.kind == 'U':
+                        dumval = numpy.char.encode(dumval, 'utf-8')
+                        dtype = hdf.string_dtype(encoding='utf-8')\
+                            if hasattr(hdf, 'string_dtype')\
+                            else hdf.special_dtype(vlen=unicode)  # h5py <3
+                    elif isinstance(value[0], datetime.datetime):
                         for i, val in enumerate(value): dumval[i] = val.isoformat()
-                    hfile[path].create_dataset(key, data=dumval.astype('|S35'), compression=comptype, compression_opts=compopts)
+                        dumval = dumval.astype('|S35')
+                    else:
+                        dumval = dumval.atsype('|S35')
+                    hfile[path].create_dataset(key, data=dumval, compression=comptype, compression_opts=compopts, dtype=dtype)
                     #else:
                     #    hfile[path].create_dataset(key, data=value.astype(float))
                 SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
