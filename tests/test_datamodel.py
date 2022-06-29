@@ -706,6 +706,19 @@ class converterTests(unittest.TestCase):
         np.testing.assert_array_equal(1, newobj['dat'])
         np.testing.assert_array_equal(b'foo', newobj['str'])
 
+    def test_toHDF5String(self):
+        """Convert to HDF5 with (unicode) strings"""
+        # Can change to just strings when drop python 2
+        a = dm.SpaceData({'scalar': dm.dmarray(b'foo'.decode()),
+                          'dat': dm.dmarray([b'foo'.decode(), b'bar'.decode()])
+        })
+        a.toHDF5(self.testfile, mode='a')
+        newobj = dm.fromHDF5(self.testfile)
+        self.assertEqual('U', newobj['dat'].dtype.kind)
+        self.assertEqual('U', newobj['scalar'].dtype.kind)
+        np.testing.assert_array_equal(a['dat'], newobj['dat'])
+        np.testing.assert_array_equal(a['scalar'], newobj['scalar'])
+
     def test_HDF5Exceptions(self):
         """HDF5 has warnings and exceptions"""
         dm.toHDF5(self.testfile, self.SDobj)
