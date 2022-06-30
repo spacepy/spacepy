@@ -1240,6 +1240,7 @@ class VarBundle(object):
         output
         slice
         sum
+        toSpaceData
         variables
 
     .. automethod:: mean
@@ -1247,6 +1248,7 @@ class VarBundle(object):
     .. automethod:: operations
     .. automethod:: slice
     .. automethod:: sum
+    .. automethod:: toSpaceData
     .. automethod:: variables
 
     """
@@ -2062,6 +2064,10 @@ class VarBundle(object):
         VarBundle
             This bundle, for method chaining.
 
+        See Also
+        --------
+        toSpaceData
+
         Examples
         --------
         >>> import spacepy.pycdf
@@ -2157,6 +2163,49 @@ class VarBundle(object):
 
             self._repoint_depend(invar, newvar, preexist, namemap, degen)
         return self
+
+    def toSpaceData(self, suffix=None):
+        """Return variables, as modified.
+
+        Convenience function to call :meth:`output` on a new
+        :class:`~.datamodel.SpaceData` and return it.
+
+        Parameters
+        ----------
+        suffix : str
+            Appended to the name of variables changed on output; see
+            :meth:`output` for details.
+
+        Returns
+        -------
+        :class:`.datamodel.SpaceData`
+            Data read from input and processed according to the defined
+            operations.
+
+        See Also
+        --------
+        output
+
+        Examples
+        --------
+        >>> import spacepy.pycdf
+        >>> import spacepy.pycdf.istp
+        >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
+        >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
+        >>> data = b.slice(1, 2, single=True).toSpaceData()
+        >>> infile.close()
+        >>> data.tree()
+        +
+        |____ENERGY_Ion_DELTA
+        |____Energy_LABL
+        |____Epoch_Ion
+        |____Epoch_Ion_DELTA
+        |____FPDU
+        |____HOPE_ENERGY_Ion
+        """
+        sd = spacepy.SpaceData()
+        self.output(sd, suffix=suffix)
+        return sd
 
     def __str__(self):
         """String representation of the bundle
