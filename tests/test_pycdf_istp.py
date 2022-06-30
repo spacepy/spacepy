@@ -963,6 +963,15 @@ class VarBundleChecks(VarBundleChecksBase):
         ] }
         self.assertEqual(expected, namemap)
 
+    def testToSpaceData(self):
+        """Output to new SpaceData"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        data = bundle.toSpaceData()
+        numpy.testing.assert_array_equal(
+            data['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][...])
+
 
 class VarBundleOutputCDF(VarBundleChecksBase):
     """Checks for VarBundle class, output to CDF"""
