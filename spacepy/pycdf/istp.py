@@ -1172,7 +1172,8 @@ class VarBundle(object):
     Representation of an ISTP-compliant variable bundled together
     with its dependencies to enable aggregate operations. Normally
     used to copy a subset of data from one CDF to another by
-    chaining operations.
+    chaining operations, or to load just the relevant data from a CDF
+    into a :class:`~spacepy.datamodel.SpaceData`.
 
     Unusual or indecipherable error messages may indicate an ISTP
     compliance issue; see :class:`VariableChecks` for some checks.
@@ -1181,6 +1182,11 @@ class VarBundle(object):
     ----------
     var : :class:`~spacepy.pycdf.Var`
         Variable to process
+
+    See Also
+    --------
+    .datamodel.fromCDF
+    .pycdf.CDF.copy
 
     Examples
     --------
@@ -1681,11 +1687,15 @@ class VarBundle(object):
         bool
             True if the existing variable is the same; False if not.
         """
+        # CDF output only checks
+        if hasattr(newvar, 'type') and (
+                newvar.type() != invar.type() or newvar.rv() != rv
+                or newvar.dv() != dv or newvar.nelems() != invar.nelems()):
+            return False
         #Check basic type, dimensions, etc.
-        if newvar.rv() != rv or newvar.type() != invar.type() \
-            or len(dims) != (len(newvar.shape) - newvar.rv()) \
-            or newvar.dv() != dv or newvar.nelems() != invar.nelems() \
-            or list(dims) != list(newvar.shape[newvar.rv():]):
+        if newvar.dtype != invar.dtype\
+            or len(dims) != (len(newvar.shape) - rv) \
+            or list(dims) != list(newvar.shape[rv:]):
             return False
         ia = invar.attrs
         na = newvar.attrs
@@ -1695,8 +1705,10 @@ class VarBundle(object):
                 #depends/LABL PTR shift around, and FIELDNAM may change,
                 #so test outside of this function.
                 pass
-            if not a in na or ia.type(a) != na.type(a) \
-               or not numpy.array_equal(ia[a], na[a]):
+            if not a in na or not numpy.array_equal(ia[a], na[a]):
+                return False
+            # CDF output only
+            if hasattr(na, 'type') and ia.type(a) != na.type(a):
                 return False
         #Finally check the data
         return (data == newvar[...]).all()
@@ -2033,8 +2045,9 @@ class VarBundle(object):
 
         Parameters
         ----------
-        output : :class:`~spacepy.pycdf.CDF`
-            Output CDF to receive the new data.
+        output : :class:`~spacepy.pycdf.CDF`,  :class:`~spacepy.datamodel.SpaceData`
+            Output container to receive the new data, may be an open CDF
+            file or a SpaceData.
 
         suffix : str
             Suffix to append to the name of any variables that are changed
@@ -2075,7 +2088,9 @@ class VarBundle(object):
             summed = [self._summed[d] for d in vinfo['dims']]
             #And averaged
             averaged = [self._mean[d] for d in vinfo['dims']]
-            invar = self.cdf.raw_var(vname)
+            # Read raw data for CDF output only
+            invar = self.cdf.raw_var(vname) if hasattr(output, 'raw_var')\
+                    else self.cdf[vname]
             sl = vinfo['slice'] #including 0th dim
             postidx = vinfo['postidx']
             #Dimension size/variance for original variable
@@ -2116,22 +2131,27 @@ class VarBundle(object):
             outname = namemap.get(vname, vname)
             if outname in output:
                 preexist = True
-                newvar = output.raw_var(outname)
+                newvar = output.raw_var(outname) if hasattr(output, 'raw_var')\
+                         else output[outname]
                 if not self._same(newvar, invar, rv, dv, dims, data):
                     raise RuntimeError(
                         'Incompatible {} already exists in output.'
                         .format(outname))
             else:
                 preexist = False
-                newvar = output.new(
-                    outname, type=invar.type(), recVary=rv,
-                    dimVarys=dv, dims=dims,
-                    n_elements=invar.nelems())
-                newvar = output.raw_var(outname)
-                #Must create it empty so can change compression
-                newvar.compress(*invar.compress())
-                newvar[...] = data
-                newvar.attrs.clone(invar.attrs)
+                if hasattr(output, 'new'):
+                    newvar = output.new(
+                        outname, type=invar.type(), recVary=rv,
+                        dimVarys=dv, dims=dims,
+                        n_elements=invar.nelems())
+                    newvar = output.raw_var(outname)
+                    #Must create it empty so can change compression
+                    newvar.compress(*invar.compress())
+                    newvar[...] = data
+                    newvar.attrs.clone(invar.attrs)
+                else:
+                    newvar = spacepy.dmarray(data, attrs=invar.attrs.copy())
+                    output[outname] = newvar
                 if vname != outname: #renamed
                     newvar.attrs['FIELDNAM'] = outname
 

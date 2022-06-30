@@ -827,6 +827,7 @@ class FuncTests(ISTPTestsBase):
 class VarBundleChecksBase(unittest.TestCase):
     """Base class for VarBundle class checks"""
     testfile = 'po_l1_cam_test.cdf'
+    longMessage = True
 
     def setUp(self):
         """Setup: make an empty, open, writeable CDF"""
@@ -858,7 +859,6 @@ class VarBundleChecksBase(unittest.TestCase):
 class VarBundleChecks(VarBundleChecksBase):
     """Checks for VarBundle class, CAMMICE sample file"""
     testfile = 'po_l1_cam_test.cdf'
-    longMessage = True
 
     def testGetVarInfo(self):
         """Get dependencies, dims, etc. for a variable"""
@@ -913,112 +913,6 @@ class VarBundleChecks(VarBundleChecksBase):
                 dimension, bundle._varinfo[varname].get('thisdim', None),
                 varname)
 
-    def testOutputSimple(self):
-        """Copy a single variable and deps with no slicing"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.output(self.outcdf)
-        numpy.testing.assert_array_equal(
-            self.outcdf['SectorRateScalersCounts'][...],
-            self.incdf['SectorRateScalersCounts'][...])
-        numpy.testing.assert_array_equal(
-            self.outcdf['ATC'][...],
-            self.incdf['ATC'][...])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs,
-            self.incdf['SectorRateScalersCounts'].attrs)
-        self.assertEqual(
-            self.incdf['ATC'].attrs['FILLVAL'],
-            self.outcdf['ATC'].attrs['FILLVAL'])
-
-    def testSimpleSlice(self):
-        """Slice single element on single dimension"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.slice(1, 2, single=True)
-        bundle.output(self.outcdf)
-        numpy.testing.assert_array_equal(
-            self.outcdf['SectorRateScalersCounts'][...],
-            self.incdf['SectorRateScalersCounts'][:, 2, ...])
-        numpy.testing.assert_array_equal(
-            self.outcdf['ATC'][...],
-            self.incdf['ATC'][...])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_2'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_2'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
-        self.assertFalse('SpinNumbers' in self.outcdf)
-        self.assertFalse('DEPEND_3'
-                        in self.outcdf['SectorRateScalersCounts'].attrs)
-
-    def testSimpleRange(self):
-        """Slice a range on single dimension"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.slice(1, 2, single=False)
-        bundle.output(self.outcdf)
-        numpy.testing.assert_array_equal(
-            self.outcdf['SectorRateScalersCounts'][...],
-            self.incdf['SectorRateScalersCounts'][:, 2:, ...])
-        numpy.testing.assert_array_equal(
-            self.outcdf['ATC'][...],
-            self.incdf['ATC'][...])
-        for d in range(4):
-            a = 'DEPEND_{}'.format(d)
-            self.assertEqual(
-                self.outcdf['SectorRateScalersCounts'].attrs[a],
-                self.incdf['SectorRateScalersCounts'].attrs[a])
-        numpy.testing.assert_array_equal(
-            self.outcdf['SpinNumbers'][:],
-            self.incdf['SpinNumbers'][2:])
-
-    def testSliceUndo(self):
-        """Slice single element on single dimension, then undo"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.slice(1, 2, single=True).slice(1)
-        bundle.output(self.outcdf)
-        numpy.testing.assert_array_equal(
-            self.outcdf['SectorRateScalersCounts'][...],
-            self.incdf['SectorRateScalersCounts'][...])
-        numpy.testing.assert_array_equal(
-            self.outcdf['ATC'][...],
-            self.incdf['ATC'][...])
-        for d in (range(4)):
-            a = 'DEPEND_{}'.format(d)
-            self.assertEqual(
-                self.outcdf['SectorRateScalersCounts'].attrs[a],
-                self.incdf['SectorRateScalersCounts'].attrs[a])
-        numpy.testing.assert_array_equal(
-            self.outcdf['SpinNumbers'][:],
-            self.incdf['SpinNumbers'][:])
-
-    def testSliceRecord(self):
-        """Slice on the record dimension"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.slice(0, 2, 20)
-        bundle.output(self.outcdf)
-        numpy.testing.assert_array_equal(
-            self.outcdf['SectorRateScalersCounts'][...],
-            self.incdf['SectorRateScalersCounts'][2:20, ...])
-        numpy.testing.assert_array_equal(
-            self.outcdf['ATC'][...],
-            self.incdf['ATC'][2:20])
-        for d in (range(4)):
-            a = 'DEPEND_{}'.format(d)
-            self.assertEqual(
-                self.outcdf['SectorRateScalersCounts'].attrs[a],
-                self.incdf['SectorRateScalersCounts'].attrs[a])
-        numpy.testing.assert_array_equal(
-            self.outcdf['SpinNumbers'][:],
-            self.incdf['SpinNumbers'][:])
-
     def testSliceRecordStr(self):
         """Slice away record dimension and get str"""
         bundle = spacepy.pycdf.istp.VarBundle(
@@ -1051,210 +945,9 @@ class VarBundleChecks(VarBundleChecksBase):
                 sortorder, bundle._varinfo[varname].get('sortorder', None),
                 varname)
 
-    def testSliceMultiIDX(self):
-        """Slice multiple indices"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.slice(1, [2, 3, 5])
-        with spacepy_testing.assertDoesntWarn(
-                self, 'always',
-                r'Using a non-tuple sequence for multidimensional indexing',
-                FutureWarning, r'spacepy\.pycdf\.istp$'):
-            bundle.output(self.outcdf)
-        numpy.testing.assert_array_equal(
-            self.outcdf['SectorRateScalersCounts'][...],
-            self.incdf['SectorRateScalersCounts'][...][:, [2, 3, 5], ...])
-        numpy.testing.assert_array_equal(
-            self.outcdf['ATC'][...],
-            self.incdf['ATC'][...])
-        for d in (range(4)):
-            a = 'DEPEND_{}'.format(d)
-            self.assertEqual(
-                self.outcdf['SectorRateScalersCounts'].attrs[a],
-                self.incdf['SectorRateScalersCounts'].attrs[a])
-        numpy.testing.assert_array_equal(
-            self.outcdf['SpinNumbers'][:],
-            self.incdf['SpinNumbers'][:][[2, 3, 5]])
-
-    def testSliceMultiIDXrecord(self):
-        """Slice on the record dimension, multiple index"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.slice(0, [2, 3, 5])
-        bundle.output(self.outcdf)
-        numpy.testing.assert_array_equal(
-            self.outcdf['SectorRateScalersCounts'][...],
-            self.incdf['SectorRateScalersCounts'][...][[2, 3, 5], ...])
-        numpy.testing.assert_array_equal(
-            self.outcdf['ATC'][...],
-            self.incdf['ATC'][...][[2, 3, 5]])
-        for d in (range(4)):
-            a = 'DEPEND_{}'.format(d)
-            self.assertEqual(
-                self.outcdf['SectorRateScalersCounts'].attrs[a],
-                self.incdf['SectorRateScalersCounts'].attrs[a])
-        numpy.testing.assert_array_equal(
-            self.outcdf['SpinNumbers'][:],
-            self.incdf['SpinNumbers'][:])
-
-    def testSum(self):
-        """Sum over a dimension"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.sum(2)
-        self.assertEqual([False, False, True, False], bundle._summed)
-        bundle.output(self.outcdf)
-        counts = self.incdf['SectorRateScalersCounts'][...]
-        expected = counts.sum(axis=2)
-        expected[(counts < 0).max(axis=2)] = -1e31
-        numpy.testing.assert_allclose(
-            expected, self.outcdf['SectorRateScalersCounts'][...])
-        sigma = self.incdf['SectorRateScalersCountsSigma'][...]
-        bad = (sigma < 0)
-        sigma[bad] = 0 #avoid warning
-        expected = numpy.sqrt((sigma ** 2).sum(axis=2))
-        expected[bad.max(axis=2)] = -1e31
-        numpy.testing.assert_allclose(
-            expected, self.outcdf['SectorRateScalersCountsSigma'][...])
-        self.assertFalse('SectorNumbers' in self.outcdf)
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_2'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_1'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
-        self.assertFalse('DEPEND_3'
-                        in self.outcdf['SectorRateScalersCounts'].attrs)
-        self.assertEqual(
-            self.incdf['ATC'].attrs['FILLVAL'],
-            self.outcdf['ATC'].attrs['FILLVAL'])
-
-    def testSliceSum(self):
-        """Slice and sum over a dimension"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.slice(1, 0, 16).sum(1)
-        self.assertEqual([False, True, False, False], bundle._summed)
-        bundle.output(self.outcdf)
-        counts = self.incdf['SectorRateScalersCounts'][:, 0:16, ...]
-        expected = counts.sum(axis=1)
-        expected[(counts < 0).max(axis=1)] = -1e31
-        numpy.testing.assert_allclose(
-            expected, self.outcdf['SectorRateScalersCounts'][...])
-        sigma = self.incdf['SectorRateScalersCountsSigma'][:, 0:16, ...]
-        bad = (sigma < 0)
-        sigma[bad] = 0 #avoid warning
-        expected = numpy.sqrt((sigma ** 2).sum(axis=1))
-        expected[bad.max(axis=1)] = -1e31
-        numpy.testing.assert_allclose(
-            expected, self.outcdf['SectorRateScalersCountsSigma'][...])
-        self.assertFalse('SpinNumbers' in self.outcdf)
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_2'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_2'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
-        self.assertFalse('DEPEND_3'
-                        in self.outcdf['SectorRateScalersCounts'].attrs)
-
-    def testMean(self):
-        """Average over a dimension"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.mean(2)
-        self.assertEqual([False, False, False, False], bundle._summed)
-        self.assertEqual([False, False, True, False], bundle._mean)
-        bundle.output(self.outcdf)
-        counts = self.incdf['SectorRateScalersCounts'][...]
-        counts[counts < 0] = numpy.nan
-        #suppress bad value warnings
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                'ignore', 'Mean of empty slice', RuntimeWarning)
-            expected = numpy.nanmean(counts, axis=2)
-        expected[numpy.isnan(expected)] = -1e31
-        numpy.testing.assert_allclose(
-            expected, self.outcdf['SectorRateScalersCounts'][...])
-        sigma = self.incdf['SectorRateScalersCountsSigma'][...]
-        sigma[sigma < 0] = numpy.nan
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                'ignore', r'invalid value encountered in (?:true_)divide$',
-                RuntimeWarning)
-            expected = numpy.sqrt(numpy.nansum(sigma ** 2, axis=2)) \
-                        / (~numpy.isnan(sigma)).sum(axis=2)
-        expected[numpy.isnan(expected)] = -1e31
-        numpy.testing.assert_allclose(
-            expected, self.outcdf['SectorRateScalersCountsSigma'][...])
-        self.assertFalse('SectorNumbers' in self.outcdf)
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_2'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_1'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
-        self.assertFalse('DEPEND_3'
-                        in self.outcdf['SectorRateScalersCounts'].attrs)
-
-    def testNonconflictingMultiple(self):
-        """Put multiple variables without conflict in output"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.sum(1) #Sum over spin
-        bundle.output(self.outcdf)
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SpinRateScalersCounts'])
-        #This has some overlapping deps, but they're all the same
-        bundle.output(self.outcdf)
-        self.assertTrue('SpinNumbers' in self.outcdf)
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_2'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_2'])
-        self.assertEqual(
-            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
-            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
-        self.assertFalse('DEPEND_3'
-                        in self.outcdf['SectorRateScalersCounts'].attrs)
-        for i in range(3):
-            d = 'DEPEND_{}'.format(i)
-            self.assertEqual(
-                self.outcdf['SpinRateScalersCounts'].attrs[d],
-                self.incdf['SpinRateScalersCounts'].attrs[d])
-
-    def testConflictingMultiple(self):
-        """Put multiple variables with conflict in output"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SectorRateScalersCounts'])
-        bundle.slice(1, 0, 3)
-        bundle.output(self.outcdf)
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['SpinRateScalersCounts'])
-        bundle.slice(1, 2, 5)
-        #This is a different slice on same dim, should fail
-        msg = 'Incompatible SpinNumbers already exists in output.'
-        try:
-            bundle.output(self.outcdf)
-        except RuntimeError:
-            self.assertEqual(msg, str(sys.exc_info()[1]))
-        else:
-            self.fail('Should have raised RuntimeError: ' + msg)
-
     def testNameMap(self):
         """Test name mapping"""
-        #Essentially a subtest of below
+        #Essentially a subtest of testSumRename
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.sum(2)
@@ -1270,38 +963,353 @@ class VarBundleChecks(VarBundleChecksBase):
         ] }
         self.assertEqual(expected, namemap)
 
-    def testSumRename(self):
-        """Sum over a dimension, rename output"""
+
+class VarBundleOutputCDF(VarBundleChecksBase):
+    """Checks for VarBundle class, output to CDF"""
+
+    def setUp(self):
+        super(VarBundleOutputCDF, self).setUp()
+        self.output = self.outcdf
+
+    def testOutputSimple(self):
+        """Copy single var and deps with no slicing to output"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.output(self.output)
+        numpy.testing.assert_array_equal(
+            self.output['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][...])
+        numpy.testing.assert_array_equal(
+            self.output['ATC'][...],
+            self.incdf['ATC'][...])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs,
+            self.incdf['SectorRateScalersCounts'].attrs)
+        self.assertEqual(
+            self.incdf['ATC'].attrs['FILLVAL'],
+            self.output['ATC'].attrs['FILLVAL'])
+
+    def testNonconflictingMultiple(self):
+        """Output multiple variables without conflict"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.sum(1) #Sum over spin
+        bundle.output(self.output)
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SpinRateScalersCounts'])
+        #This has some overlapping deps, but they're all the same
+        bundle.output(self.output)
+        self.assertTrue('SpinNumbers' in self.output)
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_2'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('DEPEND_3'
+                        in self.output['SectorRateScalersCounts'].attrs)
+        for i in range(3):
+            d = 'DEPEND_{}'.format(i)
+            self.assertEqual(
+                self.output['SpinRateScalersCounts'].attrs[d],
+                self.incdf['SpinRateScalersCounts'].attrs[d])
+
+    def testConflictingMultiple(self):
+        """Output multiple variables with conflict"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, 0, 3)
+        bundle.output(self.output)
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SpinRateScalersCounts'])
+        bundle.slice(1, 2, 5)
+        #This is a different slice on same dim, should fail
+        msg = 'Incompatible SpinNumbers already exists in output.'
+        try:
+            bundle.output(self.output)
+        except RuntimeError:
+            self.assertEqual(msg, str(sys.exc_info()[1]))
+        else:
+            self.fail('Should have raised RuntimeError: ' + msg)
+
+    def testSimpleSlice(self):
+        """Slice single element on single dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, 2, single=True)
+        bundle.output(self.output)
+        numpy.testing.assert_array_equal(
+            self.output['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][:, 2, ...])
+        numpy.testing.assert_array_equal(
+            self.output['ATC'][...],
+            self.incdf['ATC'][...])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_2'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('SpinNumbers' in self.output)
+        self.assertFalse('DEPEND_3'
+                        in self.output['SectorRateScalersCounts'].attrs)
+
+    def testSimpleRange(self):
+        """Slice a range on single dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, 2, single=False)
+        bundle.output(self.output)
+        numpy.testing.assert_array_equal(
+            self.output['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][:, 2:, ...])
+        numpy.testing.assert_array_equal(
+            self.output['ATC'][...],
+            self.incdf['ATC'][...])
+        for d in range(4):
+            a = 'DEPEND_{}'.format(d)
+            self.assertEqual(
+                self.output['SectorRateScalersCounts'].attrs[a],
+                self.incdf['SectorRateScalersCounts'].attrs[a])
+        numpy.testing.assert_array_equal(
+            self.output['SpinNumbers'][:],
+            self.incdf['SpinNumbers'][2:])
+
+    def testSliceUndo(self):
+        """Slice single element on single dimension, then undo"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, 2, single=True).slice(1)
+        bundle.output(self.output)
+        numpy.testing.assert_array_equal(
+            self.output['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][...])
+        numpy.testing.assert_array_equal(
+            self.output['ATC'][...],
+            self.incdf['ATC'][...])
+        for d in (range(4)):
+            a = 'DEPEND_{}'.format(d)
+            self.assertEqual(
+                self.output['SectorRateScalersCounts'].attrs[a],
+                self.incdf['SectorRateScalersCounts'].attrs[a])
+        numpy.testing.assert_array_equal(
+            self.output['SpinNumbers'][:],
+            self.incdf['SpinNumbers'][:])
+
+    def testSliceRecord(self):
+        """Slice on the record dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(0, 2, 20)
+        bundle.output(self.output)
+        numpy.testing.assert_array_equal(
+            self.output['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][2:20, ...])
+        numpy.testing.assert_array_equal(
+            self.output['ATC'][...],
+            self.incdf['ATC'][2:20])
+        for d in (range(4)):
+            a = 'DEPEND_{}'.format(d)
+            self.assertEqual(
+                self.output['SectorRateScalersCounts'].attrs[a],
+                self.incdf['SectorRateScalersCounts'].attrs[a])
+        numpy.testing.assert_array_equal(
+            self.output['SpinNumbers'][:],
+            self.incdf['SpinNumbers'][:])
+
+    def testSliceMultiIDX(self):
+        """Slice multiple indices"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, [2, 3, 5])
+        with spacepy_testing.assertDoesntWarn(
+                self, 'always',
+                r'Using a non-tuple sequence for multidimensional indexing',
+                FutureWarning, r'spacepy\.pycdf\.istp$'):
+            bundle.output(self.output)
+        numpy.testing.assert_array_equal(
+            self.output['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][...][:, [2, 3, 5], ...])
+        numpy.testing.assert_array_equal(
+            self.output['ATC'][...],
+            self.incdf['ATC'][...])
+        for d in (range(4)):
+            a = 'DEPEND_{}'.format(d)
+            self.assertEqual(
+                self.output['SectorRateScalersCounts'].attrs[a],
+                self.incdf['SectorRateScalersCounts'].attrs[a])
+        numpy.testing.assert_array_equal(
+            self.output['SpinNumbers'][:],
+            self.incdf['SpinNumbers'][:][[2, 3, 5]])
+
+    def testSliceMultiIDXrecord(self):
+        """Slice on the record dimension, multiple index"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(0, [2, 3, 5])
+        bundle.output(self.output)
+        numpy.testing.assert_array_equal(
+            self.output['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][...][[2, 3, 5], ...])
+        numpy.testing.assert_array_equal(
+            self.output['ATC'][...],
+            self.incdf['ATC'][...][[2, 3, 5]])
+        for d in (range(4)):
+            a = 'DEPEND_{}'.format(d)
+            self.assertEqual(
+                self.output['SectorRateScalersCounts'].attrs[a],
+                self.incdf['SectorRateScalersCounts'].attrs[a])
+        numpy.testing.assert_array_equal(
+            self.output['SpinNumbers'][:],
+            self.incdf['SpinNumbers'][:])
+
+    def testSum(self):
+        """Sum over a dimension"""
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.sum(2)
-        bundle.output(self.outcdf, suffix='_Summed')
+        self.assertEqual([False, False, True, False], bundle._summed)
+        bundle.output(self.output)
         counts = self.incdf['SectorRateScalersCounts'][...]
         expected = counts.sum(axis=2)
         expected[(counts < 0).max(axis=2)] = -1e31
         numpy.testing.assert_allclose(
-            expected, self.outcdf['SectorRateScalersCounts_Summed'][...])
+            expected, self.output['SectorRateScalersCounts'][...])
         sigma = self.incdf['SectorRateScalersCountsSigma'][...]
         bad = (sigma < 0)
         sigma[bad] = 0 #avoid warning
         expected = numpy.sqrt((sigma ** 2).sum(axis=2))
         expected[bad.max(axis=2)] = -1e31
         numpy.testing.assert_allclose(
-            expected, self.outcdf['SectorRateScalersCountsSigma_Summed'][...])
-        self.assertFalse('SectorNumbers' in self.outcdf)
+            expected, self.output['SectorRateScalersCountsSigma'][...])
+        self.assertFalse('SectorNumbers' in self.output)
         self.assertEqual(
-            self.outcdf['SectorRateScalersCounts_Summed'].attrs['DEPEND_2'],
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_2'],
             self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
         self.assertEqual(
-            self.outcdf['SectorRateScalersCounts_Summed'].attrs['DEPEND_1'],
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_1'],
             self.incdf['SectorRateScalersCounts'].attrs['DEPEND_1'])
         self.assertEqual(
-            self.outcdf['SectorRateScalersCounts_Summed'].attrs['DEPEND_0'],
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_0'],
             self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
         self.assertFalse('DEPEND_3'
-                        in self.outcdf['SectorRateScalersCounts_Summed'].attrs)
+                        in self.output['SectorRateScalersCounts'].attrs)
+        self.assertEqual(
+            self.incdf['ATC'].attrs['FILLVAL'],
+            self.output['ATC'].attrs['FILLVAL'])
+
+    def testSliceSum(self):
+        """Slice and sum over a dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, 0, 16).sum(1)
+        self.assertEqual([False, True, False, False], bundle._summed)
+        bundle.output(self.output)
+        counts = self.incdf['SectorRateScalersCounts'][:, 0:16, ...]
+        expected = counts.sum(axis=1)
+        expected[(counts < 0).max(axis=1)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.output['SectorRateScalersCounts'][...])
+        sigma = self.incdf['SectorRateScalersCountsSigma'][:, 0:16, ...]
+        bad = (sigma < 0)
+        sigma[bad] = 0 #avoid warning
+        expected = numpy.sqrt((sigma ** 2).sum(axis=1))
+        expected[bad.max(axis=1)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.output['SectorRateScalersCountsSigma'][...])
+        self.assertFalse('SpinNumbers' in self.output)
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_2'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('DEPEND_3'
+                        in self.output['SectorRateScalersCounts'].attrs)
+
+    def testMean(self):
+        """Average over a dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.mean(2)
+        self.assertEqual([False, False, False, False], bundle._summed)
+        self.assertEqual([False, False, True, False], bundle._mean)
+        bundle.output(self.output)
+        counts = self.incdf['SectorRateScalersCounts'][...]
+        counts[counts < 0] = numpy.nan
+        #suppress bad value warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'Mean of empty slice', RuntimeWarning)
+            expected = numpy.nanmean(counts, axis=2)
+        expected[numpy.isnan(expected)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.output['SectorRateScalersCounts'][...])
+        sigma = self.incdf['SectorRateScalersCountsSigma'][...]
+        sigma[sigma < 0] = numpy.nan
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', r'invalid value encountered in (?:true_)divide$',
+                RuntimeWarning)
+            expected = numpy.sqrt(numpy.nansum(sigma ** 2, axis=2)) \
+                        / (~numpy.isnan(sigma)).sum(axis=2)
+        expected[numpy.isnan(expected)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.output['SectorRateScalersCountsSigma'][...])
+        self.assertFalse('SectorNumbers' in self.output)
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_1'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('DEPEND_3'
+                        in self.output['SectorRateScalersCounts'].attrs)
+
+    def testSumRename(self):
+        """Sum over a dimension, rename output"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.sum(2)
+        bundle.output(self.output, suffix='_Summed')
+        counts = self.incdf['SectorRateScalersCounts'][...]
+        expected = counts.sum(axis=2)
+        expected[(counts < 0).max(axis=2)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.output['SectorRateScalersCounts_Summed'][...])
+        sigma = self.incdf['SectorRateScalersCountsSigma'][...]
+        bad = (sigma < 0)
+        sigma[bad] = 0 #avoid warning
+        expected = numpy.sqrt((sigma ** 2).sum(axis=2))
+        expected[bad.max(axis=2)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.output['SectorRateScalersCountsSigma_Summed'][...])
+        self.assertFalse('SectorNumbers' in self.output)
+        self.assertEqual(
+            self.output['SectorRateScalersCounts_Summed'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts_Summed'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_1'])
+        self.assertEqual(
+            self.output['SectorRateScalersCounts_Summed'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('DEPEND_3'
+                        in self.output['SectorRateScalersCounts_Summed'].attrs)
         self.assertEqual('SectorRateScalersCountsSigma_Summed',
-                         self.outcdf['SectorRateScalersCounts_Summed']
+                         self.output['SectorRateScalersCounts_Summed']
                          .attrs['DELTA_PLUS_VAR'])
 
     def testSumRenameConflict(self):
@@ -1309,63 +1317,59 @@ class VarBundleChecks(VarBundleChecksBase):
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(2, 0, 2)
-        bundle.output(self.outcdf, suffix='_0-1')
+        bundle.output(self.output, suffix='_0-1')
         bundle.slice(2, 2, 4)
-        bundle.output(self.outcdf, suffix='_2-3')
+        bundle.output(self.output, suffix='_2-3')
         counts = self.incdf['SectorRateScalersCounts'][...]
         numpy.testing.assert_allclose(
             counts[..., 0:2, :],
-            self.outcdf['SectorRateScalersCounts_0-1'][...])
+            self.output['SectorRateScalersCounts_0-1'][...])
         sigma = self.incdf['SectorRateScalersCountsSigma'][...]
         numpy.testing.assert_allclose(
             sigma[..., 0:2, :],
-            self.outcdf['SectorRateScalersCountsSigma_0-1'][...])
-        self.assertFalse('SectorNumbers' in self.outcdf)
-        self.assertTrue('SectorRateScalerNames' in self.outcdf)
-        self.assertFalse('SectorRateScalerNames_0-1' in self.outcdf)
-        self.assertTrue('SectorNumbers_0-1' in self.outcdf)
-        self.assertTrue('SectorNumbers_2-3' in self.outcdf)
+            self.output['SectorRateScalersCountsSigma_0-1'][...])
+        self.assertFalse('SectorNumbers' in self.output)
+        self.assertTrue('SectorRateScalerNames' in self.output)
+        self.assertFalse('SectorRateScalerNames_0-1' in self.output)
+        self.assertTrue('SectorNumbers_0-1' in self.output)
+        self.assertTrue('SectorNumbers_2-3' in self.output)
         #Most depends are the same
         for which in ('0-1', '2-3'):
             for d in range(0, 4):
                 if d == 2:
                     continue
                 self.assertEqual(
-                    self.outcdf['SectorRateScalersCounts_{}'.format(which)]
+                    self.output['SectorRateScalersCounts_{}'.format(which)]
                     .attrs['DEPEND_{}'.format(d)],
                     self.incdf['SectorRateScalersCounts']
                     .attrs['DEPEND_{}'.format(d)])
         #But dim 2 is different
         self.assertEqual(
-            self.outcdf['SectorRateScalersCounts_2-3'].attrs['DEPEND_2'],
+            self.output['SectorRateScalersCounts_2-3'].attrs['DEPEND_2'],
             'SectorNumbers_2-3')
         self.assertEqual(
-            self.outcdf['SectorRateScalersCounts_0-1'].attrs['DEPEND_2'],
+            self.output['SectorRateScalersCounts_0-1'].attrs['DEPEND_2'],
             'SectorNumbers_0-1')
         self.assertEqual(
             'SectorRateScalersCounts_0-1',
-            self.outcdf['SectorRateScalersCounts_0-1'].attrs['FIELDNAM'])
+            self.output['SectorRateScalersCounts_0-1'].attrs['FIELDNAM'])
         self.assertEqual(
             'SectorNumbers_2-3',
-            self.outcdf['SectorNumbers_2-3'].attrs['FIELDNAM'])
+            self.output['SectorNumbers_2-3'].attrs['FIELDNAM'])
+
+
+class VarBundleOutputSpaceData(VarBundleOutputCDF):
+    """Checks for VarBundle, output to SpaceData"""
+
+    def setUp(self):
+        super(VarBundleOutputSpaceData, self).setUp()
+        self.output = spacepy.SpaceData()
 
 
 class VarBundleChecksHOPE(VarBundleChecksBase):
     """Checks for VarBundle class, HOPE sample file"""
     testfile = os.path.join('data',
                             'rbspa_rel04_ect-hope-PA-L3_20121201_v0.0.0.cdf')
-    longMessage = True
-
-    def tearDown(self):
-        """Block warnings from CDF closing"""
-        warnings.filterwarnings(
-            'ignore', message='^DID_NOT_COMPRESS.*$',
-            category=spacepy.pycdf.CDFWarning,
-            module='^spacepy.pycdf')
-        try:
-            super(VarBundleChecksHOPE, self).tearDown()
-        finally:
-            del warnings.filters[0]
 
     def testSortOrder(self):
         """Check sort order of variables"""
@@ -1385,20 +1389,6 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
                 sortorder, bundle._varinfo[varname].get('sortorder', None),
                 varname)
 
-    def testDepWithDelta(self):
-        """Properly handle a dependency with a delta"""
-        bundle = spacepy.pycdf.istp.VarBundle(
-            self.incdf['Counts_P'])
-        self.assertEqual('M', bundle._varinfo['Counts_P']['vartype'])
-        self.assertEqual('D', bundle._varinfo['ENERGY_Ion_DELTA']['vartype'])
-        bundle.slice(2, 0, 10).mean(2).output(self.outcdf)
-        expected = self.incdf['Counts_P'][:, :, 0:10, ...]
-        expected[expected < 0] = numpy.nan
-        expected = numpy.nanmean(expected, axis=2)
-        expected[numpy.isnan(expected)] = -1e31
-        numpy.testing.assert_allclose(
-            self.outcdf['Counts_P'], expected)
-
     def testOperations(self):
         """Get operations of a bundle"""
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
@@ -1414,45 +1404,6 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         bundle.slice(1, [5, 6])
         ops = bundle.operations()
         self.assertEqual([('slice', (1, [5, 6]), {})], ops)
-
-    def testSumRecord(self):
-        """Sum on the record dimension"""
-        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
-        bundle.sum(0).output(self.outcdf)
-        expected = numpy.sum(self.incdf['Counts_P'][...], axis=0)
-        numpy.testing.assert_array_equal(
-            self.outcdf['Counts_P'][...], expected)
-        self.assertFalse(self.outcdf['Counts_P'].rv())
-        self.assertFalse('DEPEND_0' in self.outcdf['Counts_P'].attrs)
-        self.assertFalse('Epoch' in self.outcdf)
-        self.assertEqual(
-            'PITCH_ANGLE', self.outcdf['Counts_P'].attrs['DEPEND_1'])
-
-    def testAvgRecord(self):
-        """Average on the record dimension"""
-        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
-        bundle.mean(0).output(self.outcdf)
-        expected = numpy.mean(self.incdf['Counts_P'][...], axis=0)
-        numpy.testing.assert_array_equal(
-            self.outcdf['Counts_P'][...], expected)
-        self.assertFalse(self.outcdf['Counts_P'].rv())
-        self.assertFalse('Epoch' in self.outcdf)
-        self.assertFalse('DEPEND_0' in self.outcdf['Counts_P'].attrs)
-        self.assertEqual(
-            'PITCH_ANGLE', self.outcdf['Counts_P'].attrs['DEPEND_1'])
-
-    def testSliceSingleRecord(self):
-        """Slice single element on the record dimension"""
-        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
-        bundle.slice(0, 0, single=True).output(self.outcdf)
-        expected = self.incdf['Counts_P'][0, ...]
-        numpy.testing.assert_array_equal(
-            self.outcdf['Counts_P'][...], expected)
-        self.assertFalse(self.outcdf['Counts_P'].rv())
-        self.assertFalse('DEPEND_0' in self.outcdf['Counts_P'].attrs)
-        self.assertFalse('Epoch' in self.outcdf)
-        self.assertEqual(
-            'PITCH_ANGLE', self.outcdf['Counts_P'].attrs['DEPEND_1'])
 
     def testVars(self):
         """Get variables of a bundle"""
@@ -1503,6 +1454,80 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
             self.assertEqual(
                 shape, bundle._outshape(vname), vname)
 
+
+class VarBundleChecksHOPECDFOutput(VarBundleChecksBase):
+    """Checks for VarBundle class, HOPE sample file, out to CDF"""
+    testfile = os.path.join('data',
+                            'rbspa_rel04_ect-hope-PA-L3_20121201_v0.0.0.cdf')
+
+    def setUp(self):
+        super(VarBundleChecksHOPECDFOutput, self).setUp()
+        self.output = self.outcdf
+
+    def tearDown(self):
+        """Block warnings from CDF closing"""
+        warnings.filterwarnings(
+            'ignore', message='^DID_NOT_COMPRESS.*$',
+            category=spacepy.pycdf.CDFWarning,
+            module='^spacepy.pycdf')
+        try:
+            super(VarBundleChecksHOPECDFOutput, self).tearDown()
+        finally:
+            del warnings.filters[0]
+
+    def testDepWithDelta(self):
+        """Properly handle a dependency with a delta"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['Counts_P'])
+        self.assertEqual('M', bundle._varinfo['Counts_P']['vartype'])
+        self.assertEqual('D', bundle._varinfo['ENERGY_Ion_DELTA']['vartype'])
+        bundle.slice(2, 0, 10).mean(2).output(self.output)
+        expected = self.incdf['Counts_P'][:, :, 0:10, ...]
+        expected[expected < 0] = numpy.nan
+        expected = numpy.nanmean(expected, axis=2)
+        expected[numpy.isnan(expected)] = -1e31
+        numpy.testing.assert_allclose(
+            self.output['Counts_P'], expected)
+
+    def testSumRecord(self):
+        """Sum on the record dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
+        bundle.sum(0).output(self.output)
+        expected = numpy.sum(self.incdf['Counts_P'][...], axis=0)
+        numpy.testing.assert_array_equal(
+            self.output['Counts_P'][...], expected)
+        self.assertFalse(self.output['Counts_P'].rv())
+        self.assertFalse('DEPEND_0' in self.output['Counts_P'].attrs)
+        self.assertFalse('Epoch' in self.output)
+        self.assertEqual(
+            'PITCH_ANGLE', self.output['Counts_P'].attrs['DEPEND_1'])
+
+    def testAvgRecord(self):
+        """Average on the record dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
+        bundle.mean(0).output(self.output)
+        expected = numpy.mean(self.incdf['Counts_P'][...], axis=0)
+        numpy.testing.assert_array_equal(
+            self.output['Counts_P'][...], expected)
+        self.assertFalse(self.output['Counts_P'].rv())
+        self.assertFalse('Epoch' in self.output)
+        self.assertFalse('DEPEND_0' in self.output['Counts_P'].attrs)
+        self.assertEqual(
+            'PITCH_ANGLE', self.output['Counts_P'].attrs['DEPEND_1'])
+
+    def testSliceSingleRecord(self):
+        """Slice single element on the record dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
+        bundle.slice(0, 0, single=True).output(self.output)
+        expected = self.incdf['Counts_P'][0, ...]
+        numpy.testing.assert_array_equal(
+            self.output['Counts_P'][...], expected)
+        self.assertFalse(self.output['Counts_P'].rv())
+        self.assertFalse('DEPEND_0' in self.output['Counts_P'].attrs)
+        self.assertFalse('Epoch' in self.output)
+        self.assertEqual(
+            'PITCH_ANGLE', self.output['Counts_P'].attrs['DEPEND_1'])
+
     def testSliceNRVScalar(self):
         """Slice when the EPOCH_DELTA is NRV"""
         #Modify the input first
@@ -1519,13 +1544,13 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
             newdelta.rename('Epoch_Ion_DELTA')
         self.incdf = spacepy.pycdf.CDF(newtest)
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
-        bundle.slice(0, 0, 10).output(self.outcdf)
+        bundle.slice(0, 0, 10).output(self.output)
         numpy.testing.assert_array_equal(
-            self.outcdf['FPDU'][...], self.incdf['FPDU'][0:10, ...])
+            self.output['FPDU'][...], self.incdf['FPDU'][0:10, ...])
         numpy.testing.assert_array_equal(
-            self.outcdf['Epoch_Ion'][...], self.incdf['Epoch_Ion'][0:10, ...])
+            self.output['Epoch_Ion'][...], self.incdf['Epoch_Ion'][0:10, ...])
         numpy.testing.assert_array_equal(
-            self.outcdf['Epoch_Ion_DELTA'][...],
+            self.output['Epoch_Ion_DELTA'][...],
             self.incdf['Epoch_Ion_DELTA'][...])
 
     def testSliceNoRecords(self):
@@ -1538,15 +1563,27 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
             del cdf['FPDU'][...] #Delete data not variable
         self.incdf = spacepy.pycdf.CDF(newtest)
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
-        bundle.sum(1).slice(2, 0, 6).output(self.outcdf)
+        bundle.sum(1).slice(2, 0, 6).output(self.output)
         self.assertEqual(
-            (0, 6), self.outcdf['FPDU'].shape)
+            (0, 6), self.output['FPDU'].shape)
 
 
-class VarBundleChecksEPILo(VarBundleChecksBase):
-    """Checks for VarBundle class, EPILo sample file"""
+class VarBundleChecksSpaceDataOutput(VarBundleChecksHOPE):
+    """Checks for VarBundle class, HOPE sample file, out to SpaceData"""
+
+    def setUp(self):
+        super(VarBundleChecksSpaceDataOutput, self).setUp()
+        self.output = spacepy.SpaceData()
+
+
+class VarBundleChecksEPILoCDF(VarBundleChecksBase):
+    """Checks for VarBundle class, EPILo sample file, CDF output"""
     testfile = os.path.join('data',
                             'psp_isois-epilo_l2-ic_20190401_v0.0.0.cdf')
+
+    def setUp(self):
+        super(VarBundleChecksEPILoCDF, self).setUp()
+        self.output = self.outcdf
 
     def tearDown(self):
         """Block warnings from CDF closing"""
@@ -1555,7 +1592,7 @@ class VarBundleChecksEPILo(VarBundleChecksBase):
             category=spacepy.pycdf.CDFWarning,
             module='^spacepy.pycdf')
         try:
-            super(VarBundleChecksEPILo, self).tearDown()
+            super(VarBundleChecksEPILoCDF, self).tearDown()
         finally:
             del warnings.filters[0]
 
@@ -1563,23 +1600,23 @@ class VarBundleChecksEPILo(VarBundleChecksBase):
         """Handle a variable with a 2D depend"""
         countrate = self.incdf['H_CountRate_ChanT']
         bundle = spacepy.pycdf.istp.VarBundle(countrate)
-        bundle.sum(1).slice(2, 0, 10).output(self.outcdf)
+        bundle.sum(1).slice(2, 0, 10).output(self.output)
         numpy.testing.assert_array_equal(
-            self.outcdf['H_CountRate_ChanT'],
+            self.output['H_CountRate_ChanT'],
             countrate[:, :, 0:10].sum(axis=1))
         #Look direction should go away
         for v in ('Look_80_LABL', 'Look_Direction_80',
                   'Look_Direction_80_DELTAMINUS',
                   'Look_Direction_80_DELTAPLUS'):
-            self.assertFalse(v in self.outcdf)
+            self.assertFalse(v in self.output)
 
     def testDoubleDepSummed(self):
         """Handle a variable with a 2D depend, sum all dims"""
         countrate = self.incdf['H_CountRate_ChanT']
         bundle = spacepy.pycdf.istp.VarBundle(countrate)
-        bundle.sum(1).slice(2, 0, 10).sum(2).output(self.outcdf, '_TS')
+        bundle.sum(1).slice(2, 0, 10).sum(2).output(self.output, '_TS')
         numpy.testing.assert_array_equal(
-            self.outcdf['H_CountRate_ChanT_TS'],
+            self.output['H_CountRate_ChanT_TS'],
             countrate[:, :, 0:10].sum(axis=2).sum(axis=1))
         #Look direction and energy should go away
         for v in ('Look_80_LABL', 'Look_Direction_80',
@@ -1587,17 +1624,25 @@ class VarBundleChecksEPILo(VarBundleChecksBase):
                   'Look_Direction_80_DELTAPLUS',
                   'H_ChanT_Energy', 'H_ChanT_Energy_LABL',
                   'H_ChanT_Energy_DELTAMINUS', 'H_ChanT_Energy_DELTAPLUS'):
-            self.assertFalse(v in self.outcdf)
-            self.assertFalse(v + '_TS' in self.outcdf)
+            self.assertFalse(v in self.output)
+            self.assertFalse(v + '_TS' in self.output)
 
     def testConflictingEpoch(self):
         """Regression test for complicated name conflict"""
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['H_CountRate_ChanT'])
-        bundle.sum(1).slice(2, 1).output(self.outcdf, suffix='_SP')
+        bundle.sum(1).slice(2, 1).output(self.output, suffix='_SP')
         #Still summed on 1!
-        bundle.slice(2, 18, 32).sum(2).output(self.outcdf, suffix='_TS')
-        self.assertIn('H_CountRate_ChanT_SP', self.outcdf)
-        self.assertIn('H_CountRate_ChanT_TS', self.outcdf)
+        bundle.slice(2, 18, 32).sum(2).output(self.output, suffix='_TS')
+        self.assertIn('H_CountRate_ChanT_SP', self.output)
+        self.assertIn('H_CountRate_ChanT_TS', self.output)
+
+
+class VarBundleEPILoSpaceData(VarBundleChecksEPILoCDF):
+    """Checks for VarBundle class, HOPE sample file, out to SpaceData"""
+
+    def setUp(self):
+        super(VarBundleEPILoSpaceData, self).setUp()
+        self.output = spacepy.SpaceData()
 
 
 if __name__ == '__main__':
