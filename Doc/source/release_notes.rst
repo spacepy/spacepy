@@ -27,6 +27,10 @@ temporary removal of support for this module in SpacePy 0.3.0 has therefore
 been lifted. The new implementation provides a slight performance increase
 with no change in results or accuracy.
 
+:class:`~spacepy.pycdf.istp.VarBundle` now supports output to
+:class:`~spacepy.datamodel.SpaceData` objects as well as
+:class:`~spacepy.pycdf.CDF`.
+
 Deprecations and removals
 *************************
 The ``_nelems`` method of :class:`~spacepy.pycdf.Var` has been removed;

@@ -807,7 +807,8 @@ def fromCDF(fname, **kwargs):
 
     See Also
     --------
-    spacepy.pycdf.CDF.copy
+    .pycdf.CDF.copy
+    .pycdf.istp.VarBundle
     '''
     #TODO: add unflatten keyword and restore flattened variables
     try:
