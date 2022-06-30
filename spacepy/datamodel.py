@@ -984,46 +984,38 @@ def fromHDF5(fname, **kwargs):
                                     'value = {0} ({1})'.format(value, type(value)), DMWarning)
 
     try:
-        import h5py as hdf
+        import h5py
     except ImportError:
         raise ImportError('HDF5 converter requires h5py')
 
     if type(fname) in str_classes:
-        hfile = hdf.File(fname, mode='r')
+        hfile = h5py.File(fname, mode='r')
     else:
         hfile = fname
         #should test here for HDF file object
-
-    if 'path' not in kwargs:
-        path = '/'
-    else:
-        path = kwargs['path']
+    path = kwargs.get('path', '/')
 
     SDobject = SpaceData()
-    allowed_elems = [hdf.Group, hdf.Dataset]
+    allowed_elems = [h5py.Group, h5py.Dataset]
     ##carry over the attributes
     hdfcarryattrs(SDobject, hfile, path)
     ##carry over the groups and datasets
     for key, value in hfile[path].items():
-        #try:
-            if type(value) is allowed_elems[0]: #if a group
-                SDobject[key] = SpaceData()
-                SDobject[key] = fromHDF5(hfile, path=path+'/'+key)
-            elif type(value) is allowed_elems[1]: #if a dataset
-                isuni = (hdf.check_vlen_dtype(value.dtype)  # h5py 3+
-                         if hasattr(hdf, 'check_vlen_dtype')
-                         else hdf.check_dtype(vlen=value.dtype)) is unicode
-                try:
-                    if isuni:
-                        if hasattr(value, 'asstr'):  # h5py 3+
-                            value = value.asstr()
-                        value = numpy.require(value[...], dtype=unicode)
-                    SDobject[key] = dmarray(value)
-                except (TypeError, ZeroDivisionError): #ZeroDivisionError catches zero-sized DataSets
-                    SDobject[key] = dmarray(None)
-                hdfcarryattrs(SDobject[key], hfile, path+'/'+key)
-        #except:
-        #    raise ValueError('HDF5 file contains type other than Group or Dataset')
+        if type(value) is allowed_elems[0]: #if a group
+            SDobject[key] = fromHDF5(hfile, path=path+'/'+key)
+        elif type(value) is allowed_elems[1]: #if a dataset
+            isuni = (h5py.check_vlen_dtype(value.dtype)  # h5py 3+
+                     if hasattr(h5py, 'check_vlen_dtype')
+                     else h5py.check_dtype(vlen=value.dtype)) is unicode
+            try:
+                if isuni:
+                    if hasattr(value, 'asstr'):  # h5py 3+
+                        value = value.asstr()
+                    value = numpy.require(value[...], dtype=unicode)
+                SDobject[key] = dmarray(value)
+            except (TypeError, ZeroDivisionError): #ZeroDivisionError catches zero-sized DataSets
+                SDobject[key] = dmarray(None)
+            hdfcarryattrs(SDobject[key], hfile, path+'/'+key)
     if path=='/': hfile.close()
     return SDobject
 
@@ -1096,7 +1088,7 @@ def toHDF5(fname, SDobject, **kwargs):
                             if uni:
                                 #Tell hdf5 this is unicode. Numpy is UCS-4, HDF5 is UTF-8
                                 hfile[path].attrs.create(dumkey, dumval,
-                                    dtype=hdf.special_dtype(vlen=unicode))
+                                    dtype=h5py.special_dtype(vlen=unicode))
                             else:
                                 hfile[path].attrs[dumkey] = dumval
                         except TypeError:
@@ -1122,46 +1114,34 @@ def toHDF5(fname, SDobject, **kwargs):
                                         DMWarning)
 
     try:
-        import h5py as hdf
+        import h5py
     except ImportError:
         raise ImportError('h5py is required to use HDF5 files')
     
-    try:
-        assert isinstance(SDobject, SpaceData)
-    except AssertionError:
+    if not isinstance(SDobject, SpaceData):
         raise ValueError("Input data is not of type SpaceData, check usage: toHDF5(fname, datamodel)")
     #mash these into a defaults dict...
-    if 'mode' not in kwargs:
-        wr_mo = 'a'
-    else:
-        wr_mo = kwargs['mode']
-    if 'compression' not in kwargs:
-        h5_compr_type = None
-    else:
-        h5_compr_type = kwargs['compression']
-        if h5_compr_type not in ['gzip', 'szip', 'lzf', 'shuffle', 'fletcher32', None]:
-            raise NotImplementedError('Specified compression type not supported')
-    if ('compression_opts' not in kwargs) or (h5_compr_type == 'lzf'):
-        h5_compr_opts = None
-    else:
-        h5_compr_opts = kwargs['compression_opts']
+    wr_mo = kwargs.get('mode', 'a')
+    h5_compr_type = kwargs.get('compression', None)
+    if h5_compr_type not in ['gzip', 'szip', 'lzf', 'shuffle', 'fletcher32', None]:
+        raise NotImplementedError('Specified compression type not supported')
+    h5_compr_opts = None if h5_compr_type == 'lzf'\
+                    else kwargs.get('compression_opts', None)
 
     if 'overwrite' not in kwargs: kwargs['overwrite'] = True
     if type(fname) in str_classes:
-        if os.path.isfile(fname) and not kwargs['overwrite']:
-            raise(IOError('Cannot write HDF5, file exists (see overwrite) "{0!s}"'.format(fname)))
-        if os.path.isfile(fname) and kwargs['overwrite']:
-            os.remove(fname)
-        hfile = hdf.File(fname, mode=wr_mo)
+        if os.path.isfile(fname):
+            if kwargs['overwrite']:
+                os.remove(fname)
+            else:
+                raise(IOError('Cannot write HDF5, file exists (see overwrite) "{0!s}"'.format(fname)))
+        hfile = h5py.File(fname, mode=wr_mo)
         must_close = True
     else:
         hfile = fname
         #should test here for HDF file object
         must_close = False
-    if 'path' in kwargs:
-        path = kwargs['path']
-    else:
-        path = '/'
+    path = kwargs.get('path', '/')
 
     # long is a type in python2 not in python3
     # unicode is a type in python2 not in python3
@@ -1195,9 +1175,9 @@ def toHDF5(fname, SDobject, **kwargs):
                     dtype = None
                     if dumval.dtype.kind == 'U':
                         dumval = numpy.char.encode(dumval, 'utf-8')
-                        dtype = hdf.string_dtype(encoding='utf-8')\
-                            if hasattr(hdf, 'string_dtype')\
-                            else hdf.special_dtype(vlen=unicode)  # h5py <3
+                        dtype = h5py.string_dtype(encoding='utf-8')\
+                            if hasattr(h5py, 'string_dtype')\
+                            else h5py.special_dtype(vlen=unicode)  # h5py <3
                     elif isinstance(value[0], datetime.datetime):
                         for i, val in enumerate(value): dumval[i] = val.isoformat()
                         dumval = dumval.astype('|S35')
