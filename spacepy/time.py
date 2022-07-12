@@ -193,7 +193,7 @@ class Ticktock(MutableSequence):
     Ticktock( data, dtype )
 
     Ticktock class holding various time coordinate systems
-    (TAI, UTC, ISO, JD, MJD, UNX, RDT, CDF, DOY, eDOY, APT)
+    (TAI, UTC, ISO, JD, MJD, GPS, UNX, RDT, CDF, DOY, eDOY, APT)
 
     Possible input data types:
 
@@ -203,6 +203,8 @@ class Ticktock(MutableSequence):
         datetime object with UTC time
     TAI
         Elapsed seconds since 1958-1-1 (includes leap seconds)
+    GPS
+        Elapsed seconds since 1980-1-6 (includes leap seconds)
     UNX
         Elapsed seconds since 1970-1-1 ignoring leapseconds (all days have
         86400 secs).
@@ -260,7 +262,7 @@ class Ticktock(MutableSequence):
     ==========
     data : array_like (int, datetime, float, string)
         time stamp
-    dtype : string {`CDF`, `ISO`, `UTC`, `TAI`, `UNX`, `JD`, `MJD`, `RDT`, `APT`} or function
+    dtype : string {`CDF`, `ISO`, `UTC`, `TAI`, 'GPS', `UNX`, `JD`, `MJD`, `RDT`, `APT`} or function
         data type for data, if a function it must convert input time format to Python datetime
 
     Returns
