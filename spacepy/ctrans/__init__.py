@@ -15,14 +15,14 @@ by two categories. The first category is a broad set of Earth-centered
 coordinate systems that are specified by astronomical parameters.
 If we consider the International Celestial Reference Frame to be our
 starting point, then taking the origin as the center of the Earth
-instead of the solar barycenter gives us the International Terrestrial
-Reference Frame (ITRF). All coordinate systems described here are
+instead of the solar barycenter gives us the Geocentric Celestial
+Reference Frame (GCRF). All coordinate systems described here are
 right-handed Cartesian systems, except geodetic.
 
 Systems and their relationships:
 
 - ECI2000: Earth-Centered Inertial, J2000 epoch
-    This system can be considered equivalent to the ITRF, to within 10s
+    This system can be considered equivalent to the GCRF, to within 10s
     of milliarcseconds. The z-axis is aligned with the mean celestial pole
     at the J2000 epoch. The x-axis is aligned with the mean equinox at the
     J2000 epoch. The y-axis completes and lies in the plane of the
