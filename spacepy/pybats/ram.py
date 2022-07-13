@@ -392,8 +392,16 @@ class EfieldFile(PbData):
 
         head1 = fileobj.readline()
         head2 = fileobj.readline()
-        self.attrs['time'] = dt.datetime.strptime(
-            head1.split()[-1],'Date=%Y-%m-%d_%H:%M:%S.000')
+        formatms = 'Date=%Y-%m-%d_%H:%M:%S.000'
+        formats = 'Date=%Y-%m-%d_%H:%M:%S'
+        tstr = head1.split()[-1]
+        try:
+            self.attrs['time'] = dt.datetime.strptime(tstr,
+                                                      formatms)
+        except ValueError:
+            self.attrs['time'] = dt.datetime.strptime(tstr,
+                                                      formats)
+
         self.attrs['kp']   = float(head2.split()[1])
         self.attrs['f107'] = float(head2.split()[-1])
         # Original code: works with weimer files:
@@ -483,9 +491,10 @@ class EfieldFile(PbData):
         crange = Normalize(vmin=-1.*zlim, vmax=zlim)
         levs = np.linspace(-1*zlim, zlim, n)
 
-        cont = ax.tricontourf(self['phi']-np.pi/2.0, self['l'], self['epot'],
+        cont = ax.tricontourf(self['phi']-np.pi/2.0, self['l'],
+                              np.asarray(self['epot']),
                               levs, norm=crange, cmap=cmap)
-        _adjust_dialplot(ax,self['l'], c=labcolor, title=title)
+        _adjust_dialplot(ax, self['l'], c=labcolor, title=title)
         cbar=False
         if add_cbar:
             cticks = MultipleLocator(25)
@@ -499,8 +508,8 @@ class WeqFile(EfieldFile):
     Slight variation on :class:`weimer` to read weq_***.in files.
     '''
     def _parse_head(self, headlines):
-        parts=headlines.split()
-        self.UT=float(parts[0])
+        parts = headlines.split()
+        self.UT = float(parts[0])
 
 
 ############################################################################
@@ -1645,9 +1654,6 @@ class LogFile(PbData):
             ax.plot(self['time'], self['dstBiot'], label='RAM Dst (Biot)')
         ax.hlines(0.0, self['time'][0], self['time'][-1],
                   'k', ':', label='_nolegend_')
-        applySmartTimeTicks(ax, self['time'])
-        ax.set_ylabel('Dst [$nT$]')
-        ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
         try:
             import spacepy.pybats.kyoto as kt
@@ -1665,9 +1671,10 @@ class LogFile(PbData):
                 ax.plot(self.obs_dst['time'], self.obs_dst['dst'],
                         'k--', label='Obs. Dst')
                 ax.legend(loc='best')
-                applySmartTimeTicks(ax, self['time'])
         else:
             ax.legend(loc='best')
+        applySmartTimeTicks(ax, self['time'], dolabel=True)
+        ax.set_ylabel('Dst [$nT$]')
 
         return fig, ax
 
