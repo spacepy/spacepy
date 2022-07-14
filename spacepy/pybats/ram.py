@@ -6,7 +6,7 @@ A module for reading, handling, and plotting RAM-SCB output.
 import datetime as dt
 
 import numpy as np
-from scipy.io import netcdf
+import scipy.io
 
 from spacepy.datamodel import dmarray, SpaceData
 import spacepy.toolbox as tb
@@ -549,9 +549,8 @@ class RamSat(SpaceData):
         '''
         Load the NCDF file.  Should only be called by __init__().
         '''
-        self.f = netcdf.netcdf_file(self.filename, mode='r', mmap=False)
+        self.f = scipy.io.netcdf_file(self.filename, mode='r', mmap=False)
         self.namevars = list(self.f.variables.keys())
-        self.attrs = {}
         # split off the netCDF attributes from the Python attributes
         for k in dir(self.f):
             if k[0] == '_' or k in ('dimensions', 'filename', 'fp', 'mode',
@@ -560,10 +559,8 @@ class RamSat(SpaceData):
             tmp = getattr(self.f, k)
             if not callable(tmp):
                 self.attrs[k] = tmp
-        # self.filedata contains the raw netcdf_variable objects.
+
         for var in self.f.variables:
-            # New values saved as self[key] are stored in self.data, not
-            # self.filedata which cannot be changed.
             self[var] = dmarray(self.f.variables[var][...])
 
         # Get start time, set default if not found.
@@ -1685,40 +1682,40 @@ class IonoPotScb(PbData):
     ionospheric potential on the polar cap as well as mapped to the
     equatorial plane.  The IonoPotScb object can be used to parse and
     visualize the data quickly.
-
-    For quick parsing of these files, PyNIO is required.
     '''
     def __init__(self, filename, *args, **kwargs):
-        try:
-            from PyNIO import Nio
-        except ImportError:
-            try:
-                import Nio
-            except ImportError:
-                raise ImportError('PyNIO required, not found.')
-
         super(IonoPotScb, self).__init__(*args, **kwargs)
-        self.filename=filename
+        self.filename = filename
+        self._read()
 
-        # Load file as Nio object.
-        f = Nio.open_file(filename, 'r')
-        self.NameVars = list(f.variables.keys())
-        self.attrs = f.attributes
-        # self.filedata contains the raw NioVariable objects.
-        for var in f.variables:
-            self[var] = dmarray(f.variables[var].get_value())
-        self.filedata = f.variables
-        self.time = f.variables['time'].get_value()
-        # New values saved as self[key] are stored in self.data, not
-        # self.filedata which cannot be changed.
+    def _read(self):
+        '''
+        Load the NetCDF file. Should only be called by __init__
+        '''
+        # Load file with scipy.io.netcdf
+        with scipy.io.netcdf_file(self.filename,
+                                mode='r', mmap=False) as nfh:
+                    # split off the netCDF attributes from the Python attributes
+            for k in dir(nfh):
+                if k[0] == '_' or k in ('dimensions', 'filename', 'fp', 'mode',
+                                        'use_mmap', 'variables', 'version_byte'):
+                    continue
+                tmp = getattr(nfh, k)
+                if not callable(tmp):
+                    self.attrs[k] = tmp
+
+            self.NameVars = list(nfh.variables.keys())
+            # self.filedata contains the raw netcdf objects.
+            for var in nfh.variables:
+                self[var] = dmarray(nfh.variables[var][...])
+            self.filedata = nfh.variables
+            self.time = nfh.variables['time'][...]
 
         # Determine units of potential.
         if self['PhiIono'].max()/1000.0 > 10.0:
             self.units='V'
         else:
             self.units='kV'
-
-        self._netcdf = f
 
     def calc_pot_drop(self):
         '''
@@ -1730,23 +1727,13 @@ class IonoPotScb(PbData):
         The new data entry is stored using key 'ceqp', which stands for the
         cross equatorial potential.
         '''
-        from numpy import zeros
-
-        self['ceqp'] = zeros(len(self.time))
+        self['ceqp'] = np.zeros(len(self.time))
 
         for i in range(len(self.time)):
             self['ceqp'][i] = self['PhiIono'][i,:,:].max() - \
                 self['PhiIono'][i,:,:].min()
-        if self.units=='V':
-            self['ceqp']=self['ceqp']/1000.0
-
-
-    def close(self):
-        '''
-        Close the NetCDF file.  This will make values stored inside of the
-        file unavailable to the user.
-        '''
-        self._netcdf.close()
+        if self.units == 'V':
+            self['ceqp'] = self['ceqp']/1000.0
 
     def plot_eqPot(self, time, target=None, range=200, n=31, add_cbar=True):
         '''
@@ -1785,19 +1772,17 @@ class IonoPotScb(PbData):
             (e.g. loc=212, etc.) Used if target is a Figure or None.
             Default 111 (single plot).
 
-
         '''
 
         import matplotlib.pyplot as plt
         from matplotlib.colors import Normalize
         from matplotlib.ticker import MultipleLocator
-        from numpy import linspace
 
         fig, ax = set_target(target, loc=111)
 
-        cmap=get_iono_cb('bwr')
+        cmap = get_iono_cb('bwr')
         crange = Normalize(vmin=-1.*range, vmax=range)
-        levs = linspace(-1*range, range, n)
+        levs = np.linspace(-1*range, range, n)
 
         factor = 1.0
         if self.units=='V':
