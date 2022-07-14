@@ -1679,7 +1679,7 @@ class LogFile(PbData):
         return fig, ax
 
 ############################################################################
-class IonoPotScb(object):
+class IonoPotScb(PbData):
     '''
     The 3D equilibrium code produces NetCDF files that contain the
     ionospheric potential on the polar cap as well as mapped to the
@@ -1688,24 +1688,7 @@ class IonoPotScb(object):
 
     For quick parsing of these files, PyNIO is required.
     '''
-
-    def __getitem__(self, key):
-        if key in self.filedata:
-            return self.filedata[key].get_value()
-        elif key in self.data:
-            return self.data[key]
-        else:
-            raise KeyError('Key not found in object.')
-    def __setitem__(self, key,value):
-        self.data[key]=value
-
-    def keys(self):
-        '''
-        List all keys for data objects stored in the IonoPotScb object.
-        '''
-        return list(self.filedata.keys()) + list(self.data.keys())
-
-    def __init__(self, filename):
+    def __init__(self, filename, *args, **kwargs):
         try:
             from PyNIO import Nio
         except ImportError:
@@ -1714,6 +1697,7 @@ class IonoPotScb(object):
             except ImportError:
                 raise ImportError('PyNIO required, not found.')
 
+        super(IonoPotScb, self).__init__(*args, **kwargs)
         self.filename=filename
 
         # Load file as Nio object.
@@ -1721,11 +1705,12 @@ class IonoPotScb(object):
         self.NameVars = list(f.variables.keys())
         self.attrs = f.attributes
         # self.filedata contains the raw NioVariable objects.
+        for var in f.variables:
+            self[var] = dmarray(f.variables[var].get_value())
         self.filedata = f.variables
         self.time = f.variables['time'].get_value()
         # New values saved as self[key] are stored in self.data, not
         # self.filedata which cannot be changed.
-        self.data={}
 
         # Determine units of potential.
         if self['PhiIono'].max()/1000.0 > 10.0:
@@ -1822,7 +1807,7 @@ class IonoPotScb(object):
         ax.set_xlabel('Y (R$_{E}$)')
         ax.set_ylabel('X (R$_{E}$)')
         cont = ax.contourf(self['yEq'][time,:,:], self['xEq'][time,:,:],
-                           self['PhiIono'][time,:,:]/factor,
+                           np.asarray(self['PhiIono'][time,:,:])/factor,
                            levs, norm=crange, cmap=cmap)
         add_body(ax, rotate=90.0)
         cbar=False
