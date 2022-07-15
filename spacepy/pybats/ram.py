@@ -8,7 +8,7 @@ import datetime as dt
 import numpy as np
 import scipy.io
 
-from spacepy.datamodel import dmarray, SpaceData
+import spacepy.datamodel as dm
 import spacepy.toolbox as tb
 import spacepy.plot.apionly
 from spacepy.plot import set_target, smartTimeTicks, applySmartTimeTicks
@@ -429,14 +429,14 @@ class EfieldFile(PbData):
 
         # Create containers.  Note that we don't know if the file
         # contains longitude or MLT at this point...
-        self['epot'] = dmarray(np.zeros(len(raw)),{'units':'keV'})
-        self['l']    = dmarray(np.zeros(len(raw)),{'units':'Re'})
-        mlt          = dmarray(np.zeros(len(raw)))
+        self['epot'] = dm.dmfilled(len(raw), attrs={'units': 'keV'})
+        self['l'] = dm.dmfilled(len(raw), attrs={'units': 'Re'})
+        mlt = dm.dmfilled(len(raw))
 
         for i, line in enumerate(raw):
             parts = line.split()
-            self['l'][i]    = parts[0]
-            mlt[i]          = parts[1]
+            self['l'][i] = parts[0]
+            mlt[i] = parts[1]
             self['epot'][i] = parts[2]
 
         # Use header to determine if we have MLT or Phi.
@@ -513,7 +513,7 @@ class WeqFile(EfieldFile):
 
 
 ############################################################################
-class RamSat(SpaceData):
+class RamSat(PbData):
     '''
     A class to handle and plot RAM-SCB virtual satellite files.  Instantiate
     an object by simply calling:
@@ -561,7 +561,7 @@ class RamSat(SpaceData):
                 self.attrs[k] = tmp
 
         for var in self.f.variables:
-            self[var] = dmarray(self.f.variables[var][...])
+            self[var] = dm.dmarray(self.f.variables[var][...])
 
         # Get start time, set default if not found.
         try:
@@ -627,7 +627,7 @@ class RamSat(SpaceData):
             # assume bin width for zeroth bin is same as first,
             # and that zeroth PA is zero.
             grdif = np.diff(self['pa_grid'])
-            self['pa_width'] = dmarray(np.r_[grdif[0], grdif])
+            self['pa_width'] = dm.dmarray(np.r_[grdif[0], grdif])
         dMu = 4*np.pi*self['pa_width']
 
         for omkey, fluxkey in omnikeys:
@@ -968,14 +968,14 @@ class PlasmaBoundary(PbData):
                                     int(parts[6])) #sec
         # Save header info that is useful.
         raw.pop(0)
-        self.attrs['namevar']=raw.pop(0).split()
-        self.attrs['npoints']=len(raw)
+        self.attrs['namevar'] = raw.pop(0).split()
+        self.attrs['npoints'] = len(raw)
 
         # Parse remaining data into a dictionary:
-        units = {'l':'hours', 'R':'cm-3', 'p':'eV'}
+        units = {'l': 'hours', 'R': 'cm-3', 'p': 'eV'}
         for name in self.attrs['namevar']:
-            self[name] = dmarray(np.zeros(self.attrs['npoints']),
-                                 attrs={'units':units[name[0]]})
+            self[name] = dm.dmfilled(self.attrs['npoints'],
+                                    attrs={'units': units[name[0]]})
 
         for i, line in enumerate(raw):
             vals = line.split()
@@ -1035,11 +1035,11 @@ class BoundaryGroup(PbData):
         # Use info from first file to set up data structures.
         temp = PlasmaBoundary(files[0])
         namevar = temp.attrs['namevar']
-        self['time'] = dmarray(np.zeros(nfiles, dtype=object))
+        self['time'] = dm.dmfilled(nfiles, dtype=object)
 
         for name in namevar:
-            self[name] = dmarray(np.zeros((25,nfiles)),
-                                 attrs={'units':temp[name].attrs['units']})
+            self[name] = dm.dmfille((25,nfiles), fillval=0,
+                                    attrs={'units': temp[name].attrs['units']})
 
         for i, f in enumerate(files):
             temp = PlasmaBoundary(f)
@@ -1048,10 +1048,10 @@ class BoundaryGroup(PbData):
             self['time'][i]=(temp.attrs['time'])
 
         # Create some new values to plot:
-        self['nAll'] = dmarray(self['RhoH'] + self[namevar[2]] + self['RhoO'],
-                               attrs={'units':'cm-3'})
-        self['ratO']= dmarray(100.0*self['RhoO']/self['nAll'],
-                              attrs={'units':'\%'})
+        self['nAll'] = dm.dmarray(self['RhoH'] + self[namevar[2]] + self['RhoO'],
+                                  attrs={'units': 'cm-3'})
+        self['ratO'] = dm.dmarray(100.0*self['RhoO']/self['nAll'],
+                                  attrs={'units': '\%'})
 
         if rotate:
             for val in list(self.keys()):
@@ -1212,16 +1212,16 @@ class PressureFile(PbData):
             if vname.lower() == 'lsh':
                 varlist.append('L')
                 varidx.append(idx)
-                self['L']     = dmarray(np.zeros(nRec), attrs={'units': 'RE'})
+                self['L']     = dm.dmfilled(nRec, attrs={'units': 'RE'})
             elif vname.lower() == 'mlt':
                 varlist.append('mlt')
                 varidx.append(idx)
-                self['mlt']   = dmarray(np.zeros(nRec), attrs={'units': 'Hours'})
+                self['mlt']   = dm.dmfilled(nRec, attrs={'units': 'Hours'})
             else:
                 ent_name = name_map(vname)
                 varlist.append(ent_name)
                 varidx.append(idx)
-                self[ent_name]  = dmarray(np.zeros(nRec), attrs={'units': p_unit})
+                self[ent_name]  = dm.dmfilled(nRec, attrs={'units': p_unit})
 
         try:
             self.attrs['time'] = parse(lines[0][5:28], fuzzy=True)
@@ -1583,24 +1583,24 @@ class LogFile(PbData):
         namevar.pop(namevar.index('time'))
 
         # Create containers for data:
-        self['runtime']=dmarray(np.zeros(nPts),attrs={'units':'s'})
-        self['time'] = dmarray(np.zeros(nPts, dtype=object))
-        self['iter'] = dmarray(np.zeros(nPts))
+        self['runtime'] = dm.dmfilled(nPts, attrs={'units': 's'})
+        self['time'] = dm.dmfilled(nPts, dtype=object)
+        self['iter'] = dm.dmfilled(nPts)
         for name in namevar:
-            self[name] = dmarray(np.zeros(nPts))
+            self[name] = dm.dmfilled(nPts)
 
         for i, line in enumerate(raw[:nPts]):
             vals = line.split()
             # Set time:
-            self['time'][i]=(dt.datetime(
-                int(vals[loc['year']]), # Year
-                int(vals[loc['mo']  ]), # Month
-                int(vals[loc['dy']]), # Day
-                int(vals[loc['hr']]), # Hour
-                int(vals[loc['mn']]), # Minute
-                int(vals[loc['sc']]), # Second
-                ))
-            self['runtime'][i]=float(vals[loc['time']])
+            self['time'][i] = (dt.datetime(int(vals[loc['year']]), # Year
+                                           int(vals[loc['mo']  ]), # Month
+                                           int(vals[loc['dy']]), # Day
+                                           int(vals[loc['hr']]), # Hour
+                                           int(vals[loc['mn']]), # Minute
+                                           int(vals[loc['sc']]), # Second
+                                           )
+                               )
+            self['runtime'][i] = float(vals[loc['time']])
             # Collect data
             for j, name in enumerate(namevar):
                 self[name][i] = float(vals[loc[name]])
@@ -1707,7 +1707,7 @@ class IonoPotScb(PbData):
             self.NameVars = list(nfh.variables.keys())
             # self.filedata contains the raw netcdf objects.
             for var in nfh.variables:
-                self[var] = dmarray(nfh.variables[var][...])
+                self[var] = dm.dmarray(nfh.variables[var][...])
             self.filedata = nfh.variables
             self.time = nfh.variables['time'][...]
 
@@ -1727,7 +1727,7 @@ class IonoPotScb(PbData):
         The new data entry is stored using key 'ceqp', which stands for the
         cross equatorial potential.
         '''
-        self['ceqp'] = np.zeros(len(self.time))
+        self['ceqp'] = dm.dmfilled(len(self.time), fillval=0)
 
         for i in range(len(self.time)):
             self['ceqp'][i] = self['PhiIono'][i,:,:].max() - \
