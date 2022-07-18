@@ -101,7 +101,7 @@ def young_comp(kp, f107):
     >>> FracH, FracHe, FracO = young_comp(5, 150.0)
 
     '''
-    ratOH = 4.5E-2 * np.exp(0.17*kp + 0.01*f107)  # Eq. 5, pg. 9088
+    ratOH = 4.5E-2 * np.exp(0.17*kp + 0.01*f107)  # +/-0.21; Eq. 5, pg. 9088
     ratHeH = 0.618182*ratOH*np.exp(-0.24*kp - 0.011*f107) + 0.011*ratOH
     fracH = 1.0 / (1.0 + ratHeH + ratOH)
     fracHe = ratHeH * fracH
@@ -1552,7 +1552,7 @@ class LogFile(PbData):
         # Parse the header.
         self.attrs['descrip'] = raw.pop(0)
         namevar = (raw.pop(0)).split()
-        nCols = namevar
+        nCols = len(namevar)
         loc = {}
         for i, name in enumerate(namevar):
             loc[name] = i
@@ -1567,13 +1567,8 @@ class LogFile(PbData):
         self.attrs['npts'] = nPts
 
         # Pop time/date names off of Namevar.
-        namevar.pop(namevar.index('year'))
-        namevar.pop(namevar.index('mo'))
-        namevar.pop(namevar.index('dy'))
-        namevar.pop(namevar.index('hr'))
-        namevar.pop(namevar.index('mn'))
-        namevar.pop(namevar.index('sc'))
-        namevar.pop(namevar.index('time'))
+        for nvr in ['year', 'mo', 'dy', 'hr', 'mn', 'sc', 'msc', 'time']:
+            namevar.pop(namevar.index(nvr))
 
         # Create containers for data:
         self['runtime'] = dm.dmfilled(nPts, attrs={'units': 's'})
@@ -1591,6 +1586,7 @@ class LogFile(PbData):
                                            int(vals[loc['hr']]),  # Hour
                                            int(vals[loc['mn']]),  # Minute
                                            int(vals[loc['sc']]),  # Second
+                                           int(vals[loc['msc']])*1000  # microsec
                                            )
                                )
             self['runtime'][i] = float(vals[loc['time']])
