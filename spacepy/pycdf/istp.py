@@ -1175,13 +1175,23 @@ class VarBundle(object):
     chaining operations, or to load just the relevant data from a CDF
     into a :class:`~spacepy.datamodel.SpaceData`.
 
+    ``VarBundle`` operates on a single variable within a file and
+    its various dependencies, uncertainties, labels, etc. That variable
+    can be specified one of two ways. A :class:`~spacepy.pycdf.Var`
+    can be passed as the only parameter, which implicitly defines
+    the input file (the CDF containing that variable). Or, the file
+    can be passed as the first parameter, and the name of a variable
+    within it as the second variable.
+
     Unusual or indecipherable error messages may indicate an ISTP
     compliance issue; see :class:`VariableChecks` for some checks.
 
     Parameters
     ----------
-    var : :class:`~spacepy.pycdf.Var`
-        Variable to process
+    source : :class:`~spacepy.pycdf.CDF` or :class:`~spacepy.pycdf.Var`
+        CDF containing the variable to process, or the variable itself.
+    name : :class:`str`
+        Name of the variable within ``source`` to process ("main variable").
 
     See Also
     --------
@@ -1207,6 +1217,7 @@ class VarBundle(object):
     ...
     >
     >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
+    >>> b = spacepy.pycdf.istp.VarBundle(infile, 'FPDU')  # Equivalent
     >>> outfile = spacepy.pycdf.CDF('output.cdf', create=True)
     >>> b.slice(1, 2, single=True).output(outfile)
     <VarBundle:
@@ -1253,17 +1264,19 @@ class VarBundle(object):
 
     """
 
-    def __init__(self, var):
+    def __init__(self, source, name=None):
         """Initialize variable bundle
 
         Parameters
         ----------
-        var : :class:`~spacepy.pycdf.Var`
-            Variable to process
+        source : :class:`~spacepy.pycdf.CDF` or :class:`~spacepy.pycdf.Var`
+            CDF containing the variable to process, or the variable itself.
+        name : :class:`str`
+            Name of the variable within ``source`` to process ("main variable").
         """
-        self.mainvar = var
+        self.mainvar = source if name is None else source[name]
         """The variable to operate on."""
-        self.cdf = self.mainvar.cdf_file
+        self.cdf = self.mainvar.cdf_file if name is None else source
         """Input CDF file containing the main variable."""
         self._varinfo = {}
         """Keyed by variable name. Values are also dicts, keys are

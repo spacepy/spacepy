@@ -915,6 +915,28 @@ class VarBundleChecks(VarBundleChecksBase):
                 dimension, bundle._varinfo[varname].get('thisdim', None),
                 varname)
 
+    def testNameSeparate(self):
+        """Specify source and variable name separately"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.indata, 'SectorRateScalersCounts')
+        self.assertEqual(
+            [
+                'ATC',
+                'SectorNumbers',
+                'SectorRateScalerNames',
+                'SectorRateScalersCounts',
+                'SectorRateScalersCountsSigma',
+                'SpinNumbers',
+            ],
+            sorted(bundle._varinfo.keys()))
+        self.assertEqual(bundle.mainvar.name(),
+                         self.indata['SectorRateScalersCounts'].name())
+        self.assertIs(bundle.cdf, self.indata)
+        self.assertEqual(
+            [0], bundle._varinfo['ATC']['dims'])
+        self.assertEqual(
+            [slice(None)], bundle._varinfo['ATC']['slice'])
+
     def testSliceRecordStr(self):
         """Slice away record dimension and get str"""
         bundle = spacepy.pycdf.istp.VarBundle(
