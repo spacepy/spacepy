@@ -1977,27 +1977,26 @@ class GeoMltFile(object):
         Load contents from *self.filename*.
         '''
         # Open file
-        f = open(self.filename, 'r')
+        with open(self.filename, 'r') as fh:
+            # #Parse header information#
+            # Read header
+            for i in range(3):
+                self.header.append(fh.readline())
+            # Set measurement type:
+            if (self.header[0]).find('electron') > 0:
+                self.particle = 'electron'
+            # Parse energy grid.
+            parts = fh.readline().split()
+            # pop three times
+            parts.pop(0)
+            parts.pop(0)
+            parts.pop(0)
+            self.egrid[:] = parts[-36:]
 
-        # #Parse header information#
-        # Read header
-        for i in range(3):
-            self.header.append(f.readline())
-        # Set measurement type:
-        if (self.header[0]).find('electron') > 0:
-            self.particle = 'electron'
-        # Parse energy grid.
-        parts = f.readline().split()
-        # pop three times
-        parts.pop(0)
-        parts.pop(0)
-        parts.pop(0)
-        self.egrid[:] = parts[-36:]
+            # ## Parse fluxes. ##
+            # Slurp rest of file and close.
+            lines = fh.readlines()
 
-        # ## Parse fluxes. ##
-        # Slurp rest of file and close.
-        lines = f.readlines()
-        f.close()
         # Grab L-grid.
         lt = []
         lt.append(float(lines[0].split()[1]))
@@ -2050,7 +2049,7 @@ class GeoMltFile(object):
 
     def __iadd__(self, other):
         '''
-        Append another **GeoMltFile** object to this one.
+        Append another **GeoMltFile** object to this one using +=
         '''
         if type(self) != type(other):
             raise TypeError(
@@ -2076,7 +2075,10 @@ class GeoMltFile(object):
 
         return self
 
-    def plot_epoch_flux(self, epoch=0, target=None, loc=111):
+    __add__ = __iadd__  # allow add syntax as well as in-place add
+
+    def plot_epoch_flux(self, epoch=0, target=None, loc=111,
+                        title=None):
         '''
         Plot fluxes for a single file epoch.
         '''
@@ -2098,8 +2100,12 @@ class GeoMltFile(object):
         cbar.set_label('$cm^{-2}s^{-1}ster^{-1}keV^{-1}$')
         ax.set_xlim([0, 24])
         ax.set_ylim([0, len(egrid)])
-        ax.set_title('Flux at Boundary - %s' % self.filename)
-        ax.set_xlabel('Local Time Sector')
+
+        default_title = 'Flux at Boundary - {}\n{}'.format(self.filename,
+                                                           self.time[epoch])
+        use_title = default_title if title is None else title
+        ax.set_title(use_title)
+        ax.set_xlabel('Local Time (hr)')
         # Use actual energy channels.
         ax.set_ylabel('Energy (keV)')
         newlabs = []
