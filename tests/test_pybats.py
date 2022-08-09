@@ -141,7 +141,7 @@ class TestIdlFile(unittest.TestCase):
     knownMhdXmin = -220.0
     knownMhdZlim = 124.0
     knownMhdTime = dt.datetime(2014, 4, 10, 0, 0, 50)
-    
+
     # Known values for multi-frame *.outs files:
     # Time/iteration range covered by files:
     knownIterRng1  = [2500, 2512]
@@ -165,7 +165,7 @@ class TestIdlFile(unittest.TestCase):
 
         # Test time attribute:
         self.assertEqual(self.knownMhdTime, mhd.attrs['time'])
-        
+
         # Test units are loaded correctly:
         for v in mhd:
             if v not in self.varnames: continue
@@ -690,12 +690,12 @@ class TestGitm(unittest.TestCase):
         self.assertAlmostEqual(   self.lat1, f['Latitude'][0,-1], 6)
         self.assertAlmostEqual(-1*self.lat1, f['Latitude'][0, 0], 6)
 
-class RampyTests(unittest.TestCase):
+class RamTests(unittest.TestCase):
     '''
-    Tests for pybats.rampy
+    Tests for pybats.ram
     '''
     def setUp(self):
-        super(RampyTests, self).setUp()
+        super(RamTests, self).setUp()
         self.testfile = os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'ramsat_test.nc')
         self.p_test = os.path.join(spacepy_testing.datadir, 'pybats_test',
@@ -704,7 +704,7 @@ class RampyTests(unittest.TestCase):
                                    'rampress_test_noe.dat')
 
     def tearDown(self):
-        super(RampyTests, self).tearDown()
+        super(RamTests, self).tearDown()
 
     def test_RamSat_load(self):
         '''Test that RAM satellite netCDF will load'''
