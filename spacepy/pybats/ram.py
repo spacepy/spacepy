@@ -9,6 +9,7 @@ import numpy as np
 import scipy.io
 
 import spacepy.datamodel as dm
+import spacepy.time as spt
 import spacepy.toolbox as tb
 import spacepy.plot.apionly
 from spacepy.plot import set_target, applySmartTimeTicks
@@ -1959,7 +1960,8 @@ class GeoMltFile(object):
     contain LANL geosynchronous multi-satellite averaged, MLT-interpolated
     fluxes.
     '''
-    def __init__(self, filename=None, scrub=True):
+    def __init__(self, filename=None, scrub=True,
+                 compressed=False):
         # Create empty arrays.
         self.flux = np.zeros([288, 24, 36])
         self.time = np.zeros(288, dtype=object)
@@ -1970,23 +1972,30 @@ class GeoMltFile(object):
 
         if filename:
             self.filename = filename
-            self.read()
+            self.read(compressed=compressed)
 
-    def read(self):
+    def read(self, compressed=False):
         '''
         Load contents from *self.filename*.
         '''
+        import gzip
         # Open file
-        with open(self.filename, 'r') as fh:
+        myopen = open if not compressed else gzip.open
+        with myopen(self.filename, 'r') as fh:
+            def read_compressed(filehandle=fh):
+                return filehandle.readline().decode()
+            read_one_line = fh.readline if not compressed else read_compressed
             # #Parse header information#
             # Read header
             for i in range(3):
-                self.header.append(fh.readline())
+                line = read_one_line()
+                self.header.append(line)
             # Set measurement type:
+
             if (self.header[0]).find('electron') > 0:
                 self.particle = 'electron'
             # Parse energy grid.
-            parts = fh.readline().split()
+            parts = read_one_line().split()
             # pop three times
             parts.pop(0)
             parts.pop(0)
@@ -2061,7 +2070,7 @@ class GeoMltFile(object):
         if any(self.lgrid != other.lgrid):
             raise ValueError('both items must have identical MLT grids!')
         if self.particle != other.particle:
-            raise ValueError('both items must have identical partilces!')
+            raise ValueError('both items must have identical particles!')
 
         # Append data together:
         self.time = np.append(self.time, other.time)
@@ -2077,20 +2086,61 @@ class GeoMltFile(object):
 
     __add__ = __iadd__  # allow add syntax as well as in-place add
 
+    def timeseries_append(self, other):
+        '''
+        If *other* is of the same type as self, and both have a 'time'
+        entry, append all arrays within *other* that have the same size as
+        'time' to the corresponding arrays within self.  This is useful
+        for combining time series data of consecutive data.
+        '''
+        return self.__add__(other)
+
     def plot_epoch_flux(self, epoch=0, target=None, loc=111,
                         title=None):
         '''
-        Plot fluxes for a single file epoch.
+        Plot fluxes (j(E, MLT)) for a single time
+
+        Parameters
+        ----------
+        epoch : integer or datetime or spacepy.time.Ticktock
+            If integer, the index corresponding to the time to be plotted.
+            If a supported time type (datetime or Ticktock), the nearest
+            index will be looked up and selected.
+        target : object
+            Target for plotting. If kwarg *target* is **None** (default),
+            a new figure is generated. If *target* is a matplotlib Figure
+            object, a new axis is created to fill that figure at subplot
+            location *loc* (defaults to 111). If target is a matplotlib
+            Axes object, the plot is placed into that axis at subplot
+            location *loc*.
+        loc : integer
+            Designator for axis location. See description of target.
+        title: str or None
+            If not None, specifies the axis title.
+
+        Returns
+        -------
+        fig : object
+          A matplotlib figure object on which to plot.
+
+        ax : object
+          A matplotlib subplot object on which to plot.
+
         '''
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
         from matplotlib.ticker import LogLocator, LogFormatterMathtext
 
+        if isinstance(epoch, int):
+            ep_idx = epoch
+        else:
+            ep_idx = self.get_index_from_time(epoch)
+
         fig, ax = set_target(target, loc=loc)
 
         egrid = np.array(range(len(self.egrid)+1))
         lgrid = np.array(range(len(self.lgrid)+1))
-        flux = self.flux[epoch, :, :].transpose()
+        flux = self.flux[ep_idx, :, :].transpose()
         flux[flux < 0.01] = 0.01
         flx = ax.pcolormesh(lgrid, egrid, flux,
                             norm=LogNorm(vmin=0.01, vmax=1e10),
@@ -2102,7 +2152,7 @@ class GeoMltFile(object):
         ax.set_ylim([0, len(egrid)])
 
         default_title = 'Flux at Boundary - {}\n{}'.format(self.filename,
-                                                           self.time[epoch])
+                                                           self.time[ep_idx])
         use_title = default_title if title is None else title
         ax.set_title(use_title)
         ax.set_xlabel('Local Time (hr)')
@@ -2114,3 +2164,40 @@ class GeoMltFile(object):
         ax.set_yticklabels(newlabs)
 
         return fig, ax
+
+    def get_index_from_time(self, epoch):
+        '''
+        Given a UTC time (datetime or Ticktock), return nearest index
+
+        Parameters
+        ----------
+        epoch : datetime.datetime or spacepy.time.Ticktock
+            Time as a supported type (UTC as datetime.datetime or
+            spacepy.time.Ticktock). The nearest index to this time
+            will be looked up and returned.
+
+        Returns
+        -------
+        idx : integer
+        '''
+        import bisect
+        if isinstance(epoch, spt.Ticktock):
+            utc = epoch.UTC[0]
+        elif isinstance(epoch, dt.datetime):
+            utc = epoch
+        else:
+            raise TypeError('Unsupported type in get_index_from_time: ' +
+                            'Supported types are [datetime.datetime, ' +
+                            'spacepy.time.Ticktock, int]')
+        cidx = bisect.bisect_left(self.time, utc)
+        if cidx == 0:
+            idx = 0
+        elif cidx == len(self.time):
+            idx = len(self.time)-1
+        else:
+            deltaleft = np.abs((utc - self.time[cidx-1]).total_seconds())
+            deltaright = np.abs((utc - self.time[cidx]).total_seconds())
+            print(cidx, deltaleft, deltaright)
+            idx = cidx-1 if deltaleft <= deltaright else cidx
+
+        return idx
