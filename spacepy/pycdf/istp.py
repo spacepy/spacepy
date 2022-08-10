@@ -1333,13 +1333,14 @@ class VarBundle(object):
             elif thisvar.attrs[a] != mainname:
                 raise ValueError('{}: attribute {} not in main var'
                                  .format(deltaname, a))
-        if thisvar.rv() and not mainvar.rv():
+        rv = thisvar.rv()
+        if rv and not self._varinfo[mainname]['rv']:
             raise ValueError(
                 '{}: Cannot handle RV DELTA with NRV variable.'
                 .format(deltaname))
         thisshape = thisvar.shape
         mainshape = mainvar.shape
-        if not thisvar.rv() and mainvar.rv(): #Ignore record dim
+        if not rv and self._varinfo[mainname]['rv']: #Ignore record dim
             mainshape = mainshape[1:]
         if thisshape != mainshape:
             raise ValueError('{}: DELTA/main var shape mismatch.'
@@ -1348,7 +1349,11 @@ class VarBundle(object):
         #get removed when actually slicing.
         result = { k: self._varinfo[mainname][k][:]
                   for k in ('dims', 'slice', 'postidx') }
-        result['sortorder'] = 2
+        result.update({
+            'dv': thisvar.dv(),
+            'rv': thisvar.rv(),
+            'sortorder': 2,
+            })
         return result
 
     def _getvarinfo(self):
@@ -1358,21 +1363,23 @@ class VarBundle(object):
         relate to the main variable, and find all DELTA variables.
         """
         name = self.mainvar.name()
+        rv = self.mainvar.rv()
         #Every dim maps back to itself for the main variable
-        dims = list(range(len(self.mainvar.shape)
-                          + int(not self.mainvar.rv())))
+        dims = list(range(len(self.mainvar.shape) + int(not rv)))
         self._degenerate = [False] * len(self.mainvar.shape)
         self._summed = [False] * len(self.mainvar.shape)
         self._mean = [False] * len(self.mainvar.shape)
-        if not self.mainvar.rv(): #Fake the 0-dim
+        if not rv: #Fake the 0-dim
             self._degenerate.insert(0, False)
             self._summed.insert(0, False)
             self._mean.insert(0, False)
         #And every dimension is a full slice, to start
         self._varinfo[name] = {
             'dims': dims,
+            'dv': self.mainvar.dv(),
             'slice': [slice(None)] * len(dims),
             'postidx': [slice(None)] * len(dims),
+            'rv': rv,
             'sortorder': 0,
             'vartype': 'M',
         }
@@ -1397,8 +1404,9 @@ class VarBundle(object):
             #Dimension of main var that corresponds to this var
             dim = int(a.split('_')[-1])
             dims = [0,] #Record dim always matches
+            rv = thisvar.rv()
             #For every CDF (non-record) dim, match to the main variable
-            for i in range(1, len(thisvar.shape) + int(not thisvar.rv())):
+            for i in range(1, len(thisvar.shape) + int(not rv)):
                 #DEPEND; LABL_PTR for this dimension
                 dim_dep = 'DEPEND_{}'.format(i)
                 labl_dep = 'LABL_PTR_{}'.format(i)
@@ -1422,8 +1430,10 @@ class VarBundle(object):
                                  .format(thisname))
             self._varinfo[thisname] = {
                 'dims': dims,
+                'dv': thisvar.dv(),
                 'slice': [slice(None)] * len(dims),
                 'postidx': [slice(None)] * len(dims),
+                'rv': rv,
                 'sortorder': 1 if a.startswith('DEPEND_') else 3,
                 'thisdim': dim,
                 'vartype': 'D',
@@ -1799,7 +1809,7 @@ class VarBundle(object):
             and ``averaged`` inputs.
         """
         #Correction for NRV variables in the mapping between dim and axis
-        nrv = int(not invar.rv())
+        nrv = int(not vinfo['rv'])
         #Degenerate slices have already been removed, so need
         #a map from old dim numbers to new ones. Note removing
         #the record dimension does not shift other dims!
@@ -1945,7 +1955,7 @@ class VarBundle(object):
             return None
         vinfo = self._varinfo[vname]
         invar = self.cdf[vname]
-        rv = invar.rv()
+        rv = vinfo['rv']
         shape = invar.shape
         sl = vinfo['slice']
         postidx = vinfo['postidx']
@@ -2114,8 +2124,8 @@ class VarBundle(object):
             postidx = vinfo['postidx']
             #Dimension size/variance for original variable
             #(0 index is CDF dimension 1)
-            dv = invar.dv()
-            rv = invar.rv() #and record variance
+            dv = self._varinfo[vname]['dv']
+            rv = self._varinfo[vname]['rv']  #and record variance
             #Scrub degenerate dimensions from the post-indexing
             #(record is never degenerate)
             postidx = [postidx[i] for i in range(len(postidx))
@@ -2241,7 +2251,7 @@ class VarBundle(object):
                 #RV vars always have dim 0 as axis 0, so they become
                 #NRV iff dim 0 of the main var goes away
                 ' NRV' if shape is not None
-                and (not self.cdf[vname].rv() or max(
+                and (not self._varinfo[vname]['rv'] or max(
                     self._degenerate[0], self._summed[0], self._mean[0]))
                 else ''
             )
