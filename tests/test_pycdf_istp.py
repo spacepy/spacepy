@@ -917,6 +917,8 @@ class VarBundleChecks(VarBundleChecksBase):
 
     def testVar(self):
         """Specify source as a Var object"""
+        if self.indata is not self.incdf:
+            return  # Only works with CDF inputs
         bundle = spacepy.pycdf.istp.VarBundle(
             self.indata['SectorRateScalersCounts'])
         self.assertEqual(
@@ -943,13 +945,19 @@ class VarBundleChecks(VarBundleChecksBase):
             self.indata, 'SectorRateScalersCounts')
         bundle.slice(0, 2, 20).mean(0)
         expected = """
-        SectorRateScalersCounts: CDF_FLOAT [18, 32, 9] NRV
-            SectorRateScalersCountsSigma: CDF_FLOAT [18, 32, 9] NRV
-        ATC: CDF_EPOCH16 ---
-        SpinNumbers: CDF_CHAR*2 [18] NRV
-        SectorNumbers: CDF_CHAR*2 [32] NRV
-        SectorRateScalerNames: CDF_CHAR*9 [9] NRV
+        SectorRateScalersCounts: {0} [18, 32, 9] NRV
+            SectorRateScalersCountsSigma: {0} [18, 32, 9] NRV
+        ATC: {1} ---
+        SpinNumbers: {2}2 [18] NRV
+        SectorNumbers: {2}2 [32] NRV
+        SectorRateScalerNames: {2}9 [9] NRV
         """
+        cdfin = self.incdf is self.indata
+        expected = expected.format(
+            'CDF_FLOAT' if cdfin else 'float32',
+            'CDF_EPOCH16' if cdfin else 'object',
+            'CDF_CHAR*' if cdfin else str(numpy.dtype(str))[:2],
+        )
         expected = inspect.cleandoc(expected).split('\n')
         self.assertEqual(expected, str(bundle).split('\n'))
 
@@ -995,6 +1003,14 @@ class VarBundleChecks(VarBundleChecksBase):
         numpy.testing.assert_array_equal(
             data['SectorRateScalersCounts'][...],
             self.indata['SectorRateScalersCounts'][...])
+
+
+class VarBundleChecksInputSD(VarBundleChecks):
+    """Checks for VarBundle, SpaceData input"""
+
+    def setUp(self):
+        super(VarBundleChecksInputSD, self).setUp()
+        self.indata = self.incdf.copy()
 
 
 class VarBundleOutputCDF(VarBundleChecksBase):
@@ -1391,12 +1407,28 @@ class VarBundleOutputCDF(VarBundleChecksBase):
             self.output['SectorNumbers_2-3'].attrs['FIELDNAM'])
 
 
+class VarBundleInputSDOutputCDF(VarBundleOutputCDF):
+    """Checks for VarBundle class, in from SpaceData, output to CDF"""
+
+    def setUp(self):
+        super(VarBundleInputSDOutputCDF, self).setUp()
+        self.indata = self.incdf
+
+
 class VarBundleOutputSpaceData(VarBundleOutputCDF):
     """Checks for VarBundle, output to SpaceData"""
 
     def setUp(self):
         super(VarBundleOutputSpaceData, self).setUp()
         self.output = spacepy.SpaceData()
+
+
+class VarBundleInputSDOutputSD(VarBundleOutputSpaceData):
+    """Checks for VarBundle class, in/out SpaceData"""
+
+    def setUp(self):
+        super(VarBundleInputSDOutputSD, self).setUp()
+        self.indata = self.incdf
 
 
 class VarBundleChecksHOPE(VarBundleChecksBase):
@@ -1455,16 +1487,23 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         """Get string representation of bundle"""
         bundle = spacepy.pycdf.istp.VarBundle(self.indata, 'FPDU')
         bundle.slice(1, 1, single=True).slice(2, 0, 10)
+        cdfin = self.incdf is self.indata
         expected = """
-        FPDU: CDF_FLOAT [100, 10]
-        Epoch_Ion: CDF_EPOCH [100]
-            Epoch_Ion_DELTA: CDF_REAL4 [100]
-        PITCH_ANGLE: CDF_FLOAT ---
-            Pitch_LABL: CDF_CHAR*5 ---
-        HOPE_ENERGY_Ion: CDF_FLOAT [100, 10]
-            ENERGY_Ion_DELTA: CDF_FLOAT [100, 10]
-            Energy_LABL: CDF_CHAR*3 [10] NRV
+        FPDU: {0} [100, 10]
+        Epoch_Ion: {1} [100]
+            Epoch_Ion_DELTA: {2} [100]
+        PITCH_ANGLE: {0} ---
+            Pitch_LABL: {3}5 ---
+        HOPE_ENERGY_Ion: {0} [100, 10]
+            ENERGY_Ion_DELTA: {0} [100, 10]
+            Energy_LABL: {3}3 [10] NRV
         """
+        expected = expected.format(
+            'CDF_FLOAT' if cdfin else 'float32',
+            'CDF_EPOCH' if cdfin else 'object',
+            'CDF_REAL4' if cdfin else 'float32',
+            'CDF_CHAR*' if cdfin else str(numpy.dtype(str))[:2],
+        )
         expected = inspect.cleandoc(expected).split('\n')
         #Split on linebreak to get a better diff
         self.assertEqual(expected, str(bundle).split('\n'))
@@ -1486,6 +1525,14 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         for vname, shape in expected.items():
             self.assertEqual(
                 shape, bundle._outshape(vname), vname)
+
+
+class VarBundleChecksHOPEInputSD(VarBundleChecksHOPE):
+    """Checks for VarBundle class, in from HOPE SpaceData, no output"""
+
+    def setUp(self):
+        super(VarBundleChecksHOPEInputSD, self).setUp()
+        self.indata = self.incdf.copy()
 
 
 class VarBundleChecksHOPECDFOutput(VarBundleChecksBase):
@@ -1529,7 +1576,8 @@ class VarBundleChecksHOPECDFOutput(VarBundleChecksBase):
         expected = numpy.sum(self.indata['Counts_P'][...], axis=0)
         numpy.testing.assert_array_equal(
             self.output['Counts_P'][...], expected)
-        self.assertFalse(self.output['Counts_P'].rv())
+        if self.output is self.outcdf:  # RV is CDF variable concept
+            self.assertFalse(self.output['Counts_P'].rv())
         self.assertFalse('DEPEND_0' in self.output['Counts_P'].attrs)
         self.assertFalse('Epoch' in self.output)
         self.assertEqual(
@@ -1542,8 +1590,9 @@ class VarBundleChecksHOPECDFOutput(VarBundleChecksBase):
         expected = numpy.mean(self.indata['Counts_P'][...], axis=0)
         numpy.testing.assert_array_equal(
             self.output['Counts_P'][...], expected)
-        self.assertFalse(self.output['Counts_P'].rv())
         self.assertFalse('Epoch' in self.output)
+        if self.output is self.outcdf:  # RV is CDF variable concept
+            self.assertFalse(self.output['Counts_P'].rv())
         self.assertFalse('DEPEND_0' in self.output['Counts_P'].attrs)
         self.assertEqual(
             'PITCH_ANGLE', self.output['Counts_P'].attrs['DEPEND_1'])
@@ -1555,7 +1604,8 @@ class VarBundleChecksHOPECDFOutput(VarBundleChecksBase):
         expected = self.indata['Counts_P'][0, ...]
         numpy.testing.assert_array_equal(
             self.output['Counts_P'][...], expected)
-        self.assertFalse(self.output['Counts_P'].rv())
+        if self.output is self.outcdf:  # RV is CDF variable concept
+            self.assertFalse(self.output['Counts_P'].rv())
         self.assertFalse('DEPEND_0' in self.output['Counts_P'].attrs)
         self.assertFalse('Epoch' in self.output)
         self.assertEqual(
@@ -1603,12 +1653,28 @@ class VarBundleChecksHOPECDFOutput(VarBundleChecksBase):
             (0, 6), self.output['FPDU'].shape)
 
 
-class VarBundleChecksSpaceDataOutput(VarBundleChecksHOPE):
+class VarBundleChecksHOPEInputSDOutputCDF(VarBundleChecksHOPECDFOutput):
+    """Checks for VarBundle class, in from HOPE SpaceData, output to CDF"""
+
+    def setUp(self):
+        super(VarBundleChecksHOPEInputSDOutputCDF, self).setUp()
+        self.indata = self.incdf.copy()
+
+
+class VarBundleChecksHOPESpaceDataOutput(VarBundleChecksHOPECDFOutput):
     """Checks for VarBundle class, HOPE sample file, out to SpaceData"""
 
     def setUp(self):
-        super(VarBundleChecksSpaceDataOutput, self).setUp()
+        super(VarBundleChecksHOPESpaceDataOutput, self).setUp()
         self.output = spacepy.SpaceData()
+
+
+class VarBundleChecksHOPEInputSDOutputSD(VarBundleChecksHOPESpaceDataOutput):
+    """Checks for VarBundle class, HOPE sample file, in/out SpaceData"""
+
+    def setUp(self):
+        super(VarBundleChecksHOPEInputSDOutputSD, self).setUp()
+        self.indata = self.incdf.copy()
 
 
 class VarBundleChecksEPILoCDF(VarBundleChecksBase):
@@ -1672,11 +1738,27 @@ class VarBundleChecksEPILoCDF(VarBundleChecksBase):
 
 
 class VarBundleEPILoSpaceData(VarBundleChecksEPILoCDF):
-    """Checks for VarBundle class, HOPE sample file, out to SpaceData"""
+    """Checks for VarBundle class, EPI-Lo sample file, out to SpaceData"""
 
     def setUp(self):
         super(VarBundleEPILoSpaceData, self).setUp()
         self.output = spacepy.SpaceData()
+
+
+class VarBundleEPILoInputSDOutputCDF(VarBundleChecksEPILoCDF):
+    """Checks for VarBundle class, EPI-Lo sample file, in from SpaceData"""
+
+    def setUp(self):
+        super(VarBundleEPILoInputSDOutputCDF, self).setUp()
+        self.indata = self.incdf.copy()
+
+
+class VarBundleEPILoInputSDOutputSD(VarBundleEPILoSpaceData):
+    """Checks for VarBundle class, EPI-Lo sample file, in/out SpaceData"""
+
+    def setUp(self):
+        super(VarBundleEPILoInputSDOutputSD, self).setUp()
+        self.indata = self.incdf.copy()
 
 
 if __name__ == '__main__':

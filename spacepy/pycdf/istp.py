@@ -1278,6 +1278,8 @@ class VarBundle(object):
         """The variable to operate on."""
         self.cdf = self.mainvar.cdf_file if name is None else source
         """Input CDF file containing the main variable."""
+        self._name = self.mainvar.name() if name is None else name
+        """Name of the main variable"""
         self._varinfo = {}
         """Keyed by variable name. Values are also dicts, keys are
         ``dims``, list of the main variable dimensions corresponding
@@ -1300,7 +1302,7 @@ class VarBundle(object):
         """Index by dim, is this dim averaged."""
         self._getvarinfo()
 
-    def _process_delta(self, mainvar, deltaname):
+    def _process_delta(self, mainname, deltaname):
         """Handle DELTA_PLUS/DELTA_MINUS attributes
 
         A DELTA variable should be the same shape and the same
@@ -1308,10 +1310,10 @@ class VarBundle(object):
 
         Parameters
         ----------
-        mainvar : :class:`~spacepy.pycdf.Var`
-            Variable that references the DELTA, i.e. it has a
+        mainname : str
+            Name of variable that references the DELTA, i.e. it has a
             DELTA_PLUS_VAR/DELTA_MINUS_VAR attribute that references
-            ``deltavar``.
+            ``deltaname``.
 
         deltaname : str
             Name of the DELTA variable itself.
@@ -1322,7 +1324,7 @@ class VarBundle(object):
             dims/slice information suitable for inclusion in ``_varinfo``.
         """
         thisvar = self.cdf[deltaname]
-        mainname = mainvar.name()
+        mainvar = self.cdf[mainname]
         for a in thisvar.attrs: #Check that all dependencies match
             if not a.startswith(('DEPEND_', 'LABL_PTR_')):
                 continue
@@ -1362,7 +1364,6 @@ class VarBundle(object):
         For main variable and its dependencies, find how dimensions
         relate to the main variable, and find all DELTA variables.
         """
-        name = self.mainvar.name()
         rv = self.mainvar.rv()
         #Every dim maps back to itself for the main variable
         dims = list(range(len(self.mainvar.shape) + int(not rv)))
@@ -1374,7 +1375,7 @@ class VarBundle(object):
             self._summed.insert(0, False)
             self._mean.insert(0, False)
         #And every dimension is a full slice, to start
-        self._varinfo[name] = {
+        self._varinfo[self._name] = {
             'dims': dims,
             'dv': self.mainvar.dv(),
             'slice': [slice(None)] * len(dims),
@@ -1446,7 +1447,7 @@ class VarBundle(object):
                 if deltaname in self._varinfo:
                     continue
                 self._varinfo[deltaname] \
-                    = self._process_delta(thisvar, deltaname)
+                    = self._process_delta(thisname, deltaname)
                 self._varinfo[deltaname]['vartype'] = 'D' #just like other deps
                 self._varinfo[deltaname]['thisdim'] = dim
         for a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'): #Process DELTA vars
@@ -1456,7 +1457,7 @@ class VarBundle(object):
             if thisname not in self._varinfo:
                 #If DELTA_PLUS/DELTA_MINUS are same var, skip second one
                 self._varinfo[thisname] \
-                    = self._process_delta(self.mainvar, thisname)
+                    = self._process_delta(self._name, thisname)
                 self._varinfo[thisname]['vartype'] = 'U'
 
     def slice(self, dim, start=None, stop=None, step=None,
@@ -1732,8 +1733,9 @@ class VarBundle(object):
                 pass
             if not a in na or not numpy.array_equal(ia[a], na[a]):
                 return False
-            # CDF output only
-            if hasattr(na, 'type') and ia.type(a) != na.type(a):
+            # CDF input *and* output only
+            if hasattr(na, 'type') and hasattr(ia, 'type')\
+               and ia.type(a) != na.type(a):
                 return False
         #Finally check the data
         return (data == newvar[...]).all()
@@ -1847,7 +1849,7 @@ class VarBundle(object):
             else: #Should not happen
                 raise ValueError('Bad summation type.')
             if ax in avgme: #divide out
-                count = numpy.sum(~invalid, axis=ax)
+                count = numpy.sum(~invalid, axis=ax, dtype=data.dtype)
                 invalid = (count == 0)
                 count[invalid] = 1 #avoid warning
                 data = data / count
@@ -2011,7 +2013,7 @@ class VarBundle(object):
             l.sort(key=lambda x: (self._varinfo[x]['sortorder'], x))
         variables = [[(v, self._outshape(v))
                       for v in v_by_dim.get(None, [])]]
-        vi = self._varinfo[self.mainvar.name()]
+        vi = self._varinfo[self._name]
         for dim in vi['dims']:
             variables.append([
                 (v, self._outshape(v)) for v in v_by_dim.get(dim, [])])
@@ -2045,7 +2047,7 @@ class VarBundle(object):
         ...     getattr(b2, op)(*args, **kwargs)
         """
         ops = []
-        vi = self._varinfo[self.mainvar.name()]
+        vi = self._varinfo[self._name]
         for dim in vi['dims']:
             sl = vi['slice'][dim]
             postidx = vi['postidx'][dim]
@@ -2117,9 +2119,9 @@ class VarBundle(object):
             summed = [self._summed[d] for d in vinfo['dims']]
             #And averaged
             averaged = [self._mean[d] for d in vinfo['dims']]
-            # Read raw data for CDF output only
+            # Raw data for CDF input *and* output only
             invar = self.cdf.raw_var(vname) if hasattr(output, 'raw_var')\
-                    else self.cdf[vname]
+                    and hasattr(self.cdf, 'raw_var') else self.cdf[vname]
             sl = vinfo['slice'] #including 0th dim
             postidx = vinfo['postidx']
             #Dimension size/variance for original variable
@@ -2161,7 +2163,7 @@ class VarBundle(object):
             if outname in output:
                 preexist = True
                 newvar = output.raw_var(outname) if hasattr(output, 'raw_var')\
-                         else output[outname]
+                         and hasattr(self.cdf, 'raw_var') else output[outname]
                 if not self._same(newvar, invar, rv, dv, dims, data):
                     raise RuntimeError(
                         'Incompatible {} already exists in output.'
@@ -2173,7 +2175,6 @@ class VarBundle(object):
                         outname, type=invar.type(), recVary=rv,
                         dimVarys=dv, dims=dims,
                         n_elements=invar.nelems())
-                    newvar = output.raw_var(outname)
                     #Must create it empty so can change compression
                     newvar.compress(*invar.compress())
                     newvar[...] = data
@@ -2230,6 +2231,27 @@ class VarBundle(object):
         self.output(sd, suffix=suffix)
         return sd
 
+    @staticmethod
+    def _vtype(v):
+        """String representation of type of a variable
+
+        Parameters
+        ----------
+        v
+            Open CDF variable, numpy array, or similar
+
+        Returns
+        -------
+        str
+            String representation of type of ``v``, either as CDF type
+            or numpy type
+        """
+        # Kludge, but assumes main CDF code gets it right
+        res = str(v).split(' ')[0]
+        if res.startswith('CDF_'):
+            return res
+        return str(v.dtype)
+
     def __str__(self):
         """String representation of the bundle
 
@@ -2246,7 +2268,7 @@ class VarBundle(object):
             '{}{}: {} {}{}'.format(
                 ' ' * 4 if self._varinfo[vname]['sortorder'] > 1 else '',
                 vname,
-                str(self.cdf[vname]).split(' ')[0], #Grab type from Var str
+                self._vtype(self.cdf[vname]),
                 str(list(shape)) if shape is not None else '---',
                 #RV vars always have dim 0 as axis 0, so they become
                 #NRV iff dim 0 of the main var goes away
