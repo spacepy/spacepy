@@ -858,7 +858,7 @@ class VarBundleChecksBase(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
 
-class VarBundleChecks(VarBundleChecksBase):
+class VarBundleChecksCDFIn(VarBundleChecksBase):
     """Checks for VarBundle class, CAMMICE sample file"""
     testfile = 'po_l1_cam_test.cdf'
 
@@ -1005,19 +1005,19 @@ class VarBundleChecks(VarBundleChecksBase):
             self.indata['SectorRateScalersCounts'][...])
 
 
-class VarBundleChecksInputSD(VarBundleChecks):
+class VarBundleChecksSDIn(VarBundleChecksCDFIn):
     """Checks for VarBundle, SpaceData input"""
 
     def setUp(self):
-        super(VarBundleChecksInputSD, self).setUp()
+        super(VarBundleChecksSDIn, self).setUp()
         self.indata = self.incdf.copy()
 
 
-class VarBundleOutputCDF(VarBundleChecksBase):
+class VarBundleCDFInCDFOut(VarBundleChecksBase):
     """Checks for VarBundle class, output to CDF"""
 
     def setUp(self):
-        super(VarBundleOutputCDF, self).setUp()
+        super(VarBundleCDFInCDFOut, self).setUp()
         self.output = self.outcdf
 
     def testOutputSimple(self):
@@ -1407,31 +1407,31 @@ class VarBundleOutputCDF(VarBundleChecksBase):
             self.output['SectorNumbers_2-3'].attrs['FIELDNAM'])
 
 
-class VarBundleInputSDOutputCDF(VarBundleOutputCDF):
+class VarBundleSDInCDFOut(VarBundleCDFInCDFOut):
     """Checks for VarBundle class, in from SpaceData, output to CDF"""
 
     def setUp(self):
-        super(VarBundleInputSDOutputCDF, self).setUp()
+        super(VarBundleSDInCDFOut, self).setUp()
         self.indata = self.incdf
 
 
-class VarBundleOutputSpaceData(VarBundleOutputCDF):
+class VarBundleCDFInSDOut(VarBundleCDFInCDFOut):
     """Checks for VarBundle, output to SpaceData"""
 
     def setUp(self):
-        super(VarBundleOutputSpaceData, self).setUp()
+        super(VarBundleCDFInSDOut, self).setUp()
         self.output = spacepy.SpaceData()
 
 
-class VarBundleInputSDOutputSD(VarBundleOutputSpaceData):
+class VarBundleSDInSDOut(VarBundleCDFInSDOut):
     """Checks for VarBundle class, in/out SpaceData"""
 
     def setUp(self):
-        super(VarBundleInputSDOutputSD, self).setUp()
+        super(VarBundleSDInSDOut, self).setUp()
         self.indata = self.incdf
 
 
-class VarBundleChecksHOPE(VarBundleChecksBase):
+class VarBundleHOPECDFIn(VarBundleChecksBase):
     """Checks for VarBundle class, HOPE sample file"""
     testfile = os.path.join('data',
                             'rbspa_rel04_ect-hope-PA-L3_20121201_v0.0.0.cdf')
@@ -1527,21 +1527,21 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
                 shape, bundle._outshape(vname), vname)
 
 
-class VarBundleChecksHOPEInputSD(VarBundleChecksHOPE):
+class VarBundleHOPESDIn(VarBundleHOPECDFIn):
     """Checks for VarBundle class, in from HOPE SpaceData, no output"""
 
     def setUp(self):
-        super(VarBundleChecksHOPEInputSD, self).setUp()
+        super(VarBundleHOPESDIn, self).setUp()
         self.indata = self.incdf.copy()
 
 
-class VarBundleChecksHOPECDFOutput(VarBundleChecksBase):
+class VarBundleHOPECDFInCDFOut(VarBundleChecksBase):
     """Checks for VarBundle class, HOPE sample file, out to CDF"""
     testfile = os.path.join('data',
                             'rbspa_rel04_ect-hope-PA-L3_20121201_v0.0.0.cdf')
 
     def setUp(self):
-        super(VarBundleChecksHOPECDFOutput, self).setUp()
+        super(VarBundleHOPECDFInCDFOut, self).setUp()
         self.output = self.outcdf
 
     def tearDown(self):
@@ -1551,7 +1551,7 @@ class VarBundleChecksHOPECDFOutput(VarBundleChecksBase):
             category=spacepy.pycdf.CDFWarning,
             module='^spacepy.pycdf')
         try:
-            super(VarBundleChecksHOPECDFOutput, self).tearDown()
+            super(VarBundleHOPECDFInCDFOut, self).tearDown()
         finally:
             del warnings.filters[0]
 
@@ -1653,37 +1653,37 @@ class VarBundleChecksHOPECDFOutput(VarBundleChecksBase):
             (0, 6), self.output['FPDU'].shape)
 
 
-class VarBundleChecksHOPEInputSDOutputCDF(VarBundleChecksHOPECDFOutput):
+class VarBundleHOPESDInCDFOut(VarBundleHOPECDFInCDFOut):
     """Checks for VarBundle class, in from HOPE SpaceData, output to CDF"""
 
     def setUp(self):
-        super(VarBundleChecksHOPEInputSDOutputCDF, self).setUp()
+        super(VarBundleHOPESDInCDFOut, self).setUp()
         self.indata = self.incdf.copy()
 
 
-class VarBundleChecksHOPESpaceDataOutput(VarBundleChecksHOPECDFOutput):
+class VarBundleHOPECDFInSDOut(VarBundleHOPECDFInCDFOut):
     """Checks for VarBundle class, HOPE sample file, out to SpaceData"""
 
     def setUp(self):
-        super(VarBundleChecksHOPESpaceDataOutput, self).setUp()
+        super(VarBundleHOPECDFInSDOut, self).setUp()
         self.output = spacepy.SpaceData()
 
 
-class VarBundleChecksHOPEInputSDOutputSD(VarBundleChecksHOPESpaceDataOutput):
+class VarBundleHOPESDInSDOut(VarBundleHOPECDFInSDOut):
     """Checks for VarBundle class, HOPE sample file, in/out SpaceData"""
 
     def setUp(self):
-        super(VarBundleChecksHOPEInputSDOutputSD, self).setUp()
+        super(VarBundleHOPESDInSDOut, self).setUp()
         self.indata = self.incdf.copy()
 
 
-class VarBundleChecksEPILoCDF(VarBundleChecksBase):
+class VarBundleEPILoCDFInCDFOut(VarBundleChecksBase):
     """Checks for VarBundle class, EPILo sample file, CDF output"""
     testfile = os.path.join('data',
                             'psp_isois-epilo_l2-ic_20190401_v0.0.0.cdf')
 
     def setUp(self):
-        super(VarBundleChecksEPILoCDF, self).setUp()
+        super(VarBundleEPILoCDFInCDFOut, self).setUp()
         self.output = self.outcdf
 
     def tearDown(self):
@@ -1693,7 +1693,7 @@ class VarBundleChecksEPILoCDF(VarBundleChecksBase):
             category=spacepy.pycdf.CDFWarning,
             module='^spacepy.pycdf')
         try:
-            super(VarBundleChecksEPILoCDF, self).tearDown()
+            super(VarBundleEPILoCDFInCDFOut, self).tearDown()
         finally:
             del warnings.filters[0]
 
@@ -1737,27 +1737,27 @@ class VarBundleChecksEPILoCDF(VarBundleChecksBase):
         self.assertIn('H_CountRate_ChanT_TS', self.output)
 
 
-class VarBundleEPILoSpaceData(VarBundleChecksEPILoCDF):
+class VarBundleEPILoCDFInSDOut(VarBundleEPILoCDFInCDFOut):
     """Checks for VarBundle class, EPI-Lo sample file, out to SpaceData"""
 
     def setUp(self):
-        super(VarBundleEPILoSpaceData, self).setUp()
+        super(VarBundleEPILoCDFInSDOut, self).setUp()
         self.output = spacepy.SpaceData()
 
 
-class VarBundleEPILoInputSDOutputCDF(VarBundleChecksEPILoCDF):
+class VarBundleEPILoSDInCDFOut(VarBundleEPILoCDFInCDFOut):
     """Checks for VarBundle class, EPI-Lo sample file, in from SpaceData"""
 
     def setUp(self):
-        super(VarBundleEPILoInputSDOutputCDF, self).setUp()
+        super(VarBundleEPILoSDInCDFOut, self).setUp()
         self.indata = self.incdf.copy()
 
 
-class VarBundleEPILoInputSDOutputSD(VarBundleEPILoSpaceData):
+class VarBundleEPILoSDInSDOut(VarBundleEPILoCDFInSDOut):
     """Checks for VarBundle class, EPI-Lo sample file, in/out SpaceData"""
 
     def setUp(self):
-        super(VarBundleEPILoInputSDOutputSD, self).setUp()
+        super(VarBundleEPILoSDInSDOut, self).setUp()
         self.indata = self.incdf.copy()
 
 
