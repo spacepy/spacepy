@@ -857,6 +857,19 @@ class VarBundleChecksBase(unittest.TestCase):
             del warnings.filters[0]
         shutil.rmtree(self.tempdir)
 
+    @staticmethod
+    def CDFtoSD(f):
+        """Convert a CDF to SpaceData.
+
+        "Copying" a CDF to SpaceData results in VarCopy values, a
+        subclass of dmarray with extra methods. Need to test with
+        base dmarray, so this converts data down to it.
+        """
+        d = f.copy()
+        for k, v in d.items():
+            d[k] = spacepy.dmarray(v, attrs=v.attrs)
+        return d
+
 
 class VarBundleChecksCDFIn(VarBundleChecksBase):
     """Checks for VarBundle class, CAMMICE sample file"""
@@ -1010,7 +1023,7 @@ class VarBundleChecksSDIn(VarBundleChecksCDFIn):
 
     def setUp(self):
         super(VarBundleChecksSDIn, self).setUp()
-        self.indata = self.incdf.copy()
+        self.indata = self.CDFtoSD(self.incdf)
 
 
 class VarBundleCDFInCDFOut(VarBundleChecksBase):
@@ -1532,7 +1545,7 @@ class VarBundleHOPESDIn(VarBundleHOPECDFIn):
 
     def setUp(self):
         super(VarBundleHOPESDIn, self).setUp()
-        self.indata = self.incdf.copy()
+        self.indata = self.CDFtoSD(self.incdf)
 
 
 class VarBundleHOPECDFInCDFOut(VarBundleChecksBase):
@@ -1625,17 +1638,18 @@ class VarBundleHOPECDFInCDFOut(VarBundleChecksBase):
             newdelta.attrs.clone(delta.attrs)
             del cdf['Epoch_Ion_DELTA']
             newdelta.rename('Epoch_Ion_DELTA')
+        cdfinput = self.incdf is self.indata
         self.incdf = spacepy.pycdf.CDF(newtest)
-        self.indata = self.incdf
+        self.indata = self.incdf if cdfinput else self.CDFtoSD(self.incdf)
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf, 'FPDU')
         bundle.slice(0, 0, 10).output(self.output)
         numpy.testing.assert_array_equal(
-            self.output['FPDU'][...], self.incdf['FPDU'][0:10, ...])
+            self.output['FPDU'][...], self.indata['FPDU'][0:10, ...])
         numpy.testing.assert_array_equal(
-            self.output['Epoch_Ion'][...], self.incdf['Epoch_Ion'][0:10, ...])
-        numpy.testing.assert_array_equal(
-            self.output['Epoch_Ion_DELTA'][...],
-            self.incdf['Epoch_Ion_DELTA'][...])
+            self.output['Epoch_Ion'][...], self.indata['Epoch_Ion'][0:10, ...])
+        # assert_array_equal fails on numpy 1.15 for scalar dmarrays...
+        self.assertEqual(self.indata['Epoch_Ion_DELTA'][...],
+                         self.output['Epoch_Ion_DELTA'][...])
 
     def testSliceNoRecords(self):
         """Slice when there are no records on the input"""
@@ -1645,9 +1659,10 @@ class VarBundleHOPECDFInCDFOut(VarBundleChecksBase):
         shutil.copy2(self.testfile, newtest)
         with spacepy.pycdf.CDF(newtest, readonly=False) as cdf:
             del cdf['FPDU'][...] #Delete data not variable
+        cdfinput = self.incdf is self.indata
         self.incdf = spacepy.pycdf.CDF(newtest)
-        self.indata = self.incdf
-        bundle = spacepy.pycdf.istp.VarBundle(self.incdf, 'FPDU')
+        self.indata = self.incdf if cdfinput else self.CDFtoSD(self.incdf)
+        bundle = spacepy.pycdf.istp.VarBundle(self.indata, 'FPDU')
         bundle.sum(1).slice(2, 0, 6).output(self.output)
         self.assertEqual(
             (0, 6), self.output['FPDU'].shape)
@@ -1658,7 +1673,7 @@ class VarBundleHOPESDInCDFOut(VarBundleHOPECDFInCDFOut):
 
     def setUp(self):
         super(VarBundleHOPESDInCDFOut, self).setUp()
-        self.indata = self.incdf.copy()
+        self.indata = self.CDFtoSD(self.incdf)
 
 
 class VarBundleHOPECDFInSDOut(VarBundleHOPECDFInCDFOut):
@@ -1674,7 +1689,7 @@ class VarBundleHOPESDInSDOut(VarBundleHOPECDFInSDOut):
 
     def setUp(self):
         super(VarBundleHOPESDInSDOut, self).setUp()
-        self.indata = self.incdf.copy()
+        self.indata = self.CDFtoSD(self.incdf)
 
 
 class VarBundleEPILoCDFInCDFOut(VarBundleChecksBase):
@@ -1750,7 +1765,7 @@ class VarBundleEPILoSDInCDFOut(VarBundleEPILoCDFInCDFOut):
 
     def setUp(self):
         super(VarBundleEPILoSDInCDFOut, self).setUp()
-        self.indata = self.incdf.copy()
+        self.indata = self.CDFtoSD(self.incdf)
 
 
 class VarBundleEPILoSDInSDOut(VarBundleEPILoCDFInSDOut):
@@ -1758,7 +1773,7 @@ class VarBundleEPILoSDInSDOut(VarBundleEPILoCDFInSDOut):
 
     def setUp(self):
         super(VarBundleEPILoSDInSDOut, self).setUp()
-        self.indata = self.incdf.copy()
+        self.indata = self.CDFtoSD(self.incdf)
 
 
 if __name__ == '__main__':
