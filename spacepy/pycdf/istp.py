@@ -372,17 +372,10 @@ class VariableChecks(object):
         timetype = v.type() in spacepy.pycdf.lib.timetypes
         actual = (v.cdf_file.raw_var(v.name()) if timetype else v)\
                  .attrs['FILLVAL']
-        # isclose added in numpy 1.7, so fix this when go to 0.3.0
-        if hasattr(numpy, 'isclose'):
-            match = numpy.isclose(
-                actual, expected, atol=0, rtol=1e-7)\
-                if numpy.issubdtype(v.dtype, numpy.floating)\
-                else numpy.all(actual == expected)
-        else:
-            if numpy.issubdtype(v.dtype, numpy.floating):
-                match = (abs(actual - expected) / expected < 1e-7)
-            else:
-                match = numpy.all(actual == expected)
+        match = numpy.isclose(
+            actual, expected, atol=0, rtol=1e-7)\
+            if numpy.issubdtype(v.dtype, numpy.floating)\
+            else numpy.all(actual == expected)
         if not match:
             if timetype:
                 converted_expected = {
