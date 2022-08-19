@@ -58,7 +58,7 @@ class VariableChecks(object):
     performs checks that are not currently performed by the `ISTP
     skeleton editor <https://spdf.gsfc.nasa.gov/skteditor/>`_.  All
     tests return a list, one error string for every noncompliance
-    found (empty list if compliant). :meth:`all` will perform all
+    found (empty list if compliant). `all` will perform all
     tests and concatenate all errors.
 
     .. autosummary::
@@ -98,7 +98,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
         catch : bool
             Catch exceptions in tests (default False). If True, any
@@ -150,7 +150,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -176,7 +176,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -234,7 +234,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -321,7 +321,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -348,7 +348,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -412,7 +412,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -437,7 +437,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         rng : bool
@@ -553,7 +553,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -575,7 +575,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -597,7 +597,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -629,7 +629,7 @@ class VariableChecks(object):
 
         Parameters
         ----------
-        v : :class:`~spacepy.pycdf.Var`
+        v : `~.pycdf.Var`
             Variable to check
 
         Returns
@@ -655,7 +655,7 @@ class FileChecks(object):
     performs checks that are not currently performed by the `ISTP
     skeleton editor <https://spdf.gsfc.nasa.gov/skteditor/>`_.  All
     tests return a list, one error string for every noncompliance
-    found (empty list if compliant). :meth:`all` will perform all
+    found (empty list if compliant). `all` will perform all
     tests and concatenate all errors.
 
     .. autosummary::
@@ -682,11 +682,11 @@ class FileChecks(object):
         """Perform all variable and file-level tests
 
         In addition to calling every test in this class, will also call
-        :meth:`VariableChecks.all` for every variable in the file.
+        `VariableChecks.all` for every variable in the file.
 
         Parameters
         ----------
-        f : :class:`~spacepy.pycdf.CDF`
+        f : `~.pycdf.CDF`
             Open CDF file to check
         catch : bool
             Catch exceptions in tests (default False). If True, any
@@ -740,7 +740,7 @@ class FileChecks(object):
 
         Parameters
         ----------
-        f : :class:`~spacepy.pycdf.CDF`
+        f : `~.pycdf.CDF`
             Open CDF file to check
 
         Returns
@@ -772,7 +772,7 @@ class FileChecks(object):
 
         Parameters
         ----------
-        f : :class:`~spacepy.pycdf.CDF`
+        f : `~.pycdf.CDF`
             Open CDF file to check
 
         Returns
@@ -808,7 +808,7 @@ class FileChecks(object):
 
         Parameters
         ----------
-        f : :class:`~spacepy.pycdf.CDF`
+        f : `~.pycdf.CDF`
             Open CDF file to check
 
         Returns
@@ -841,7 +841,7 @@ class FileChecks(object):
 
         Parameters
         ----------
-        f : :class:`~spacepy.pycdf.CDF`
+        f : `~.pycdf.CDF`
             Open CDF file to check
 
         Returns
@@ -889,7 +889,7 @@ def fillval(v, ret=False):
 
     Parameters
     ----------
-    v : :class:`~spacepy.pycdf.Var`
+    v : `~.pycdf.Var`
         CDF variable to update
 
     Other Parameters
@@ -959,7 +959,7 @@ def format(v, use_scaleminmax=False, dryrun=False):
 
     Parameters
     ----------
-    v : :class:`~spacepy.pycdf.Var`
+    v : `~.pycdf.Var`
         Variable to update
     use_scaleminmax : bool, optional
         Use SCALEMIN/MAX instead of VALIDMIN/MAX (default False).
@@ -1110,8 +1110,8 @@ def nanfill(v):
     restriction.)
 
     Only applicable to floating-point types. Best applied to a
-    :class:`~spacepy.pycdf.VarCopy` or :class:`~spacepy.datamodel.dmarray`
-    rather than :class:`~spacepy.pycdf.Var`. Updating a variable in a CDF
+    `~.pycdf.VarCopy` or `~.datamodel.dmarray`
+    rather than `~.pycdf.Var`. Updating a variable in a CDF
     requires one write per changed value, and also will result in a CDF
     that is no longer ISTP compliant.
 
@@ -1120,7 +1120,7 @@ def nanfill(v):
 
     Parameters
     ----------
-    v : :class:`~spacepy.pycdf.Var` or :class:`~spacepy.datamodel.dmarray`
+    v : `~.pycdf.Var` or `~.datamodel.dmarray`
         CDF variable, data, or copy to update
 
     Examples
@@ -1166,7 +1166,7 @@ class VarBundle(object):
     with its dependencies to enable aggregate operations. Normally
     used to copy a subset of data from one CDF or SpaceData to another by
     chaining operations, or to load just the relevant data from a CDF
-    into a :class:`~spacepy.datamodel.SpaceData`.
+    into a `~.datamodel.SpaceData`.
 
     ``VarBundle`` operates on a single variable within a file or SpaceData
     and its various dependencies, uncertainties, labels, etc. That variable
@@ -1177,13 +1177,13 @@ class VarBundle(object):
     defining the input file (the CDF containing that variable).
 
     Unusual or indecipherable error messages may indicate an ISTP
-    compliance issue; see :class:`VariableChecks` for some checks.
+    compliance issue; see `VariableChecks` for some checks.
 
     Parameters
     ----------
-    source : :class:`~.pycdf.CDF`, :class:`~.datamodel.SpaceData`, or :class:`~.pycdf.Var`
+    source : `~.pycdf.CDF`, `~.datamodel.SpaceData`, or `~.pycdf.Var`
         SpaceData or open CDF containing the variable to process, or the CDF variable itself.
-    name : :class:`str`
+    name : `str`
         Name of the variable within ``source`` to process ("main variable").
 
     See Also
@@ -1275,9 +1275,9 @@ class VarBundle(object):
 
         Parameters
         ----------
-        source : :class:`~spacepy.pycdf.CDF` or :class:`~spacepy.pycdf.Var`
+        source : `~spacepy.pycdf.CDF` or `~spacepy.pycdf.Var`
             CDF containing the variable to process, or the variable itself.
-        name : :class:`str`
+        name : `str`
             Name of the variable within ``source`` to process ("main variable").
         """
         if name is None and not hasattr(source, 'cdf_file'):
@@ -1527,7 +1527,7 @@ class VarBundle(object):
 
         Examples
         --------
-        See the :class:`VarBundle` examples for creating output from
+        See the `VarBundle` examples for creating output from
         the slices.
 
         >>> import spacepy.pycdf
@@ -1599,7 +1599,7 @@ class VarBundle(object):
 
         Examples
         --------
-        See the :class:`VarBundle` examples for creating output.
+        See the `VarBundle` examples for creating output.
 
         >>> import spacepy.pycdf
         >>> import spacepy.pycdf.istp
@@ -1657,7 +1657,7 @@ class VarBundle(object):
 
         Examples
         --------
-        See the :class:`VarBundle` examples for creating output.
+        See the `VarBundle` examples for creating output.
 
         >>> import spacepy.pycdf
         >>> import spacepy.pycdf.istp
@@ -1705,10 +1705,10 @@ class VarBundle(object):
 
         Parameters
         ----------
-        newvar : :class:`~spacepy.pycdf.Var`
+        newvar : `~.pycdf.Var`
             Existing variable to compare to requirements
 
-        invar : : class:`~spacepy.pycdf.Var`
+        invar : : class:`~.pycdf.Var`
             Variable to use as reference for attributes, RV, CDF type,
             number of elements.
 
@@ -1721,7 +1721,7 @@ class VarBundle(object):
         dims : list of int
             Size of each dimension.
 
-        data : :class:`~numpy.ndarray`
+        data : `~numpy.ndarray`
             Data that should be in the variable.
 
         Returns
@@ -1762,7 +1762,7 @@ class VarBundle(object):
     def _namemap(self, suffix=None):
         """Map old variable names to new
 
-        Helper for :meth:`output` that maps the variable name in the
+        Helper for `output` that maps the variable name in the
         input CDF to variable name in the output CDF.
 
         Parameters
@@ -1793,7 +1793,7 @@ class VarBundle(object):
     def _sum_avg(self, data, invar, vinfo, degen, summed, averaged):
         """Sum/average data
 
-        Helper for :meth:`output` that performs summing and averaging
+        Helper for `output` that performs summing and averaging
         of the data for a single variable. Note dimensionality of all
         input is before the removal of degenerate dimensions
         (this function does the translation using ``degen``), and it is
@@ -1802,10 +1802,10 @@ class VarBundle(object):
 
         Parameters
         ----------
-        data : :class:`numpy.ndarray`
+        data : `numpy.ndarray`
             Data as read from input CDF and properly sliced.
 
-        invar : :class:`~spacepy.pycdf.Var`
+        invar : `~.pycdf.Var`
             CDF input variable from which ``data`` was read.
 
         vinfo : dict
@@ -1825,7 +1825,7 @@ class VarBundle(object):
 
         Returns
         -------
-        :class:`numpy.ndarray`
+        `numpy.ndarray`
             Data summed/averaged over dimensions according to ``summed``
             and ``averaged`` inputs.
         """
@@ -1888,10 +1888,10 @@ class VarBundle(object):
 
         Parameters
         ----------
-        invar : :class:`~spacepy.pycdf.Var`
+        invar : `~.pycdf.Var`
             The input variable (opened in raw mode).
 
-        newvar : :class:`~spacepy.pycdf.Var`
+        newvar : `~.pycdf.Var`
             The output variable (opened in raw mode).
 
         preexist : bool
@@ -2049,7 +2049,7 @@ class VarBundle(object):
         list
             Each element is a tuple: first element is a string with
             the name of the operation (i.e. method of
-            :class:`VarBundle`), next is also a tuple of positional
+            `VarBundle`), next is also a tuple of positional
             arguments, and finally a dict of keyword arguments.
 
         Examples
@@ -2091,7 +2091,7 @@ class VarBundle(object):
 
         Parameters
         ----------
-        output : :class:`~spacepy.pycdf.CDF`,  :class:`~spacepy.datamodel.SpaceData`
+        output : `~.pycdf.CDF`,  `~.datamodel.SpaceData`
             Output container to receive the new data, may be an open CDF
             file or a SpaceData.
 
@@ -2217,18 +2217,18 @@ class VarBundle(object):
     def toSpaceData(self, suffix=None):
         """Return variables, as modified.
 
-        Convenience function to call :meth:`output` on a new
-        :class:`~.datamodel.SpaceData` and return it.
+        Convenience function to call `output` on a new
+        `~.datamodel.SpaceData` and return it.
 
         Parameters
         ----------
         suffix : str
             Appended to the name of variables changed on output; see
-            :meth:`output` for details.
+            `output` for details.
 
         Returns
         -------
-        :class:`.datamodel.SpaceData`
+        `.datamodel.SpaceData`
             Data read from input and processed according to the defined
             operations.
 
