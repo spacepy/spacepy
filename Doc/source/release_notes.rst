@@ -27,7 +27,7 @@ temporary removal of support for this module in SpacePy 0.3.0 has therefore
 been lifted. The new implementation provides a slight performance increase
 with no change in results or accuracy.
 
-:class:`~spacepy.pycdf.istp.VarBundle` now supports output to
+:class:`~spacepy.pycdf.istp.VarBundle` now supports output to and input from
 :class:`~spacepy.datamodel.SpaceData` objects as well as
 :class:`~spacepy.pycdf.CDF`.
 
