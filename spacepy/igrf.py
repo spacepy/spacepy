@@ -125,11 +125,11 @@ class IGRF():
 
     .. attribute:: dipole
 
-        Characteristics of dipole (:class:`dict`).
+        Characteristics of dipole (`dict`).
 
     .. attribute:: moment
 
-        Dipole moments (:class:`dict`).
+        Dipole moments (`dict`).
     """
     def __init__(self):
         self.__status = {'coeffs': False,
@@ -144,12 +144,12 @@ class IGRF():
 
         Parameters
         ----------
-        time : :class:`~datetime.datetime`
+        time : `~datetime.datetime`
             Time for which to initialize the model
 
         Other Parameters
         ----------------
-        limits : :class:`str`, optional
+        limits : `str`, optional
             Set to ``warn`` to warn about out-of-range times (default);
             any other value to error.
         """
