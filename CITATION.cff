@@ -1,0 +1,58 @@
+cff-version: 1.2.0
+title: SpacePy
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file. Please also cite the papers
+  by Morley et al. (2011; https://conference.scipy.org/proceedings/scipy2010/morley.html)
+  and Burrell et al. (2018;  doi:10.1029/2018JA025877)
+  and other relevant papers as described in the documentation
+  of the features used.
+type: software
+authors:
+  - given-names: Steven K.
+    family-names: Morley
+    affiliation: Los Alamos National Laboratory
+    orcid: 'https://orcid.org/0000-0001-8520-0199'
+  - given-names: Jonathan T.
+    family-names: Niehof
+    affiliation: University of New Hampshire
+    orcid: 'https://orcid.org/0000-0001-6286-5809'
+  - given-names: Daniel T.
+    family-names: Welling
+    affiliation: University of Michigan
+    orcid: 'https://orcid.org/0000-0002-0590-1022'
+  - given-names: Brian A.
+    family-names: Larsen
+    affiliation: Los Alamos National Laboratory
+    orcid: 'https://orcid.org/0000-0003-4515-0208'
+  - given-names: Antoine
+    family-names: Brunet
+  - given-names: Miles A.
+    family-names: Engel
+    affiliation: Los Alamos National Laboratory
+    orcid: 'https://orcid.org/0000-0003-4248-9636'
+  - given-names: Jan
+    family-names: Gieseler
+    orcid: 'https://orcid.org/0000-0003-1848-7067'
+  - given-names: John
+    family-names: Haiducek
+    orcid: 'https://orcid.org/0000-0002-4027-8475'
+  - given-names: Michael
+    family-names: Henderson
+    orcid: 'https://orcid.org/0000-0003-4975-9029'
+  - given-names: Aaron
+    family-names: Hendry
+  - given-names: Michael
+    family-names: Hirsch
+  - given-names: Peter
+    family-names: Killick
+  - given-names: Josef
+    family-names: Koller
+  - given-names: Asher
+    family-names: Merrill
+  - given-names: Ashton
+    family-names: Reimer
+  - given-names: Albert Y.
+    family-names: Shih
+  - given-names: Amanda
+    family-names: Stricklan
