@@ -2,7 +2,7 @@
 
 """Support for ISTP-compliant CDFs
 
-The `ISTP metadata standard  <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+The `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
 specifies the interpretation of the attributes in a CDF to describe
 relationships between the variables and their physical interpretation.
 
@@ -1197,6 +1197,19 @@ class VarBundle(object):
     --------
     .datamodel.fromCDF
     .pycdf.CDF.copy
+
+    Notes
+    -----
+    If using :class:`~.datamodel.SpaceData` input, the contents are
+    assumed to be `ISTP compliant
+    <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_. In particular,
+    the following attributes of the enclosed
+    :class:`~.datamodel.dmarray` are used (*italics* denotes required):
+
+        * *DEPEND_0*, *DEPEND_1*, etc.
+        * LABL_PTR_0, LABL_PTR_1, etc.
+        * DELTA_PLUS_VAR, DELTA_MINUS_VAR
+        * VALIDMIN, VALIDMAX, *FILLVAL*
 
     Examples
     --------
