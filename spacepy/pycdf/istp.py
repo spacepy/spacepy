@@ -1170,11 +1170,11 @@ class VarBundle(object):
 
     ``VarBundle`` operates on a single variable within a file or SpaceData
     and its various dependencies, uncertainties, labels, etc. That variable
-    can be specified one of two ways. A :class:`~spacepy.pycdf.Var`
-    can be passed as the only parameter, which implicitly defines
-    the input file (the CDF containing that variable). Or, the file or
+    can be specified one of two ways. An open CDF file or
     SpaceData can be passed as the first parameter, and the name of a
-    variable within it as the second parameter.
+    variable within it as the second parameter. Or, for CDF files, a
+    :class:`~.pycdf.Var` can be passed as the only parameter, implicitly
+    defining the input file (the CDF containing that variable).
 
     Unusual or indecipherable error messages may indicate an ISTP
     compliance issue; see :class:`VariableChecks` for some checks.
@@ -1182,7 +1182,7 @@ class VarBundle(object):
     Parameters
     ----------
     source : :class:`~.pycdf.CDF`, :class:`~.datamodel.SpaceData`, or :class:`~.pycdf.Var`
-        SpaceData or open CDF containing the variable to process, or the variable itself.
+        SpaceData or open CDF containing the variable to process, or the CDF variable itself.
     name : :class:`str`
         Name of the variable within ``source`` to process ("main variable").
 
@@ -1280,6 +1280,9 @@ class VarBundle(object):
         name : :class:`str`
             Name of the variable within ``source`` to process ("main variable").
         """
+        if name is None and not hasattr(source, 'cdf_file'):
+            raise TypeError('Single-argument form must be a variable'
+                ' in an open CDF, not {}.'.format(type(source).__name__))
         self.mainvar = source if name is None else source[name]
         """The variable to operate on."""
         self.cdf = self.mainvar.cdf_file if name is None else source
