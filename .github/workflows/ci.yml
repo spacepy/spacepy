@@ -14,7 +14,7 @@ env:
 
 on:
   schedule:
-    - cron: '0 22 * * *'
+    - cron: '37 7 * * *'
   pull_request:
     branches: [ master ]
     types: [ opened, synchronize, reopened, ready_for_review ]
