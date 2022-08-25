@@ -640,6 +640,18 @@ class build(_build):
             f2py_flags.append('--f77exec={0}'.format(self.f77exec))
         if self.f90exec:
             f2py_flags.append('--f90exec={0}'.format(self.f90exec))
+        if sys.platform == 'darwin':
+            if 'SDKROOT' in os.environ:
+                sdkroot = os.environ['SDKROOT']
+                f2py_env['LDFLAGS'] = '{} -isysroot {}'.format(
+                    f2py_env['LDFLAGS'], sdkroot)
+            else:
+                sdkroot = os.path.join(os.sep, 'Library',
+                    'Developer', 'CommandLineTools', 'SDKs', 'MacOSX.sdk')
+            sdklibs = os.path.join(sdkroot, 'usr', 'lib')
+            # Explicitly include path for -lSystem
+            if os.path.isdir(sdklibs):
+                f2py_flags.append('-L{}'.format(sdklibs))
         try:
             subprocess.check_call(
                 self.f2py + ['-c', 'irbempylib.pyf', 'source/onera_desp_lib.f',
