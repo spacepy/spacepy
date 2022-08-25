@@ -141,13 +141,14 @@ class SpacepyDirTests(unittest.TestCase):
         wd = os.getcwd()
         try:
             os.chdir(self.td)
+            cwd = os.path.abspath('.')  # Mac puts you in a different dir
             os.environ['SPACEPY'] = ''
-            self.assertEqual(os.path.join(self.td, '.spacepy'),
+            self.assertEqual(os.path.join(cwd, '.spacepy'),
                              spacepy._find_spacepy_dir())
             os.environ['SPACEPY'] = 'spacepy'
-            self.assertEqual(os.path.join(self.td, 'spacepy', '.spacepy'),
+            self.assertEqual(os.path.join(cwd, 'spacepy', '.spacepy'),
                              spacepy._find_spacepy_dir())
-            self.assertTrue(os.path.isdir(os.path.join(self.td, 'spacepy')))
+            self.assertTrue(os.path.isdir(os.path.join(cwd, 'spacepy')))
         finally:
             os.chdir(wd)
 
