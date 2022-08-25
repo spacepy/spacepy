@@ -648,6 +648,8 @@ class build(_build):
             warnings.warn(
                 'irbemlib module failed. '
                 'Try a different Fortran compiler? (--fcompiler)')
+            os.chdir(olddir)
+            return
 
         #All matching outputs
         created_libfiles = [f for f in libfiles if os.path.exists(f)]
