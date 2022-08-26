@@ -66,7 +66,7 @@ Finally, install SpacePy::
 If you're installing as a single user (not in a virtual environment) then
 add the ``--user`` flag.
 
-You will also need the :ref:`NASA CDF library <linux_CDF>` to use
+You will also need the :ref:`NASA CDF library <install_mac_cdf>` to use
 :mod:`~spacepy.pycdf`.
 
 .. _install_mac_macports:
@@ -117,13 +117,24 @@ Then you can install SpacePy::
 If you're installing as a single user (not in a virtual environment) then
 add the ``--user`` flag.
 
-You will also need the :ref:`NASA CDF library <linux_CDF>` to use
+You will also need the :ref:`NASA CDF library <install_mac_cdf>` to use
 :mod:`~spacepy.pycdf`.
 
 If you are installing from a source distribution, you can specify the
 compiler at install time instead of using ``port select``::
 
   python3.9 setup.py install --fcompiler=gnu95 --f90exec=/opt/local/bin/gfortran-mp-11
+
+.. _install_mac_cdf:
+
+CDF
+===
+
+NASA provides `Mac binaries
+<https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/latest-release/macosx/>`_
+of the CDF library. Download the file ending in ``binary_signed.pkg``
+(e.g. ``CDF3_8_1-binary_signed.pkg``), double-click, and install per
+the defaults.
 
 .. _install_mac_xcode:
 
