@@ -114,6 +114,12 @@ Then you can install SpacePy::
 
   pip install spacepy
 
+If you're installing as a single user (not in a virtual environment) then
+add the ``--user`` flag.
+
+You will also need the :ref:`NASA CDF library <linux_CDF>` to use
+:mod:`~spacepy.pycdf`.
+
 If you are installing from a source distribution, you can specify the
 compiler at install time instead of using ``port select``::
 
