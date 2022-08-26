@@ -531,8 +531,10 @@ class Library(object):
                 os.getenv('SystemDrive', 'c:') + root + extra
                 for root in ['', '\\Program Files', '\\Program Files (x86)']
                 for extra in ['\\CDF Distribution\\', '\\CDF_Distribution\\']],
-            'darwin': ['/Applications/', '/usr/local/',
-                       os.path.expanduser('~')],
+            'darwin': ['/Applications/', os.path.expanduser('~/Applications/'),
+                       '/Applications/cdf/',
+                       os.path.expanduser('~/Applications/cdf/'),
+                       '/usr/local/', os.path.expanduser('~')],
             'linux2': ['/usr/local/', os.path.expanduser('~')],
             'linux': ['/usr/local/', os.path.expanduser('~')],
         }
