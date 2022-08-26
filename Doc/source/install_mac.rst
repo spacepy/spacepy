@@ -35,12 +35,6 @@ add the ``--user`` flag.
 You will also need the :ref:`NASA CDF library <linux_CDF>` to use
 :mod:`~spacepy.pycdf`.
 
-To install the latest code from the repository, rather than
-the latest stable release, use::
-
-   pip install git+https://github.com/spacepy/spacepy
 
 .. contents::
    :local:
-
-
