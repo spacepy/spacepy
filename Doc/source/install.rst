@@ -17,10 +17,6 @@ This will install a binary build of SpacePy if available (currently
 only on Windows), otherwise it will attempt to compile. It will also
 install most dependencies.
 
-``numpy`` must be installed first as it's required for the SpacePy
-build. See :doc:`install_windows` for important notes regarding numpy
-on Windows.
-
 If you are familiar with installing Python packages, have particular
 preferences for managing an installation, or if the above doesn't
 work, refer to platform-specific instructions and the details
@@ -57,10 +53,13 @@ virtual environment, add the ``--user`` flag when installing with pip.
 Source releases are available from `PyPI
 <https://pypi.org/project/SpacePy/#files>`__ and `our github
 <https://github.com/spacepy/spacepy/releases>`__. Development versions
-are on `github <https://github.com/spacepy/spacepy>`__.
+are on `github <https://github.com/spacepy/spacepy>`__. In addition to
+downloading tarballs, the development version can be directly installed
+with::
 
+  pip install git+https://github.com/spacepy/spacepy
 
-After downloading and
+For source releases, after downloading and
 unpacking, run (a virtual environment, such as a conda environment, is
 recommended)::
 
