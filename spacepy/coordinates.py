@@ -43,6 +43,11 @@ units will be preserved.
     of ``ECIMOD``, these can be used with the existing IRBEM backend, and
     will be converted to their closest equivalents.
 
+    .. versionchanged:: 0.4.0
+
+    The default backend for coordinate transformations was changed from IRBEM
+    to the CTrans-based SpacePy backend.
+
 Notes on differences between representations
 --------------------------------------------
 IRBEM's coordinate transformations are low-accuracy and were written for
@@ -142,7 +147,7 @@ class __Defaults(object):
         ----------
         use_irbem : bool
             If True, use IRBEM as coordinate transform backend. If False, use SpacePy's
-            implementations. Default is to use IRBEM (and warn) but this will change.
+            implementations. Default is to use SpacePy.
         ellipsoid : spacepy.ctrans.Ellipsoid
             A reference ellipsoid to use for the Earth radius definition and for geodetic
             coordinate conversion. SpacePy defaults to the WGS84 ellipsoid and the semi-major
@@ -168,11 +173,12 @@ class Coords(object):
          through, most functions throughout SpacePy assume distances
          in Re and angles in degrees, regardless of specified units.
 
-    By default, coordinate transforms are based on the IRBEM library; `its
-    manual <http://svn.code.sf.net/p/irbem/code/trunk/manual/user_guide.html>`_
-    may prove useful. SpacePy also provides a framework for accurate coordinate
-    transformations. This can be used by setting the `use_irbem` flag to False.
-    In a future release of SpacePy this will become the default method.
+    By default, coordinate transforms are based on the SpacePy library's
+    high-accuracy coordinates backend.
+    The legacy transforms provided by the IRBEM library can also be used
+    by setting the `use_irbem` flag to True; its manual
+    <http://svn.code.sf.net/p/irbem/code/trunk/manual/user_guide.html>`_
+    may prove useful.
     For a good reference on heliospheric and magnetospheric
     coordinate systems, see Franz & Harper, "Heliospheric Coordinate Systems",
     Planet. Space Sci., 50, pp 217-233, 2002
@@ -197,7 +203,7 @@ class Coords(object):
 
         .. versionadded:: 0.3.0
 
-        Set to True to use IRBEM for coordinate transforms (current default).
+        Set to True to use IRBEM for coordinate transforms.
         Otherwise use SpacePy's coordinate transform library.
 
     Returns
@@ -236,9 +242,9 @@ class Coords(object):
         if use_irbem is None:
             use_irbem = DEFAULTS.values.use_irbem
         if use_irbem is None:
-            use_irbem = True
-            warnings.warn('No coordinate backend specified; using IRBEM.'
-                          ' This default will change in the future.',
+            use_irbem = False
+            warnings.warn('No coordinate backend specified; using SpacePy.'
+                          ' This default changed from IRBEM in version 0.4.0',
                           DeprecationWarning)
         if use_irbem:
             from . import irbempy as op
@@ -647,8 +653,7 @@ class Coords(object):
 
         skycoord = astropy.coordinates.SkyCoord(skycoord).itrs  # Astropy ITRS is GEO
         # Ticktock constructor warns if use_irbem is None; just do right thing
-        use_Re = IRBEM_RE if (use_irbem or use_irbem is None)\
-                 else DEFAULTS.values.ellipsoid['A']  # kilometers
+        use_Re = IRBEM_RE if use_irbem else DEFAULTS.values.ellipsoid['A']  # kilometers
         data = (skycoord.cartesian.xyz.to('m').value / (1000 * use_Re)).T  # convert Cartesian to Re units
         ticks = spacepy.time.Ticktock(skycoord.obstime)
 

@@ -37,6 +37,12 @@ The ``_nelems`` method of :class:`~spacepy.pycdf.Var` has been removed;
 use the public interface :meth:`~spacepy.pycdf.Var.nelems`. (Deprecated
 in 0.2.2).
 
+:func:`~spacepy.irbempy.get_sysaxes`, :func:`~spacepy.irbempy.sph2car`,
+and :func:`~spacepy.irbempy.car2sph` were deprecated in SpacePy 0.2.2
+and have been removed. In place of the latter functions,
+:func:`~spacepy.coordinates.sph2car` and
+:func:`~spacepy.coordinates.car2sph` should be used.
+
 Major bugfixes
 **************
 :mod:`~spacepy.pycdf` has been updated for Apple Silicon (ARM/M1);
@@ -49,14 +55,6 @@ contributions from Aaron Hendry) so neither ``ffnet`` or ``networkx`` are
 required to use it. These dependencies were removed in SpacePy 0.3.0, but
 were still required for use of ``LANLstar``. Support for ``LANLstar`` is
 reinstated in SpacePy 0.4.0.
-
-Deprecations and removals
-*************************
-:func:`~spacepy.irbempy.get_sysaxes`, :func:`~spacepy.irbempy.sph2car`,
-and :func:`~spacepy.irbempy.car2sph` were deprecated in SpacePy 0.2.2
-and have been removed. In place of the latter functions,
-:func:`~spacepy.coordinates.sph2car` and
-:func:`~spacepy.coordinates.sph2car` should be used.
 
 Other changes
 *************
