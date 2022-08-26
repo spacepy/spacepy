@@ -47,6 +47,10 @@ of the latter functions, :func:`~spacepy.coordinates.sph2car` and
 
 Major bugfixes
 **************
+The installer has been updated to address certain build issues,
+particularly on Mac. The Mac :doc:`installation directions
+<install_mac>` have been completely rewritten.
+
 :mod:`~spacepy.pycdf` has been updated for Apple Silicon (ARM/M1);
 Python 3.8 is required for this support.
 
