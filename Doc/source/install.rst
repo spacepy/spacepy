@@ -39,6 +39,9 @@ If you need further assistance, you can `open an issue
     install_mac
     install_windows
 
+.. contents::
+   :local:
+
 SpacePy installs with the common Python distutils and pip.
 
 The latest stable release is provided via `PyPI
@@ -82,3 +85,28 @@ To install in custom location, e.g.::
     python setup.py install --home=/n/packages/lib/python
 
 Installs using ``setup.py`` do not require setuptools.
+
+Troubleshooting
+===============
+
+irbempy
+-------
+The most common failures relate to compilation of the IRBEM
+library. Unfortunately ``pip`` will hide these warnings, so they
+manifest when running ``import spacepy.irbempy`` (or some other
+component of SpacePy that uses irbempy).
+
+The error ``ImportError: cannot import name 'irbempylib' from
+partially initialized module 'spacepy.irbempy' (most likely due to a
+circular import)`` means the IRBEM library did not compile at
+all. This is most likely a compiler issue: either there is no Fortran
+compiler, or, when using conda on :doc:`Mac <install_mac>`, the correct
+SDK version has not been installed.
+
+The error ``RuntimeError: module compiled against API version 0x10 but
+this version of numpy is 0xe`` followed by ``ImportError:
+numpy.core.multiarray failed to import`` means that the version of
+numpy used at installation of SpacePy does not match that used at
+runtime. Check that there is only one version of numpy installed. In
+some cases ``pip`` will install another version of number to support
+the build; this was fixed in SpacePy 0.4.0 but may recur.
