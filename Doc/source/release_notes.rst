@@ -50,6 +50,14 @@ required to use it. These dependencies were removed in SpacePy 0.3.0, but
 were still required for use of ``LANLstar``. Support for ``LANLstar`` is
 reinstated in SpacePy 0.4.0.
 
+Deprecations and removals
+*************************
+:func:`~spacepy.irbempy.get_sysaxes`, :func:`~spacepy.irbempy.sph2car`,
+and :func:`~spacepy.irbempy.car2sph` were deprecated in SpacePy 0.2.2
+and have been removed. In place of the latter functions,
+:func:`~spacepy.coordinates.sph2car` and
+:func:`~spacepy.coordinates.sph2car` should be used.
+
 Other changes
 *************
 :mod:`~spacepy.pycdf` no longer warns when defaulting to version 3 CDFs
