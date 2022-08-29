@@ -1,23 +1,3 @@
-      REAL*4 FUNCTION shieldose2idl(argc, argv)   ! Called by IDL
-      INCLUDE 'wrappers.inc'
-c      INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-      call shieldose2(%VAL(argv(1)),%VAL(argv(2)),%VAL(argv(3)),
-     &%VAL(argv(4)),%VAL(argv(5)),%VAL(argv(6)),%VAL(argv(7)),
-     &%VAL(argv(8)),%VAL(argv(9)),%VAL(argv(10)),%VAL(argv(11)),
-     &%VAL(argv(12)),%VAL(argv(13)),%VAL(argv(14)),%VAL(argv(15)),
-     &%VAL(argv(16)),%VAL(argv(17)),%VAL(argv(18)),%VAL(argv(19)),
-     &%VAL(argv(20)),%VAL(argv(21)),%VAL(argv(22)),%VAL(argv(23)),
-     &%VAL(argv(24)),%VAL(argv(25)),%VAL(argv(26)),%VAL(argv(27)),
-     &%VAL(argv(28)),%VAL(argv(29)))
-
-      shieldose2idl = 9.9
-
-      RETURN
-      END
 !      PROGRAM SD2
 C
 C     SHIELDOSE-2, VERSION 2.10, 28 APR 94.

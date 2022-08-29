@@ -161,8 +161,8 @@ c       write(6,*)dsreb
             leI0 = baddata
             Bmin = baddata
             Ilflag = 0
-	    RETURN
-	 ENDIF
+	        RETURN
+         ENDIF
 c	 write(6,*)J,x1(1),x1(2),x1(3),Bl
          IF (Bl.LT.Bmin) THEN
            xmin(1) = x2(1)
@@ -171,11 +171,11 @@ c	 write(6,*)J,x1(1),x1(2),x1(3),Bl
            Bmin = Bl
          ENDIF
          IF (Bl.GT.B0) GOTO 20
-	 x1(1) = x2(1)
-	 x1(2) = x2(2)
-	 x1(3) = x2(3)
+        x1(1) = x2(1)
+        x1(2) = x2(2)
+        x1(3) = x2(3)
          leI = leI + SQRT(1.D0-Bl/B0)
-	 B1 = Bl
+        B1 = Bl
        ENDDO
 20     CONTINUE
 c	write(6,*)J,leI
@@ -242,28 +242,28 @@ c    of the earth of the northern slope(?)"
 C calcul du point sur la ligne de champ a la surface de la terre du
 C cote nord
 C
-       DO I = 1,3
-         x1(I)  = xx0(I)
-       ENDDO
-       dsreb = ABS(dsreb)
-       DO J = 1,Nrebmax
-         CALL sksyst(dsreb,x1,x2,Bl,Ifail)
-         IF (Ifail.LT.0) THEN
-            Ilflag = 0
-	    RETURN
-	 ENDIF
-	 rr = sqrt(x2(1)*x2(1)+x2(2)*x2(2)+x2(3)*x2(3))
-	 IF (rr.LT.1.D0) GOTO 102
+        DO I = 1,3
+            x1(I)  = xx0(I)
+        ENDDO
+            dsreb = ABS(dsreb)
+        DO J = 1,Nrebmax
+            CALL sksyst(dsreb,x1,x2,Bl,Ifail)
+            IF (Ifail.LT.0) THEN
+                Ilflag = 0
+                RETURN
+            ENDIF
+            rr = sqrt(x2(1)*x2(1)+x2(2)*x2(2)+x2(3)*x2(3))
+            IF (rr.LT.1.D0) GOTO 102
 c need to return if we past here at Nrebmax, as we will end
 c up with /0 error at smin below
             IF (J.EQ.Nrebmax) THEN
                 Ilflag = 0
                 RETURN
             ENDIF
-	 x1(1) = x2(1)
-	 x1(2) = x2(2)
-	 x1(3) = x2(3)
-       ENDDO
+            x1(1) = x2(1)
+            x1(2) = x2(2)
+            x1(3) = x2(3)
+        ENDDO
 102    CONTINUE
        smin = sqrt(x1(1)*x1(1)+x1(2)*x1(2)+x1(3)*x1(3))
        smin = (1.D0-smin)/(rr-smin)

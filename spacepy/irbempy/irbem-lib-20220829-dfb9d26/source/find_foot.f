@@ -23,31 +23,6 @@ c Modified to prevent overshooting into the other hemisphere ACK (Nov 2016)
 c
 C Routine to find foot point of field line at specified altitude and hemi
 C finds foot point at specified altitude to within 1 km
-C
-      ! Called by IDL
-      REAL*4 FUNCTION find_foot_point(argc, argv)
-      INCLUDE 'wrappers.inc'
-c      INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  convert the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine find_foot_point1: 15 arguments
-      call find_foot_point1(%VAL(argv(1)), %VAL(argv(2)),
-     + %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)))
-
-      find_foot_point = 9.9
-
-      RETURN
-      END
-c
-
 c --------------------------------------------------------------------
 c
         SUBROUTINE find_foot_point1(kext,options,sysaxes,iyearsat,

@@ -1,4 +1,5 @@
 import spacepy_testing
+import copy
 import glob
 import os
 import unittest
@@ -524,6 +525,26 @@ class coordsTestIrbem(unittest.TestCase):
         np.testing.assert_allclose(got.data, expected.data)
         np.testing.assert_equal(got.dtype, 'GEO')
 
+    def test_roundtrip_loop(self):
+        """Roundtrip should yield input as answer (loop over systems)"""
+        tt = Ticktock(['2002-02-02T12:00:00'], 'ISO')
+        irbframes = list(spc.SYSAXES_TYPES.keys())
+        # exclude frames either not supported by IRBEM or that aren't cartesian
+        for key in ['ECIMOD', 'GDZ', 'RLL', 'CDMAG', 'SPH']:
+            irbframes.pop(irbframes.index(key))
+        for insys in irbframes:
+            for outsys in irbframes:
+                expected = spc.Coords([1, 2, 4], insys, 'car',
+                                      use_irbem=True, ticks=tt)
+                stage1 = expected.convert(outsys, 'car')
+                got = stage1.convert(insys, 'car')
+                np.testing.assert_allclose(got.data, expected.data, atol=0.001)
+                if insys in spc.SYS_EQUIV:
+                    options = [insys, spc.SYS_EQUIV[insys]]
+                    assert insys in options
+                else:
+                    np.testing.assert_equal(got.dtype, insys)
+
     def test_GEO_GSE(self):
         """Regression test for IRBEM call"""
         test_cc = spc.Coords([1, 2, 3], 'GEO', 'car',
@@ -577,6 +598,30 @@ class coordsTestIrbem(unittest.TestCase):
         nonirb_got = non_irb.convert('CDMAG', 'car')
         # Test is approx. as IRBEM systems are relative to TOD not MOD
         np.testing.assert_allclose(irb_got.data, nonirb_got.data, rtol=1e-3)
+        self.assertEqual(irb_got.dtype, nonirb_got.dtype)
+        self.assertEqual(irb_got.carsph, nonirb_got.carsph)
+        self.assertEqual(irb_got.units, nonirb_got.units)
+
+    def test_TEME_to_TOD_vs_spacepy(self):
+        """TEME to TOD should be identical to spacepy backend (as IRBEM uses SOFA routines)"""
+        tt = Ticktock([2459218.5]*2, 'JD')
+        irb = spc.Coords(self.cvals.data, 'TEME', 'car', ticks=tt, use_irbem=True)
+        non_irb = spc.Coords(self.cvals.data, 'TEME', 'car', ticks=tt, use_irbem=False)
+        irb_got = irb.convert('TOD', 'car')
+        nonirb_got = non_irb.convert('ECITOD', 'car')
+        np.testing.assert_allclose(irb_got.data, nonirb_got.data, rtol=1e-9)
+        self.assertEqual(spc.SYS_EQUIV[irb_got.dtype], nonirb_got.dtype)
+        self.assertEqual(irb_got.carsph, nonirb_got.carsph)
+        self.assertEqual(irb_got.units, nonirb_got.units)
+
+    def test_J2000_to_TEME_vs_spacepy(self):
+        """J2000 to TEME should be identical to spacepy backend (as IRBEM uses SOFA routines)"""
+        tt = Ticktock([2459218.5]*2, 'JD')
+        irb = spc.Coords(self.cvals.data, 'J2000', 'car', ticks=tt, use_irbem=True)
+        non_irb = spc.Coords(self.cvals.data, 'ECI2000', 'car', ticks=tt, use_irbem=False)
+        irb_got = irb.convert('TEME', 'car')
+        nonirb_got = non_irb.convert('TEME', 'car')
+        np.testing.assert_allclose(irb_got.data, nonirb_got.data, rtol=1e-9)
         self.assertEqual(irb_got.dtype, nonirb_got.dtype)
         self.assertEqual(irb_got.carsph, nonirb_got.carsph)
         self.assertEqual(irb_got.units, nonirb_got.units)
