@@ -38,16 +38,20 @@ You will now be in an active conda environment. (Note: the
 installation will modify your ``.zprofile`` file.)
 
 Compiling under conda `requires the MacOS 10.9 SDK
-<https://stackoverflow.com/questions/69236331/conda-macos-big-sur-ld-unsupported-tapi-file-type-tapi-tbd-in-yaml-file/>`_. It
-can be downloaded `here
+<https://stackoverflow.com/questions/69236331/
+conda-macos-big-sur-ld-unsupported-tapi-file-type-tapi-tbd-in-yaml-file/>`_
+on Intel (x86_64) Macs and `11.0 on Apple Silicon
+<https://conda-forge.org/blog/posts/2020-10-29-macos-arm64/>`_
+(ARM/M1/M2). It can be downloaded `here
 <https://github.com/phracker/MacOSX-SDKs/releases>`_ (choose
-"MacOSX10.9.sdk.tar.xz"). Uncompress it into ``opt``, e.g.::
+"MacOSX10.9.sdk.tar.xz" or "MacOSX11.0.sdk.tar.xz"). Uncompress it
+into ``opt``, e.g.::
 
   sudo tar xf ~/Downloads/MacOSX10.9.sdk.tar.xz -C /opt
 
 Install the Fortran compiler::
 
-  conda install gfortran_osx-64
+  conda install gfortran
 
 If you do not have Xcode installed, you will be prompted with a
 message like "The xcrun command requires the command line developer
@@ -61,7 +65,8 @@ they will be installed via ``pip``)::
 
 Finally, install SpacePy::
 
-  SDKROOT=/opt/MacOSX10.9.sdk pip install spacepy
+  SDKROOT=/opt/MacOSX10.9.sdk pip install spacepy  # Intel
+  SDKROOT=/opt/MacOSX11.0.sdk pip install spacepy  # ARM
 
 If you're installing as a single user (not in a virtual environment) then
 add the ``--user`` flag.
