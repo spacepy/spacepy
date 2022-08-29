@@ -23,77 +23,7 @@
 !               SUBROUTINE InitLAndI2Lstar_OlsonPfitzerQuiet: Set block data for LAndI2Lstar_OlsonPfitzerQuiet
 !
 !***************************************************************************************************
-C-----------------------------------------------------------------------------
-C IDL Wrappers
-C-----------------------------------------------------------------------------
 
-      REAL*4 FUNCTION LAndI2Lstar(argc, argv)   ! Called by IDL
-      INCLUDE 'wrappers.inc'
-c      INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine LAndI2Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine LAndI2Lstar: 17 arguments
-      call LAndI2Lstar1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     + %VAL(argv(16)), %VAL(argv(17)))
-
-      LAndI2Lstar = 9.9
-
-      RETURN
-      END
-c
-!C-----------------------------------------------------------------------------
-C IDL Wrappers
-C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION EmpiricalLstar(argc, argv)   ! Called by IDL
-      INCLUDE 'wrappers.inc'
-c      INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine EmpiricalLstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine EmpiricalLstar: 9 arguments
-      call EmpiricalLstar1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),%VAL(argv(9)))
-
-      EmpiricalLstar = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C IDL Wrappers
-C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION LAndI2Lstar_shell_splitting(argc, argv)   ! Called by IDL
-      INCLUDE 'wrappers.inc'
-c
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-      call LAndI2Lstar_shell_splitting1(%VAL(argv(1)),%VAL(argv(2)),
-     &  %VAL(argv(3)),%VAL(argv(4)),%VAL(argv(5)),%VAL(argv(6)),
-     &  %VAL(argv(7)),%VAL(argv(8)),%VAL(argv(9)),%VAL(argv(10)),
-     &  %VAL(argv(11)),%VAL(argv(12)),%VAL(argv(13)),%VAL(argv(14)),
-     &  %VAL(argv(15)),%VAL(argv(16)),%VAL(argv(17)),%VAL(argv(18)),
-     &  %VAL(argv(19)))
-c
-      LAndI2Lstar_shell_splitting = 9.9
-
-      RETURN
-      END
-c
 !--------------------------------------------------------------------------------------------
 !+
 ! NAME:

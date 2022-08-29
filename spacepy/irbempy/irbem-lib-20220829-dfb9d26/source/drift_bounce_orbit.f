@@ -16,60 +16,7 @@
 !    You should have received a copy of the GNU Lesser General Public License
 !    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
 !
-      
-C-----------------------------------------------------------------------------
-C     Wrappers and procedures for ONERA_DESP_LIB
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION drift_bounce_orbit(argc, argv)
-      INCLUDE 'wrappers.inc'
-c     INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
-      
-c     Call subroutine drift_bounce_orbit1, 
-c     converting the IDL parameters to standard FORTRAN
-c     passed by reference arguments.
-c     
-      call drift_bounce_orbit1(%VAL(argv(1)), %VAL(argv(2)),
-     +     %VAL(argv(3)),
-     *     %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  
-     +     %VAL(argv(7)),  %VAL(argv(8)),  %VAL(argv(9)),  
-     +     %VAL(argv(10)), %VAL(argv(11)), %VAL(argv(12)), 
-     +     %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     +     %VAL(argv(16)), %VAL(argv(17)), %VAL(argv(18)),
-     +     %VAL(argv(19)))
-      
-      drift_bounce_orbit = 9.9  ! return value (copied from make_lstar_splitting
-      
-      RETURN
-      END
-
-      ! Called by IDL
-      REAL*4 FUNCTION drift_bounce_orbit2(argc, argv)
-      INCLUDE 'wrappers.inc'
-c     INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
-      
-c     Call subroutine drift_bounce_orbit1, 
-c     converting the IDL parameters to standard FORTRAN
-c     passed by reference arguments.
-c     
-      call drift_bounce_orbit2_1(%VAL(argv(1)), %VAL(argv(2)),
-     +     %VAL(argv(3)),
-     *     %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  
-     +     %VAL(argv(7)),  %VAL(argv(8)),  %VAL(argv(9)),  
-     +     %VAL(argv(10)), %VAL(argv(11)), %VAL(argv(12)), 
-     +     %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     +     %VAL(argv(16)), %VAL(argv(17)), %VAL(argv(18)),
-     +     %VAL(argv(19)), %VAL(argv(20)), %VAL(argv(21)),
-     +     %VAL(argv(22)))
-      
-      drift_bounce_orbit2 = 9.9  ! return value (copied from make_lstar_splitting
-      
-      RETURN
-      END
-c     
-c     --------------------------------------------------------------------
-c     
-
+!-----------------------------------------------------------------------------
       SUBROUTINE drift_bounce_orbit1(kext,options,sysaxes,
      &     iyearsat,idoy,UT,xIN1,xIN2,xIN3,alpha,maginput,
      &     Lm,Lstar,BLOCAL,BMIN,BMIR,XJ,posit,ind)
@@ -709,6 +656,8 @@ c     Declare internal variables
       REAL*8 dsreb0,dsreb,x1(3),x2(3),B1,B2,Bvec(3)
       ! store or not?
       INTEGER*4 store
+
+      j = 1 ! TPO 5 Jan 2020 seems like j was never initialized
 
       ! Iflag=1 means success, set to fail until succeeded
       Iflag = 0

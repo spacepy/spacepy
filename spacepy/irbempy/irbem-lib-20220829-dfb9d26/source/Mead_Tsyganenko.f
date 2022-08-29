@@ -36,7 +36,7 @@ C   A VOIR CE QUE CA VAUT... (idee de Daniel)
 
 		lati = (3.1416/2-thetaMAG) * 180./3.1416
 		longi = phiMAG * 180./3.1416
-		CALL SPH2CAR(Bval,lati,longi,BMAG)
+		CALL SPH_CAR(Bval,lati,longi,BMAG)
 		CALL MAG_GEO(BMAG,BGEO)
 
 

@@ -419,7 +419,7 @@ class build(_build):
             return
         # 64 bit or 32 bit?
         bit = len('%x' % sys.maxsize)*4
-        irbemdir = 'irbem-lib-20210630-a4759c0'
+        irbemdir = 'irbem-lib-20220829-dfb9d26'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'irbempy')
@@ -526,7 +526,7 @@ class build(_build):
                    'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind', 'xfoot', 'bfoot', 'bfootmag',\
                    'leI0', 'Bposit', 'Nposit', 'hmin', 'hmin_lon']
 
-        inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin', 'kext', 'options', 
+        inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin', 'kext', 'options',
                   'sysaxes', 'UT', 'xIN1', 'xIN2', 'xIN3', 'stop_alt', 'hemi_flag', 'maginput',\
                   't_resol', 'r_resol', 'lati', 'longi', 'alti', 'R0','xx0']
         fln = 'irbempylib.pyf'

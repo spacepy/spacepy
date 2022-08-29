@@ -36,6 +36,15 @@ Systems and their relationships:
     This system builds on ECIMOD and accounts for the nutation (the short-
     period perturbations on the precession). This system is therefore
     considered to use the true equator and true equinox of date.
+- TEME: Earth-Centered Inertial, True Equator Mean Equinox
+    This system is poorly defined in the literature, despite being used in
+    the SGP4 orbital propagator (note that multiple versions of SGP4 exist,
+    see e.g. Vallado et al. 2006; AIAA 2006-6753-Rev2). The mean equinox here
+    is not the same as the mean equinox used in, e.g., ECIMOD, but lies along
+    the true equator between the origin of the Pseudo Earth Fixed and ECITOD
+    frames. It is highly recommended that TEME coordinates are converted to a
+    standard system (e.g., ECI2000) before passing to other users or to
+    different software.
 - GSE: Geocentric Solar Ecliptic
     This system is not inertial. It is Earth-centered, with the x-axis
     pointing towards the Sun. The y-axis lies in the mean ecliptic plane
@@ -575,7 +584,7 @@ class CTrans(dm.SpaceData):
         ecitod_pef[1, 1] = csga
         ecitod_pef[2, 2] = 1.0
 
-        # TEME (used by GEO)
+        # TEME (SGP4 coordinate system)
         sn = np.sin(self['GMST_rad'])
         cs = np.cos(self['GMST_rad'])
         teme_pef = np.zeros((3, 3))
@@ -584,6 +593,13 @@ class CTrans(dm.SpaceData):
         teme_pef[1, 0] = -sn
         teme_pef[1, 1] = cs
         teme_pef[2, 2] = 1.0
+
+        # add TEME to transforms
+        pef_teme = teme_pef.T
+        ecitod_teme = pef_teme.dot(ecitod_pef)
+        ecimod_teme = ecitod_teme.dot(self['Transform']['ECIMOD_ECITOD'])
+        self['Transform']['ECIMOD_TEME'] = ecimod_teme
+        self['Transform']['TEME_ECIMOD'] = ecimod_teme.T
 
         # GEO (Geocentric geographic) to/from PEF (Psuedo Earth Fixed)
         xprad = self['EarthOrientationParameters'].xp*self['constants'].arcsec
@@ -1139,7 +1155,7 @@ def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
     Parameters
     ----------
     coords : array-like
-        Coordinates as Nx3 array. Cartesian assumed unless input system is gedetic.
+        Coordinates as Nx3 array. Cartesian assumed unless input system is geodetic.
     ticks : spacepy.time.Ticktock
         Times for each element of coords. Must contain either N times or 1 time.
     sys_in : str

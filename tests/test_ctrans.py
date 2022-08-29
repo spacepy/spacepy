@@ -277,6 +277,24 @@ class CTransRegressionTests(unittest.TestCase):
         for tra in exp:
             numpy.testing.assert_allclose(got[tra], exp[tra], atol=5e-5)
 
+    def test_coreTransforms_TEME_2019_astropy(self):
+        """Compare TEME to GEO conversion to expected astropy result
+
+        See example at https://docs.astropy.org/en/stable/coordinates/satellites.htm
+        """
+        tt19 = spacepy.time.Ticktock('2019-12-09T20:42:09.072')
+        ct19 = ctrans.CTrans(tt19)
+        # UTC-UT1 is required to get these to agree to tolerance
+        ct19['EarthOrientationParameters'] = ct19._factory['eop'](DUT1=-0.17249231, xp=0,
+                                                                  yp=0, ddPsi=0, ddEps=0)
+        ct19._CTrans__status['useEOP'] = True
+        ct19.calcCoreTransforms()
+        uteme = numpy.array([-6102.443276428913, -986.3320160861297, -2820.3130707199225])  # kilometers
+        expect_gdz = numpy.array([420.17927591, -24.6609379, 160.34199789])  # altitude, lat, long
+        gotgdz = ct19.convert(uteme, 'TEME', 'GDZ')
+        numpy.testing.assert_almost_equal(gotgdz[0], expect_gdz[0], decimal=4)  # alt same to cm
+        numpy.testing.assert_allclose(gotgdz[1:], expect_gdz[1:], rtol=2.78e-5)  # lat/lon same to 0.1 arcsec
+
     def test_dipoleValues_LGM(self):
         """ """
         cd_moment = 29872.9290856547  # nT

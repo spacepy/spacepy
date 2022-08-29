@@ -555,9 +555,9 @@ C
 C     VARIABLES
 C
         REAL*8        gjc(27,2)
-	REAL*8        G(16,16)
-	REAL*8        gg(66),hh(66),thet,phit
-	REAL*8        Bo,xc,yc,zc,ct,st,cp,sp
+      REAL*8        G(16,16)
+      REAL*8        gg(66),hh(66),thet,phit
+      REAL*8        Bo,xc,yc,zc,ct,st,cp,sp
         INTEGER*4     i, j, k, n, norder
 C
       COMMON /intfield/  G,norder
@@ -580,7 +580,7 @@ C
       hh(1)=0.D0
       DO i=1,27
          gg(i+1)=-gjc(i,1)
-	 hh(i+1)=-gjc(i,2)
+       hh(i+1)=-gjc(i,2)
       enddo
       norder    = 7
       G(1,1) = 0.0D0
@@ -616,9 +616,9 @@ C
 C            
         REAL*8        ggsfc(65,2), ggsfc1(65,2), ggsfc2(65,2)
         REAL*8        gg(16,16), ggt(16,16),ggtt(16,16),g(16,16)
-	REAL*8        shmit(16,16),t,dum
-	REAL*8        ggg(66),hhh(66),thet,phit
-	REAL*8        Bo,xc,yc,zc,ct,st,cp,sp
+      REAL*8        shmit(16,16),t,dum
+      REAL*8        ggg(66),hhh(66),thet,phit
+      REAL*8        Bo,xc,yc,zc,ct,st,cp,sp
         INTEGER*4     i, j, k, n,jj,m,norder
 c
       COMMON /intfield/  G,norder

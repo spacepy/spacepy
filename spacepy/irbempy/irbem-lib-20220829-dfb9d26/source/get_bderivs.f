@@ -17,44 +17,6 @@
 !    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
 !
 
-      REAL*4 FUNCTION COMPUTE_GRAD_CURV_CURL_IDL(argc, argv) ! Called by IDL
-      INCLUDE 'wrappers.inc'
-c      INTEGER*4 argc, argv(*)   ! Argc and Argv are integers
-      
-      j = loc(argc)             ! Obtains the number of arguments (argc)
-                                ! Because argc is passed by VALUE.
-      
-      call compute_grad_curv_curl(%VAL(argv(1)),%VAL(argv(2)),
-     &     %VAL(argv(3)),
-     &     %VAL(argv(4)),%VAL(argv(5)),%VAL(argv(6)),%VAL(argv(7)),
-     &     %VAL(argv(8)),%VAL(argv(9)),%VAL(argv(10)),%VAL(argv(11)),
-     &     %VAL(argv(12)),%VAL(argv(13)))
-      
-      COMPUTE_GRAD_CURV_CURL_IDL = 9.9
-      
-      RETURN
-      END
-
-
-      REAL*4 FUNCTION GET_BDERIVS_IDL(argc, argv)   ! Called by IDL
-      INCLUDE 'wrappers.inc'
-c      INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-       call GET_BDERIVS(%VAL(argv(1)),%VAL(argv(2)),%VAL(argv(3)),
-     &      %VAL(argv(4)),%VAL(argv(5)),%VAL(argv(6)),%VAL(argv(7)),
-     &      %VAL(argv(8)),%VAL(argv(9)),%VAL(argv(10)),%VAL(argv(11)),
-     &      %VAL(argv(12)),%VAL(argv(13)),%VAL(argv(14)),%VAL(argv(15)),
-     &      %VAL(argv(16)))
-
-      GET_BDERIVS_IDL = 9.9
-
-      RETURN
-      END
-
-
       SUBROUTINE GET_Bderivs(ntime,kext,options,sysaxes,dX,
      & iyearsat,
      & idoy,UT,xIN1,xIN2,xIN3,maginput,Bgeo,Bmag,gradBmag,diffB)

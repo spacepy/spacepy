@@ -1534,27 +1534,27 @@ C
       PARAMETER (precision = 1.D-5) ! increase precision to 1E-5
 C
       REAL*8 lati,longi,lat0
-        REAL*8 alti,xx,yy,zz,alt0
-        REAL*8 D,RHO
-        REAL*8 ERA,AQUAD,BQUAD
-        integer*4 i
+      REAL*8 alti,xx,yy,zz,alt0
+      REAL*8 D,RHO
+      REAL*8 ERA,AQUAD,BQUAD
+      integer*4 i
 C
-        COMMON/GENER/ERA,AQUAD,BQUAD
-        REAL*8     pi,rad
-        common /rconst/rad,pi
+      COMMON/GENER/ERA,AQUAD,BQUAD
+      REAL*8     pi,rad
+      common /rconst/rad,pi
 C
-        CALL INITIZE
+      CALL INITIZE
       longi = ATAN2(yy,xx)/rad
       RHO = SQRT(xx*xx+yy*yy)
       lati = ATAN2(zz,RHO)
       D = COS(lati)
-      IF (D.LT.1.D-15)THEN
+      IF (D.LT.1.D-15) THEN  !trap for pole
         lati = lati/rad
-        alti = (zz-1.D0)*SQRT(BQUAD)
+        alti = (abs(zz)-1.D0)*SQRT(BQUAD)
       ELSE
         alti = RHO/D - 1.D0
 C
-      i=0
+        i=0
 10        CONTINUE
         alt0 = alti
         lat0 = lati
@@ -1562,7 +1562,7 @@ C
         lati = ATAN2(zz*(alt0+AQUAD/D/ERA),RHO*(alt0+BQUAD/D/ERA))
         alti = RHO/cos(lati) - AQUAD/D/ERA
         i=i+1
-        if (i .gt. 1000) then
+        if (i .gt. 1000) then  !failed to converge
           alti=0.
           lati=0.
         !write(6,*)'geo2gdz ',i,alti
@@ -1570,7 +1570,7 @@ C
         endif
         IF (ABS(alti - alt0).GT. precision .OR. ABS(lati -
      &     lat0) .GT. precision) GOTO 10 ! keep looping until BOTH are within precision
-          alti = alti*ERA
+        alti = alti*ERA
         lati = lati/rad
         ENDIF
         !write(6,*)'geo2gdz ',i,alti

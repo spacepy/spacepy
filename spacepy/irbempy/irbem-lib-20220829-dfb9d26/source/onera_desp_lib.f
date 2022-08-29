@@ -22,20 +22,6 @@ C-----------------------------------------------------------------------------
 
 
 c function returns version of fortran source code
-      ! Called by IDL
-      REAL*4 FUNCTION IRBEM_FORTRAN_VERSION(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-      call IRBEM_FORTRAN_VERSION1(%VAL(argv(1)))
-
-      IRBEM_FORTRAN_VERSION = 9.9
-
-      RETURN
-      END
-
       SUBROUTINE IRBEM_FORTRAN_VERSION1(VERSN)
         INCLUDE 'fortran_version.inc' ! include file created by make
         INTEGER*4 VERSN
@@ -44,20 +30,6 @@ c function returns version of fortran source code
 
 
 c function returns release of fortran source code
-      ! Called by IDL
-      REAL*4 FUNCTION IRBEM_FORTRAN_RELEASE(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                        ! Because argc is passed by VALUE.
-
-      call IRBEM_FORTRAN_RELEASE1(%VAL(argv(1)))
-
-      IRBEM_FORTRAN_RELEASE = 9.9
-
-      RETURN
-      END
-
       SUBROUTINE IRBEM_FORTRAN_RELEASE1(RLS)
         INCLUDE 'fortran_release.inc'
         CHARACTER*80 RLS
@@ -66,45 +38,10 @@ c function returns release of fortran source code
 
 
 c function returns maximum size of variables
-      ! Called by IDL
-      REAL*4 FUNCTION GET_IRBEM_NTIME_MAX(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-      call GET_IRBEM_NTIME_MAX1(%VAL(argv(1)))
-
-      GET_IRBEM_NTIME_MAX = 9.9
-
-      RETURN
-      END
-
       SUBROUTINE GET_IRBEM_NTIME_MAX1(ntime_max1)
         INCLUDE 'ntime_max.inc' ! include file created by make
         INTEGER*4 ntime_max1
         ntime_max1 = ntime_max
-      END
-      ! Called by IDL
-      REAL*4 FUNCTION make_lstar(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine make_Lstar: 17 arguments
-      call make_lstar1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     + %VAL(argv(16)), %VAL(argv(17)))
-
-      make_lstar = 9.9
-
-      RETURN
       END
 c
 c --------------------------------------------------------------------
@@ -221,30 +158,6 @@ c
       ENDDO
 
       END
-C-----------------------------------------------------------------------------
-C Wrapper and procedure
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION make_lstar_shell_splitting(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-      call make_lstar_shell_splitting1(%VAL(argv(1)), %VAL(argv(2)),
-     + %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     + %VAL(argv(16)), %VAL(argv(17)), %VAL(argv(18)), %VAL(argv(19)))
-
-      make_lstar_shell_splitting = 9.9
-
-      RETURN
-      END
 c
 c --------------------------------------------------------------------
 c
@@ -328,7 +241,7 @@ c
             GOTO 99
           endif
 c
-c Compute Bmin assuming 90deg PA at S/C
+c Compute Bmin assuming 90� PA at S/C
          k_l=0
            IPA=1
            CALL calcul_Lstar_opt(t_resol,r_resol,xGEO
@@ -366,26 +279,6 @@ c Compute Bmin assuming 90deg PA at S/C
       END
 c
 C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION Lstar_Phi(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine Lstar_Phi: 7 arguments
-      call Lstar_Phi1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)))
-
-      Lstar_Phi = 9.9
-
-      RETURN
-      END
-c
-c --------------------------------------------------------------------
 c
         SUBROUTINE Lstar_Phi1(ntime,whichinv,options,iyearsat,
      &  idoy,Lstar,Phi)
@@ -436,29 +329,6 @@ c
          endif
       enddo
       end
-c
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION drift_shell(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine make_Lstar: 17 arguments
-      call drift_shell1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     + %VAL(argv(16)), %VAL(argv(17)))
-
-      drift_shell = 9.9
-
-      RETURN
-      END
 c
 c --------------------------------------------------------------------
 c
@@ -523,54 +393,6 @@ c
      &     posit,ind)
       END
 
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION trace_field_line(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine make_Lstar: 17 arguments
-      call trace_field_line1(%VAL(argv(1)), %VAL(argv(2)),
-     +%VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     + %VAL(argv(16)))
-
-      trace_field_line = 9.9
-
-      RETURN
-      END
-c
-c --------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION trace_field_line2(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine make_Lstar: 17 arguments
-      call trace_field_line2_1(%VAL(argv(1)), %VAL(argv(2)),
-     +%VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     + %VAL(argv(16)), %VAL(argv(17)))
-
-      trace_field_line2 = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE trace_field_line1(kext,options,sysaxes,iyearsat,
@@ -656,29 +478,6 @@ c
       END
 c
 c --------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION trace_field_line_towards_earth(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine make_Lstar: 17 arguments
-      call trace_field_line_towards_earth1(%VAL(argv(1)), %VAL(argv(2)),
-     +%VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)))
-
-      trace_field_line_towards_earth = 9.9
-
-      RETURN
-      END
-c
-c --------------------------------------------------------------------
 c
       SUBROUTINE trace_field_line_towards_earth1(kext,options,sysaxes
      &  ,iyearsat,idoy,UT,xIN1,xIN2,xIN3,maginput,ds,posit,ind)
@@ -742,29 +541,6 @@ c
         CALL field_line_tracing_towards_Earth_opt(xGEO,ds,posit,ind)
       END
 
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION find_mirror_point(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine make_Lstar: 19 arguments
-      call find_mirror_point1(%VAL(argv(1)), %VAL(argv(2)),
-     + %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)))
-
-      find_mirror_point = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE find_mirror_point1(kext,options,sysaxes,iyearsat,
@@ -849,28 +625,6 @@ c
 
 
 
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION find_MAGequator(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c
-      call find_MAGequator1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)))
-
-      find_MAGequator = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE FIND_MAGEQUATOR1(kext,options,sysaxes,iyearsat
@@ -928,28 +682,6 @@ c
 c
         CALL loc_equator_opt(xGeo,BMIN,posit)
       END
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION GET_FIELD(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c
-      call GET_FIELD1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)))
-
-      GET_FIELD = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
       SUBROUTINE GET_FIELD1(kext,options,sysaxes,iyearsat,idoy,UT,
@@ -1013,30 +745,6 @@ c
       ENDIF
       END
 C-----------------------------------------------------------------------------
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION GET_FIELD_MULTI_IDL(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c
-      call GET_FIELD_MULTI(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)),%VAL(argv(13)))
-
-      GET_FIELD_MULTI_IDL = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C-----------------------------------------------------------------------------
 
       SUBROUTINE GET_FIELD_MULTI(ntime,kext,options,sysaxes,iyearsat,
      &     idoy,UT,xIN1,xIN2,xIN3,maginput,BxGEO,Bl)
@@ -1078,26 +786,6 @@ c      endif
       end
 c
 c --------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION GET_MLT(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-      j = loc(argc)             ! Obtains the number of arguments (argc)
-                                ! Because argc is passed by VALUE.
-
-c     Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c     passed by reference arguments.
-c
-c
-      call GET_MLT1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     *     %VAL(argv(4)),  %VAL(argv(5)))
-
-      GET_MLT = 9.9
-
-      RETURN
-      END
-c
-c --------------------------------------------------------------------
 c
         SUBROUTINE GET_MLT1(iyr,idoy,UT,xGEO,MLT)
 c
@@ -1136,50 +824,6 @@ C
 
         END
 C-----------------------------------------------------------------------------
-c******************************************************************************
-c *****************************************************************************
-      ! Called by IDL
-      REAL*4 FUNCTION GET_HEMI(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c
-      call GET_HEMI1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)))
-
-      GET_HEMI = 9.9
-
-      RETURN
-      END
-C-----------------------------------------------------------------------------
-c******************************************************************************
-c *****************************************************************************
-      ! Called by IDL
-      REAL*4 FUNCTION GET_HEMI_MULTI_IDL(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c
-      call GET_HEMI_MULTI(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     * %VAL(argv(12)))
-
-      GET_HEMI_MULTI_IDL = 9.9
-
-      RETURN
-      END
 c
       integer*4 function int_field_select ( kint )
       integer*4 kint
@@ -1732,76 +1376,6 @@ c           xx,yy,zz,lati,longi,alti, $               ;return values (6)
 c           /f_value)                             ;function returns a float.
 c
 c =======================================================================
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION coord_trans(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine coord_trans1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine coord_trans1: 7 arguments
-      call coord_trans1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)))
-
-      coord_trans = 9.9
-
-      RETURN
-      END
-c
-
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION coord_trans_vec(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine coord_trans1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine coord_trans_vec1: 8 arguments
-      call coord_trans_vec1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)))
-
-      coord_trans_vec = 9.9
-
-      RETURN
-      END
-c
-
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION geo2gsm(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call geo2gsm1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)))
-
-      geo2gsm = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE geo2gsm1(iyr,idoy,secs,psi,xGEO,xGSM)
@@ -1816,28 +1390,6 @@ c
         CALL INIT_GSM(iyr,idoy,secs,psi)
         CALL GEO_GSM(xGEO,xGSM)
         end
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION gsm2geo(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine gsm2geo1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine gsm2geo: 6 arguments
-      call gsm2geo1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)))
-
-      gsm2geo = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE gsm2geo1(iyr,idoy,secs,psi,xGSM,xGEO)
@@ -1854,28 +1406,6 @@ c
         CALL GSM_GEO(xGSM,xGEO)
         end
 
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION geo2gse(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call geo2gse1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      geo2gse = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE geo2gse1(iyr,idoy,secs,xGEO,xGSE)
@@ -1891,28 +1421,6 @@ c
         CALL INIT_GSM(iyr,idoy,secs,psi)
         CALL GEO_GSE(xGEO,xGSE)
         end
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION gse2geo(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine gsm2geo1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine gsm2geo: 6 arguments
-      call gse2geo1(%VAL(argv(1)), %VAL(argv(2)),
-     * %VAL(argv(3)),  %VAL(argv(4)),  %VAL(argv(5)))
-
-      gse2geo = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE gse2geo1(iyr,idoy,secs,xGSE,xGEO)
@@ -1931,72 +1439,6 @@ c
 
 
 
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION gdz2geo(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine gdz2geo1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine gdz2geo: 6 arguments
-      call GDZ_GEO(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)))
-
-      gdz2geo = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION geo2gdz(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo_gdz, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo_gdz: 6 arguments
-      call GEO_GDZ(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)))
-
-      geo2gdz = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION geo2gei(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call geo2gei1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      geo2gei = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE geo2gei1(iyr,idoy,secs,xGEO,xGEI)
@@ -2013,28 +1455,6 @@ c
         CALL GEO_GEI(xGEO,xGEI)
         end
 
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION gei2geo(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call gei2geo1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      gei2geo = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE gei2geo1(iyr,idoy,secs,xGEI,xGEO)
@@ -2051,28 +1471,6 @@ c
         CALL GEI_GEO(xGEI,xGEO)
         end
 
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION geo2sm(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call geo2sm1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      geo2sm = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE geo2sm1(iyr,idoy,secs,xGEO,xSM)
@@ -2089,28 +1487,6 @@ c
         CALL GEO_SM(xGEO,xSM)
         end
 
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION sm2geo(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call sm2geo1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      sm2geo = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE sm2geo1(iyr,idoy,secs,xSM,xGEO)
@@ -2127,28 +1503,6 @@ c
         CALL SM_GEO(xSM,xGEO)
         end
 
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION gsm2sm(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call gsm2sm1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      gsm2sm = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE gsm2sm1(iyr,idoy,secs,xGSM,xSM)
@@ -2156,32 +1510,15 @@ c
       REAL*8    secs,psi,dyear
       REAL*8    xGSM(3),xSM(3)
 
+        dyear=iyr+0.5d0
+        psi=0.d0
+        call initize ! sets rad, pi used by various routines
+
+        CALL INIT_DTD(dyear)
         CALL INIT_GSM(iyr,idoy,secs,psi)
         CALL GSM_SM(xGSM,xSM)
         end
 
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION sm2gsm(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call sm2gsm1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      sm2gsm = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE sm2gsm1(iyr,idoy,secs,xSM,xGSM)
@@ -2197,27 +1534,6 @@ c
         CALL INIT_GSM(iyr,idoy,secs,psi)
         CALL SM_GSM(xSM,xGSM)
         end
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION geo2mag(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call geo2mag1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)))
-
-      geo2mag = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE geo2mag1(iyr,xGEO,xMAG)
@@ -2230,27 +1546,6 @@ c
         CALL GEO_MAG(xGEO,xMAG)
         end
 
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION mag2geo(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call mag2geo1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)))
-
-      mag2geo = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
         SUBROUTINE mag2geo1(iyr,xMAG,xGEO)
@@ -2262,555 +1557,6 @@ c
         CALL INIT_DTD(dyear)
         CALL MAG_GEO(xMAG,xGEO)
         end
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION sph2car(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call SPH_CAR(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     &  %VAL(argv(4)))
-
-      sph2car = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION car2sph(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call CAR_SPH(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     & %VAL(argv(4)))
-
-      car2sph = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION rll2gdz(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine geo2gsm1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine geo2gsm: 6 arguments
-      call RLL_GDZ(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     & %VAL(argv(4)))
-
-      rll2gdz = 9.9
-
-      RETURN
-      END
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION gse2hee(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine gse2hee1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine gse2hee1: 5 arguments
-      call gse2hee1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      gse2hee = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION hee2gse(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine hee2gse1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine hee2gse1: 5 arguments
-      call hee2gse1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      hee2gse = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION hae2hee(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine hae2hee1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine hae2hee1: 5 arguments
-      call hae2hee1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      hae2hee = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION hee2hae(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine hee2hae1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine hee2hae1: 5 arguments
-      call hee2hae1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      hee2hae = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION hae2heeq(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine hae2heeq1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine hae2heeq1: 5 arguments
-      call hae2heeq1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      hae2heeq = 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C Wrapper and procedure for ONERA library
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION heeq2hae(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine heeq2hae1, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-c  subroutine heeq2hae1: 5 arguments
-      call heeq2hae1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)))
-
-      heeq2hae = 9.9
-
-      RETURN
-      END
-c
-c
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 3.0
-!
-! CREATION: S. Bourdarie - September 2005
-! MODIFICATION: None
-!
-! DESCRIPTION: Wrapper to call fly_in_nasa_aeap1 (IN AE8_AP8.f) from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_nasa_aeap_', ntime,sysaxes,whichm,whatf,energy,xIN1,xIN2,xIN3,flux, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION fly_in_nasa_aeap(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-!
-      call fly_in_nasa_aeap1(%VAL(argv(1)), %VAL(argv(2)),
-     * %VAL(argv(3)),%VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),
-     * %VAL(argv(7)),  %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)),
-     * %VAL(argv(11)),  %VAL(argv(12)),  %VAL(argv(13)))
-
-      fly_in_nasa_aeap = 9.9
-
-      RETURN
-      END
-c
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 4.2
-!
-! CREATION: S. Bourdarie - March 2008
-! MODIFICATION: None
-!
-! DESCRIPTION: Wrapper to call get_AE8_AP8_flux (IN AE8_AP8.f) from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'get_AE8_AP8_flux_idl_', ntime,whichm,whatf,nene,energy,BBo,L,flux, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION get_ae8_ap8_flux_idl(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-!
-      call get_AE8_AP8_flux(%VAL(argv(1)), %VAL(argv(2)),
-     * %VAL(argv(3)),%VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),
-     * %VAL(argv(7)), %VAL(argv(8)))
-
-      get_AE8_AP8_flux_idl = 9.9
-
-      RETURN
-      END
-c
-c
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 3.0
-!
-! CREATION: S. Bourdarie - May 2006
-! MODIFICATION: S. Bourdarie - March 2007 (add multi channel calculcations) - V4.1
-!
-! DESCRIPTION: Wrapper to call fly_in_afrl_crres1 (IN AFRL_CRRES_models.f) from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_afrl_crres_', ntime,sysaxes,whichm,whatf,energy,xIN1,xIN2,xIN3,flux, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION fly_in_afrl_crres(argc, argv)
-!
-      INTEGER*4   CHAR_SIZE
-      PARAMETER      (CHAR_SIZE=500)
-
-      INCLUDE 'wrappers.inc'
-!
-      j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-c
-
-      call fly_in_afrl_crres1(%VAL(argv(1)), %VAL(argv(2)),
-     * %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     * %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     * %VAL(argv(16)))
-
-      fly_in_afrl_crres = 9.9
-
-      RETURN
-      END
-c
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 4.2
-!
-! CREATION: S. Bourdarie - March 2008
-!
-! DESCRIPTION: Wrapper to call get_crres_flux (IN AFRL_CRRES_models.f) from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'get_crres_flux_idl_', ntime,whichm,whatf,Nene,energy,BBo,L,Ap15,flux,afrl_crres_path,strlen, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION get_crres_flux_idl(argc, argv)
-!
-      INTEGER*4   CHAR_SIZE
-      PARAMETER      (CHAR_SIZE=500)
-
-      INCLUDE 'wrappers.inc'
-!
-      j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-c
-
-      call get_crres_flux(%VAL(argv(1)), %VAL(argv(2)),
-     * %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)))
-
-      get_crres_flux_idl = 9.9
-
-      RETURN
-      END
-c
-
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 4.2
-!
-! CREATION: S. Bourdarie - December 2007
-! MODIFICATION: None
-!
-! DESCRIPTION: Wrapper to call fly_in_ige1 from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_ige1_', launch_year,duration,whichm,whatf,Nene,energy,Lower_flux,Mean_flux,Upper_flux, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION fly_in_ige(argc, argv)
-!
-      INTEGER*4   CHAR_SIZE
-      PARAMETER      (CHAR_SIZE=500)
-
-      INCLUDE 'wrappers.inc'
-!
-      j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-c
-
-      call fly_in_ige1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)))
-
-      fly_in_ige = 9.9
-
-      RETURN
-      END
-c
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 4.3
-!
-! CREATION: S. Bourdarie - March 2008
-! MODIFICATION: None
-!
-! DESCRIPTION: Wrapper to call fly_in_meo_gnss1 from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_meo_gnss1_', launch_year,duration,whichm,whatf,Nene,energy,Lower_flux,Mean_flux,Upper_flux, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION fly_in_meo_gnss(argc, argv)
-!
-      INTEGER*4   CHAR_SIZE
-      PARAMETER      (CHAR_SIZE=500)
-
-      INCLUDE 'wrappers.inc'
-!
-      j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-c
-
-      call fly_in_meo_gnss1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)))
-
-      fly_in_meo_gnss = 9.9
-
-      RETURN
-      END
-c
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 4.0
-!
-! CREATION: S. Bourdarie - January 2007
-! MODIFICATION: None
-!
-! DESCRIPTION: Wrapper to call SPG4_TLE1 from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'SGP4_TLE_', runtype,startsfe,stopsfe,deltasec,InFileByte,strlenIn,OutFileByte,strlenOut, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION SGP4_TLE(argc, argv)
-!
-      INTEGER*4   CHAR_SIZE
-      PARAMETER      (CHAR_SIZE=500)
-
-      INCLUDE 'wrappers.inc'
-!
-      j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-c
-
-      call SGP4_TLE1(%VAL(argv(1)), %VAL(argv(2)),
-     * %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)))
-
-      SGP4_TLE = 9.9
-
-      RETURN
-      END
-c
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 4.0
-!
-! CREATION: S. Bourdarie - January 2007
-! MODIFICATION: None
-!
-! DESCRIPTION: Wrapper to call SPG4_ORB1 from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'SGP4_ORB_', runtype,startsfe,stopsfe,deltasec,InFileByte,strlenIn,OutFileByte,strlenOut, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION SGP4_ELE(argc, argv)
-!
-      INCLUDE 'wrappers.inc'
-!
-      j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-c
-
-      call SGP4_ELE1(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),%VAL(argv(5)), %VAL(argv(6)), %VAL(argv(7)),
-     * %VAL(argv(8)),%VAL(argv(9)), %VAL(argv(10)), %VAL(argv(11)),
-     * %VAL(argv(12)),%VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     * %VAL(argv(16)),%VAL(argv(17)),%VAL(argv(18)),%VAL(argv(19)),
-     * %VAL(argv(20)),%VAL(argv(21)),%VAL(argv(22)),%VAL(argv(23)))
-
-      SGP4_ELE= 9.9
-
-      RETURN
-      END
-c
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 4.0
-!
-! CREATION: S. Bourdarie - January 2007
-! MODIFICATION: None
-!
-! DESCRIPTION: Wrapper to call rv2coe (in sgp4ext.f) from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'RV2COE_IDL_', R, V, P, A, Ecc, Incl, Omega, Argp, Nu, M, ArgLat, TrueLon, LonPer, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION RV2COE_IDL(argc, argv)
-!
-      INCLUDE 'wrappers.inc'
-!
-      j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-c
-
-      call rv2coe(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),%VAL(argv(5)), %VAL(argv(6)), %VAL(argv(7)),
-     * %VAL(argv(8)),%VAL(argv(9)), %VAL(argv(10)), %VAL(argv(11)),
-     * %VAL(argv(12)),%VAL(argv(13)))
-
-      RV2COE_IDL= 9.9
-
-      RETURN
-      END
-c
-!---------------------------------------------------------------------------------------------------
-!                              Introduced in version 4.1
-!
-! CREATION: S. Bourdarie - March 2007
-! MODIFICATION: None
-!
-! DESCRIPTION: Wrapper to call DATE_AND_TIME2DECY from IDL, converts the IDL parameters to
-!              standard FORTRAN passed by reference arguments.
-!
-! INPUT: argc-> number of argument (long integer)
-!        argv -> reference argument
-!
-! CALLING SEQUENCE: result=call_external(lib_name, 'DATE_AND_TIME2DECY_IDL_', Year,Month,Day,hour,minute,second,decy, /f_value)
-!---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION DATE_AND_TIME2DECY_IDL(argc, argv)
-!
-      INCLUDE 'wrappers.inc'
-!
-      j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-c
-
-      call DATE_AND_TIME2DECY(%VAL(argv(1)), %VAL(argv(2)),
-     * %VAL(argv(3)),
-     * %VAL(argv(4)),%VAL(argv(5)), %VAL(argv(6)), %VAL(argv(7)))
-
-      DATE_AND_TIME2DECY_IDL= 9.9
-
-      RETURN
-      END
-c
-C-----------------------------------------------------------------------------
-C IDL Wrappers
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION msis86_idl(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-      call msis86(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)))
-
-      msis86_idl = 9.9
-
-      RETURN
-      END
 c
 c --------------------------------------------------------------------
 c
@@ -2856,26 +1602,6 @@ c
       ENDDO
       END
 
-C-----------------------------------------------------------------------------
-C IDL Wrappers
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION msise90_idl(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-      call msise90(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)))
-
-      msise90_idl = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
       subroutine msise90(ntime,whichAp,DOY,UT,ALT,LAT,LONG,F107A,
@@ -2910,26 +1636,6 @@ c
        ENDDO
       ENDDO
       END
-C-----------------------------------------------------------------------------
-C IDL Wrappers
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION nrlmsise00_idl(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                    ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-      call nrlmsise00(%VAL(argv(1)), %VAL(argv(2)), %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)))
-
-      nrlmsise00_idl = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
       subroutine nrlmsise00(ntime,whichAp,DOY,UT,ALT,LAT,LONG,F107A,
@@ -2966,31 +1672,6 @@ c
       END
 
 
-C-----------------------------------------------------------------------------
-C Wrapper and procedure
-C-----------------------------------------------------------------------------
-      ! Called by IDL
-      REAL*4 FUNCTION make_lstar_shell_splitting2_idl(argc, argv)
-      INCLUDE 'wrappers.inc'
-
-       j = loc(argc)                   ! Obtains the number of arguments (argc)
-                                       ! Because argc is passed by VALUE.
-
-c  Call subroutine make_Lstar_shell_splitting2, converting the IDL parameters to standard FORTRAN
-c  passed by reference arguments.
-c
-      call make_lstar_shell_splitting2(%VAL(argv(1)), %VAL(argv(2)),
-     + %VAL(argv(3)),
-     * %VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),  %VAL(argv(7)),
-     * %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)), %VAL(argv(11)),
-     + %VAL(argv(12)), %VAL(argv(13)), %VAL(argv(14)), %VAL(argv(15)),
-     + %VAL(argv(16)), %VAL(argv(17)), %VAL(argv(18)), %VAL(argv(19)))
-
-      make_lstar_shell_splitting2_idl = 9.9
-
-      RETURN
-      END
-c
 c --------------------------------------------------------------------
 c
 c Alternate version without useless 100k time/position array
@@ -3080,7 +1761,7 @@ c      collect the B components for return in maginput() array
          maginput(16)=baddata
       ENDIF
 c
-c Compute Bmin assuming 90deg PA at S/C
+c Compute Bmin assuming 90� PA at S/C
          k_l=0
            IPA=1
 c             all returned values except Bmin are subsequently overwritten
