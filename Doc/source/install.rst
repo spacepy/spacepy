@@ -89,6 +89,20 @@ Installs using ``setup.py`` do not require setuptools.
 Troubleshooting
 ===============
 
+pip failures
+------------
+If ``pip`` completely fails to build, a common issue is a failure in
+the isolated build environment that ``pip`` sets up. Usually this can
+be addressed by installing numpy first and eschewing the separate
+build environment::
+
+  pip install numpy
+  pip install spacepy --no-build-isolation
+
+Manually installing all dependencies (via ``pip``, ``conda``, or other
+means) and then installing the source release via ``setup.py`` is also
+an option.
+
 irbempy
 -------
 The most common failures relate to compilation of the IRBEM
@@ -108,5 +122,6 @@ this version of numpy is 0xe`` followed by ``ImportError:
 numpy.core.multiarray failed to import`` means that the version of
 numpy used at installation of SpacePy does not match that used at
 runtime. Check that there is only one version of numpy installed. In
-some cases ``pip`` will install another version of number to support
-the build; this was fixed in SpacePy 0.4.0 but may recur.
+some cases ``pip`` will install another version of numpy to support
+the build; try installing numpy separately first, and then using the
+``--no-build-isolation`` flag to ``pip``.

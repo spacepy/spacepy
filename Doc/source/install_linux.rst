@@ -136,3 +136,18 @@ Or the package manager:
 For Python 3:
 
   sudo apt-get install python3-sphinx python3-numpydoc
+
+Raspberry Pi
+============
+SpacePy works on Raspberry Pi, using Raspberry Pi OS in 32-bit or
+64-bit flavors. A few tips:
+
+   * It is highly recommended to install all dependencies (numpy,
+     etc.)  via the system package manager ``apt-get`` rather than
+     pip, as prebuilt wheels are not generally available and compiling
+     dependencies on the Pi can take a very long time::
+
+      sudo apt-get install gfortran python3-numpy python3-scipy python3-h5py python3-matplotlib
+
+   * Similarly, if installing SpacePy via pip, use the
+     ``--no-build-isolation`` flag to use the system numpy.
