@@ -572,12 +572,11 @@ class build(_build):
             'intel': ['-Bstatic', '-assume', '2underscores', '-O2', '-fPIC'],
             'intelem': ['-Bdynamic', '-O2', '-fPIC'],
             }[fcompiler]
-        if fcompiler == 'gnu':
-            if bit == 64:
+        if fcompiler == 'gnu' and bit == 64:
                 compflags = ['-m64'] + compflags
         if not sys.platform.startswith('win') and fcompiler == 'gnu95' \
-           and not os.uname()[4].startswith('arm'):
-            # Raspberry Pi doesn't have this switch and assumes 32-bit
+           and not os.uname()[4].startswith(('arm', 'aarch64')):
+            # Raspberry Pi doesn't have or need this switch
             compflags = ['-m{0}'.format(bit)] + compflags
         if fcompiler.startswith('intel'):
             if bit == 32:
