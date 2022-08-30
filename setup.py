@@ -197,7 +197,10 @@ def f2py_options(fcompiler, dist=None):
                 fcomp.command_vars._conf_keys[k] = ('exe.{0}'.format(k),) +  \
                                                    oldval[1:]
     fcomp = fcomp()
-    fcomp.customize(dist)
+    try:
+        fcomp.customize(dist)
+    except numpy.distutils.fcompiler.CompilerNotFound:
+        return False
     if 'LDFLAGS' in os.environ:
         env = os.environ.copy()
         currflags = os.environ['LDFLAGS'].split()
@@ -504,7 +507,12 @@ class build(_build):
             os.path.join(builddir, 'source', 'wrappers_{0}.inc'.format(bit)),
             os.path.join(builddir, 'source', 'wrappers.inc'.format(bit)))
 
-        f2py_env, fcompexec = f2py_options(fcompiler, self.distribution)
+        res  = f2py_options(fcompiler, self.distribution)
+        if not res:
+           warnings.warn('Unable to load compiler {}\n'
+                         'IRBEM will not be available.'.format(fcompiler))
+           return
+        f2py_env, fcompexec = res
 
         # compile irbemlib
         olddir = os.getcwd()
