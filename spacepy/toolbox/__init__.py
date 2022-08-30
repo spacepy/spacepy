@@ -1270,13 +1270,14 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         fh_zip.close()
-        if not str is bytes:
-            data = data.decode('ascii')
-        A = np.array(data.split('\n'))
+        A = data.split(b'\n')
         print("Processing initial Qin-Denton file ...")
 
         # create a keylist
-        keys = A[0].split()
+        keys = A[0]
+        if str is not bytes:
+            keys = keys.decode('ascii')
+        keys = keys.split()
         keys.remove('8')
         keys.remove('6')
         keys[keys.index('status')] = '8_status'
@@ -1289,10 +1290,9 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         keys[keys.index('Day')] = 'DOY'
         keys[keys.index('Year')] = 'Year'
 
-        # remove keyword lines and empty lines as well
-        idx = np.where(A != '')[0]
-        # put it into a 2D table
-        tab = [val.split() for val in A[idx[1:]]]
+        # put it into a 2D table, skipping keyword and empty lines
+        tab = [val.split() for val in A[1:] if val]
+        del A
         stat8 = [val[11] for val in tab]
         stat6 = [val[27] for val in tab]
 
@@ -1311,6 +1311,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
                 omnidata[ikey] = dmarray(tab[:, i], dtype='int16')
             else:
                 omnidata[ikey] = dmarray(tab[:,i])
+        del tab
 
         # add TAI to omnidata
         nTAI = len(omnidata['DOY'])
@@ -1321,8 +1322,6 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
                       dtype=np.byte).reshape((8, nTAI))
         for ik, key in enumerate(['ByIMF', 'BzIMF', 'velo', 'dens', 'Pdyn', 'G1', 'G2', 'G3']):
             omnidata['Qbits'][key] = arr[ik,:]
-        if stat6.dtype.str[1:] == 'U6':
-            stat6 = np.require(stat6, dtype='|S6')
         arr = dmarray(stat6.view(stat6.dtype.kind + '1'),
                       dtype=np.byte).reshape((6, nTAI))
         for ik, key in enumerate(['W1', 'W2', 'W3', 'W4', 'W5', 'W6']):
@@ -1363,6 +1362,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         print("Now saving... ")
         ##for now, make one file -- think about whether monthly/annual files makes sense
         toHDF5(omni_fname_h5, omnidata)
+        del omnidata
         print('Complete.')
 
     if omni2 == True:
@@ -1399,6 +1399,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
 
             # save as HDF5
             toHDF5(omni2_fname_h5, omnicdf)
+            del omnicdf
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
