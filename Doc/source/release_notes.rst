@@ -31,6 +31,9 @@ with no change in results or accuracy.
 :class:`~spacepy.datamodel.SpaceData` objects as well as
 :class:`~spacepy.pycdf.CDF`.
 
+Both :mod:`~spacepy.coordinates` backends now provide access to the TEME
+coordinate system (as used by the SGP4 orbit propagator).
+
 Deprecations and removals
 *************************
 The ``_nelems`` method of :class:`~spacepy.pycdf.Var` has been removed;
@@ -46,6 +49,13 @@ Major bugfixes
 **************
 :mod:`~spacepy.pycdf` has been updated for Apple Silicon (ARM/M1);
 Python 3.8 is required for this support.
+
+The IRBEM backend for coordinate transformations has been updated to
+correct the specification of transformations through the J2000 and TOD
+systems, including correctly setting the GEI and TOD systems to be
+equivalent. This may change results by a small amount. The IRBEM update
+also traps a singularity at the South pole in the conversion to geodetic
+(GDZ) coordinates.
 
 Dependency requirements
 ***********************
@@ -63,6 +73,10 @@ and TIME_TT2000 time type if not specified; the warning was added in
 :meth:`~spacepy.pycdf.Library.set_backward` to create version 2 CDFs and
 explicitly specify a time type (e.g. with :meth:`~spacepy.pycdf.CDF.new`)
 if TT2000 is not desired.
+
+The IRBEM library bundled with SpacePy has been updated to reflect recent
+updates and bugfixes, and reflects the upstream repository as of 2022-08-29
+(commit dfb9d26).
 
 0.3 Series
 ==========
