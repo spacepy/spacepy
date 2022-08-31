@@ -534,16 +534,19 @@ class coordsTestIrbem(unittest.TestCase):
             irbframes.pop(irbframes.index(key))
         for insys in irbframes:
             for outsys in irbframes:
+                errmsg = 'insys: {} outsys: {}'.format(insys, outsys)
                 expected = spc.Coords([1, 2, 4], insys, 'car',
                                       use_irbem=True, ticks=tt)
                 stage1 = expected.convert(outsys, 'car')
                 got = stage1.convert(insys, 'car')
-                np.testing.assert_allclose(got.data, expected.data, atol=0.001)
+                np.testing.assert_allclose(got.data, expected.data, atol=0.001,
+                                           verbose=True, err_msg=errmsg)
                 if insys in spc.SYS_EQUIV:
                     options = [insys, spc.SYS_EQUIV[insys]]
-                    assert insys in options
+                    self.assertIn(got.dtype, options)
                 else:
-                    np.testing.assert_equal(got.dtype, insys)
+                    np.testing.assert_equal(got.dtype, insys, verbose=True,
+                                            err_msg=errmsg)
 
     def test_GEO_GSE(self):
         """Regression test for IRBEM call"""
