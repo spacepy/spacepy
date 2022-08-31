@@ -37,10 +37,9 @@ The ``_nelems`` method of :class:`~spacepy.pycdf.Var` has been removed;
 use the public interface :meth:`~spacepy.pycdf.Var.nelems`. (Deprecated
 in 0.2.2).
 
-:func:`~spacepy.irbempy.get_sysaxes`, :func:`~spacepy.irbempy.sph2car`,
-and :func:`~spacepy.irbempy.car2sph` were deprecated in SpacePy 0.2.2
-and have been removed. In place of the latter functions,
-:func:`~spacepy.coordinates.sph2car` and
+:mod:`~spacepy.irbempy` ``get_sysaxes``, ``sph2car`` and ``car2sph``
+were deprecated in SpacePy 0.2.2 and have been removed. In place
+of the latter functions, :func:`~spacepy.coordinates.sph2car` and
 :func:`~spacepy.coordinates.car2sph` should be used.
 
 Major bugfixes
