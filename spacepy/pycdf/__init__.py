@@ -385,7 +385,8 @@ class Library(object):
                     warnings.warn('ARM with unknown calling convention; '
                                   'TT2000 functions will not work.')
                 self.datetime_to_tt2000 = self._datetime_to_tt2000_typepunned
-
+        if self.epoch_to_datetime(63113903999999.984).year != 1999:
+            self.epoch_to_datetime = self._epoch_to_datetime_bad_rounding
         v_epoch16_to_datetime = numpy.frompyfunc(
             self.epoch16_to_datetime, 2, 1)
         self.v_epoch16_to_datetime = \
@@ -693,6 +694,45 @@ class Library(object):
         sec = ctypes.c_long(0)
         msec = ctypes.c_long(0)
         self._library.EPOCHbreakdown(epoch, yyyy, mm, dd, hh, mn, sec, msec)
+        if yyyy.value <= 0:
+            return datetime.datetime(9999, 12, 13, 23, 59, 59, 999000)
+        else:
+            return datetime.datetime(yyyy.value, mm.value, dd.value,
+                                     hh.value, mn.value, sec.value,
+                                     msec.value * 1000)
+
+    def _epoch_to_datetime_bad_rounding(self, epoch):
+        """
+        Converts a CDF epoch value to a datetime
+
+        Version for libraries before CDF 3.8.0.1, which would erroneously
+        convert times near end of day into the next day.
+
+        Parameters
+        ==========
+        epoch : float
+            epoch value from CDF
+
+        Returns
+        =======
+        out : :class:`datetime.datetime`
+            date and time corresponding to epoch. Invalid values are set to
+            usual epoch invalid value, i.e. last moment of year 9999.
+
+        See Also
+        ========
+        v_epoch_to_datetime
+        """
+        yyyy = ctypes.c_long(0)
+        mm = ctypes.c_long(0)
+        dd = ctypes.c_long(0)
+        hh = ctypes.c_long(0)
+        mn = ctypes.c_long(0)
+        sec = ctypes.c_long(0)
+        msec = ctypes.c_long(0)
+        # Truncate to ms inherent EPOCH resolution to avoid rounding bug
+        self._library.EPOCHbreakdown(
+            int(epoch), yyyy, mm, dd, hh, mn, sec, msec)
         if yyyy.value <= 0:
             return datetime.datetime(9999, 12, 13, 23, 59, 59, 999000)
         else:

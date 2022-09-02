@@ -54,6 +54,12 @@ particularly on Mac. The Mac :doc:`installation directions
 :mod:`~spacepy.pycdf` has been updated for Apple Silicon (ARM/M1);
 Python 3.8 is required for this support.
 
+:mod:`~spacepy.pycdf` contains a time conversion workaround for
+versions of the NASA CDF library before 3.8.0.1. Non-integral epoch
+values close to midnight would erroneously return the following day;
+:meth:`~spacepy.pycdf.Library.epoch_to_datetime` now returns the
+correct value on all CDF library versions.
+
 The IRBEM backend for coordinate transformations has been updated to
 correct the specification of transformations through the J2000 and TOD
 systems, including correctly setting the GEI and TOD systems to be
