@@ -11,7 +11,7 @@ This document presents user-visible changes in each release of SpacePy.
 
 0.4 Series
 ==========
-0.4.0 (2022-xx-xx)
+0.4.0 (2022-09-07)
 ------------------
 This release marks the end of support and/or fixes for bugs that cannot
 be reproduced on Python 3. As with the previous release series, SpacePy
