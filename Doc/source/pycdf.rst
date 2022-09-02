@@ -281,6 +281,45 @@ All encoding and decoding can also be skipped using the
 however, without encoding, only :class:`bytes` can be written to
 string variables.
 
+Troubleshooting
+===============
+Cannot load CDF C library
+^^^^^^^^^^^^^^^^^^^^^^^^^
+pycdf requires the standard NASA CDF library; it can be installed
+after SpacePy. See specific instructions for :ref:`Linux <linux_CDF>`,
+:ref:`Mac <install_mac_cdf>`, and :ref:`Windows <windows_CDF>`.
+
+The error ``Cannot load CDF C library`` indicates pycdf cannot find
+this library. pycdf searches in locations where the library is
+installed by default; if the library is not found, set the ``CDF_LIB``
+environment variable to the directory containing the library file
+(.dll, .dylib, or .so) before importing pycdf.
+
+ZLIB_ERROR when opening a CDF
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The error message ``ZLIB_ERROR: Error during ZLIB decompression`` most
+commonly occurs when opening a CDF which has been compressed with
+whole-file compression. In this case, it must be unzipped into a
+temporary location (details are in the `CDF User's Guide
+<https://cdf.gsfc.nasa.gov/html/cdf_docs.html>`_).
+
+The temporary location is specified by environment variables, most
+commonly ``CDF_TMP``. It appears that, particularly on Windows, some
+installers of the library may set this to a location which is not
+writeable. In that case, the solution is to change the environment
+variable to a writeable location.
+
+On Windows, environment variables are set in the System Properties
+control panel. Click the "Environment Variables" button on the
+Advanced tab. Usually a good value for ``CDF_TMP`` is
+``C:\Users\USERNAME\AppData\Local\Temp``. If ``CDF_TMP`` is not
+set, variables ``TMP`` and ``TEMP`` will be used, so those values are
+worth checking. Values starting with ``C:\WINDOWS\system32\config``
+are unlikely to work.
+
+On Unix, including MacOS, ``CDF_TMP`` is used if set; otherwise
+``TMPDIR``.
+
 Access to CDF constants and the C library
 =========================================
 Constants defined in cdf.h and occasionally useful in accessing CDFs are
