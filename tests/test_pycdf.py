@@ -251,6 +251,21 @@ class NoCDF(unittest.TestCase):
         expected = numpy.array(dts)
         numpy.testing.assert_array_equal(expected, result)
 
+    def testEpochToDatetimeRounding(self):
+        """Epoch-to-datetime near end of day, check rounding bug"""
+        epochs = [63570441599999.984,
+                  63570440599999.984,
+                  ]
+        expected = [(2014, 6, 19, 23, 59, 59, 999000),
+                    (2014, 6, 19, 23, 43, 19, 999000),
+                    ]
+        expected = [datetime.datetime(*dt) for dt in expected]
+        for epoch, dt in zip(epochs, expected):
+            self.assertEqual(dt, cdf.lib.epoch_to_datetime(epoch))
+        numpy.testing.assert_array_equal(
+            cdf.lib.v_epoch_to_datetime(epochs),
+            expected)
+
     def testDatetimeToTT2000(self):
         if not cdf.lib.supports_int8:
             self.assertRaises(NotImplementedError, cdf.lib.datetime_to_tt2000,
