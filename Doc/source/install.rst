@@ -89,6 +89,8 @@ Installs using ``setup.py`` do not require setuptools.
 Troubleshooting
 ===============
 
+.. _install_pip_failures:
+
 pip failures
 ------------
 If ``pip`` completely fails to build, a common issue is a failure in
@@ -103,6 +105,13 @@ Manually installing all dependencies (via ``pip``, ``conda``, or other
 means) and then installing the source release via ``setup.py`` is also
 an option.
 
+``pip`` will also cache packages; unfortunately sometimes it will use
+a cached package which is incompatible with the current
+environment. In that case, try clearing the cache first, so all
+locally-compiled packages are rebuilt::
+
+  pip cache purge
+
 irbempy
 -------
 The most common failures relate to compilation of the IRBEM
@@ -115,7 +124,8 @@ partially initialized module 'spacepy.irbempy' (most likely due to a
 circular import)`` means the IRBEM library did not compile at
 all. This is most likely a compiler issue: either there is no Fortran
 compiler, or, when using conda on :doc:`Mac <install_mac>`, the correct
-SDK version has not been installed.
+SDK version has not been installed. This may also result from
+:ref:`pip caching <install_pip_failures>`.
 
 The error ``RuntimeError: module compiled against API version 0x10 but
 this version of numpy is 0xe`` followed by ``ImportError:
