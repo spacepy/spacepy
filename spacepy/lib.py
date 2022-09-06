@@ -98,13 +98,11 @@ def load_lib():
     @rtype: ctypes.CDLL or ctypes.WinDLL
     """
     libdir = os.path.dirname(os.path.abspath(__file__))
-    if sys.platform == 'win32':
-        libnames = ['spacepy.dll', 'libspacepy.dll.a']
-    elif sys.platform == 'darwin':
-        libnames = ['libspacepy.dylib', 'libspacepy.so',
-                  'spacepy.dylib', 'spacepy.so']
-    else:
-        libnames = ['libspacepy.so']
+    libnames = {
+        'win32': ['libspacepy.dll.a', 'spacepy.dll'],
+        'darwin':  ['libspacepy.dylib', 'libspacepy.so',
+                    'spacepy.dylib', 'spacepy.so'],
+        }.get(sys.platform, ['libspacepy.so'])
     if sysconfig:
         ext = sysconfig.get_config_var('EXT_SUFFIX')
         if ext is None:
@@ -112,17 +110,14 @@ def load_lib():
         if ext:
             libnames.append('libspacepy' + ext)
             libnames.append('spacepy' + ext)
-
-    libpath = None
-    for n in libnames:
-        libpath = os.path.join(libdir, n)
-        if os.path.exists(libpath):
-            break
-
-    if libpath and os.path.exists(libpath):
-        return ctypes.CDLL(libpath)
-    else:
-        return None
+    libpaths = [os.path.join(libdir, n) for n in libnames]
+    libpaths = [p for p in libpaths if os.path.exists(p)]
+    for p in libpaths:
+        try:
+            return ctypes.CDLL(p)
+        except OSError:
+            pass
+    return None
 
 
 def load_call_dict(call_dict, lib):
