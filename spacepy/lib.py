@@ -99,7 +99,7 @@ def load_lib():
     """
     libdir = os.path.dirname(os.path.abspath(__file__))
     if sys.platform == 'win32':
-        libnames = ['spacepy.dll']
+        libnames = ['spacepy.dll', 'libspacepy.dll.a']
     elif sys.platform == 'darwin':
         libnames = ['libspacepy.dylib', 'libspacepy.so',
                   'spacepy.dylib', 'spacepy.so']
