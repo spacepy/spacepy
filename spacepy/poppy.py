@@ -176,20 +176,17 @@ class PPro(object):
         """
 
         #check for existence of lags and winhalf
-        try:
-            if u:
-                self.lags = u
-            assert self.lags
-            if h != None:
-                self.winhalf = h
-            assert self.winhalf != None
+        if u is not None:
+            self.lags = u
+        if h is not None:
+            self.winhalf = h
+        if self.lags is None or self.winhalf is None:
             if self.verbose:
-                print('calculating association for series of length %s at %d lags' \
-                    % ([len(self.process1), len(self.process2)], len(self.lags)))
-        except:
-            if self.verbose:
-                return 'assoc error: attributes lags and winhalf must be populated'
-            return None
+                print('assoc error: attributes lags and winhalf must be populated')
+            return
+        if self.verbose:
+            print('calculating association for series of length %s at %d lags'
+                  % ([len(self.process1), len(self.process2)], len(self.lags)))
 
         import matplotlib as mpl
         import matplotlib.dates as mpd

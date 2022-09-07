@@ -318,6 +318,14 @@ class AssocTests(unittest.TestCase):
         poprev.assoc()
         self.assertTrue((pop.assoc_total == poprev.assoc_total).all())
 
+    def testAssocNumpyLags(self):
+        """Test that AA works with numpy array for lags"""
+        lags = numpy.arange(-5, 5)
+        pop = poppy.PPro([1, 2, 3], [2.5], lags=lags, winhalf=1)
+        pop.assoc()
+        expected = numpy.array([0, 0, 0, 0, 1, 2, 2, 1, 0, 0])
+        numpy.testing.assert_array_equal(pop.assoc_total, expected)
+
 
 @unittest.skipUnless(spacepy.lib.have_libspacepy, 'No C backend')
 class AssocTestsPython(AssocTests):
