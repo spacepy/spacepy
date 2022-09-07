@@ -60,6 +60,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import bisect
+import ctypes
 import sys
 import warnings
 import datetime as dt
@@ -67,12 +68,7 @@ import datetime as dt
 import numpy as np
 
 from spacepy import help
-#Try to pull in the C version. Assumption is that if you import this module,
-#you want to do some association analysis, so the overhead in the import
-#is OK.
 from spacepy import lib
-if lib.have_libspacepy:
-    import ctypes
 import spacepy.toolbox as tb
 import spacepy.datamodel as dm
 
@@ -192,10 +188,8 @@ class PPro(object):
 
         import matplotlib as mpl
         import matplotlib.dates as mpd
-        if lib.have_libspacepy == False:
-            dtype = 'int64'
-        else:
-            dtype = 'int' + str(ctypes.sizeof(ctypes.c_long) * 8)
+        dtype = 'int' + str(ctypes.sizeof(ctypes.c_long) * 8
+                            if lib.have_libspacepy else 64)
 
         ##Method 1 - use tb.tOverlap
         #create list for association number
