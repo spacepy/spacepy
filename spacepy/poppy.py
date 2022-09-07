@@ -497,14 +497,18 @@ class PPro(object):
 
         if seed != None:
             np.random.seed(seed)
-            minseed = -2 ** (long_size - 1)
-            maxseed = 2 ** (long_size - 1) - 1
+            # numpy random seeds must always be 32-bit
+            seed_size = long_size if lib.have_libspacepy else 32
+            minseed = -2 ** (seed_size - 1)
+            maxseed = 2 ** (seed_size - 1) - 1
             #randint used to be system-size signed integer only.
             #so used that and cast to the required unsigned later
             #cast does not lose entropy: negative numbers map to high positives.
             #For reproducibility, keep doing that even though dtype
             #kwarg now available.
             lag_seeds = np.random.randint(minseed, maxseed, [len(lags)])
+            if not lib.have_libspacepy:
+                lag_seeds = np.require(lag_seeds, np.int32)
             newtype = np.dtype('u' + str(lag_seeds.dtype))
             lag_seeds = np.require(lag_seeds, dtype=newtype)
         if lib.have_libspacepy == False:
@@ -741,8 +745,10 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None, use
         for i in range(int(n)): #compute n bootstrapped series
             surr_ser = np.array([data[rec] for rec in ran_el[i, :]]) #resample w/ replace
             surr_quan[i] = func(surr_ser) #get desired quantity from surrogates
-        surr_quan = surr_quan[surr_quan.argsort(axis=0)[:,0]]
-        #surr_quan.sort()
+        if len(surr_quan.shape) == 1:
+            surr_quan.sort()
+        else:
+            surr_quan = surr_quan[surr_quan.argsort(axis=0)[:,0]]
     else:
         n = int(n)
         data = (ctypes.c_double * n_els)(*data)
