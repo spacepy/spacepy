@@ -20,10 +20,7 @@ import numpy
 import numpy.random
 import scipy.special
 import spacepy_testing
-try:
-    import poppy
-except ImportError:
-    from spacepy import poppy
+from spacepy import poppy
 from spacepy import toolbox
 
 __all__ = ['BaseTests', 'BootstrapTests', 'AssocTests', 'ValuePercentileTests']
@@ -62,9 +59,6 @@ class BaseTests(unittest.TestCase):
         self.t1 = t1
         self.t2 = t2
 
-    def tearDown(self):
-        super(BaseTests, self).tearDown()
-
     def test_str(self):
         """__str__ should give known results"""
         pop = poppy.PPro(self.t1, self.t2)
@@ -82,16 +76,11 @@ class BaseTests(unittest.TestCase):
         self.assertEqual(pop.process1, self.t2)
         self.assertEqual(pop.process2, self.t1)
 
+
 class BootstrapTests(unittest.TestCase):
-    """Tests of the boots_ci function
-
-    @ivar long_test: Run a very long test
-    @type long_test: bool
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(BootstrapTests, self).__init__(*args, **kwargs)
-        self.long_test = False
+    """Tests of the boots_ci function"""
+    long_test = False
+    # Run a very long test, with tighter precision
 
     def testGaussian(self):
         """Check output on a Gaussian"""
