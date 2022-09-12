@@ -21,7 +21,7 @@ C                  high-resolution data-based magneticfield model, J. Geophys. R
 C                  doi:10.1029/2007JA012260.
 C
 C              (2) Sitnov, M. I., N. A. Tsyganenko, A. Y. Ukhorskiy, B. J. Anderson, H. Korth,
-C                  A. T. Y. Lui, and P. C. Brandt (2010),Empirical modeling of a CIR‐driven magnetic
+C                  A. T. Y. Lui, and P. C. Brandt (2010),Empirical modeling of a CIR-driven magnetic
 C                  storm, J. Geophys. Res., 115, A07231, doi:10.1029/2009JA015169.
 C
 C  Inputs:
