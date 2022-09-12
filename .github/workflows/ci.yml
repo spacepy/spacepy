@@ -165,13 +165,26 @@ jobs:
         python setup.py build
         cd tests; . ${HOME}/cdf/bin/definitions.B; xvfb-run python test_all.py -v
 
+  irbem-unicode:
+    name: Check for Unicode in IRBEM source
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: Unicode check
+        run: (! file irbem-lib-*/*.f irbem-lib-*/source/*.f | grep -q Unicode )
+        working-directory: ${{ github.workspace }}/spacepy/irbempy/
+
 # See https://github.community/t/status-check-for-a-matrix-jobs/127354/7
   all-tests:
     name: All tests
     if: ${{ always() }}
     runs-on: ubuntu-20.04
-    needs: test
+    needs: [test, irbem-unicode]
     steps:
       - name: Check test matrix status
         if: ${{ needs.test.result != 'success' }}
+        run: exit 1
+      - name: Check IRBEM unicode status
+        if: ${{ needs.irbem-unicode.result != 'success' }}
         run: exit 1
