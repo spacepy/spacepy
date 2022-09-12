@@ -105,6 +105,14 @@ Manually installing all dependencies (via ``pip``, ``conda``, or other
 means) and then installing the source release via ``setup.py`` is also
 an option.
 
+``pip`` suppresses detailed output from the build process. To
+troubleshoot a failure to install, it is useful to write this detailed
+output to a file using the ``--log`` option, e.g.::
+
+  pip install spacepy --log=install_log.txt
+
+Please include this log file if opening an issue related to installation.
+
 ``pip`` will also cache packages; unfortunately sometimes it will use
 a cached package which is incompatible with the current
 environment. In that case, try clearing the cache first, so all
