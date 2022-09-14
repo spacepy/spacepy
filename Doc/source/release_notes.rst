@@ -11,6 +11,23 @@ This document presents user-visible changes in each release of SpacePy.
 
 0.4 Series
 ==========
+0.4.1 (2022-09-15)
+------------------
+This minor release provides no changes in functionality, but fixes
+installation problems on some systems. There is no need to upgrade
+from a functioning 0.4.0 (and no harm in doing so).
+
+Other changes
+*************
+Unicode characters were removed from the IRBEM sources, fixing
+compilation problems for certain user locale settings.
+
+The version of numpy used for building on Apple Silicon Mac was
+updated.
+
+Documentation on troubleshooting ``pip`` problems was improved.
+
+
 0.4.0 (2022-09-07)
 ------------------
 This release marks the end of support and/or fixes for bugs that cannot
