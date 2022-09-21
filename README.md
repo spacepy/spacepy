@@ -36,13 +36,13 @@ python setup.py install --user
 Further installation documentation can be found [here](https://spacepy.github.io/install.html) Mac-specific information can be found [here](https://spacepy.github.io/install_mac.html)
 Full documentation is at [https://spacepy.github.io](https://spacepy.github.io)
 
-SpacePy supports both Python 2.7 and 3.x.
+SpacePy supports Python 3.6 and later.
 
 ### Dependencies
 
 SpacePy has a number of well-maintained dependencies, most of which are automatically installed by ```pip```. These include:
- - numpy (>=1.10, !=1.15.0)
- - scipy (>=0.11)
+ - numpy (>=1.12, !=1.15.0)
+ - scipy (>=0.19)
  - matplotlib (>=1.5)
  - h5py
 

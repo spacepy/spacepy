@@ -5,7 +5,7 @@ Installing SpacePy
 The simplest way from zero (no Python) to a working SpacePy setup is:
 
   1. Install the `Anaconda <https://docs.anaconda.com/anaconda/>`_ Python
-     environment. Python 3 is strongly recommended (64-bit is recommended).
+     environment. 64-bit is recommended.
   2. ``pip install --upgrade spacepy``
 
 If you already have a working Python setup, install SpacePy by:
