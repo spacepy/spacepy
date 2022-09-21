@@ -97,7 +97,7 @@ history. The oldest version supported according to this policy is in
      - N/A
      - 3.8.0 (2019/10/27)
      - **3.6.0** (2015/2/5)
-     - 2.7.0 (1999/9/27)
+     - 3.5.0 (2013/2/25)
    * - `dateutil <https://github.com/dateutil/dateutil/releases>`_
      - 2.8.2 (2021/7/8)
      - 2.6.1 (2017/7/10)
