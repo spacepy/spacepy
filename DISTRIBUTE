@@ -136,7 +136,7 @@ pins its build system to the oldest numpy it wishes to support".
 ABI is in numpy/core/setup_common.py and there's no history, so going
 through the git tags for each numpy release gives:
 
-1.4 through current master : 0x01000009
+1.4 through current main : 0x01000009
 
 It looks like ABI version is a complete break: if it changes, old
 modules will no longer work. However, the API version is backward
@@ -230,7 +230,7 @@ https://help.github.com/en/articles/creating-releases
 
 On the code tab, click on "n releases" (on the right column, below
 "about"). Click "Draft a new release." Make the tag
-"release-x.y.z" and hopefully the target will be master if it's up to
+"release-x.y.z" and hopefully the target will be main if it's up to
 date. The most consistent with what we've done so far (which is not
 necessarily the best) is to use just "x.y.z" as the title with nothing
 the "describe."
