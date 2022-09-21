@@ -5,9 +5,9 @@ Continuous Integration
 SpacePy uses `GitHub Actions <https://docs.github.com/en/actions>`_
 for continuous integration. Most of the relevant information is
 checked into the repository: the configuration file `CI.yml
-<https://github.com/spacepy/spacepy/blob/master/.github/workflows/ci.yml>`_
+<https://github.com/spacepy/spacepy/blob/main/.github/workflows/ci.yml>`_
 manages the CI process, which ultimately runs `the unit tests
-<https://github.com/spacepy/spacepy/blob/master/tests/test_all.py>`_. However
+<https://github.com/spacepy/spacepy/blob/main/tests/test_all.py>`_. However
 a few elements of the setup are not in the repository and are
 documented here. This may be useful if this ever has to be set up in
 the future, or if you want to run SpacePy CI tests on your fork before
@@ -21,7 +21,7 @@ Initial run
 
 A workflow cannot be run `until it has been run once against the
 default branch <https://github.community/t/
-workflow-dispatch-event-not-working/128856/2>`_ (``master``). This makes
+workflow-dispatch-event-not-working/128856/2>`_ (``main``). This makes
 it somewhat hard to test the workflow before merging; in SpacePy this was
 handled by merging a tiny workflow first (PR `496 <https://github.com/
 spacepy/spacepy/pull/496>`_).

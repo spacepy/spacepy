@@ -25,7 +25,7 @@ Thank you so much for your PR!  The SpacePy community appreciates your
 help and feedback.  To help us review your contribution, please
 consider the following points:
 
-- Do not create the PR out of master, but out of a separate branch.
+- Do not create the PR out of main, but out of a separate branch.
 
 - The PR title should summarize the changes, for example "pycdf: Fix dateime to tt2000 on ARM".
   Avoid non-descriptive titles such as "Bug fix" or "Updates".

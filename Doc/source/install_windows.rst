@@ -40,7 +40,7 @@ by ``m2w64-gcc-fortran``.
 
 If you have difficulties, it may be useful to reference the `build
 scripts
-<https://github.com/spacepy/spacepy/tree/master/developer/scripts>`_
+<https://github.com/spacepy/spacepy/tree/main/developer/scripts>`_
 the SpacePy developers use.
 
 .. _windows_CDF:
