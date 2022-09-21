@@ -21,11 +21,8 @@ Python 3. Anaconda includes much of the scientific Python
 stack. Another excellent distribution is `Canopy
 <https://www.enthought.com/product/canopy/>`_.
 
-You may need to install the dependencies some way other than pip; for
-example, if you are running an earlier version of Python. The latest
-version of many dependencies requires Python 3.6 and pip will not
-install older versions to get around this. See :ref:`linux_dep_conda`
-and :ref:`linux_dep_apt`.
+If you prefer to install the dependencies some way other than pip, see
+:ref:`linux_dep_conda` and :ref:`linux_dep_apt`.
 
 .. contents::
    :local:
@@ -47,10 +44,6 @@ Dependencies via system packages
 ================================
 
 SpacePy usually works with the system Python on Linux. To install dependencies via the package manager on Debian or Ubuntu::
-
-  sudo apt-get install python-dev python-h5py python-matplotlib python-numpy python-scipy
-
-For Python 3, use::
 
   sudo apt-get install python3-dev python3-h5py python3-matplotlib python3-numpy python3-scipy
 
@@ -129,11 +122,7 @@ They are also available via conda::
 
   conda install sphinx numpydoc
 
-Or the package manager:
-
-  sudo apt-get install python-sphinx python-numpydoc
-
-For Python 3:
+Or the package manager::
 
   sudo apt-get install python3-sphinx python3-numpydoc
 

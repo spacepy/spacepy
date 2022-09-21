@@ -8,6 +8,34 @@ This document presents user-visible changes in each release of SpacePy.
    :depth: 2
    :local:
 
+0.5 Series
+==========
+0.5.0 (2022-xx-xx)
+------------------
+
+This release marks the end of all support for Python 2. SpacePy now
+requires Python 3.6. Minimum supported versions for other dependencies
+were also increased; see :ref:`release_0_5_0_deps` for details.
+
+.. _release_0_5_0_deps:
+
+Dependency requirements
+***********************
+Not all dependencies are required for all functionality; see
+:doc:`dependencies` for full details, including what functionality is
+lost if a dependency is not installed.
+
+The minimum supported version of all dependencies was updated in
+SpacePy 0.5.0. Minimum versions are:
+
+  * CPython 3.6
+  * AstroPy 1.0
+  * CDF 2.7
+  * dateutil 1.4 (earlier may work)
+  * h5py 2.6 (earlier may work)
+  * matplotlib 1.5
+  * numpy 1.12
+  * scipy 0.19
 
 0.4 Series
 ==========
@@ -109,7 +137,7 @@ updates and bugfixes, and reflects the upstream repository as of 2022-08-29
 ==========
 0.3.0 (2022-04-27)
 ------------------
-This release continues the phaseout of :doc:`Python 2 <py2k_eol>`
+This release continues the phaseout of Python 2
 support. No Python 2 binaries are provided, and 0.3.0 will not install
 on Python 2 with ``pip``. Installation via ``setup.py`` from a source
 distribution is still available.
@@ -234,7 +262,7 @@ still be used instead of the default.
 0.2.3 (2021-10-30)
 ------------------
 This is the last release of the 0.2 series and the last with full
-support for :doc:`Python 2 <py2k_eol>`. Binary installers (including
+support for Python 2. Binary installers (including
 wheels) for :doc:`32-bit Windows <install_windows>` will also end
 after the 0.2 series, as will Windows installers. The only binaries
 for Windows will be 64-bit wheels, installable with ``pip``.
@@ -286,8 +314,8 @@ invalid (e.g. empty) ``spacepy.rc``.
 0.2.2 (2020-12-29)
 ------------------
 
-The 0.2 series will be the last with full support for :doc:`Python 2
-<py2k_eol>`; 0.2.3 will likely be the last release. Binary installers
+The 0.2 series will be the last with full support for Python 2;
+0.2.3 will likely be the last release. Binary installers
 for :doc:`32-bit Windows <install_windows>` will also end after the 0.2
 series.
 

@@ -17,19 +17,18 @@ Hard Dependencies
 =================
 Without these packages installed, SpacePy will not function.
 
-Python 2.7+
+Python 3.6+
 -----------
 
 `Python <http://www.python.org/>`_ is the core language for SpacePy.
-Python 3 is strongly recommended and will be required soon. See :doc:`py2k_eol`.
 
 Required to install SpacePy.
 
-NumPy 1.10+
+NumPy 1.12+
 -----------
 `NumPy <http://numpy.scipy.org/>`_ provides the
 high-performance array data structure used throughout SpacePy. Version
-1.10 or later is required.
+1.12 or later is required.
 
 Required to install SpacePy. f2py is part of NumPy, but is sometimes
 packaged separately; it is required (at installation time) if
@@ -61,7 +60,7 @@ methods such as pip.
 
 .. _dependencies_scipy:
 
-SciPy 0.11+
+SciPy 0.19+
 -----------
 `SciPy <http://www.scipy.org/>`_ provides several useful scientific
 and numerical functions build on top of NumPy.  It is highly

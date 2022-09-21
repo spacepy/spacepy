@@ -37,14 +37,11 @@ principles:
        *not* necessarily be tested in continuous integration.
 
  #. No support will be provided for conflicting versions of
-    dependencies. E.g. SciPy 1.4 requires NumPy 1.13. Although SpacePy
-    supports SciPy 1.4 and Numpy 1.6, it contains no workarounds for
+    dependencies. E.g. SciPy 1.9 requires NumPy 1.18. Although SpacePy
+    supports SciPy 1.9 and Numpy 1.17, it contains no workarounds for
     using them in that combination.
  #. Support for a particular version of a dependency does not imply
     a commitment to work around bugs in that version.
- #. Support for even earlier versions will be maintained as necessary
-    for Python 2 compatibility as long as :doc:`Python 2 support
-    <py2k_eol>` is maintained.
  #. A release of SpacePy that requires new dependency versions will
     always have a subminor version of 0, e.g. if the release that
     follows 0.5.2 requires updated dependencies, it will be numbered
@@ -84,7 +81,7 @@ history. The oldest version supported according to this policy is in
      - 3.10.4 (2022/3/24)
      - **3.8.0** (2019/10/14)
      - 3.9.0 (2020/10/5)
-     - 3.2.0 (2011/2/20) or 2.7.0 (2010/7/3)
+     - 3.6.0 (2016/12/23)
    * - `AstroPy <https://docs.astropy.org/en/stable/changelog.html#changelog>`_
      - 5.1 (2022/5/24)
      - 2.0.4 (2018/2/6)
@@ -132,7 +129,7 @@ history. The oldest version supported according to this policy is in
      - 1.21.5 (2021/12/19)
      - 1.20.0 (2021/1/30)
      - 1.21.0 (2021/6/22)
-     - 1.10.0 (2015/10/5)
+     - 1.12.0 (2017/1/15)
    * - `scipy <https://github.com/scipy/scipy/releases>`_
      - 1.9.1 (2022/8/26)
      - 0.19.1 (2017/6/23)
@@ -140,7 +137,7 @@ history. The oldest version supported according to this policy is in
      - 1.8.0 (2022/2/5)
      - 1.6.0 (2020/12/31)
      - 1.7.0 (2021/6/20)
-     - 0.11.0 (2012/9/24)
+     - 0.19.0 (2017/3/9)
    * - `sphinx <https://www.sphinx-doc.org/en/master/changes.html>`_
        (only needed for developers to build documentation)
      - 5.1.1 (2022/7/26)

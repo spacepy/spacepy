@@ -913,8 +913,8 @@ setup_kwargs = {
     'url': 'https://github.com/spacepy/spacepy',
 #download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
 #    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
-    'requires': ['numpy (>=1.10, !=1.15.0)', 'scipy (>=0.11)', 'matplotlib (>=1.5)', 'python_dateutil',
-                 'h5py (>=2.6)', 'python (>=3.1)'],
+    'requires': ['numpy (>=1.12, !=1.15.0)', 'scipy (>=0.19)', 'matplotlib (>=1.5)', 'python_dateutil',
+                 'h5py (>=2.6)', 'python (>=3.6)'],
     'packages': packages,
     'package_data': {'spacepy': package_data},
     'classifiers': [
@@ -962,7 +962,7 @@ if use_setuptools:
         # user has it or don't care.
         #'astropy>=1.0',
     ]
-    setup_kwargs['python_requires'] = '>=3.1'
+    setup_kwargs['python_requires'] = '>=3.6'
 if 'bdist_wheel' in sys.argv:
     setup_kwargs['cmdclass']['bdist_wheel'] = bdist_wheel
 

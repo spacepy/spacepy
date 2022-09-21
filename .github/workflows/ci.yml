@@ -29,30 +29,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - python-version: "2.7"
-            os: ubuntu-20.04
-            numpy-version: ">=1.10.0,<1.11.0"
-            piplist: "scipy>=0.11.0,<0.12.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=1.0,<1.1"
-            cflags: "-Wno-error=format-security"
-            dep-strategy: "oldest"
-          - python-version: "2.7"
-            os: ubuntu-20.04
-            numpy-version: ">=1.16.0,<1.17.0"
-            piplist: "scipy matplotlib h5py astropy"
-            cflags: ""
-            dep-strategy: "newest"
-          - python-version: "3.5"
-            os: ubuntu-20.04
-            numpy-version: ">=1.10.0,<1.11.0"
-            piplist: "scipy>=0.17.0,<0.18.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=1.0,<1.1"
-            cflags: ""
-            dep-strategy: "oldest"
-          - python-version: "3.5"
-            os: ubuntu-20.04
-            numpy-version: ">=1.18.0,<1.19.0"
-            piplist: "scipy matplotlib h5py astropy"
-            cflags: ""
-            dep-strategy: "newest"
           - python-version: "3.6"
             os: ubuntu-20.04
             numpy-version: ">=1.12.0,<1.13.0"

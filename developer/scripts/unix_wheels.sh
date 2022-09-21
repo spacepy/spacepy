@@ -4,8 +4,6 @@
 #wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 #bash ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda
 VERSIONS=(
-    "2.7|numpy>=1.10.0,<1.11.0"
-    "3.5|numpy>=1.10.0,<1.11.0"
     "3.6|numpy>=1.12.0,<1.13.0"
     "3.7|numpy>=1.15.1,<1.16.0"
     "3.8|numpy>=1.17.0,<1.18.0"
