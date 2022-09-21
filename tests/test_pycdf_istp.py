@@ -614,8 +614,6 @@ class VariablesTests(ISTPTestsBase):
             0, len(spacepy.pycdf.istp.VariableChecks.fieldnam(v)))
 
 
-@unittest.skipIf(spacepy.pycdf.lib.version[0] < 3,
-                 'Requires CDF library 3 or newer')
 class VariablesTestsNew(ISTPTestsBase):
     """Tests of variable-checking functions that require CDF 3"""
     longMessage = True
@@ -635,8 +633,6 @@ class VariablesTestsNew(ISTPTestsBase):
         errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
         self.assertEqual(0, len(errs), '\n'.join(errs))
 
-    @unittest.skipIf(not spacepy.pycdf.lib.supports_int8,
-                     'Requires TT2000 support in CDF library')
     def testFillvalTT2000(self):
         """Test for fillval being okay with TT2000"""
         v = self.cdf.new('Epoch', type=spacepy.pycdf.const.CDF_TIME_TT2000)

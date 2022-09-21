@@ -202,10 +202,6 @@ class NoCDF(unittest.TestCase):
                           (Ellipsis, Ellipsis,), 2)
 
     def testTT2000ToDatetime(self):
-        if not cdf.lib.supports_int8:
-            self.assertRaises(NotImplementedError, cdf.lib.tt2000_to_datetime,
-                              1)
-            return
         epochs = [284040066184000000,
                   ]
         dts = [datetime.datetime(2009, 1, 1),
@@ -267,10 +263,6 @@ class NoCDF(unittest.TestCase):
             expected)
 
     def testDatetimeToTT2000(self):
-        if not cdf.lib.supports_int8:
-            self.assertRaises(NotImplementedError, cdf.lib.datetime_to_tt2000,
-                              datetime.datetime(2009, 1, 1))
-            return
         epochs = [284040066184000000,
                   284040066184000000,
                   -9223372036854775808]
@@ -316,10 +308,6 @@ class NoCDF(unittest.TestCase):
 
     def testEpochToTT2000(self):
         """Epoch to TT2000"""
-        if not cdf.lib.supports_int8:
-            self.assertRaises(NotImplementedError, cdf.lib.epoch_to_tt2000,
-                              63397987200000.0)
-            return
         epochs = [63397987200000.0,
                   63397987200001.0,
                   ]
@@ -335,10 +323,6 @@ class NoCDF(unittest.TestCase):
 
     def testTT2000ToEpoch(self):
         """TT2000 to Epoch"""
-        if not cdf.lib.supports_int8:
-            self.assertRaises(NotImplementedError, cdf.lib.tt2000_to_epoch,
-                              284040066184000000)
-            return
         epochs = [63397987200000.0,
                   63397987200001.0,
                   ]
@@ -450,8 +434,6 @@ class NoCDF(unittest.TestCase):
 
     def testDatetimeEpochRT(self):
         """Roundtrip datetimes to epochs and back"""
-        if not cdf.lib.supports_int8:
-            return
         dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),
                datetime.datetime(1821, 1, 30, 2, 31, 5, 23000),
                datetime.datetime(2050, 6, 5, 15, 0, 5, 0),
@@ -462,8 +444,6 @@ class NoCDF(unittest.TestCase):
 
     def testDatetimeTT2000RT(self):
         """Roundtrip datetimes to TT2000 and back"""
-        if not cdf.lib.supports_int8:
-            return
         dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),
                datetime.datetime(1821, 1, 30, 2, 31, 5, 23000),
                datetime.datetime(2050, 6, 5, 15, 0, 5, 0),
@@ -524,7 +504,7 @@ class NoCDF(unittest.TestCase):
                    numpy.array([1], dtype=object),
                    [u'\U0001f600\U0001f600'],
                    ]
-        type8 = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+        types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
                          const.CDF_INT4, const.CDF_UINT4, const.CDF_INT8,
                          const.CDF_FLOAT, const.CDF_REAL4,
@@ -567,60 +547,7 @@ class NoCDF(unittest.TestCase):
                          const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ((1,), [const.CDF_CHAR, const.CDF_UCHAR], 8),
                  ]
-        types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                         const.CDF_INT2, const.CDF_UINT2,
-                         const.CDF_INT4, const.CDF_UINT4,
-                         const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
-                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
-                 ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
-                 ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
-                 ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
-                 ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((3,), [const.CDF_INT4], 1),
-                 ((3,), [const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((3,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                         const.CDF_INT2, const.CDF_UINT2,
-                         const.CDF_INT4, const.CDF_UINT4,
-                         const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((3,), [const.CDF_UINT2], 1),
-                 ((3,), [const.CDF_UINT2], 1),
-                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((), [const.CDF_INT4], 1),
-                 ((), [const.CDF_INT4, const.CDF_FLOAT, const.CDF_REAL4,
-                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((3,), [const.CDF_UINT1, const.CDF_UCHAR], 1),
-                 ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
-                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((1,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                         const.CDF_INT2, const.CDF_UINT2,
-                         const.CDF_INT4, const.CDF_UINT4,
-                         const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((1,), [const.CDF_CHAR, const.CDF_UCHAR], 8),
-                 ]
         self.assertRaises(ValueError, cdf._Hyperslice.types, [object()])
-        if cdf.lib.supports_int8: #explicitly test backward-compatible
-            cdf.lib.supports_int8 = False
-            try:
-                for (s, t) in zip(samples, types):
-                    t = (t[0], [i.value for i in t[1]], t[2])
-                    self.assertEqual(t, cdf._Hyperslice.types(s),
-                                     msg='Input ' + str(s))
-            finally: #don't leave the library hashed if test fails
-                cdf.lib.supports_int8 = True
-            types = type8
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
             self.assertEqual(t, cdf._Hyperslice.types(s),
@@ -857,8 +784,6 @@ class MakeCDF(unittest.TestCase):
 
     def testInt64inBackward(self):
         """Create backward-compatible CDF with INT8"""
-        if not cdf.lib.supports_int8:
-            return
         msg = 'Data requires EPOCH16, INT8, or TIME_TT2000; ' \
             'incompatible with backward-compatible CDF'
         cdf.lib.set_backward(True)
@@ -2684,8 +2609,7 @@ class ChangeCDF(ChangeCDFBase):
         # Most of the type-guessing testing is in NoCDF, but this is here
         # because the warning of the default changing was associated with
         # creating a zVar.
-        expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
-                   else cdf.const.CDF_EPOCH.value
+        expected = cdf.const.CDF_TIME_TT2000.value
         self.assertEqual(expected, self.cdf['newzVar'].type())
 
     def testBadDataSize(self):
@@ -2731,8 +2655,7 @@ class ChangeCDF(ChangeCDFBase):
     def testNewVarDatetimeArray(self):
         """Create a variable with a datetime numpy array"""
         self.cdf['newvar'] = numpy.array([datetime.datetime(2010, 1, 1)])
-        self.assertEqual((const.CDF_TIME_TT2000 if cdf.lib.supports_int8
-                          else const.CDF_EPOCH).value,
+        self.assertEqual(const.CDF_TIME_TT2000.value,
                          self.cdf['newvar'].type())
 
     def testNewVarNRV(self):
@@ -2941,7 +2864,7 @@ class ChangeCDF(ChangeCDFBase):
         """Write pad value for NRV"""
         v = self.cdf['SectorNumbers']
         v.pad('Q')
-        self.assertEqual('Q', v.pad())
+        self.assertEqual('Q', v.pad().rstrip())
 
     def testNRVSparse(self):
         """Make NRV sparse variable"""
@@ -3117,30 +3040,17 @@ class ChangeCDF(ChangeCDFBase):
     def testInt8(self):
         """Create a new INT8 zVar"""
         self.cdf['foobar'] = numpy.array([1, 2, 3], dtype=numpy.int64)
-        if cdf.lib.supports_int8:
-            self.assertEqual(self.cdf['foobar'].type(), const.CDF_INT8.value)
-        else:
-            self.assertEqual(self.cdf['foobar'].type(), const.CDF_BYTE.value)
+        self.assertEqual(self.cdf['foobar'].type(), const.CDF_INT8.value)
 
     def testTT2000New(self):
         """Create a new TT2000 zVar"""
         expected = [datetime.datetime(2010, 1, 1) + 
                     datetime.timedelta(days=i) for i in range(5)]
-        if cdf.lib.supports_int8:
-            self.cdf.new('foobar', data=expected, type=const.CDF_TIME_TT2000)
-            self.assertEqual(self.cdf['foobar'].type(),
-                             const.CDF_TIME_TT2000.value)
-            numpy.testing.assert_array_equal(expected,
-                                             self.cdf['foobar'][...])
-        else:
-            message = 'INT8 and TIME_TT2000 require CDF library 3.4.0'
-            try:
-                self.cdf.new('foobar', data=expected,
-                             type=const.CDF_TIME_TT2000)
-            except ValueError:
-                self.assertEqual(message, str(sys.exc_info()[1]))
-            else:
-                self.fail('Should have raised ValueError: ' + message)
+        self.cdf.new('foobar', data=expected, type=const.CDF_TIME_TT2000)
+        self.assertEqual(self.cdf['foobar'].type(),
+                         const.CDF_TIME_TT2000.value)
+        numpy.testing.assert_array_equal(expected,
+                                         self.cdf['foobar'][...])
 
     def testUnicodeString(self):
         """Write Unicode to a string variable"""
@@ -3228,8 +3138,6 @@ class ChangeCDF(ChangeCDFBase):
 
     def testInt8TT2000(self):
         """Write integers to a TT2000 variable"""
-        if not cdf.lib.supports_int8:
-            return
         self.cdf.new('epochtest', type=const.CDF_TIME_TT2000)
         data = numpy.array([-126273537816000000,
                             -126187137816000000], dtype=numpy.int64)
@@ -3803,8 +3711,7 @@ class ChangeAttr(ChangeCDFBase):
             self.cdf['SectorRateScalersCounts'].attrs['testtime'] \
                 = datetime.datetime(2010, 1, 1)
         # Assigned to attribute of non-time variable
-        expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
-                   else cdf.const.CDF_EPOCH.value
+        expected = cdf.const.CDF_TIME_TT2000.value
         self.assertEqual(
             expected,
             self.cdf['SectorRateScalersCounts'].attrs.type('testtime'))
@@ -3816,8 +3723,7 @@ class ChangeAttr(ChangeCDFBase):
                 r'Assuming CDF_TIME_TT2000 for time input\.$',
                 DeprecationWarning, r'spacepy\.pycdf$'):
             self.cdf.attrs['testtime'] = datetime.datetime(2010, 1, 1)
-        expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
-                   else cdf.const.CDF_EPOCH.value
+        expected = cdf.const.CDF_TIME_TT2000.value
         self.assertEqual(expected, self.cdf.attrs['testtime'].type(0))
 
     def testzAttrsDelete(self):

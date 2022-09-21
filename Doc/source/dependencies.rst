@@ -100,7 +100,7 @@ HDF5 files. It is required for the HDF import/export capability of
 
 .. _dependencies_cdf:
 
-CDF 2.7+
+CDF 3.5+
 --------
 NASA's `CDF <http://cdf.gsfc.nasa.gov/>`_ library provides access to
 Common Data Format files. It is required for :mod:`~spacepy.pycdf`,

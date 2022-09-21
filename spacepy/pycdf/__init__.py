@@ -4,8 +4,6 @@
 """
 This package provides a Python interface to the Common Data Format (CDF)
 library used for many NASA missions, available at http://cdf.gsfc.nasa.gov/.
-It is targeted at Python 2.6+ and should work without change on either
-Python 2 or Python 3.
 
 The interface is intended to be 'pythonic' rather than reproducing the
 C interface. To open or close a CDF and access its variables, see the `CDF`
@@ -318,10 +316,9 @@ class Library(object):
         inc = inc.value
         sub = sub.value
         self.version = (ver, rel, inc, sub)
-        self._del_middle_rec_bug = ver < 3 or (ver == 3 and
-                                               (rel < 4 or
-                                                (rel == 4 and inc < 1)))
-        self.supports_int8 = (ver > 3 or (ver == 3 and rel >=4))
+        if self.version[:3] < (3, 5):
+            raise RuntimeError('pycdf requires CDF library 3.5')
+        self.supports_int8 = True  # 3.4.1 for INT8, we require 3.5
 
         self.cdftypenames = {const.CDF_BYTE.value: 'CDF_BYTE',
                              const.CDF_CHAR.value: 'CDF_CHAR',
@@ -363,12 +360,7 @@ class Library(object):
         self.timetypes = [const.CDF_EPOCH.value,
                           const.CDF_EPOCH16.value,
                           const.CDF_TIME_TT2000.value]
-        if not self.supports_int8:
-            del self.cdftypenames[const.CDF_INT8.value]
-            del self.numpytypedict[const.CDF_INT8.value]
-            del self.cdftypenames[const.CDF_TIME_TT2000.value]
-            del self.numpytypedict[const.CDF_TIME_TT2000.value]
-        elif self._arm32:
+        if self._arm32:
             # Type-pun double arguments to variadic functions.
             # Calling convention for non-variadic functions with floats
             # is unique, but convention for ints is same as variadic.
@@ -439,19 +431,6 @@ class Library(object):
             else:
                 return retval
         self.v_tt2000_to_epoch16 = _v_tt2000_to_epoch16
-        if not self.supports_int8:
-            self.datetime_to_tt2000 = self._bad_tt2000
-            self.tt2000_to_datetime = self._bad_tt2000
-            self.v_datetime_to_tt2000 = self._bad_tt2000
-            self.v_tt2000_to_datetime = self._bad_tt2000
-            self.epoch_to_tt2000 = self._bad_tt2000
-            self.v_epoch_to_tt2000 = self._bad_tt2000
-            self.tt2000_to_epoch = self._bad_tt2000
-            self.v_tt2000_to_epoch = self._bad_tt2000
-            self.epoch_16_to_tt2000 =  self._bad_tt2000
-            self.v_epoch16_to_tt2000 = self._bad_tt2000
-            self.tt2000_to_epoch16 = self._bad_tt2000
-            self.v_tt2000_to_epoch16 = self._bad_tt2000
 
     @staticmethod
     def _find_lib():
@@ -653,17 +632,7 @@ class Library(object):
         ==========
         backward : boolean
             Set backward compatible mode if True; clear it if False.
-
-        Raises
-        ======
-        ValueError : if backward=False and underlying CDF library is V2
         """
-        if self.version[0] < 3:
-            if not backward:
-                raise ValueError(
-                    'Cannot disable backward-compatible mode for CDF version 2.')
-            else:
-                return
         self._library.CDFsetFileBackward(const.BACKWARDFILEon if backward
                                          else const.BACKWARDFILEoff)
 
@@ -2409,9 +2378,6 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
                 and self.backward:
             raise ValueError('Cannot use EPOCH16, INT8, or TIME_TT2000 '
                              'in backward-compatible CDF')
-        if not lib.supports_int8 and \
-                type in (const.CDF_INT8, const.CDF_TIME_TT2000):
-            raise ValueError('INT8 and TIME_TT2000 require CDF library 3.4.0')
         if data is None:
             if type is None:
                 raise ValueError('Must provide either data or a CDF type.')
@@ -2446,9 +2412,6 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
                     for dimVary in dimVarys]
         if not hasattr(type, 'value'):
             type = ctypes.c_long(type)
-        if type.value == const.CDF_INT8.value and not lib.supports_int8:
-            raise ValueError(
-                '64-bit integer support require CDF library 3.4.0')
         if type.value in (const.CDF_EPOCH16.value, const.CDF_INT8.value,
                     const.CDF_TIME_TT2000.value) \
                 and self.backward:
@@ -3041,9 +3004,6 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
 
     >>> del Flux[5]
 
-    Due to the need to work around a bug in the CDF library, this operation
-    can be quite slow.
-    
     Delete *all data* from ``Flux``, but leave the variable definition intact:
 
     >>> del Flux[...]
@@ -3184,11 +3144,6 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         only one dimension or it must specify all elements of the non-record
         dimensions. This is *not* a way to resize a variable!
 
-        Deleting records from the middle of a variable may be very slow in
-        some circumstances. To work around a bug in CDF library versions
-        3.4.0 and before, all the data must be read in, the requested deletions
-        done, and then all written back out.
-
         @param key: index or slice to delete
         @type key: int or slice
         @raise TypeError: if an attempt is made to delete from a non
@@ -3212,27 +3167,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         dimsize = hslice.dimsizes[0]
 
         self._call()
-        dangerous_delete = False
-        if lib._del_middle_rec_bug and \
-               (interval != 1 or (start != 0 and start + count < dimsize)):
-            #delete from middle is dangerous if only have one index entry
-            entries = ctypes.c_long(0)
-            lib.call(const.GET_, const.zVAR_nINDEXENTRIES_,
-                     ctypes.byref(entries))
-            dangerous_delete = (entries.value == 1)
-
-        if dangerous_delete:
-            data = self[...]
-            data = numpy.delete(
-                data,
-                numpy.arange(start, start + count * interval, interval),
-                0)
-            self[0:dimsize - count] = data
-            first_rec = dimsize - count
-            last_rec = dimsize - 1
-            lib.call(const.DELETE_, const.zVAR_RECORDS_,
-                     ctypes.c_long(first_rec), ctypes.c_long(last_rec))
-        elif interval == 1:
+        if interval == 1:
             first_rec = ctypes.c_long(start)
             last_rec = ctypes.c_long(start + count - 1)
             lib.call(const.DELETE_, const.zVAR_RECORDS_,
@@ -4513,15 +4448,13 @@ class _Hyperslice(object):
             if backward:
                 del types[types.index(const.CDF_EPOCH16)]
                 del types[0]
-            elif not lib.supports_int8:
-                del types[0]
         elif d is data or isinstance(data, numpy.generic):
             #numpy array came in, use its type (or byte-swapped)
             types = [k for k in lib.numpytypedict
                      if (lib.numpytypedict[k] == d.dtype
                          or lib.numpytypedict[k] == d.dtype.newbyteorder())
                      and not k in lib.timetypes]
-            if (not lib.supports_int8 or backward) \
+            if backward \
                and const.CDF_INT8.value in types:
                 del types[types.index(const.CDF_INT8.value)]
             #Maintain priority to match the ordered lists below:
@@ -4573,8 +4506,7 @@ class _Hyperslice(object):
                                1.7e38, 1.7e38, 8e307, 8e307]
                 types = [t for (t, c) in zip(types, cutoffs) if c > maxval
                          and (minval >= 0 or minval >= -c)]
-                if (not lib.supports_int8 or backward) \
-                       and const.CDF_INT8 in types:
+                if backward and const.CDF_INT8 in types:
                     del types[types.index(const.CDF_INT8)]
             else: #float
                 if dims == ():
