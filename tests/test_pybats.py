@@ -832,8 +832,8 @@ class TestImfInput(unittest.TestCase):
         self.assertEqual(self.knownImfBz[-1], self.sing['bz'][-1])
         self.assertEqual(self.knownImfRho[0], self.sing['rho'][0])
         self.assertEqual(self.knownImfRho[-1], self.sing['rho'][-1])
-        self.assertEqual(self.knownImfTemp[0], self.sing['temp'][0])
-        self.assertEqual(self.knownImfTemp[-1], self.sing['temp'][-1])
+        self.assertEqual(self.knownImfTemp[0], self.sing['t'][0])
+        self.assertEqual(self.knownImfTemp[-1], self.sing['t'][-1])
 
         # Open and test multi-fluid/non-standard variable names:
         self.assertEqual(self.knownImfBz[0], self.mult['bz'][0])
