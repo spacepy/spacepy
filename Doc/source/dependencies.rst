@@ -76,8 +76,8 @@ without SciPy:
 
 .. _dependencies_mpl:
 
-matplotlib 1.5.0+
------------------
+matplotlib 3.1+
+---------------
 `matplotlib <http://matplotlib.sourceforge.net/>`_ is the preferred
 plotting package for Python. It is highly recommended. Without it, you
 will not be able to effectively visualize data, and the following

@@ -44,7 +44,7 @@ SpacePy has a number of well-maintained dependencies, most of which are automati
  - numpy (>=1.12, !=1.15.0)
  - dateutil (>=2.1)
  - scipy (>=0.19)
- - matplotlib (>=1.5)
+ - matplotlib (>=3.1)
  - h5py (>=2.10)
 
 Soft dependencies (that are required only for a very limited part of SpacePy's functionality) are:

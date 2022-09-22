@@ -32,7 +32,7 @@ jobs:
           - python-version: "3.6"
             os: ubuntu-20.04
             numpy-version: ">=1.12.0,<1.13.0"
-            piplist: "python-dateutil~=2.1.0 scipy>=0.19.0,<0.20.0 matplotlib>=1.5.0,<1.6.0 h5py~=2.10.0 astropy>=1.0,<1.1"
+            piplist: "python-dateutil~=2.1.0 scipy>=0.19.0,<0.20.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1"
             cflags: "-Wno-error=format-security"
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"
@@ -48,7 +48,7 @@ jobs:
           - python-version: "3.7"
             os: ubuntu-20.04
             numpy-version: ">=1.15.1,<1.16.0"
-            piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 h5py~=2.10.0 astropy>=2.0,<2.1"
+            piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
             cflags: "-Wno-error=format-security"
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"
@@ -64,7 +64,7 @@ jobs:
           - python-version: "3.8"
             os: ubuntu-20.04
             numpy-version: ">=1.17.0,<1.18.0"
-            piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 h5py~=2.10.0 astropy>=2.0,<2.1"
+            piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
             cflags: "-Wno-error=format-security"
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"
@@ -80,7 +80,7 @@ jobs:
           - python-version: "3.9"
             os: ubuntu-20.04
             numpy-version: ">=1.18.0,<1.19.0"
-            piplist: "python-dateutil~=2.1.0 scipy>=1.5.0,<1.6.0 matplotlib>=1.5.0,<1.6.0 h5py~=2.10.0 astropy>=2.0,<2.1"
+            piplist: "python-dateutil~=2.1.0 scipy>=1.5.0,<1.6.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
             cflags: "-Wno-error=format-security"
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"
@@ -96,7 +96,7 @@ jobs:
           - python-version: "3.10"
             os: ubuntu-20.04
             numpy-version: ">=1.21.0,<1.22.0"
-            piplist: "python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib>=2.2.0,<2.3.0 h5py>=3.6,<3.7 astropy>=4.0,<4.1"
+            piplist: "python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib~=3.1.0 h5py>=3.6,<3.7 astropy>=4.0,<4.1"
             cflags: "-Wno-error=format-security"
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"
