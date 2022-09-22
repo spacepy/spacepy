@@ -133,7 +133,8 @@ class PlasmaFile(PbData):
 
         # Create containers for data:
         for v in varlist:
-            self[v] = dmarray(np.zeros((nLat, nLon)), {'units':units[v]})
+            unit = '' if v not in units else units[v]
+            self[v] = dmarray(np.zeros((nLat, nLon)), {'units': unit})
 
         # Read rest of file and sort data into arrays:
         for line in infile.readlines():
