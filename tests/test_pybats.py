@@ -8,7 +8,6 @@ Copyright 2015 University of Michigan
 
 import matplotlib
 matplotlib.use('Agg')
-from matplotlib import dates
 import matplotlib.pyplot as plt
 
 import datetime as dt
@@ -20,15 +19,15 @@ import numpy as np
 import numpy.testing
 
 import spacepy_testing
-import spacepy.pybats      as pb
+import spacepy.pybats as pb
 import spacepy.pybats.bats as pbs
-import spacepy.pybats.ram  as ram
+import spacepy.pybats.ram as ram
 import spacepy.pybats.gitm as gitm
 
 __all__ = ['TestParseFileTime', 'TestIdlFile', 'TestRim', 'TestBats2d',
            'TestMagGrid', 'TestSatOrbit', 'TestVirtSat', 'TestImfInput',
-           'TestExtraction', 'TestProbeIdlFile', 'TestParsers', 'TestPlotHelpers',
-           'TestLogFile']
+           'TestExtraction', 'TestProbeIdlFile', 'TestParsers',
+           'TestPlotHelpers', 'TestLogFile']
 
 
 class TestParseFileTime(unittest.TestCase):
@@ -72,14 +71,15 @@ class TestCalcNdens(unittest.TestCase):
             'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0, '':1.0}
 
     case1 = {'rho':np.array([42.]), 'oprho':np.array([32.]),
-             'hprho':np.array([2.]),'herho':np.array([8.])}
+             'hprho':np.array([2.]), 'herho':np.array([8.])}
 
     def testCalcNdens(self):
         pbs._calc_ndens(self.case1)
         self.assertEqual(self.case1['N'][0], 6.)
         for s in ('hp', 'op', 'he'):
-            self.assertEqual(self.case1[s+'N'   ][0], 2.0)
+            self.assertEqual(self.case1[s+'N'][0], 2.0)
             self.assertEqual(self.case1[s+'Frac'][0], 100.0/3.0)
+
 
 class TestParsers(unittest.TestCase):
     '''
@@ -87,24 +87,28 @@ class TestParsers(unittest.TestCase):
     '''
 
     # For variable names to latex conversion (from a 3 fluid run.)
-    knownTex = {'grid':'grid','x':'x','y':'y',
-                'rho':'$\rho_{}$','ux':'$U_{x}$','uy':'$U_{y}$','uz':'$U_{z}$',
-                'bx':'$B_{x}$','by':'$B_{y}$','bz':'$B_{z}$','pe':'pe',
-                'p':'$P_{}$','swrho':'$\rho_{sw}$','swux':'$U_{x, sw}$',
-                'swuy':'$U_{y, sw}$','swuz':'$U_{z, sw}$','swp':'$P_{sw}$',
-                'hprho':'$\rho_{hp}$','hpux':'$U_{x, hp}$','hpuy':'$U_{y, hp}$',
-                'hpuz':'$U_{z, hp}$','hpp':'$P_{hp}$','oprho':'$\rho_{op}$',
-                'opux':'$U_{x, op}$','opuy':'$U_{y, op}$','opuz':'$U_{z, op}$',
-                'opp':'$P_{op}$','jx':'$J_{x}$','jy':'$J_{y}$','jz':'$J_{z}$'}
+    knownTex = {'grid':'grid', 'x':'x', 'y':'y',
+                'rho':'$\rho_{}$', 'ux':'$U_{x}$', 'uy':'$U_{y}$',
+                'uz':'$U_{z}$', 'bx':'$B_{x}$', 'by':'$B_{y}$', 'bz':'$B_{z}$',
+                'pe':'pe', 'p':'$P_{}$', 'swrho':'$\rho_{sw}$',
+                'swux':'$U_{x, sw}$', 'swuy':'$U_{y, sw}$',
+                'swuz':'$U_{z, sw}$', 'swp':'$P_{sw}$',
+                'hprho':'$\rho_{hp}$', 'hpux':'$U_{x, hp}$',
+                'hpuy':'$U_{y, hp}$', 'hpuz':'$U_{z, hp}$', 'hpp':'$P_{hp}$',
+                'oprho':'$\rho_{op}$', 'opux':'$U_{x, op}$',
+                'opuy':'$U_{y, op}$', 'opuz':'$U_{z, op}$', 'opp':'$P_{op}$',
+                'jx':'$J_{x}$', 'jy':'$J_{y}$', 'jz':'$J_{z}$'}
 
     # For parsing TecPlot variable names:
-    tecText = 'VARIABLES ="X [R]", "Y [R]", "Z [R]", "Rho [amu/cm^3]", "U_x [km/s]", "U_y [km/s]", "U_z [km/s]", "B_x [nT]", "B_y [nT]", "B_z [nT]", "P [nPa]", "J_x [`mA/m^2]", "J_y [`mA/m^2]", "J_z [`mA/m^2]"'
+    tecText = 'VARIABLES ="X [R]", "Y [R]", "Z [R]", "Rho [amu/cm^3]", ' + \
+        '"U_x [km/s]", "U_y [km/s]", "U_z [km/s]", "B_x [nT]", ' + \
+        '"B_y [nT]", "B_z [nT]", "P [nPa]", "J_x [`mA/m^2]", ' + \
+        '"J_y [`mA/m^2]", "J_z [`mA/m^2]"'
 
-    knownTec = [('x', 'R'), ('y', 'R'), ('z', 'R'),('rho', 'amu/cm^3'),
+    knownTec = [('x', 'R'), ('y', 'R'), ('z', 'R'), ('rho', 'amu/cm^3'),
                 ('u_x', 'km/s'), ('u_y', 'km/s'), ('u_z', 'km/s'),
                 ('b_x', 'nT'), ('b_y', 'nT'), ('b_z', 'nT'), ('p', 'nPa'),
                 ('j_x', '`mA/m^2'), ('j_y', '`mA/m^2'), ('j_z', '`mA/m^2')]
-
 
     def testTexParse(self):
         for varname in self.knownTex:
@@ -149,10 +153,14 @@ class TestProbeIdlFile(unittest.TestCase):
     different compatible files.
     '''
 
-    filelist = [os.path.join(spacepy_testing.datadir, 'pybats_test', 'y=0_mhd_1_e20140410-000050.out'),
-                os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_ascii.out'),
-                os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'),
-                os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out')]
+    filelist = [os.path.join(spacepy_testing.datadir, 'pybats_test',
+                             'y=0_mhd_1_e20140410-000050.out'),
+                os.path.join(spacepy_testing.datadir, 'pybats_test',
+                             'y0_ascii.out'),
+                os.path.join(spacepy_testing.datadir, 'pybats_test',
+                             'mag_grid_binary.out'),
+                os.path.join(spacepy_testing.datadir, 'pybats_test',
+                             'mag_grid_ascii.out')]
 
     knownResponses = [('bin', '<', np.dtype('int32'), np.dtype('float32')),
                       ('asc', False, False, False),
@@ -242,8 +250,10 @@ class TestIdlFile(unittest.TestCase):
     knownIterRng2 = [2500, 2512]
     knownRtimeRng1 = [0.0, 120.0]
     knownRtimeRng2 = [0.0, 120.0]
-    knownTimeRng1 = [dt.datetime(2014, 4, 10, 0, 0), dt.datetime(2014, 4, 10, 0, 2)]
-    knownTimeRng2 = [dt.datetime(2014, 4, 10, 0, 0), dt.datetime(2014, 4, 10, 0, 2)]
+    knownTimeRng1 = [dt.datetime(2014, 4, 10, 0, 0),
+                     dt.datetime(2014, 4, 10, 0, 2)]
+    knownTimeRng2 = [dt.datetime(2014, 4, 10, 0, 0),
+                     dt.datetime(2014, 4, 10, 0, 2)]
 
     knownMax1 = {"Rho": 14.871581077575684, "Ux": -1093.626953125,
                  "Bz": 4.795100212097168, "P": 2.5764927864074707,
@@ -255,7 +265,8 @@ class TestIdlFile(unittest.TestCase):
     def testBinary(self):
         # Open file:
         mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir,
-                                      'pybats_test', 'y=0_mhd_1_e20140410-000050.out'))
+                                      'pybats_test',
+                                      'y=0_mhd_1_e20140410-000050.out'))
 
         # Test time attribute:
         self.assertEqual(self.knownMhdTime, mhd.attrs['time'])
@@ -325,30 +336,31 @@ class TestIdlFile(unittest.TestCase):
         for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
             self.assertAlmostEqual(self.knownMax1[v], mhd[v].max(), places=14)
 
+
 class TestLogFile(unittest.TestCase):
     import datetime as dt
     from spacepy.pybats import LogFile
 
-    names='iter dt rho mx my mz p bx by bz pmin pmax dst_sm dstflx_R=3.0'.split()
-    vals1=[522, 1.07725E-001, 1.22266E+001, -2.61835E-014, -5.97144E-016,
-           8.74433E-016, 5.98567E-001, 3.33039E+000, -1.42289E+000,
-           -4.82856E+000, 1.56202E-001, 2.06341E+001, -9.88068E-001,
-           -1.43109E+001]
-    vals2=[172,  1.93450E-001, 1.22249E+001, -2.61702E-014, -5.96591E-016,
-           8.73380E-016,  6.00406E-001,  3.32447E+000, -1.40840E+000,
-           -4.83217E+000,  1.46799E-001,  2.05759E+001, -1.42995E+000,
-           -1.44595E+001,]
+    names = 'iter dt rho mx my mz p bx by bz pmin pmax dst_sm dstflx_R=3.0'.split()
+    vals1 = [522, 1.07725E-001, 1.22266E+001, -2.61835E-014, -5.97144E-016,
+             8.74433E-016, 5.98567E-001, 3.33039E+000, -1.42289E+000,
+             -4.82856E+000, 1.56202E-001, 2.06341E+001, -9.88068E-001,
+             -1.43109E+001]
+    vals2 = [172,  1.93450E-001, 1.22249E+001, -2.61702E-014, -5.96591E-016,
+             8.73380E-016,  6.00406E-001,  3.32447E+000, -1.40840E+000,
+             -4.83217E+000,  1.46799E-001,  2.05759E+001, -1.42995E+000,
+             -1.44595E+001]
     knownEntry1 = dict(zip(names, vals1))
     knownEntry2 = dict(zip(names, vals2))
-    knownTime1  = dt.datetime(2014, 4,10, 0, 2, 0, 0)
-    knownTime2  = dt.datetime(2000, 1, 1, 0, 2, 52,0)
+    knownTime1 = dt.datetime(2014, 4, 10, 0, 2, 0, 0)
+    knownTime2 = dt.datetime(2000, 1, 1, 0, 2, 52, 0)
 
     def setUp(self):
         self.pth = os.path.dirname(os.path.abspath(__file__))
 
     def testReadTime(self):
         '''Read a file that has date/time information.'''
-        log = self.LogFile(os.path.join(self.pth,'data','pybats_test',
+        log = self.LogFile(os.path.join(self.pth, 'data', 'pybats_test',
                                         'log_e20140410-000000.log'))
         for n in self.knownEntry1:
             self.assertEqual(self.knownEntry1[n], log[n][-1])
@@ -356,11 +368,12 @@ class TestLogFile(unittest.TestCase):
 
     def testReadNoTime(self):
         '''Read a file that does not have time information.'''
-        log = self.LogFile(os.path.join(self.pth,'data','pybats_test',
+        log = self.LogFile(os.path.join(self.pth, 'data', 'pybats_test',
                                         'log_n000010.log'))
         for n in self.knownEntry2:
             self.assertEqual(self.knownEntry2[n], log[n][-1])
         self.assertEqual(self.knownTime2, log['time'][-1])
+
 
 class TestBatsLog(unittest.TestCase):
     '''Test BatsLog features that haven't already been tested in parent class'''
@@ -371,13 +384,13 @@ class TestBatsLog(unittest.TestCase):
     def testPlot(self):
         '''Test all plotting features associated with BatsLog class'''
         # Open our data.
-        log = pbs.BatsLog(os.path.join(self.pth,'data','pybats_test',
-                                        'log_e20140410-000000.log'))
+        log = pbs.BatsLog(os.path.join(self.pth, 'data', 'pybats_test',
+                                       'log_e20140410-000000.log'))
 
         # Fake some observed data:
         time = np.array([log['time'][0], log['time'][-1]])
-        log.obs_dst = {'time':time, 'dst':[-1,1]}
-        log.obs_sym = {'time':time, 'sym-h':[1,-1]}
+        log.obs_dst = {'time':time, 'dst':[-1, 1]}
+        log.obs_sym = {'time':time, 'sym-h':[1, -1]}
 
         # Create plot with default style:
         fig, ax = log.add_dst_quicklook(plot_obs=True, plot_sym=True,
@@ -388,8 +401,8 @@ class TestBatsLog(unittest.TestCase):
         # Create plot with custom style:
         fig, ax = log.add_dst_quicklook(plot_obs=True, plot_sym=True,
                                         epoch=log['time'][5], dstvar='dst_sm',
-                                        obs_kwargs={'ls':'--','c':'k'},
-                                        sym_kwargs={'ls':':','c':'orange'},
+                                        obs_kwargs={'ls':'--', 'c':'k'},
+                                        sym_kwargs={'ls':':', 'c':'orange'},
                                         lw=5)
         self.assertTrue(isinstance(fig, plt.Figure))
         self.assertTrue(isinstance(ax,  plt.Axes))
@@ -398,6 +411,7 @@ class TestBatsLog(unittest.TestCase):
         fig, ax = log.add_dst_quicklook(dstvar='invalid')
         self.assertEqual(fig, None)
         self.assertEqual(ax,  None)
+
 
 class TestRim(unittest.TestCase):
 
@@ -426,7 +440,7 @@ class TestRim(unittest.TestCase):
             # Unzip file and create a copy of it:
             name_in = os.path.join(spacepy_testing.datadir, 'pybats_test',
                                    'it000321_104510_000.idl.gz')
-            name_out= name_in[:-3]
+            name_out = name_in[:-3]
             with gzip.open(name_in, 'rb') as f_in, open(name_out, 'wb') as f_out:
                 copyfileobj(f_in, f_out)
 
@@ -485,13 +499,14 @@ class TestBats2d(unittest.TestCase):
     knownCalcSingle = [8.6176513671875, 9.724967e-11, 1.0006003, 400.0,
                        0.0067278803, 0.009994, 0.99992746, 399.99097, -2.691152,
                        0.4002311, 8.664787, 9.730319e-17, 9.760558]
-    calcnames = ['t', 'j', 'b', 'u', 'b_hat', 'u_perp', 'u_par',
-                 'E', 'beta', 'jb', 'alfven']
+    calcnames = ['t', 'j', 'b', 'u', 'bx_hat', 'by_hat', 'bz_hat',
+                 'u_perp', 'u_par', 'E', 'beta', 'jb', 'alfven']
 
     def setUp(self):
         self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir,
-                                           'pybats_test', 'y0_binary.out'))
-        self.outs = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                           'pybats_test', 'y0_ascii.out'))
+        self.outs = pbs.Bats2d(os.path.join(spacepy_testing.datadir,
+                                            'pybats_test',
                                             'y=0_mhd_1_e20140410-000000-000_' +
                                             '20140410-000200-000.outs'))
 
@@ -500,7 +515,7 @@ class TestBats2d(unittest.TestCase):
         self.mhd.calc_all()
 
         for v, x in zip(self.calcnames, self.knownCalcSingle):
-            self.assertAlmostEqual(x, self.mhd[v][0], places=5)
+            self.assertAlmostEqual(x, self.mhd[v][0], places=4)
 
     def testSwitchFrame(self):
         '''Test switching frames and associated calculations'''
@@ -549,7 +564,7 @@ class TestBats2d(unittest.TestCase):
         self.mhd.add_b_magsphere(target=ax, narrow=5)
 
         # Test adding streams via "add_stream_scatter":
-        self.mhd.add_stream_scatter('ux','uz',target=ax,narrow=1)
+        self.mhd.add_stream_scatter('ux', 'uz', target=ax, narrow=1)
 
         # Ensure the correct object is returned.
         self.assertTrue(isinstance(fig, plt.Figure))
@@ -557,14 +572,15 @@ class TestBats2d(unittest.TestCase):
     def testAddStreamScatter(self):
         '''Test add_stream_scatter for axes ranges, other edge cases.'''
         # Test adding a basic contour:
-        out = self.mhd.add_contour('x', 'z', 'p', xlim=[-10,10], ylim=[-10, 10])
+        out = self.mhd.add_contour('x', 'z', 'p', xlim=[-10, 10],
+                                   ylim=[-10, 10])
 
         # Test adding streams via "add_stream_scatter":
         self.mhd.add_stream_scatter('ux', 'uz', target=out[1], narrow=1)
 
         # Ensure axes ranges did not change:
         for axrange in (out[1].get_xlim(), out[1].get_ylim()):
-            self.assertEqual((-10,10), axrange)
+            self.assertEqual((-10, 10), axrange)
 
         # Ensure the correct object is returned.
         self.assertTrue(isinstance(out[0], plt.Figure))
@@ -599,8 +615,11 @@ class TestMagGrid(unittest.TestCase):
         # Open both binary and ascii versions of same data.
         # Ensure expected values are loaded.
 
-        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out'))
-        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'))
+        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test',
+                                          'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -624,8 +643,11 @@ class TestMagGrid(unittest.TestCase):
     def testCalc(self):
         # Open both binary and ascii versions of same data.
         # Ensure calculations give expected values.
-        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out'))
-        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir, 'pybats_test', 'mag_grid_binary.out'))
+        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test',
+                                          'mag_grid_binary.out'))
 
         # Calculation of H-component:
         m1.calc_h()
@@ -661,12 +683,12 @@ class TestSatOrbit(unittest.TestCase):
 
             # Load in fake data:
             sat['time'] = self.time
-            sat['xyz']  = self.pos
+            sat['xyz'] = self.pos
 
             # Add some info:
             sat.attrs['coor'] = 'SMG'
             sat.attrs['file'] = 'tempsat.dat'
-            sat.attrs['head'] = ['test','header','values']
+            sat.attrs['head'] = ['test', 'header', 'values']
 
             sat.write()
             os.listdir('.')
@@ -676,7 +698,7 @@ class TestSatOrbit(unittest.TestCase):
 
             # Check header:
             self.assertEqual(sorted(sat.attrs['head']),
-                             sorted(['test','header','values']))
+                             sorted(['test', 'header', 'values']))
             self.assertEqual(sat.attrs['coor'], 'SMG')
 
             # Check time and position:
@@ -766,10 +788,11 @@ class TestImfInput(unittest.TestCase):
         '''
         # Create an IMF object from scratch, fill with zeros.
         imf = pb.ImfInput()
-        for key in imf: imf[key]=[0]
+        for key in imf:
+            imf[key] = [0]
 
         # Add a sub-millisecond time:
-        imf['time'] = [dt.datetime(2017,9,6,16,42,36,999600)]
+        imf['time'] = [dt.datetime(2017, 9, 6, 16, 42, 36, 999600)]
 
         # Write and test for non-failure on re-read:
         imf.write('testme.tmp')
@@ -827,16 +850,16 @@ class TestImfInput(unittest.TestCase):
         # Create plots, exercise plotting options.
         f1 = self.sing.quicklook()
         # Custom vars, default colors:
-        f2 = self.sing.quicklook(plotvars=[['bx','by','bz'], 'rho', 'v'])
+        f2 = self.sing.quicklook(plotvars=[['bx', 'by', 'bz'], 'rho', 'v'])
         # Custom vars, empty color scheme:
-        f3 = self.sing.quicklook(plotvars=[['bx','by','bz'], 'rho', 'v'],
+        f3 = self.sing.quicklook(plotvars=[['bx', 'by', 'bz'], 'rho', 'v'],
                                  colors=[])
         # Custom vars, nested but incomplete colors:
-        f4 = self.mult.quicklook([['bx','by','bz'], ['SwRho','IonoRho'], 'v'],
+        f4 = self.mult.quicklook([['bx', 'by', 'bz'], ['SwRho', 'IonoRho'], 'v'],
                                  colors=[['r', 'g', 'b'], ['orange', 'cyan']])
         # Custom vars, custom colors/shape mismatch, blank axes:
-        f5 = self.mult.quicklook([['bx','by','bz'], ['ux','uy'], 'blah'],
-                                 colors=['r',['orange','cyan']])
+        f5 = self.mult.quicklook([['bx', 'by', 'bz'], ['ux', 'uy'], 'blah'],
+                                 colors=['r', ['orange', 'cyan']])
 
         # Test figures and close:
         for f in (f1, f2, f3, f4, f5):
@@ -888,8 +911,9 @@ class TestGitm(unittest.TestCase):
 
     def testBinary(self):
         '''
-        This tests the ability to open a file and correctly read the attributes and
-        variables as well as properly reshape the arrays and remove unused dimensions.
+        This tests the ability to open a file and correctly read the
+        attributes and variables as well as properly reshape the arrays and
+        remove unused dimensions.
         '''
         # Open 2D file:
         f = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
@@ -983,7 +1007,8 @@ class RamTests(unittest.TestCase):
                           5.2025672e+05, 2.4965306e+05, 9.1892180e+04, 3.0133383e+04,
                           1.6105718e+04, 1.4831358e+04, 1.7809768e+04, 2.2456926e+04,
                           2.5075262e+04, 2.3687787e+04, 1.8142951e+04, 1.0017233e+04,
-                          3.8184448e+03, 1.1123656e+03, 2.2883945e+02], dtype=np.float32)
+                          3.8184448e+03, 1.1123656e+03, 2.2883945e+02],
+                         dtype=np.float32)
         data.create_omniflux(check=False)
         testarr = np.array(data['omniH'][0].data)
         numpy.testing.assert_array_almost_equal(regrH, testarr)
