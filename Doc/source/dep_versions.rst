@@ -121,7 +121,7 @@ history. The oldest version supported according to this policy is in
      - 3.5.1 (2021/12/11)
      - 3.4.0 (2021/3/26)
      - 3.4.0 (2021/3/26)
-     - 1.5.0 (2015/10/29)
+     - 3.1.0 (2019/5/18)
    * - `numpy <https://github.com/numpy/numpy/releases>`_
      - 1.23.3 (2022/9/9)
      - 1.13.3 (2017/7/6)
