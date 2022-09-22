@@ -2,4 +2,4 @@ numpy>=1.12,!=1.15.0
 python-dateutil>=2.1
 scipy>=0.19
 matplotlib>=1.5
-h5py>=2.6
+h5py>=2.10

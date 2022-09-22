@@ -17,13 +17,13 @@ source ${HOME}/cdf/bin/definitions.B
 # coupled with what's the earliest and latest version of each dep
 # which works with that Python.
 TESTS=(
-       "3.6|numpy>=1.12.0,<1.13.0|python-dateutil~=2.1.0 scipy>=0.19.0,<0.20.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=1.0,<1.1"
+       "3.6|numpy>=1.12.0,<1.13.0|python-dateutil~=2.1.0 scipy>=0.19.0,<0.20.0 matplotlib>=1.5.0,<1.6.0 h5py~=2.10.0 astropy>=1.0,<1.1"
        "3.6|numpy>=1.19.0,<1.20.0|python-dateutil scipy matplotlib h5py astropy"
-       "3.7|numpy>=1.15.1,<1.16.0|python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=2.0,<2.1"
+       "3.7|numpy>=1.15.1,<1.16.0|python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 h5py~=2.10.0 astropy>=2.0,<2.1"
        "3.7|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy"
-       "3.8|numpy>=1.17.0,<1.18.0|python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=2.0,<2.1"
+       "3.8|numpy>=1.17.0,<1.18.0|python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 h5py~=2.10.0 astropy>=2.0,<2.1"
        "3.8|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy"
-       "3.9|numpy>=1.18.0,<1.19.0|python-dateutil~=2.1.0 scipy>=1.5.0,<1.6.0 matplotlib>=1.5.0,<1.6.0 h5py>=2.6,<2.7 astropy>=2.0,<2.1"
+       "3.9|numpy>=1.18.0,<1.19.0|python-dateutil~=2.1.0 scipy>=1.5.0,<1.6.0 matplotlib>=1.5.0,<1.6.0 h5py~=2.10.0 astropy>=2.0,<2.1"
        "3.9|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy"
        "3.10|numpy>=1.21.0,<1.22.0|python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib>=2.2.0,<2.3.0  h5py>=3.6,<3.7 astropy>=4.0,<4.1"
        "3.10|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy"
