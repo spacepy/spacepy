@@ -31,7 +31,7 @@ SpacePy 0.5.0. Minimum versions are:
   * CPython 3.6
   * AstroPy 1.0
   * CDF 3.5
-  * dateutil 1.4 (earlier may work)
+  * dateutil 2.1
   * h5py 2.6 (earlier may work)
   * matplotlib 1.5
   * numpy 1.12

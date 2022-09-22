@@ -913,7 +913,7 @@ setup_kwargs = {
     'url': 'https://github.com/spacepy/spacepy',
 #download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
 #    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
-    'requires': ['numpy (>=1.12, !=1.15.0)', 'scipy (>=0.19)', 'matplotlib (>=1.5)', 'python_dateutil',
+    'requires': ['numpy (>=1.12, !=1.15.0)', 'scipy (>=0.19)', 'matplotlib (>=1.5)', 'python_dateutil (>=2.1)',
                  'h5py (>=2.6)', 'python (>=3.6)'],
     'packages': packages,
     'package_data': {'spacepy': package_data},
@@ -957,7 +957,7 @@ if use_setuptools:
         'scipy>=0.11',
         'matplotlib>=1.5',
         'h5py>=2.6',
-        'python_dateutil>=1.4',
+        'python_dateutil>=2.1',
         # AstroPy is only required to convert to/from AstroPy, so either
         # user has it or don't care.
         #'astropy>=1.0',

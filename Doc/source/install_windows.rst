@@ -66,7 +66,7 @@ Installation via ``pip`` will automatically install most Python
 dependencies (but not the :ref:`NASA CDF library <windows_CDF>`).
 They can also be installed from conda::
 
-  conda install numpy scipy matplotlib h5py
+  conda install numpy python-dateutil scipy matplotlib h5py
 
 Standalone dependencies
 =======================

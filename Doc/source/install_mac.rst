@@ -61,7 +61,7 @@ continuing.
 You may optionally install SpacePy dependencies via conda (otherwise
 they will be installed via ``pip``)::
 
-   conda install numpy scipy matplotlib h5py
+   conda install numpy python-dateutil scipy matplotlib h5py
 
 Finally, install SpacePy::
 
@@ -100,7 +100,7 @@ version; at this time, Python 3.9 and gcc 11 are reasonable choices::
   sudo port install python39
   sudo port install py39-pip
   # Installing the following is optional; pip will automatically install
-  sudo port install py39-numpy py39-scipy py39-h5py py39-matplotlib
+  sudo port install py39-numpy py39-dateutil py39-scipy py39-h5py py39-matplotlib
 
 If you have not already installed the Xcode command line tools, you
 will be prompted to do so. In that case, it is suggested to accept the
