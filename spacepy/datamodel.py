@@ -1004,9 +1004,7 @@ def fromHDF5(fname, **kwargs):
         if type(value) is allowed_elems[0]: #if a group
             SDobject[key] = fromHDF5(hfile, path=path+'/'+key)
         elif type(value) is allowed_elems[1]: #if a dataset
-            isuni = (h5py.check_vlen_dtype(value.dtype)  # h5py 3+
-                     if hasattr(h5py, 'check_vlen_dtype')
-                     else h5py.check_dtype(vlen=value.dtype)) is unicode
+            isuni = h5py.check_vlen_dtype(value.dtype) is unicode
             try:
                 if isuni:
                     if hasattr(value, 'asstr'):  # h5py 3+
@@ -1088,7 +1086,7 @@ def toHDF5(fname, SDobject, **kwargs):
                             if uni:
                                 #Tell hdf5 this is unicode. Numpy is UCS-4, HDF5 is UTF-8
                                 hfile[path].attrs.create(dumkey, dumval,
-                                    dtype=h5py.special_dtype(vlen=unicode))
+                                    dtype=h5py.string_dtype(encoding='utf-8'))
                             else:
                                 hfile[path].attrs[dumkey] = dumval
                         except TypeError:
@@ -1175,9 +1173,7 @@ def toHDF5(fname, SDobject, **kwargs):
                     dtype = None
                     if dumval.dtype.kind == 'U':
                         dumval = numpy.char.encode(dumval, 'utf-8')
-                        dtype = h5py.string_dtype(encoding='utf-8')\
-                            if hasattr(h5py, 'string_dtype')\
-                            else h5py.special_dtype(vlen=unicode)  # h5py <3
+                        dtype = h5py.string_dtype(encoding='utf-8')
                     elif isinstance(value[0], datetime.datetime):
                         for i, val in enumerate(value): dumval[i] = val.isoformat()
                         dumval = dumval.astype('|S35')

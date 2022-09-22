@@ -113,7 +113,7 @@ history. The oldest version supported according to this policy is in
      - 3.6.0 (2021/11/16)
      - 3.0.0 (2020/10/30)
      - 3.5.0 (2021/10/20)
-     - tested from 2.6 (2017/3/18)
+     - 2.10.0 (2019/9/6)
    * - `matplotlib <https://github.com/matplotlib/matplotlib/releases>`_
      - 3.6.0 (2022/9/16)
      - 2.1.1 (2017/12/9)

@@ -92,8 +92,8 @@ modules may have limited functionality or fail entirely:
 
 .. _dependencies_h5py:
 
-h5py 2.6+
----------
+h5py 2.10+
+----------
 `h5py <http://code.google.com/p/h5py/>`_ provides a Python interface to
 HDF5 files. It is required for the HDF import/export capability of
 :mod:`~spacepy.datamodel` and for use of the :mod:`~spacepy.omni` module.
