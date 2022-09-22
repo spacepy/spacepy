@@ -22,18 +22,17 @@ import sys
 
 import numpy as np
 from spacepy.pybats import PbData, IdlFile, LogFile, calc_wrapper
-import spacepy.plot.apionly
 from spacepy.plot import set_target, applySmartTimeTicks
 from spacepy.datamodel import dmarray
 
-#### Module-level variables:
+# Module-level variables:
 # recognized species:
 mass = {'hp':1.0, 'op':16.0, 'he':4.0,
         'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0, '':1.0}
 
-RE = 6371000 # Earth radius in meters.
+RE = 6371000  # Earth radius in meters.
 
-#### Module-level functions:
+# Module-level functions:
 
 
 def _calc_ndens(obj):
@@ -81,7 +80,7 @@ def _calc_ndens(obj):
     '''
 
     species = []
-    names   = []
+    names = []
 
     # Get name of Rho (case sensitive check):
     rho = 'Rho'*('Rho' in obj) + 'rho'*('rho' in obj)
@@ -104,15 +103,16 @@ def _calc_ndens(obj):
             m = mass[n.lower()]
         else:
             m = 1.0
-        obj[n+'N'] = dmarray(obj[s]/m, attrs={'units':'$cm^{-3}$',
-                                              'amu mass':m})
+        obj[n+'N'] = dmarray(obj[s]/m,
+                             attrs={'units':'$cm^{-3}$', 'amu mass':m})
 
     # Total N is sum of individual  number densities.
     obj['N'] = dmarray(np.zeros(obj[rho].shape),
                        attrs={'units':'$cm^{-3}$'})
     if species:
         # Total number density:
-        for n in names: obj['N'] += obj[n+'N']
+        for n in names:
+            obj['N'] += obj[n+'N']
         # Composition as fraction of total per species:
         for n in names:
             obj[n+'Frac'] = dmarray(100.*obj[n+'N']/obj['N'],
@@ -122,7 +122,7 @@ def _calc_ndens(obj):
         obj['N'] += dmarray(obj[rho], attrs={'units':'$cm^{-3}$'})
 
 
-#### Classes:
+# Classes:
 
 class BatsLog(LogFile):
     '''
@@ -151,7 +151,8 @@ class BatsLog(LogFile):
         import spacepy.pybats.kyoto as kt
 
         # Return if already obtained:
-        if hasattr(self, 'obs_dst'): return True
+        if hasattr(self, 'obs_dst'):
+            return True
 
         # Start and end time to collect observations:
         stime = self['time'][0]
@@ -181,7 +182,8 @@ class BatsLog(LogFile):
         import spacepy.pybats.kyoto as kt
 
         # Return if already obtained:
-        if hasattr(self, 'obs_sym'): return True
+        if hasattr(self, 'obs_sym'):
+            return True
 
         # Start and end time to collect observations:
         stime = self['time'][0]
@@ -234,13 +236,13 @@ class BatsLog(LogFile):
         '''
 
         from datetime import datetime
-        import matplotlib.pyplot as plt
 
         # Set the correct dst value to be used.
         if not dstvar:
             if 'dst_sm' in self:
                 dstvar = 'dst_sm'
-            else: dstvar='dst'
+            else:
+                dstvar = 'dst'
 
         if dstvar not in self:
             return None, None
@@ -250,8 +252,10 @@ class BatsLog(LogFile):
         if 'label' not in kwargs:
             kwargs['label'] = 'BATS-R-US $D_{ST}$ (Biot-Savart)'
 
-        if 'label' not in obs_kwargs: obs_kwargs['label'] = 'Obs. Dst'
-        if 'label' not in sym_kwargs: sym_kwargs['label'] = 'Obs. SYM-H'
+        if 'label' not in obs_kwargs:
+            obs_kwargs['label'] = 'Obs. Dst'
+        if 'label' not in sym_kwargs:
+            sym_kwargs['label'] = 'Obs. SYM-H'
 
         ax.plot(self['time'], self[dstvar], lw=lw, **kwargs)
         ax.hlines(0.0, self['time'][0], self['time'][-1],
@@ -264,12 +268,14 @@ class BatsLog(LogFile):
         if(plot_obs):
             # Attempt to fetch observations, plot if success.
             if self.fetch_obs_dst():
-                ax.plot(self.obs_dst['time'], self.obs_dst['dst'], **obs_kwargs)
+                ax.plot(self.obs_dst['time'], self.obs_dst['dst'],
+                        **obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
         if(plot_sym):
             # Attempt to fetch SYM-h observations, plot if success.
             if self.fetch_obs_sym():
-                ax.plot(self.obs_sym['time'], self.obs_sym['sym-h'], **sym_kwargs)
+                ax.plot(self.obs_sym['time'], self.obs_sym['sym-h'],
+                        **sym_kwargs)
                 applySmartTimeTicks(ax, self['time'])
 
         # Place vertical line at epoch:
@@ -280,10 +286,13 @@ class BatsLog(LogFile):
             ax.set_ylim(yrange)
 
         # Apply legend
-        if add_legend: ax.legend(loc='best')
-        if target is None: fig.tight_layout()
+        if add_legend:
+            ax.legend(loc='best')
+        if target is None:
+            fig.tight_layout()
 
         return fig, ax
+
 
 class Extraction(PbData):
     '''
@@ -320,24 +329,27 @@ class Extraction(PbData):
         # If our x, y locations are not numpy arrays, fix that.
         # Additionally, convert scalars to 1-element vectors.
         x, y = np.array(x), np.array(y)
-        if not x.shape: x = x.reshape(1)
-        if not y.shape: y = y.reshape(1)
+        if not x.shape:
+            x = x.reshape(1)
+        if not y.shape:
+            y = y.reshape(1)
 
         # Default: all variables are extracted except coordinates.
         if var_list == 'all':
             var_list = list(dataset.keys())
-            for v in ('x','y','z','grid'):
-                if v in var_list: var_list.remove(v)
-        elif type(var_list)==str:
+            for v in ('x', 'y', 'z', 'grid'):
+                if v in var_list:
+                    var_list.remove(v)
+        elif type(var_list) is str:
             var_list = var_list.split()
         elif type(var_list) != list:
-            var_list=[]
+            var_list = []
         else:
             raise TypeError('Kwarg var_list must be string, list, or None.')
 
         # Stash var list, dataset internally:
         self._var_list = var_list
-        self._dataset  = dataset
+        self._dataset = dataset
 
         # Extract along trace:
         self.extract(x, y)
@@ -364,17 +376,20 @@ class Extraction(PbData):
         # Navigate the MHD quad tree, interpolating as we go.
         for k in data.qtree:
             # Only leafs, of course!
-            if not data.qtree[k].isLeaf: continue
+            if not data.qtree[k].isLeaf:
+                continue
             # Find all points that lie in this block.
             # If there are none, just keep going.
             pts = \
                 (x >= data.qtree[k].lim[0]) & (x <= data.qtree[k].lim[1]) & \
                 (y >= data.qtree[k].lim[2]) & (y <= data.qtree[k].lim[3])
-            if not pts.any(): continue
+            if not pts.any():
+                continue
             locs = data.qtree[k].locs
             for v in self._var_list:
                 self[v][pts] = interp_2d_reg(x[pts], y[pts], xAll[locs],
                                              yAll[locs], data[v][locs])
+
 
 class Stream(Extraction):
     '''
@@ -439,18 +454,18 @@ class Stream(Extraction):
     .. automethod:: plot
     '''
 
-    def __init__(self, bats, xstart, ystart, xfield, yfield, style = 'mag',
+    def __init__(self, bats, xstart, ystart, xfield, yfield, style='mag',
                  type='streamline', method='rk4', var_list='all',
                  extract=False, maxPoints=20000, *args, **kwargs):
 
         # Key values:
-        self.xstart = xstart #X and Y starting
-        self.ystart = ystart #points in the field.
-        self.xvar   = xfield #Strings that list the variables
-        self.yvar   = yfield #that will be used for tracing.
+        self.xstart = xstart  # X and Y starting
+        self.ystart = ystart  # points in the field.
+        self.xvar = xfield  # Strings that list the variables
+        self.yvar = yfield  # that will be used for tracing.
 
         # Descriptors:
-        self.open   = True
+        self.open = True
         self.status = 'open'
         self.method = method
 
@@ -464,18 +479,12 @@ class Stream(Extraction):
                                      var_list=var_list*extract)
 
         # Place parameters into attributes:
-        self.attrs['start']     = [xstart, ystart]
+        self.attrs['start'] = [xstart, ystart]
         self.attrs['trace_var'] = [xfield, yfield]
-        self.attrs['method']    = method
+        self.attrs['method'] = method
 
         # Set style
         self.set_style(style)
-
-    #def __repr__(self):
-    #    pass
-    #
-    #def __str__(self):
-    #    pass
 
     def set_style(self, style):
         '''
@@ -502,15 +511,15 @@ class Stream(Extraction):
             self.style = style
             col = re.match('([bgrcmykw])', style)
             if col:
-                self.color=col.groups()[0]
+                self.color = col.groups()[0]
             else:
-                self.color='k'
+                self.color = 'k'
 
     def treetrace(self, bats, maxPoints=20000):
         '''
         Trace through the vector field using the quad tree.
         '''
-        from numpy import array, sqrt, append
+        from numpy import sqrt
         if self.method == 'euler' or self.method == 'eul':
             from spacepy.pybats.trace2d import trace2d_eul as trc
         elif self.method == 'rk4':
@@ -539,11 +548,11 @@ class Stream(Extraction):
                 loc = bats.qtree[block].locs
             # Trace through this block.
             x, y = trc(bats[self.xvar][loc], bats[self.yvar][loc],
-                       xnow, ynow, bats[grid[0]][loc][0,:],
-                       bats[grid[1]][loc][:,0], ds=0.01)
+                       xnow, ynow, bats[grid[0]][loc][0, :],
+                       bats[grid[1]][loc][:, 0], ds=0.01)
             # Update location and block:
             xnow, ynow = x[-1], y[-1]
-            newblock = bats.find_block(xnow,ynow)
+            newblock = bats.find_block(xnow, ynow)
             # If we didn't leave the block, stop tracing.
             # Additionally, if inside rBody, stop.
             if(block == newblock) or (xnow**2+ynow**2) < bats.attrs['rbody'] * .8 :
@@ -555,11 +564,13 @@ class Stream(Extraction):
             # Append to full trace vectors.
             xfwd = np.append(xfwd, x[1:])
             yfwd = np.append(yfwd, y[1:])
-            del(x); del(y)
+            del(x)
+            del(y)
             # It's possible to get stuck swirling around across
             # a few blocks.  If we spend a lot of time tracing,
             # call it quits.
-            if xfwd.size > maxPoints: block = False
+            if xfwd.size > maxPoints:
+                block = False
 
         # Trace backwards.  Same Procedure as above.
         block = bats.find_block(self.xstart, self.ystart)
@@ -591,7 +602,8 @@ class Stream(Extraction):
         # Trim duplicate points created when backwards tracing.
         # There's always at least 1 duplicate.
         for i in range(1, xbwd.size):
-            if xbwd[-(i+1)]-xfwd[0] != 0: break
+            if xbwd[-(i+1)]-xfwd[0] != 0:
+                break
 
         # Combine foward and backward traces.
         self.x = np.append(xbwd[:-i], xfwd)
@@ -605,13 +617,13 @@ class Stream(Extraction):
             r = sqrt(self.x**2.0 + self.y**2.0)
             # Closed field line?  Lobe line?  Set status:
             if (r[0] < bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
-                self.open   = False
+                self.open = False
                 self.status = 'closed'
             elif (r[0] > bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
-                self.open   = True
+                self.open = True
                 self.status = 'north lobe'
             elif (r[0] < bats.attrs['rbody']) and (r[-1] > bats.attrs['rbody']):
-                self.open   = True
+                self.open = True
                 self.status = 'south lobe'
             # Trim the fat!
             limit = bats.attrs['rbody']*.8
@@ -645,7 +657,7 @@ class Stream(Extraction):
 
         # Check if line is closed to body.
         if 'rbody' in bats.attrs:
-            r1 = sqrt(self.x[ 0]**2.0 + self.y[0]**2.0)
+            r1 = sqrt(self.x[0]**2.0 + self.y[0]**2.0)
             r2 = sqrt(self.x[-1]**2.0 + self.y[-1]**2.0)
             if (r1 < bats.attrs['rbody']) and (r2 < bats.attrs['rbody']):
                 self.open = False
@@ -812,9 +824,9 @@ class Bats2d(IdlFile):
         units = units.lower()
 
         # Create dictionary of unit conversions.
-        conv  = {'ev' : 6241.50935,  # nPa/cm^3 --> eV.
-                 'kev': 6.24150935,  # nPa/cm^3 --> KeV.
-                 'k'  : 72429626.47} # nPa/cm^3 --> K.
+        conv = {'ev': 6241.50935,   # nPa/cm^3 --> eV.
+                'kev': 6.24150935,  # nPa/cm^3 --> KeV.
+                'k': 72429626.47}   # nPa/cm^3 --> K.
 
         # Calculate number density if not done already.
         if 'N' not in self:
@@ -841,7 +853,8 @@ class Bats2d(IdlFile):
         '''
         from numpy import sqrt
 
-        if 'b' in self: return
+        if 'b' in self:
+            return
 
         self['b'] = sqrt(self['bx']**2.0 + self['by']**2.0 + self['bz']**2.0)
         self['b'].attrs = {'units':self['bx'].attrs['units']}
@@ -938,8 +951,8 @@ class Bats2d(IdlFile):
         '''
 
         # Some quick declarations for more readable code.
-        ux = self['ux']; uy=self['uy']; uz=self['uz']
-        bx = self['bx']; by=self['by']; bz=self['bz']
+        ux = self['ux']; uy = self['uy']; uz = self['uz']
+        bx = self['bx']; by = self['by']; bz = self['bz']
 
         # Check units.  Should be nT(=Volt*s/m^2) and km/s.
         if (bx.attrs['units'] != 'nT') or (ux.attrs['units'] != 'km/s'):
@@ -1002,8 +1015,8 @@ class Bats2d(IdlFile):
         '''
         Calculates the JxB force assuming:
         -Units of J are uA/m2, units of B are nT.
-        Under these assumptions, the value calculated is force density with units
-        of nN/m^3.
+        Under these assumptions, the value calculated is force density with
+        units of nN/m^3.
 
         Values are stored as 'jb' (magnitude) and 'jbx', 'jby', 'jbz'.
         '''
@@ -1062,7 +1075,7 @@ class Bats2d(IdlFile):
         from spacepy.datamodel import dmarray
         from spacepy.pybats.batsmath import d_dx, d_dy
 
-        if self.qtree == False:
+        if self.qtree is False:
             raise ValueError('calc_divmomen requires a valid qtree')
 
         # Create empty arrays to hold new values.
@@ -1077,7 +1090,8 @@ class Bats2d(IdlFile):
 
         for k in self.qtree:
             # Calculate only on leafs of quadtree.
-            if not self.qtree[k].isLeaf: continue
+            if not self.qtree[k].isLeaf:
+                continue
 
             # Extract values from current leaf.
             leaf = self.qtree[k]
@@ -1129,15 +1143,15 @@ class Bats2d(IdlFile):
         if 'x' not in dims:
             w = 'wx'
             dim1, dim2 = 'z', 'y'
-            dx1,  dx2  = d_dy, d_dx
+            dx1, dx2 = d_dy, d_dx
         elif 'y' not in dims:
             w = 'wy'
             dim1, dim2 = 'x', 'z'
-            dx1,  dx2  = d_dy, d_dx
+            dx1, dx2 = d_dy, d_dx
         else:
             w = 'wz'
             dim1, dim2 = 'x', 'y'
-            dx1,  dx2  = d_dy, d_dx
+            dx1, dx2 = d_dy, d_dx
 
         # Get all fluid species variables.  Save in new list.
         species = []
@@ -1154,12 +1168,13 @@ class Bats2d(IdlFile):
             # Navigate quad tree, calculate curl at every leaf.
             for k in self.qtree:
                 # Plot only leafs of the tree.
-                if not self.qtree[k].isLeaf: continue
+                if not self.qtree[k].isLeaf:
+                    continue
 
                 # Get location of points and extract velocity:
-                leaf=self.qtree[k]
-                u1=self[s+'u'+dim1][leaf.locs]
-                u2=self[s+'u'+dim2][leaf.locs]
+                leaf = self.qtree[k]
+                u1 = self[s+'u'+dim1][leaf.locs]
+                u2 = self[s+'u'+dim2][leaf.locs]
 
                 # Calculate curl
                 self[s+w][leaf.locs] = conv * (dx1(u1, leaf.dx) - dx2(u2, leaf.dx))
@@ -1188,7 +1203,8 @@ class Bats2d(IdlFile):
 
         for k in self.qtree:
             # Plot only leafs of the tree.
-            if not self.qtree[k].isLeaf: continue
+            if not self.qtree[k].isLeaf:
+                continue
 
             # Extract leaf; place pressure into 2D array.
             leaf = self.qtree[k]
@@ -1257,13 +1273,12 @@ class Bats2d(IdlFile):
                 species.append(k[:-3])
 
         for s in species:
-            #THIS IS WRONG HERE: 1/2mV**2?  Notsomuch.
+            # THIS IS WRONG HERE: 1/2mV**2?  Notsomuch.
             self[s+'Ekin'] = dmarray(sqrt(self[s+'ux']**2 +
                                           self[s+'uy']**2 +
                                           self[s+'uz']**2)
                                      * conv * mass[s.lower()],
                                      attrs={'units':units})
-
 
     def calc_all(self, exclude=[]):
         '''
@@ -1273,7 +1288,8 @@ class Bats2d(IdlFile):
         discarded.
         '''
         for command in dir(self):
-            if (command[0:5] == 'calc_') and (command != 'calc_all') and (command not in exclude):
+            if (command[0:5] == 'calc_') and (command != 'calc_all') \
+                 and (command not in exclude):
                 try:
                     eval('self.'+command+'()')
                 except AttributeError:
@@ -1307,7 +1323,7 @@ class Bats2d(IdlFile):
         if self.gridtype != 'Regular':
             if not cellsize:
                 raise ValueError('Grid must be regular or ' +
-                                  'cellsize must be given.')
+                                 'cellsize must be given.')
             self.regrid(cellsize, dim1range=dim1range, dim2range=dim2range)
 
         # Order our dimensions alphabetically.
@@ -1315,12 +1331,12 @@ class Bats2d(IdlFile):
         for key in sorted(self.grid.keys()):
             newvars.append('gradp'+key)
 
-        dx=self.resolution*6378000.0 # RE to meters
-        p =self['p']*10E-9        # nPa to Pa
-        self[newvars[0]], self[newvars[1]]=gradient(p, dx, dx)
-        self['gradp']=sqrt(self[newvars[0]]**2.0 + self[newvars[1]]**2.0)
+        dx = self.resolution * 6378000.0  # RE to meters
+        p = self['p']*10E-9               # nPa to Pa
+        self[newvars[0]], self[newvars[1]] = gradient(p, dx, dx)
+        self['gradp'] = sqrt(self[newvars[0]]**2.0 + self[newvars[1]]**2.0)
 
-    def cfl(self,dt,xcoord='x',ycoord='z'):
+    def cfl(self, dt, xcoord='x', ycoord='z'):
         """
         Calculate the CFL number in each cell given time step dt.
 
@@ -1328,26 +1344,27 @@ class Bats2d(IdlFile):
         """
 
         try:
-            U=self['u']
+            U = self['u']
         except KeyError:
             self.calc_utotal()
 
-        cfl=np.zeros(self['u'].shape)
+        cfl = np.zeros(self['u'].shape)
 
         for key in list(self.qtree.keys()):
-            child=self.qtree[key]
-            if not child.isLeaf: continue
-            pts=np.where(np.logical_and.reduce((self[xcoord]>=child.lim[0],
-                                        self[xcoord]<=child.lim[1],
-                                        self[ycoord]>=child.lim[2],
-                                        self[ycoord]<=child.lim[3]))
-            )
+            child = self.qtree[key]
+            if not child.isLeaf:
+                continue
+            pts = np.where(np.logical_and.reduce((self[xcoord] >= child.lim[0],
+                                                  self[xcoord] <= child.lim[1],
+                                                  self[ycoord] >= child.lim[2],
+                                                  self[ycoord] <= child.lim[3])
+                                                 ))
 
-            cfl[pts]=self['u'][pts]*dt/child.dx
+            cfl[pts] = self['u'][pts]*dt/child.dx
 
-        self['cfl']=dmarray(cfl,attrs={'units':''})
+        self['cfl'] = dmarray(cfl, attrs={'units':''})
 
-    def vth(self,m_avg=3.1):
+    def vth(self, m_avg=3.1):
         """
         Calculate the thermal velocity. m_avg denotes the average ion
         mass in AMU.
@@ -1355,12 +1372,12 @@ class Bats2d(IdlFile):
         Result is stored in self['vth'].
         """
 
-        m_avg_kg=m_avg*1.6276e-27
-        ndensity=self['rho']/m_avg*1e6
-        self['vth']=dmarray(np.sqrt(self['p']*1e-9/ndensity/(m_avg_kg))
-                            /1000,attrs={'units':'km/s'})
+        m_avg_kg = m_avg*1.6276e-27
+        ndensity = self['rho']/m_avg*1e6
+        self['vth'] = dmarray(np.sqrt(self['p']*1e-9/ndensity/(m_avg_kg))
+                              / 1000, attrs={'units':'km/s'})
 
-    def gyroradius(self,velocities=('u','vth'),m_avg=3.1):
+    def gyroradius(self, velocities=('u', 'vth'), m_avg=3.1):
         """
         Calculate the ion gyroradius in each cell.
 
@@ -1381,29 +1398,30 @@ class Bats2d(IdlFile):
 
         if 'u' in velocities:
             try:
-                U=self['u']
+                U = self['u']
             except KeyError:
                 self.calc_utotal()
 
-        velocities_squared_sum=self[velocities[0]]**2
+        velocities_squared_sum = self[velocities[0]]**2
 
         for vname in velocities[1:]:
-            velocities_squared_sum+=self[vname]**2
+            velocities_squared_sum += self[vname]**2
 
-        v=np.sqrt(velocities_squared_sum)*1000
+        v = np.sqrt(velocities_squared_sum)*1000
 
-        if 'b' not in self: self.calc_b()
+        if 'b' not in self:
+            self.calc_b()
 
-        B=self['b']*1e-9
+        B = self['b']*1e-9
 
-        m_avg_kg=m_avg*1.6276e-27
+        m_avg_kg = m_avg*1.6276e-27
 
-        q=1.6022e-19
+        q = 1.6022e-19
 
-        self['gyroradius']=dmarray(m_avg_kg*v/(q*B)/6378000,
-                                   attrs={'units':'Re'})
+        self['gyroradius'] = dmarray(m_avg_kg*v/(q*B)/6378000,
+                                     attrs={'units':'Re'})
 
-    def plasma_freq(self,m_avg=3.1):
+    def plasma_freq(self, m_avg=3.1):
         """
         Calculate the ion plasma frequency.
 
@@ -1413,13 +1431,13 @@ class Bats2d(IdlFile):
         """
 
         from numpy import sqrt, pi
-        m_avg_kg=m_avg*1.6276e-27
-        ndensity=self['rho']/m_avg*1e6
-        q=1.6022e-19
-        self['plasma_freq']=dmarray(sqrt(4*pi*ndensity*q**2/m_avg_kg),
-                                    attrs={'units':'rad/s'})
+        m_avg_kg = m_avg*1.6276e-27
+        ndensity = self['rho']/m_avg*1e6
+        q = 1.6022e-19
+        self['plasma_freq'] = dmarray(sqrt(4*pi*ndensity*q**2/m_avg_kg),
+                                      attrs={'units':'rad/s'})
 
-    def inertial_length(self,m_avg=3.1):
+    def inertial_length(self, m_avg=3.1):
         """
         Calculate the ion inertial length.
 
@@ -1433,10 +1451,11 @@ class Bats2d(IdlFile):
         except KeyError:
             self.plasma_freq(m_avg=m_avg)
 
-        if 'alfven' not in self: self.calc_alfven()
+        if 'alfven' not in self:
+            self.calc_alfven()
 
-        self['inertial_length']=dmarray(self['alfven']/self['plasma_freq']
-                                        /6378000, attrs={'units':'Re'})
+        self['inertial_length'] = dmarray(self['alfven']/self['plasma_freq']
+                                          / 6378000, attrs={'units':'Re'})
 
     def regrid(self, cellsize=1.0, dim1range=-1, dim2range=-1, debug=False):
         '''
@@ -1446,28 +1465,32 @@ class Bats2d(IdlFile):
         '''
         from matplotlib.mlab import griddata
 
-        if self['grid'].attrs['gtype'] == 'Regular': return
+        if self['grid'].attrs['gtype'] == 'Regular':
+            return
 
         # Order our dimensions alphabetically.
         dims = self['grid'].attrs['dims']
-        if debug: print("Ordered dimensions: ", dims)
+        if debug:
+            print("Ordered dimensions: ", dims)
 
         # Check to see if dimranges are 2-element lists.
         # If not, either set defaults or raise exceptions.
         if dim1range == -1:
-            dim1range = [self[dims[0]].min(),self[dims[0]].max()]
+            dim1range = [self[dims[0]].min(), self[dims[0]].max()]
         else:
-            if isinstance(dim1range, ( type(()), type([]) ) ):
+            if isinstance(dim1range, (type(()), type([]))):
                 if len(dim1range) != 2:
                     raise ValueError('dim1range must have two elements!')
-            else: raise TypeError('dim1range must be a tuple or list!')
+            else:
+                raise TypeError('dim1range must be a tuple or list!')
         if dim2range == -1:
-            dim2range = [self[dims[1]].min(),self[dims[1]].max()]
+            dim2range = [self[dims[1]].min(), self[dims[1]].max()]
         else:
-            if isinstance(dim2range, ( type(()), type([]) ) ):
+            if isinstance(dim2range, (type(()), type([]))):
                 if len(dim2range) != 2:
                     raise ValueError('dim2range must have two elements!')
-            else: raise TypeError('dim2range must be a tuple or list!')
+            else:
+                raise TypeError('dim2range must be a tuple or list!')
 
         if debug:
             print('%s range = %f, %f' % (dims[0], dim1range[0], dim1range[1]))
@@ -1479,7 +1502,8 @@ class Bats2d(IdlFile):
 
         for key in self:
             # Skip grid-type entries.
-            if key in (self['grid'].attrs['dims']+['grid']): continue
+            if key in (self['grid'].attrs['dims']+['grid']):
+                continue
             self[key] = griddata(self[dims[0]], self[dims[1]],
                                  self[key], grid1, grid2)
 
@@ -1487,9 +1511,8 @@ class Bats2d(IdlFile):
         self['grid'].attrs['gtype'] = 'Regular'
         self['grid'].attrs['npoints'] = len(grid1) * len(grid2)
         self['grid'].attrs['resolution'] = cellsize
-        self[dims[0]] = grid1; self[dims[1]] = grid2
-
-
+        self[dims[0]] = grid1
+        self[dims[1]] = grid2
 
     #############################
     # EXTRACTION/INTERPOLATION
@@ -1581,10 +1604,6 @@ class Bats2d(IdlFile):
            Sets the title at the top of the plot.  Defaults to
            'BATS-R-US Grid Layout'.
         '''
-        import matplotlib.pyplot as plt
-        from matplotlib.colors import Normalize
-        from matplotlib.ticker import MultipleLocator
-        from numpy import linspace
 
         if self['grid'].attrs['gtype'] == 'Regular':
             raise ValueError('Function not compatable with regular grids')
@@ -1593,12 +1612,12 @@ class Bats2d(IdlFile):
         xdim, ydim = self['grid'].attrs['dims'][0:2]
 
         # Set ax and fig based on given target.
-        fig, ax = set_target(target, figsize=(10,10), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 10), loc=loc)
         ax.set_aspect('equal')
 
         # Set plot range based on quadtree.
-        ax.set_xlim([self.qtree[1].lim[0],self.qtree[1].lim[1]])
-        ax.set_ylim([self.qtree[1].lim[2],self.qtree[1].lim[3]])
+        ax.set_xlim([self.qtree[1].lim[0], self.qtree[1].lim[1]])
+        ax.set_ylim([self.qtree[1].lim[2], self.qtree[1].lim[3]])
         # Plot.
 
         if(show_borders):
@@ -1611,18 +1630,14 @@ class Bats2d(IdlFile):
         ax.set_xlabel('GSM %s' % xdim.upper())
         ax.set_ylabel('GSM %s' % ydim.upper())
         ax.set_title(title)
-        #if xdim=='x':
-        #    ax.invert_xaxis()
-        #if ydim=='y':
-        #    ax.invert_yaxis()
         self.add_body(ax)
 
         return fig, ax
 
-    def add_stream_scatter(self, xcomp, ycomp, nlines=100, target=None, loc=111,
-                           method='rk4', maxPoints=1E6, xlim=None, ylim=None, narrow=0,
-                           arrsize=12, arrstyle='->', start_points=None,
-                           **kwargs):
+    def add_stream_scatter(self, xcomp, ycomp, nlines=100, target=None,
+                           loc=111, method='rk4', maxPoints=1E6, xlim=None,
+                           ylim=None, narrow=0, arrsize=12, arrstyle='->',
+                           start_points=None, **kwargs):
         '''
         Add a set of stream traces to a figure or axes that are distributed
         evenly but randomly throughout the plot domain.
@@ -1659,7 +1674,8 @@ class Bats2d(IdlFile):
             using random points.  This is useful for creating timeseries of
             plots.
         maxPoints : int
-            Set the maximum number of points in a single trace.  Defaults to 1E6.
+            Set the maximum number of points in a single trace.
+            Defaults to 1E6.
         narrow : int
             Add "n" arrows to each line to indicate direction.  Default is
             zero, or no lines.  If narrow=1, arrows will be placed at
@@ -1684,13 +1700,14 @@ class Bats2d(IdlFile):
         from spacepy.plot import add_arrows
 
         # Set ax and fig based on given target.
-        fig, ax = set_target(target, figsize=(10,10), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 10), loc=loc)
 
         # Try to determine the order of the dimensions used:
-        dims = self['grid'].attrs['dims'] # Default to standard order.
-        flip=False
-        for letters in zip(xcomp, ycomp): # Check for reverse order.
-            if letters == dims[::-1]: flip=True  # flip it!
+        dims = self['grid'].attrs['dims']  # Default to standard order.
+        flip = False
+        for letters in zip(xcomp, ycomp):  # Check for reverse order.
+            if letters == dims[::-1]:
+                flip = True  # flip it!
 
         # Set if using the axes limits is a viable option for setting limits
         # for region over which to seed lines:
@@ -1716,10 +1733,10 @@ class Bats2d(IdlFile):
         # If initial source points not given, create a random set:
         if start_points is None:
             # Get random points.
-            start_points = sample( [nlines, 2] )
+            start_points = sample([nlines, 2])
             # Scale to limits:
-            start_points[:,0] = (xlim[1]-xlim[0])*start_points[:,0]+xlim[0]
-            start_points[:,1] = (ylim[1]-ylim[0])*start_points[:,1]+ylim[0]
+            start_points[:, 0] = (xlim[1]-xlim[0])*start_points[:, 0]+xlim[0]
+            start_points[:, 1] = (ylim[1]-ylim[0])*start_points[:, 1]+ylim[0]
         else:
             nlines = start_points.shape[-1]
 
@@ -1788,7 +1805,6 @@ class Bats2d(IdlFile):
 
         '''
 
-        import matplotlib.pyplot as plt
         from numpy import (cos, sin, pi, arctan, arctan2, sqrt)
 
         # Get the dipole tilt by tracing a field line near the inner
@@ -1797,7 +1813,7 @@ class Bats2d(IdlFile):
         x_small = self.attrs['rbody']*-1.2  # check nightside.
         stream = self.get_stream(x_small, 0, 'bx', 'bz', method=method)
         r = stream.x**2 + stream.y**2
-        loc = r==r.max()
+        loc = r == r.max()
         tilt = arctan(stream.y[loc]/stream.x[loc])[0]
 
         if debug:
@@ -1806,101 +1822,104 @@ class Bats2d(IdlFile):
 
         # Dayside- start by tracing from plane of min |B| and perp. to that:
         R = self.attrs['rbody']*1.15
-        s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'bx','bz', method=method)
+        s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'bx', 'bz',
+                             method=method)
 
         # Get initial angle and step.
         theta = tilt
-        dTheta=np.pi/4. # Initially, search 90 degrees.
+        dTheta = np.pi/4.  # Initially, search 90 degrees.
         nIter = 0
-        while (dTheta>tol)or(s1.open):
+        while (dTheta > tol) or (s1.open):
             nIter += 1
 
             # Are we closed or open?  Day or nightside?
-            closed = not(s1.open)  # open or closed?
-            isNig  = s1.x.mean()<0 # line on day or night side?
-            isDay  = not isNig
+            closed = not(s1.open)    # open or closed?
+            isNig = s1.x.mean() < 0  # line on day or night side?
+            isDay = not isNig
 
             # Adjust the angle towards the open-closed boundary.
-            theta += (closed  and isDay)*dTheta # adjust nightwards.
-            theta -= (s1.open or  isNig)*dTheta # adjust daywards.
+            theta += (closed and isDay) * dTheta  # adjust nightwards.
+            theta -= (s1.open or isNig) * dTheta  # adjust daywards.
             # Trace at the new theta to further restrict angular range:
             s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz',
                                  method=method)
             # Reduce angular step:
             dTheta /= 2.
-            if nIter>max_iter:
-                if debug: print('Did not converge before reaching max_iter')
+            if nIter > max_iter:
+                if debug:
+                    print('Did not converge before reaching max_iter')
                 break
 
         # Possible to land on open or nightside line.
         # If this happens, inch back to dayside.
-        isNig  = s1.x.mean()<0
+        isNig = s1.x.mean() < 0
         while (s1.open or isNig):
-            theta-=tol/2 # inch daywards.
+            theta -= tol / 2  # inch daywards.
             s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz',
                                  method=method)
-            isNig  = s1.x.mean()<0
+            isNig = s1.x.mean() < 0
 
         # Use last line to get southern hemisphere theta:
         npts = int(s1.x.size/2)
-        r = sqrt(s1.x**2+s1.y**2) # Distance from origin.
+        r = sqrt(s1.x**2+s1.y**2)  # Distance from origin.
         # This loc finds the point(s) nearest to Rbody.
-        loc = np.abs(r-self.attrs['rbody'])==np.min(np.abs(
-            r[:npts]-self.attrs['rbody'])) #point closest to IB.
+        loc = np.abs(r-self.attrs['rbody']) == np.min(np.abs(
+            r[:npts]-self.attrs['rbody']))  # point closest to IB.
         xSouth, ySouth = s1.x[loc], s1.y[loc]
         # "+ 0" syntax is to quick-copy object.
         theta_day = [theta+0, 2*np.pi+arctan(ySouth/xSouth)[0]+0]
         day = s1
 
         # Nightside: Use more points in tracing (lines are long!)
-        theta+=tol/2.0  # Nudge nightwards.
+        theta += tol/2.0  # Nudge nightwards.
 
         # Set dTheta to half way between equator and dayside last-closed:
-        dTheta=(pi+tilt-theta)/2.
+        dTheta = (pi+tilt-theta)/2.
 
         nIter = 0
-        while (dTheta>tol)or(s1.open):
+        while (dTheta > tol) or (s1.open):
             nIter += 1
 
-            s1 = self.get_stream(R*cos(theta),R*sin(theta), 'bx','bz',
+            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz',
                                  method=method, maxPoints=1E6)
             # Closed?  Nightside?
             closed = not(s1.open)
-            isNig  = s1.x.mean()<0
-            isDay  = not isNig
+            isNig = s1.x.mean() < 0
+            isDay = not isNig
 
-            theta -= (closed and isNig) *dTheta # closed? move poleward.
-            theta += (s1.open or isDay) *dTheta # open?   move equatorward.
+            theta -= (closed and isNig) * dTheta  # closed? move poleward.
+            theta += (s1.open or isDay) * dTheta  # open?   move equatorward.
 
             # Don't cross over into dayside territory.
             if theta < theta_day[0]:
                 theta = theta_day[0]+tol
-                s1 = self.get_stream(R*cos(theta),R*sin(theta), 'bx','bz',
+                s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz',
                                      method=method, maxPoints=1E6)
-                if debug: print('No open flux over polar cap.')
+                if debug:
+                    print('No open flux over polar cap.')
                 break
 
             dTheta /= 2.
-            if nIter>max_iter:
-                if debug: print('Did not converge before reaching max_iter')
+            if nIter > max_iter:
+                if debug:
+                    print('Did not converge before reaching max_iter')
                 break
 
         # Use last line to get southern hemisphere theta:
-        npts = int(s1.x.size/2) # Similar to above for dayside.
+        npts = int(s1.x.size/2)  # Similar to above for dayside.
         r = sqrt(s1.x**2+s1.y**2)
-        loc = np.abs(r-self.attrs['rbody'])==np.min(np.abs(
+        loc = np.abs(r-self.attrs['rbody']) == np.min(np.abs(
             r[:npts]-self.attrs['rbody']))
         xSouth, ySouth = s1.x[loc], s1.y[loc]
-        theta_night = [theta+0, 2*np.pi+arctan2(ySouth,xSouth)[0]+0]
+        theta_night = [theta+0, 2*np.pi+arctan2(ySouth, xSouth)[0]+0]
         night = s1
-        #plt.plot(s1.x, s1.y, 'r-')
+        # plt.plot(s1.x, s1.y, 'r-')
 
         return tilt, theta_day, theta_night, day, night
 
-
     def add_b_magsphere(self, target=None, loc=111,  style='mag',
                         DoLast=True, DoOpen=True,
-                        compX='bx',compY='bz', narrow=0, arrsize=12,
+                        compX='bx', compY='bz', narrow=0, arrsize=12,
                         method='rk4', tol=np.pi/720., DoClosed=True,
                         colors=None, linestyles=None, maxPoints=1E6,
                         nOpen=5, nClosed=15, arrstyle='->', **kwargs):
@@ -2006,29 +2025,27 @@ class Bats2d(IdlFile):
 
         '''
         import re
-        import matplotlib.pyplot as plt
         from matplotlib.collections import LineCollection
-        from numpy import (arctan, cos, sin, where, pi, log,
-                           arange, sqrt, linspace, array)
+        from numpy import (cos, sin, linspace, array)
         from spacepy.plot import add_arrows
 
         # Set ax and fig based on given target.
-        adj_lims = not(target) # If no target set, adjust axes limits.
-        fig, ax = set_target(target, figsize=(10,10), loc=111)
+        adj_lims = not(target)  # If no target set, adjust axes limits.
+        fig, ax = set_target(target, figsize=(10, 10), loc=111)
         self.add_body(ax)
 
         # Lines, colors, and styles:
         lines = []
-        cols  = []
+        cols = []
 
         # Try to get line style from "style" string.
         # Default to regular line if not successful.
         if not linestyles:
-            lstyle = re.sub('\w','',style)
+            lstyle = re.sub('\w', '', style)
             if not lstyle:
                 linestyles = '-'
             else:
-                linestyles=lstyle
+                linestyles = lstyle
 
         # Start by finding open/closed boundary.
         tilt, thetaD, thetaN, last1, last2 = self.find_earth_lastclosed(
@@ -2036,54 +2053,55 @@ class Bats2d(IdlFile):
 
         # Useful parameters for the following traces:
         R = self.attrs['rbody']
-        dTheta  = 1.5*np.pi/180.
+        dTheta = 1.5*np.pi/180.
         dThetaN = .05*np.abs(thetaN[0]-thetaD[0])
         dThetaS = .05*np.abs(thetaN[1]-thetaD[1])
 
-        ## Do closed field lines ##
+        # Do closed field lines #
         if DoClosed:
             for tDay, tNit in zip(
                     linspace(0,     thetaD[0]-dTheta, nClosed),
                     linspace(np.pi, thetaN[1]-dTheta, nClosed)):
                 x, y = R*cos(tDay), R*sin(tDay)
-                sD   = self.get_stream(x, y, compX, compY, method=method,
-                                       maxPoints=maxPoints, style=style)
+                sD = self.get_stream(x, y, compX, compY, method=method,
+                                     maxPoints=maxPoints, style=style)
                 x, y = R*cos(tNit), R*sin(tNit)
-                sN   = self.get_stream(x, y, compX, compY, method=method,
-                                       maxPoints=maxPoints, style=style)
+                sN = self.get_stream(x, y, compX, compY, method=method,
+                                     maxPoints=maxPoints, style=style)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
                 cols.append(sD.color)
                 cols.append(sN.color)
 
-        ## Do open field lines ##
+        # Do open field lines
         if DoOpen:
             for tNorth, tSouth in zip(
                     linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
                     linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
                 x, y = R*cos(tNorth), R*sin(tNorth)
-                sD   = self.get_stream(x, y, compX, compY, method=method,
-                                       maxPoints=maxPoints, style=style)
+                sD = self.get_stream(x, y, compX, compY, method=method,
+                                     maxPoints=maxPoints, style=style)
                 x, y = R*cos(tSouth), R*sin(tSouth)
-                sN   = self.get_stream(x, y, compX, compY, method=method,
-                                       maxPoints=maxPoints, style=style)
+                sN = self.get_stream(x, y, compX, compY, method=method,
+                                     maxPoints=maxPoints, style=style)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
                 cols.append(sD.color)
                 cols.append(sN.color)
 
-        ## Finalize Collection ##
+        # Finalize Collection
         # If colors is given, replace what is given from
         # individual lines.  Keep the list-approach, however.
-        if colors: cols = [colors]*len(cols)
+        if colors:
+            cols = [colors]*len(cols)
 
         # Add last-closed field lines at end so they are plotted "on top".
         if DoLast:
-            lines+=[array([last1.x,last1.y]).transpose(),
-                    array([last2.x,last2.y]).transpose()]
-            cols+=2*['r']
+            lines += [array([last1.x, last1.y]).transpose(),
+                      array([last2.x, last2.y]).transpose()]
+            cols += 2 * ['r']
 
         # Create line collection & plot.
         collect = LineCollection(lines, colors=cols, linestyles=linestyles,
@@ -2091,13 +2109,13 @@ class Bats2d(IdlFile):
         ax.add_collection(collect)
 
         # Add lines if required:
-        if narrow>0:
+        if narrow > 0:
             add_arrows(collect, n=narrow, size=arrsize, style=arrstyle)
 
         # On fresh axes, adjust limits from default ([0,1]):
         if adj_lims:
             # Set defaults:
-            xlim, ylim = [0,1], [0,1]
+            xlim, ylim = [0, 1], [0, 1]
 
             # Get x,y locations along each line:
             points = [path.vertices for path in collect.get_paths()]
@@ -2111,9 +2129,9 @@ class Bats2d(IdlFile):
             xlim, ylim = np.array(xlim), np.array(ylim)
 
             # Add a buffer:
-            dX, dY = min(5,xlim[1]-xlim[0]), min(5,ylim[1]-ylim[0])
-            xlim+=(-dX, dX)
-            ylim+=(-dY, dY)
+            dX, dY = min(5, xlim[1]-xlim[0]), min(5, ylim[1]-ylim[0])
+            xlim += (-dX, dX)
+            ylim += (-dY, dY)
 
             # Set new axes limits:
             ax.set_xlim(xlim)
@@ -2170,25 +2188,24 @@ class Bats2d(IdlFile):
         closed field line.  This is repeated until open lines are found.
         '''
 
-        import matplotlib.pyplot as plt
         from matplotlib.collections import LineCollection
         from numpy import (arctan, cos, sin, where, pi, log,
                            arange, sqrt, linspace, array)
 
         # Set ax and fig based on given target.
-        fig, ax = set_target(target, figsize=(10,10), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 10), loc=loc)
 
         lines = []
-        colors= []
+        colors = []
 
         # Approximate the dipole tilt of the central body.
         stream = self.get_stream(3.0, 0, 'bx', 'bz', method=method)
         r = stream.x**2 + stream.y**2
-        loc, = where(r==r.max())
+        loc, = where(r == r.max())
         tilt = arctan(stream.y[loc[0]]/stream.x[loc[0]])
 
         # Initial values:
-        daymax   = tilt + pi/2.0
+        daymax = tilt + pi/2.0
         nightmax = tilt + 3.0*pi/2.0
 
         # Day side:
@@ -2197,8 +2214,9 @@ class Bats2d(IdlFile):
         for theta in angle:
             x = self.attrs['rbody'] * cos(theta)
             y = self.attrs['rbody'] * sin(theta)
-            stream = self.get_stream(x,y,'bx','bz', style=style, method=method)
-            if (stream.y[0] > self.attrs['rbody']) or (stream.style[0]=='k'):
+            stream = self.get_stream(x, y, 'bx', 'bz',
+                                     style=style, method=method)
+            if (stream.y[0] > self.attrs['rbody']) or (stream.style[0] == 'k'):
                 daymax = theta
                 break
             savestream = stream
@@ -2210,27 +2228,27 @@ class Bats2d(IdlFile):
         if DoImf:
             stream = savestream
             r = sqrt(stream.x**2 + stream.y**2)
-            loc, = where(r==r.max())
+            loc, = where(r == r.max())
             x_mp = stream.x[loc[0]]+0.15
             y_mp = stream.y[loc[0]]
             delx = 2.0
             for i, x in enumerate(arange(x_mp, 15.0, delx)):
                 # From dayside x-line out and up:
-                y =y_mp-x_mp+x
+                y = y_mp - x_mp+x
                 stream = self.get_stream(x, y, 'bx', 'bz', style=style,
                                          method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From top of magnetosphere down:
-                y =x_mp+15.0-x+delx/3.0
+                y = x_mp + 15.0-x+delx/3.0
                 stream = self.get_stream(x-delx/3.0, y, 'bx', 'bz',
                                          method=method, style=style)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From bottom of mag'sphere down:
-                y =x_mp-10.0-x+2.0*delx/3.0
+                y = x_mp - 10.0 - x + 2.0*delx/3.0
                 stream = self.get_stream(x-2.0*delx/3.0, y, 'bx',
                                          'bz', style=style, method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
@@ -2241,7 +2259,8 @@ class Bats2d(IdlFile):
         for theta in angle:
             x = self.attrs['rbody'] * cos(theta)
             y = self.attrs['rbody'] * sin(theta)
-            stream = self.get_stream(x,y,'bx','bz', style=style, method=method)
+            stream = self.get_stream(x, y, 'bx', 'bz',
+                                     style=style, method=method)
             if stream.open:
                 nightmax = theta
                 break
@@ -2249,18 +2268,15 @@ class Bats2d(IdlFile):
             lines.append(array([stream.x, stream.y]).transpose())
             colors.append(stream.style[0])
 
-
         # March down tail.
         stream = savestream
         r = sqrt(stream.x**2 + stream.y**2)
-        loc, = where(r==r.max())
+        loc, = where(r == r.max())
         x1 = stream.x[loc[0]]
         y1 = stream.y[loc[0]]
         x = x1
         y = y1
-        while (x-1.5)>self['x'].min():
-            #print "Closed extension at ", x-1.5, y
-            #ax.plot(x-1.5, y, 'g^', ms=10)
+        while (x-1.5) > self['x'].min():
             stream = self.get_stream(x-1.5, y, 'bx', 'bz', style=style,
                                      method=method)
             r = sqrt(stream.x**2 + stream.y**2)
@@ -2268,51 +2284,46 @@ class Bats2d(IdlFile):
                 break
             lines.append(array([stream.x, stream.y]).transpose())
             colors.append(stream.style[0])
-            loc, = where(r==r.max())
+            loc, = where(r == r.max())
             x = stream.x[loc[0]]
             y = stream.y[loc[0]]
 
         if x1 == x:
             stream = self.get_stream(x1+1.0, y1, 'bx', 'bz', method=method)
             r = sqrt(stream.x**2 + stream.y**2)
-            loc, = where(r==r.max())
+            loc, = where(r == r.max())
             x1 = stream.x[loc[0]]
             y1 = stream.y[loc[0]]
 
-        ## Add more along neutral sheet.
+        # Add more along neutral sheet.
         if DoTail:
             m = (y-y1)/(x-x1)
-        #print "Slope = ", m
-        #print "From y, y1 = ", y, y1
-        #print "and x, x1 = ", x, x1
-        #ax.plot([x,x1],[y,y1], 'wo', ms=10)
             xmore = arange(x, -100, -3.0)
             ymore = m*(xmore-x)+y
-            for x, y  in zip(xmore[1:], ymore[1:]):
+            for x, y in zip(xmore[1:], ymore[1:]):
                 stream = self.get_stream(x, y, 'bx', 'bz', style=style,
                                          method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
-        #ax.plot(xmore, ymore, 'r+')
 
         # Add open field lines.
         if DoOpen:
-            for theta in linspace(daymax,0.99*(2.0*(pi+tilt))-nightmax, 15):
+            for theta in linspace(daymax, 0.99*(2.0*(pi+tilt))-nightmax, 15):
                 x = self.attrs['rbody'] * cos(theta)
                 y = self.attrs['rbody'] * sin(theta)
-                stream = self.get_stream(x,y,'bx','bz', method=method)
+                stream = self.get_stream(x, y, 'bx', 'bz', method=method)
                 if stream.open:
                     lines.append(array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
                 x = self.attrs['rbody'] * cos(theta+pi)
                 y = self.attrs['rbody'] * sin(theta+pi)
-                stream = self.get_stream(x,y,'bx','bz', method=method)
+                stream = self.get_stream(x, y, 'bx', 'bz', method=method)
                 if stream.open:
                     lines.append(array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
 
         if 'colors' in kwargs:
-            colors=kwargs['colors']
+            colors = kwargs['colors']
             kwargs.pop('colors')
         collect = LineCollection(lines, colors=colors, **kwargs)
         ax.add_collection(collect)
@@ -2339,11 +2350,11 @@ class Bats2d(IdlFile):
         if 'rbody' not in self.attrs:
             raise KeyError('rbody not found in self.attrs!')
 
-        body = Circle((0,0), rad, fc='w', zorder=1000, **extra_kwargs)
-        arch = Wedge((0,0), rad, 90.+ang, -90.+ang, fc='k',
+        body = Circle((0, 0), rad, fc='w', zorder=1000, **extra_kwargs)
+        arch = Wedge((0, 0), rad, 90.+ang, -90.+ang, fc='k',
                      zorder=1001, **extra_kwargs)
 
-        if ax != None:
+        if ax is not None:
             ax.add_artist(body)
             ax.add_artist(arch)
 
@@ -2368,12 +2379,12 @@ class Bats2d(IdlFile):
             raise KeyError('rbody not found in self.attrs!')
 
         dbody = 2.0 * self.attrs['rbody']
-        body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=999,
+        body = Ellipse((0, 0), dbody, dbody, facecolor=facecolor, zorder=999,
                        **extra_kwargs)
 
         if DoPlanet:
             self.add_planet(ax, ang=ang)
-        if ax != None:
+        if ax is not None:
             ax.add_artist(body)
 
     def add_pcolor(self, dim1, dim2, value, zlim=None, target=None, loc=111,
@@ -2424,54 +2435,60 @@ class Bats2d(IdlFile):
         from matplotlib.colors import LogNorm, Normalize
 
         # Set ax and fig based on given target.
-        fig, ax = set_target(target, figsize=(10,10), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 10), loc=loc)
 
         # Get max/min if none given.
         if zlim is None:
-            zlim=[0,0]
-            zlim[0]=self[value].min(); zlim[1]=self[value].max()
-            if dolog and zlim[0]<=0:
-                zlim[0] = np.min( [0.0001, zlim[1]/1000.0] )
+            zlim = [0, 0]
+            zlim[0] = self[value].min()
+            zlim[1] = self[value].max()
+            if dolog and zlim[0] <= 0:
+                zlim[0] = np.min([0.0001, zlim[1]/1000.0])
 
         # Logarithmic scale?
         if dolog:
-            z=np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
-            norm=LogNorm(vmin=zlim[0],vmax=zlim[1])
+            z = np.where(self[value] > zlim[0], self[value], 1.01*zlim[0])
+            norm = LogNorm(vmin=zlim[0], vmax=zlim[1])
         else:
-            z=self[value]
-            norm=Normalize(vmin=zlim[0],vmax=zlim[1])
+            z = self[value]
+            norm = Normalize(vmin=zlim[0], vmax=zlim[1])
 
         if self['grid'].attrs['gtype']=='Regular':
             pass
         else:
             # Indices corresponding to QTree dimensions:
-            ix=self['grid'].attrs['dims'].index(dim1)
-            iy=self['grid'].attrs['dims'].index(dim2)
+            ix = self['grid'].attrs['dims'].index(dim1)
+            iy = self['grid'].attrs['dims'].index(dim2)
             for k in self.qtree:
                 # Plot only leafs of the tree.
-                if not self.qtree[k].isLeaf: continue
-                leaf=self.qtree[k]
-                x=leaf.cells[ix]
-                y=leaf.cells[iy]
-                z_local=z[leaf.locs]
-                pcol=ax.pcolormesh(x,y,z_local,norm=norm,**kwargs)
+                if not self.qtree[k].isLeaf:
+                    continue
+                leaf = self.qtree[k]
+                x = leaf.cells[ix]
+                y = leaf.cells[iy]
+                z_local = z[leaf.locs]
+                pcol = ax.pcolormesh(x, y, z_local, norm=norm, **kwargs)
 
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(pcol, ax=ax, pad=0.01)
-            if clabel==None:
-                clabel="%s (%s)" % (value, self[value].attrs['units'])
+            cbar = plt.colorbar(pcol, ax=ax, pad=0.01)
+            if clabel is None:
+                clabel = "%s (%s)" % (value, self[value].attrs['units'])
             cbar.set_label(clabel)
         else:
-            cbar=None # Need to return something, even if none.
+            cbar = None  # Need to return something, even if none.
 
         # Set title, labels, axis ranges (use defaults where applicable.)
-        if title: ax.set_title(title)
-        if ylabel==None: ylabel='%s ($R_{E}$)'%dim2.upper()
-        if xlabel==None: xlabel='%s ($R_{E}$)'%dim1.upper()
-        ax.set_ylabel(ylabel); ax.set_xlabel(xlabel)
+        if title:
+            ax.set_title(title)
+        if ylabel is None:
+            ylabel = '%s ($R_{E}$)' % dim2.upper()
+        if xlabel is None:
+            xlabel = '%s ($R_{E}$)' % dim1.upper()
+        ax.set_ylabel(ylabel)
+        ax.set_xlabel(xlabel)
         try:
-            assert len(xlim)==2
+            assert len(xlim) == 2
             assert isinstance(xlim[0], numbers.Number)
             assert isinstance(xlim[1], numbers.Number)
         except (TypeError, AssertionError):
@@ -2480,7 +2497,7 @@ class Bats2d(IdlFile):
         else:
             ax.set_xlim(xlim)
         try:
-            assert len(ylim)==2
+            assert len(ylim) == 2
             assert isinstance(ylim[0], numbers.Number)
             assert isinstance(ylim[1], numbers.Number)
         except (TypeError, AssertionError):
@@ -2490,12 +2507,14 @@ class Bats2d(IdlFile):
             ax.set_ylim(ylim)
 
         # Add body/planet.  Determine where the sun is first.
-        if dim1=='x':
-            ang=0.0
-        elif dim2=='x':
-            ang=90.0
-        else: ang=0.0
-        if add_body: self.add_body(ax, ang=ang)
+        if dim1 == 'x':
+            ang = 0.0
+        elif dim2 == 'x':
+            ang = 90.0
+        else:
+            ang = 0.0
+        if add_body:
+            self.add_body(ax, ang=ang)
 
         return fig, ax, pcol, cbar
 
@@ -2543,66 +2562,70 @@ class Bats2d(IdlFile):
 
         import numbers
         import matplotlib.pyplot as plt
-        from matplotlib.colors import (LogNorm, Normalize)
-        from matplotlib.ticker import (LogLocator, LogFormatter,
-                                       LogFormatterMathtext, MultipleLocator)
+        from matplotlib.colors import LogNorm
+        from matplotlib.ticker import LogLocator, LogFormatterMathtext
 
         # Set ax and fig based on given target.
-        fig, ax = set_target(target, figsize=(10,10), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 10), loc=loc)
 
         # Get max/min if none given.
         if zlim is None:
-            zlim=[0,0]
-            zlim[0]=self[value].min(); zlim[1]=self[value].max()
-            if dolog and zlim[0]<=0:
-                zlim[0] = np.min( [0.0001, zlim[1]/1000.0] )
+            zlim = [0, 0]
+            zlim[0] = self[value].min()
+            zlim[1] = self[value].max()
+            if dolog and zlim[0] <= 0:
+                zlim[0] = np.min([0.0001, zlim[1]/1000.0])
 
         # Set contour command based on grid type.
         if self['grid'].attrs['gtype'] != 'Regular':  # Non-uniform grids.
             if filled:
-                contour=ax.tricontourf
+                contour = ax.tricontourf
             else:
-                contour=ax.tricontour
+                contour = ax.tricontour
         else:   # Uniform grids.
             if filled:
-                contour=ax.contourf
+                contour = ax.contourf
             else:
-                contour=ax.contour
+                contour = ax.contour
 
         # Create levels and set norm based on dolog.
         if dolog:
             levs = np.power(10, np.linspace(np.log10(zlim[0]),
                                             np.log10(zlim[1]), nlev))
-            z=np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
-            norm=LogNorm()
-            ticks=LogLocator()
-            fmt=LogFormatterMathtext()
+            z = np.where(self[value] > zlim[0], self[value], 1.01*zlim[0])
+            norm = LogNorm()
+            ticks = LogLocator()
+            fmt = LogFormatterMathtext()
         else:
             levs = np.linspace(zlim[0], zlim[1], nlev)
-            z=self[value]
-            norm=None
-            ticks=None
-            fmt=None
+            z = self[value]
+            norm = None
+            ticks = None
+            fmt = None
 
         # Plot contour.
-        cont=contour(self[dim1],self[dim2],np.array(z),
-                     levs,*args, norm=norm, **kwargs)
+        cont = contour(self[dim1], self[dim2], np.array(z),
+                       levs, *args, norm=norm, **kwargs)
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
-            if clabel==None:
-                clabel="%s (%s)" % (value, self[value].attrs['units'])
+            cbar = plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
+            if clabel is None:
+                clabel = "%s (%s)" % (value, self[value].attrs['units'])
             cbar.set_label(clabel)
         else:
-            cbar=None # Need to return something, even if none.
+            cbar = None  # Need to return something, even if none.
 
         # Set title, labels, axis ranges (use defaults where applicable.)
-        if title: ax.set_title(title)
-        if ylabel==None: ylabel='%s ($R_{E}$)'%dim2.upper()
-        if xlabel==None: xlabel='%s ($R_{E}$)'%dim1.upper()
-        ax.set_ylabel(ylabel); ax.set_xlabel(xlabel)
+        if title:
+            ax.set_title(title)
+        if ylabel is None:
+            ylabel = '%s ($R_{E}$)' % dim2.upper()
+        if xlabel is None:
+            xlabel = '%s ($R_{E}$)' % dim1.upper()
+        ax.set_ylabel(ylabel)
+        ax.set_xlabel(xlabel)
         try:
-            assert len(xlim)==2
+            assert len(xlim) == 2
             assert isinstance(xlim[0], numbers.Number)
             assert isinstance(xlim[1], numbers.Number)
         except (TypeError, AssertionError):
@@ -2611,22 +2634,25 @@ class Bats2d(IdlFile):
         else:
             ax.set_xlim(xlim)
         try:
-            assert len(ylim)==2
+            assert len(ylim) == 2
             assert isinstance(ylim[0], numbers.Number)
             assert isinstance(ylim[1], numbers.Number)
         except (TypeError, AssertionError):
             if ylim is not None:
-                raise ValueError('add_contour: ylim must be list- or array-like and have 2 elements')
+                raise ValueError('add_contour: ylim must be list- or ' +
+                                 'array-like and have 2 elements')
         else:
             ax.set_ylim(ylim)
 
         # Add body/planet.  Determine where the sun is first.
-        if dim1=='x':
-            ang=0.0
-        elif dim2=='x':
-            ang=90.0
-        else: ang=0.0
-        if add_body: self.add_body(ax, ang=ang)
+        if dim1 == 'x':
+            ang = 0.0
+        elif dim2 == 'x':
+            ang = 90.0
+        else:
+            ang = 0.0
+        if add_body:
+            self.add_body(ax, ang=ang)
 
         return fig, ax, cont, cbar
 
@@ -2648,24 +2674,26 @@ class ShellSlice(IdlFile):
 
         # Extract time from file name:
         i_iter, runtime, time = parse_filename_time(self.attrs['file'])
-        if 'time' not in self.attrs: self.attrs['time'] = time
-        if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
+        if 'time' not in self.attrs:
+            self.attrs['time'] = time
+        if 'iter' not in self.attrs:
+            self.attrs['iter'] = i_iter
 
-        ### Create some helper variables for plotting and calculations
-        d2r = np.pi/180. # Convert degrees to radians.
+        # Create some helper variables for plotting and calculations
+        d2r = np.pi/180.  # Convert degrees to radians.
 
         # Get grid spacing.  If npoints ==1, set to 1 to avoid math errors.
-        self.drad = (self['r'][  -1] - self['r'][  0])/max(self['grid'][0]-1,1)
-        self.dlon = (self['lon'][-1] - self['lon'][0])/max(self['grid'][1]-1,1)
-        self.dlat = (self['lat'][-1] - self['lat'][0])/max(self['grid'][2]-1,1)
+        self.drad = (self['r'][-1] - self['r'][0])/max(self['grid'][0]-1, 1)
+        self.dlon = (self['lon'][-1] - self['lon'][0])/max(self['grid'][1]-1, 1)
+        self.dlat = (self['lat'][-1] - self['lat'][0])/max(self['grid'][2]-1, 1)
 
-        self.dphi   = d2r*self.dlon
+        self.dphi = d2r*self.dlon
         self.dtheta = d2r*self.dlat
 
         # Get spherical, uniform grid in units of r_body/radians:
         self.lon, self.r, self.lat = np.meshgrid(
             np.array(self['lon']), np.array(self['r']), np.array(self['lat']))
-        self.phi   = d2r*self.lon
+        self.phi = d2r*self.lon
         self.theta = d2r*(90-self.lat)
 
     @calc_wrapper
@@ -2673,7 +2701,6 @@ class ShellSlice(IdlFile):
         '''
         Calculate radial velocity.
         '''
-
         ur = self['ux']*np.sin(self.theta)*np.cos(self.phi) + \
              self['uy']*np.sin(self.theta)*np.sin(self.phi) + \
              self['uz']*np.cos(self.theta)
@@ -2688,10 +2715,12 @@ class ShellSlice(IdlFile):
         Resulting value stored as "var_rflx".
         '''
 
-        if var+'_rflx' in self: return
+        if var+'_rflx' in self:
+            return
 
         # Make sure we have radial velocity.
-        if 'ur' not in self: self.calc_urad()
+        if 'ur' not in self:
+            self.calc_urad()
 
         # Calc flux:
         self[var+'_rflx'] = self[var] * self['ur'] * conv
@@ -2708,31 +2737,33 @@ class ShellSlice(IdlFile):
         '''
 
         # Need at least 2D in angle space:
-        if self.dphi==0 or self.dtheta==0:
+        if self.dphi == 0 or self.dtheta == 0:
             raise ValueError('Fluence can only be calculated for 2D+ surfaces.')
 
         # Trim flux off of val name:
-        if '_rflx' in var: var = var[:-5]
+        if '_rflx' in var:
+            var = var[:-5]
 
         # Convenience:
         flux = var + '_rflx'
-        flu  = var + '_rflu'
+        flu = var + '_rflu'
 
         # Make sure flux exists:
-        if flux not in self: self.calc_radflux(var)
-        if flu in self: return
+        if flux not in self:
+            self.calc_radflux(var)
+        if flu in self:
+            return
 
         # Create output container, one point per radial distance:
-        self[flu] = np.zeros( self['grid'][0] )
+        self[flu] = np.zeros(self['grid'][0])
 
         # Integrate over all radii.
         # Units: convert R to km and cm-3 to km.
         for i, R in enumerate(self['r']):
             self[flu] = np.sum(
-                (R* 6371.0)**2 * self[flux][i,:,:] * \
-                np.sin(self.theta[i,:,:])  * \
-                self.dtheta * self.dphi * 1000.**2 )
-
+                (R * 6371.0)**2 * self[flux][i, :, :] *
+                np.sin(self.theta[i, :, :]) *
+                self.dtheta * self.dphi * 1000.**2)
 
     def add_cont_shell(self, value, irad=0, target=None, loc=111,
                        zlim=None, dolabel=True, add_cbar=False,
@@ -2748,37 +2779,34 @@ class ShellSlice(IdlFile):
 
         from numpy import pi
         import matplotlib.pyplot as plt
-        from matplotlib.patches import Circle
-        from matplotlib.colors import (LogNorm, Normalize)
-        from matplotlib.ticker import (LogLocator, LogFormatter,
-                                       LogFormatterMathtext, MultipleLocator)
+        from matplotlib.colors import LogNorm
+        from matplotlib.ticker import (LogLocator, LogFormatterMathtext,
+                                       MultipleLocator)
 
-        fig, ax = set_target(target, figsize=(10,10), loc=loc, polar=True)
+        fig, ax = set_target(target, figsize=(10, 10), loc=loc, polar=True)
 
         # Get max/min if none given.
         if zlim is None:
-            zlim=[0,0]
-            zlim[0]=self[value][irad,:,:].min()
-            zlim[1]=self[value][irad,:,:].max()
+            zlim = [0, 0]
+            zlim[0] = self[value][irad, :, :].min()
+            zlim[1] = self[value][irad, :, :].max()
 
             # For log space, no negative zlimits.
-            if dolog and zlim[0]<=0:
-                zlim[0] = np.min( [0.0001, zlim[1]/1000.0] )
+            if dolog and zlim[0] <= 0:
+                zlim[0] = np.min([0.0001, zlim[1]/1000.0])
 
         # Create levels and set norm based on dolog.
         if dolog:  # Log space!
             levs = np.power(10, np.linspace(np.log10(zlim[0]),
                                             np.log10(zlim[1]), nlev))
-            z=np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
-            norm=LogNorm()
-            ticks=LogLocator()
-            fmt=LogFormatterMathtext()
+            norm = LogNorm()
+            ticks = LogLocator()
+            fmt = LogFormatterMathtext()
         else:
             levs = np.linspace(zlim[0], zlim[1], nlev)
-            z=self[value]
-            norm=None
-            ticks=None
-            fmt=None
+            norm = None
+            ticks = None
+            fmt = None
 
         # Select proper contour function based on fill/don't fill.
         if dofill:
@@ -2788,35 +2816,37 @@ class ShellSlice(IdlFile):
 
         # Plot result.  Rotate "rotate" radians to get sun in right spot.
         # Plot against colatitude to arrange results correctly.
-        cnt = func(self.phi[irad,:,:]+rotate, 90-self.lat[irad,:,:],
-                   np.array(self[value][irad,:,:]), levs, norm=norm,
+        cnt = func(self.phi[irad, :, :]+rotate, 90-self.lat[irad, :, :],
+                   np.array(self[value][irad, :, :]), levs, norm=norm,
                    extend=extend, **kwargs)
 
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cnt, ax=ax, ticks=ticks, format=fmt, shrink=.85)
-            if clabel==None:
-                clabel="{} ({})".format(value, self[value].attrs['units'])
+            cbar = plt.colorbar(cnt, ax=ax, ticks=ticks, format=fmt,
+                                shrink=.85)
+            if clabel is None:
+                clabel = "{} ({})".format(value, self[value].attrs['units'])
             cbar.set_label(clabel)
         else:
-            cbar=None # Need to return something, even if none.
+            cbar = None  # Need to return something, even if none.
 
         # Adjust latitude
-        ax.set_ylim( [0, colat_max] )
+        ax.set_ylim([0, colat_max])
 
         # Adjust atitude and add better labels:
         ax.yaxis.set_major_locator(MultipleLocator(latticks))
-        ax.set_ylim([0,colat_max])
+        ax.set_ylim([0, colat_max])
         ax.set_yticklabels('')
         opts = {'size':yticksize, 'rotation':-45, 'ha':'center', 'va':'center'}
         for theta in np.arange(90-latticks, 90-colat_max, -latticks):
             txt = '{:02.0f}'.format(theta)+r'$^{\circ}$'
-            ax.text(pi/4., 90.-theta, txt, color='w', weight='extra bold',**opts)
+            ax.text(pi/4., 90.-theta, txt, color='w', weight='extra bold',
+                    **opts)
             ax.text(pi/4., 90.-theta, txt, color='k', weight='light', **opts)
 
         # Use MLT-type labels.
         lt_labels = ['Noon', '18', '00',   '06']
-        xticks    = [     0, pi/2,   pi, 3*pi/2]
+        xticks = [0, pi/2,   pi, 3*pi/2]
         xticks = np.array(xticks) + rotate
 
         # Apply x-labels:
@@ -2852,25 +2882,21 @@ class Mag(PbData):
     :meth:`~spacepy.pybats.bats.Mag.recalc` method should be called to
     calculate total perturbation.
     '''
-
-
     def __init__(self, nlines, time, gmvars=(), ievars=(), *args, **kwargs):
-        from numpy import zeros
-
         super(Mag, self).__init__(*args, **kwargs)  # Init as PbData.
 
-        self['time']=time
-        self.attrs['nlines']=nlines
+        self['time'] = time
+        self.attrs['nlines'] = nlines
 
-        self['x']=np.zeros(nlines)
-        self['y']=np.zeros(nlines)
-        self['z']=np.zeros(nlines)
+        self['x'] = np.zeros(nlines)
+        self['y'] = np.zeros(nlines)
+        self['z'] = np.zeros(nlines)
 
         # Create IE and GM specific containers.
         for key in gmvars:
-            self[key]=np.zeros(nlines)
+            self[key] = np.zeros(nlines)
         for key in ievars:
-            self['ie_'+key]=np.zeros(nlines)
+            self['ie_'+key] = np.zeros(nlines)
 
     def parse_gmline(self, i, line, namevar):
         '''
@@ -2887,12 +2913,12 @@ class Mag(PbData):
         where i is the entry number, line is the raw ascii line, and
         namevar is the list of variable names.
         '''
-        parts=line.split()
-        self['x'][i]=float(parts[9])
-        self['y'][i]=float(parts[10])
-        self['z'][i]=float(parts[11])
+        parts = line.split()
+        self['x'][i] = float(parts[9])
+        self['y'][i] = float(parts[10])
+        self['z'][i] = float(parts[11])
         for j, key in enumerate(namevar):
-            self[key][i]=float(parts[j+12])
+            self[key][i] = float(parts[j+12])
 
     def parse_ieline(self, i, line, namevar):
         '''
@@ -2910,9 +2936,9 @@ class Mag(PbData):
         where i is the entry number, line is the raw ascii line, and
         namevar is the list of variable names.
         '''
-        parts=line.split()
+        parts = line.split()
         for j, key in enumerate(namevar):
-            self['ie_'+key][i]=float(parts[j+11])
+            self['ie_'+key][i] = float(parts[j+11])
 
     def _recalc(self):
         '''
@@ -2923,30 +2949,29 @@ class Mag(PbData):
         This function should only be called to correct legacy versions of
         magnetometer files.
         '''
-        from numpy import sqrt, zeros
 
         # If values already exist, do not overwrite.
         if 'dBn' in self: return
 
         # New containers:
-        self['totaln']=np.zeros(self.attrs['nlines'])
-        self['totale']=np.zeros(self.attrs['nlines'])
-        self['totald']=np.zeros(self.attrs['nlines'])
+        self['totaln'] = np.zeros(self.attrs['nlines'])
+        self['totale'] = np.zeros(self.attrs['nlines'])
+        self['totald'] = np.zeros(self.attrs['nlines'])
 
         for key in list(self.keys()):
-            if key[-2:]=='Bn':
-                self['totaln']=self['totaln']+self[key]
-            if key[-2:]=='Be':
-                self['totale']=self['totale']+self[key]
-            if key[-2:]=='Bd':
-                self['totald']=self['totald']+self[key]
+            if key[-2:] == 'Bn':
+                self['totaln'] = self['totaln']+self[key]
+            if key[-2:] == 'Be':
+                self['totale'] = self['totale']+self[key]
+            if key[-2:] == 'Bd':
+                self['totald'] = self['totald']+self[key]
 
         # Old names -> new names:
-        varmap={'totaln':'dBn',       'totale':'dBe',      'totald':'dBd',
-                'gm_dBn':'dBnMhd',    'gm_dBe':'dBeMhd',   'gm_dBd':'dBdMhd',
-                'gm_facdBn':'dBnFac', 'gm_facdBe':'dBeFac','gm_facdBd':'dBdFac',
-                'ie_JhdBn':'dBnHal',  'ie_JhdBe':'dBeHal', 'ie_JhdBd':'dBdHal',
-                'ie_JpBn':'dBnPed',   'ie_JpBe':'dBePed',  'ie_JpBd':'dBdPed'}
+        varmap = {'totaln':'dBn',       'totale':'dBe',      'totald':'dBd',
+                  'gm_dBn':'dBnMhd',    'gm_dBe':'dBeMhd',   'gm_dBd':'dBdMhd',
+                  'gm_facdBn':'dBnFac', 'gm_facdBe':'dBeFac','gm_facdBd':'dBdFac',
+                  'ie_JhdBn':'dBnHal',  'ie_JhdBe':'dBeHal', 'ie_JhdBd':'dBdHal',
+                  'ie_JpBn':'dBnPed',   'ie_JpBe':'dBePed',  'ie_JpBd':'dBdPed'}
 
         # Replace variable names.
         for key in list(self.keys()):
@@ -3110,8 +3135,6 @@ class Mag(PbData):
            is always 1.5 times thicker.
         '''
 
-        import matplotlib.pyplot as plt
-
         # Set plot targets.
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
 
@@ -3148,7 +3171,8 @@ class Mag(PbData):
         # Axis labels:
         ax.set_ylabel(r'$\Delta B_{%s}$ ($nT$)'%(direc.upper()))
 
-        if target==None: fig.tight_layout()
+        if target==None:
+            fig.tight_layout()
 
         return fig, ax
 
@@ -3186,13 +3210,12 @@ class MagFile(PbData):
     present working directory.  This method is not robust; the user must take
     care to ensure that the two files correspond to each other.
     '''
-
     def __init__(self, filename, ie_name=None, find_ie=False, *args, **kwargs):
 
         from glob import glob
 
         super(MagFile, self).__init__(*args, **kwargs)  # Init as PbData.
-        self.attrs['gmfile']=filename
+        self.attrs['gmfile'] = filename
 
         # Try to find the IE file based on our current location.
         if(find_ie and not ie_name):
@@ -3224,18 +3247,17 @@ class MagFile(PbData):
 
         # Slurp lines.
         infile = open(self.attrs['gmfile'], 'r')
-        lines=infile.readlines()
+        lines = infile.readlines()
         infile.close()
 
-        # Parse header.
-
+        # Parse header:
         # Get number of stations.
         nmags=int((lines[0].split(':')[0]).split()[0])
 
         # Get station names.
-        names=lines[0].split(':')[1]
+        names = lines[0].split(':')[1]
         namemag = names.split()
-        self.attrs['namemag']=namemag
+        self.attrs['namemag'] = namemag
 
         # Check nmags vs number of mags in header.
         if nmags != len(namemag):
@@ -3244,18 +3266,18 @@ class MagFile(PbData):
                 % (nmags, len(namemag)))
 
         # Grab variable names.  Use legacy mode if necessary:
-        prefix = 'gm_'*self.legacy
+        prefix = 'gm_' * self.legacy
         # skip time, iter, and loc; add prefix to var names:
-        gm_namevar = [prefix+x for x in lines[1].split()[12:]]
+        gm_namevar = [prefix + x for x in lines[1].split()[12:]]
 
         # Set number of mags and records.
-        self.attrs['nmag']=len(namemag)
+        self.attrs['nmag'] = len(namemag)
         nrecords = (len(lines)-2)//nmags
 
         # If there is an IE file, Parse that header, too.
         if self.attrs['iefile']:
-            infile=open(self.attrs['iefile'], 'r')
-            ielns =infile.readlines()
+            infile = open(self.attrs['iefile'], 'r')
+            ielns = infile.readlines()
             infile.close()
             nmags=int((ielns[0].split(':')[0]).split()[0])
             iestats=(ielns[0].split(':')[1]).split()
@@ -3266,65 +3288,66 @@ class MagFile(PbData):
                     % (nmags, len(namemag)))
             if iestats != self.attrs['namemag']:
                 raise RuntimeError("Files do not have matching stations.")
-            ie_namevar=ielns[1].split()[11:]
+            ie_namevar = ielns[1].split()[11:]
             self.attrs['ie_namevar']=ie_namevar
             if (len(ielns)/self.attrs['nmag']) != (nrecords-1):
                 print('Number of lines do not match: GM=%d, IE=%d!' %
                       (nrecords-1, len(ielns)/self.attrs['nmag']))
                 nrecords=min(ielns, nrecords-1)
         else:
-            ie_namevar=()
-            self.attrs['ie_namevar']=()
+            ie_namevar = ()
+            self.attrs['ie_namevar'] = ()
 
         # Build containers.
-        self['time']=np.zeros(nrecords, dtype=object)
-        self['iter']=np.zeros(nrecords, dtype=float)
+        self['time'] = np.zeros(nrecords, dtype=object)
+        self['iter'] = np.zeros(nrecords, dtype=float)
         for name in namemag:
-            self[name]=Mag(nrecords, self['time'], gm_namevar, ie_namevar)
+            self[name] = Mag(nrecords, self['time'], gm_namevar, ie_namevar)
 
-        data_buffer=np.zeros((nrecords,nmags,(len(gm_namevar)+3)))
+        data_buffer = np.zeros((nrecords,nmags,(len(gm_namevar)+3)))
 
         # Read file data.
         for i in range(nrecords):
             line = lines[i*nmags+2]
-            parts=line.split()
-            self['iter'][i]=parts[0]
-            self['time'][i]=dt.datetime(
-                int(parts[1]), #year
-                int(parts[2]), #month
-                int(parts[3]), #day
-                int(parts[4]), #hour
-                int(parts[5]), #minute
-                int(parts[6]), #second
-                int(parts[7])*1000 #microsec
+            parts = line.split()
+            self['iter'][i] = parts[0]
+            self['time'][i] = dt.datetime(
+                int(parts[1]),  # year
+                int(parts[2]),  # month
+                int(parts[3]),  # day
+                int(parts[4]),  # hour
+                int(parts[5]),  # minute
+                int(parts[6]),  # second
+                int(parts[7])*1000  # microsec
                 )
             for j in range(nmags):
-                line=lines[i*nmags+j+2]
+                line = lines[i*nmags+j+2]
                 if j>0:
-                    parts=line.split()
-                values=[float(part) for part in parts[9:]]
-                data_buffer[i,j]=values
+                    parts = line.split()
+                values = [float(part) for part in parts[9:]]
+                data_buffer[i,j] = values
 
             if self.attrs['iefile'] and i>0:
-                line=ielns[i*nmags+2]
+                line = ielns[i*nmags+2]
                 self[namemag[0]].parse_ieline(i, line, ie_namevar)
                 for j in range(1, nmags):
                     self[namemag[j]].parse_ieline(i, ielns[i*nmags+j+2],
                                                   ie_namevar)
 
         for j in range(nmags):
-            mag=self[namemag[j]]
-            mag['x']=data_buffer[:,j,0]
-            mag['y']=data_buffer[:,j,1]
-            mag['z']=data_buffer[:,j,2]
+            mag = self[namemag[j]]
+            mag['x'] = data_buffer[:,j,0]
+            mag['y'] = data_buffer[:,j,1]
+            mag['z'] = data_buffer[:,j,2]
             for k, key in enumerate(gm_namevar):
-                mag[key]=data_buffer[:,j,k+3]
+                mag[key] = data_buffer[:, j, k+3]
 
         # Sum up IE/GM components if necessary (legacy only):
-        if self.legacy: self._recalc()
+        if self.legacy:
+            self._recalc()
 
         # Get time res.
-        self.attrs['dt']=(self['time'][1]-self['time'][0]).seconds/60.0
+        self.attrs['dt'] = (self['time'][1] - self['time'][0]).seconds / 60.0
 
     def _recalc(self):
         '''
@@ -3349,7 +3372,8 @@ class MagFile(PbData):
         $\Delta B_H = \sqrt{\Delta B_N^2 + \Delta B_E^2}$
         '''
         for k in self:
-            if k=='time' or k=='iter': continue
+            if k == 'time' or k == 'iter':
+                continue
             self[k].calc_h()
 
     def calc_dbdt(self):
@@ -3362,7 +3386,8 @@ class MagFile(PbData):
         $|dB/dt|_H = \sqrt{(\dB_N/dt)^2 + (dB_E/dt)^2}$
         '''
         for k in self:
-            if k=='time' or k=='iter': continue
+            if k == 'time' or k == 'iter':
+                continue
             self[k].calc_dbdt()
 
 class MagGridFile(IdlFile):
@@ -3387,12 +3412,14 @@ class MagGridFile(IdlFile):
         match = re.search('\((\w+)\).*\[(\w+)\].*\[(\w+)\]', head)
         coord, unit1, unit2 = match.groups()
 
-        self['grid'].attrs['coord']=coord
+        self['grid'].attrs['coord'] = coord
 
         # Extract time from file name:
         i_iter, runtime, time = parse_filename_time(self.attrs['file'])
-        if 'time' not in self.attrs: self.attrs['time'] = time
-        if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
+        if 'time' not in self.attrs:
+            self.attrs['time'] = time
+        if 'iter' not in self.attrs:
+            self.attrs['iter'] = i_iter
 
         # Set units based on header parsing:
         for v in self:
@@ -3402,11 +3429,6 @@ class MagGridFile(IdlFile):
                 self[v].attrs['units']=unit1
             else:
                 self[v].attrs['units']=unit2
-
-        # Get cooridnates in both SM and GEO.
-        #if coord == 'GEO':
-        #    self['Lat_geo']=self['Lat']
-        #    self['Lon_geo']=self['Lon']
 
     @calc_wrapper
     def calc_h(self):
@@ -3422,7 +3444,7 @@ class MagGridFile(IdlFile):
             if v[:3] == 'dBn':
                 v_east = v.replace('dBn', 'dBe')
                 self[v.replace('dBn', 'dBh')] = dmarray(
-                    np.sqrt(self[v]**2+self[v_east]**2), {'units':'nT'})
+                    np.sqrt(self[v]**2 + self[v_east]**2), {'units':'nT'})
 
     def add_contour(self, value, nlev=30, target=None, loc=111,
                     title=None, xlabel=None, ylabel=None,
@@ -3447,21 +3469,21 @@ class MagGridFile(IdlFile):
         # Get max/min if none given.
         if zlim is None:
             zlim = [self[value].min(), self[value].max()]
-            if zlim[1]-zlim[0]>np.max(zlim):
+            if zlim[1]-zlim[0] > np.max(zlim):
                 maxval = max(abs(zlim[0]), abs(zlim[1]))
-                zlim=[-maxval, maxval]
+                zlim = [-maxval, maxval]
 
         # No zero-level for log scales:
-        if dolog and zlim[0]<=0:
+        if dolog and zlim[0] <= 0:
             zlim[0] = np.min( [0.0001, zlim[1]/1000.0] )
 
         # Better default color maps:
         if 'cmap' not in kwargs:
             # If zlim spans positive and negative:
             if zlim[1]-zlim[0]>np.max(zlim):
-                kwargs['cmap']='bwr'
+                kwargs['cmap'] = 'bwr'
             else:
-                kwargs['cmap']='Reds'
+                kwargs['cmap'] = 'Reds'
 
         # Set contour command based on filled/unfilled contours:
         if filled:
@@ -3473,16 +3495,16 @@ class MagGridFile(IdlFile):
         if dolog:
             levs = np.power(10, np.linspace(np.log10(zlim[0]),
                                             np.log10(zlim[1]), nlev))
-            z=np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
-            norm=LogNorm()
-            ticks=LogLocator()
-            fmt=LogFormatterMathtext()
+            z = np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
+            norm = LogNorm()
+            ticks = LogLocator()
+            fmt = LogFormatterMathtext()
         else:
             levs = np.linspace(zlim[0], zlim[1], nlev)
-            z=self[value]
-            norm=None
-            ticks=MultipleLocator((zlim[1]-zlim[0])/10) ### fix this
-            fmt=None
+            z = self[value]
+            norm = None
+            ticks = MultipleLocator((zlim[1]-zlim[0])/10) ### fix this
+            fmt = None
 
         # Add Contour to plot:
         cont = contour(self['Lon'], self['Lat'], np.array(np.transpose(z)),
@@ -3490,23 +3512,29 @@ class MagGridFile(IdlFile):
 
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
-            if clabel==None:
+            cbar = plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
+            if clabel == None:
                 varname = mhdname_to_tex(value)
-                units   = mhdname_to_tex(self[value].attrs['units'])
-                clabel="%s (%s)" % (varname, units)
+                units = mhdname_to_tex(self[value].attrs['units'])
+                clabel = "%s (%s)" % (varname, units)
             cbar.set_label(clabel)
         else:
-            cbar=None # Need to return something, even if none.
+            cbar = None  # Need to return something, even if none.
 
         # Set title, labels, axis ranges (use defaults where applicable.)
-        if title: ax.set_title(title)
+        if title:
+            ax.set_title(title)
         coord_sys = self['grid'].attrs['coord']
-        if ylabel==None: ylabel='Latitude ({})'.format(coord_sys)
-        if xlabel==None: xlabel='Longitude ({})'.format(coord_sys)
-        ax.set_ylabel(ylabel); ax.set_xlabel(xlabel)
-        if type(xlim) != None: ax.set_xlim(xlim)
-        if type(ylim) != None: ax.set_ylim(ylim)
+        if ylabel is None:
+            ylabel='Latitude ({})'.format(coord_sys)
+        if xlabel is None:
+            xlabel='Longitude ({})'.format(coord_sys)
+        ax.set_ylabel(ylabel)
+        ax.set_xlabel(xlabel)
+        if type(xlim) is not None:
+            ax.set_xlim(xlim)
+        if type(ylim) is not None:
+            ax.set_ylim(ylim)
 
         # If a brand-new axes was created, use custom ticks:
         if not issubclass(type(target), plt.Axes):
@@ -3516,7 +3544,8 @@ class MagGridFile(IdlFile):
             ax.yaxis.set_major_formatter(fmttr)
 
         # If a brand-new figure was created, use tight-layout.
-        if target==None: fig.tight_layout()
+        if target is None:
+            fig.tight_layout()
 
         return fig, ax, cont, cbar
 
@@ -3561,14 +3590,14 @@ class GeoIndexFile(LogFile):
         head  = (self.attrs['descrip']).replace('=',' ')
         parts = head.split()
         if 'DtOutput=' in head:
-            self.attrs['dt'] = float(parts[parts.index('DtOutput=')+1])
+            self.attrs['dt'] = float(parts[parts.index('DtOutput=') + 1])
         if 'SizeKpWindow' in head:
             self.attrs['window'] = float(parts[parts.index(
                         'SizeKpWindow(Mins)')+1])
         if 'Lat' in head:
-            self.attrs['lat'] = float(parts[parts.index('Lat')+1])
+            self.attrs['lat'] = float(parts[parts.index('Lat') + 1])
         if 'K9' in head:
-            self.attrs['k9']  = float(parts[parts.index('K9') +1])
+            self.attrs['k9']  = float(parts[parts.index('K9') + 1])
 
 
     def fetch_obs_kp(self):
@@ -3588,7 +3617,8 @@ class GeoIndexFile(LogFile):
         if hasattr(self, 'obs_kp'): return True
 
         # Start and end time to collect observations:
-        stime = self['time'][0]; etime = self['time'][-1]
+        stime = self['time'][0]
+        etime = self['time'][-1]
 
         # Attempt to fetch from Kyoto website:
         try:
@@ -3617,7 +3647,8 @@ class GeoIndexFile(LogFile):
         if hasattr(self, 'obs_ae'): return True
 
         # Start and end time to collect observations:
-        stime = self['time'][0]; etime = self['time'][-1]
+        stime = self['time'][0]
+        etime = self['time'][-1]
 
         # Attempt to fetch from Kyoto website:
         try:
@@ -3654,7 +3685,7 @@ class GeoIndexFile(LogFile):
         import matplotlib.pyplot as plt
 
         # Set up plot target.
-        fig, ax = set_target(target, figsize=(10,4), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 4), loc=loc)
 
         # Create label:
         if not(label):
@@ -3719,14 +3750,15 @@ class GeoIndexFile(LogFile):
 
         ax.plot(self['time'], self[val], label=label,**kwargs)
         ax.set_ylabel('{} ($nT$)'.format(val))
-        ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
+        ax.set_xlabel('Time from ' + self['time'][0].isoformat() + ' UTC')
         applySmartTimeTicks(ax, self['time'])
 
-        if target==None: fig.tight_layout()
+        if target is None:
+            fig.tight_layout()
 
         if plot_obs:
             # Check for label in obs. kwargs:
-            if 'label' not in obs_kwargs: obs_kwargs['label'] = 'Obs. '+val
+            if 'label' not in obs_kwargs: obs_kwargs['label'] = 'Obs. ' + val
 
             if self.fetch_obs_ae():
                 ax.plot(self.obs_ae['time'], self.obs_ae[val.lower()],
@@ -3734,7 +3766,6 @@ class GeoIndexFile(LogFile):
                 applySmartTimeTicks(ax, self['time'])
 
         if add_legend: ax.legend(loc='best')
-
 
         return fig, ax
 
@@ -3761,8 +3792,8 @@ class VirtSat(LogFile):
         self.attrs['name']=name
 
         # Create interpolation functions for position.
-        self._interp={}
-        tnum=date2num(self['time'])
+        self._interp = {}
+        tnum = date2num(self['time'])
         for x in 'xyz':
             self._interp[x] = interp1d(tnum, self[x])
 
@@ -3815,10 +3846,10 @@ class VirtSat(LogFile):
             if key[-1] != 'N':
                 continue
             # Next variable if no matching pressure:
-            if not key[:-1]+'p' in self:
+            if not key[:-1] + 'p' in self:
                 continue
-            self[key[:-1]+'t'] = dmarray(
-                conv[units] * self[key[:-1]+'p']/self[key],
+            self[key[:-1] + 't'] = dmarray(
+                conv[units] * self[key[:-1] + 'p']/self[key],
                 attrs = {'units':units})
 
     def calc_bmag(self):
@@ -3848,11 +3879,11 @@ class VirtSat(LogFile):
 
         if 'b' not in self: self.calc_bmag()
 
-        incl = np.arcsin(self['bz']/self['b'])
+        incl = np.arcsin(self['bz'] / self['b'])
 
-        if units=='deg':
-            self['b_incl'] = dmarray(incl*180./np.pi, {'units':'degrees'})
-        elif units=='rad':
+        if units == 'deg':
+            self['b_incl'] = dmarray(incl * 180. / np.pi, {'units':'degrees'})
+        elif units == 'rad':
             self['b_incl'] = dmarray(incl, {'units':'radians'})
         else:
             raise ValueError('Unrecognized units.  Use "deg" or "rad"')
@@ -3875,9 +3906,9 @@ class VirtSat(LogFile):
 
         # Test if sequence.
         if isinstance(time, (list, np.ndarray)):
-            testval=time[0]
+            testval = time[0]
         else:
-            testval=time
+            testval = time
 
         # Test if datetime or not.
         if type(testval) == type(self['time'][0]):
@@ -3907,24 +3938,24 @@ class VirtSat(LogFile):
         xlim = target.get_xlim()
         ylim = target.get_ylim()
 
-        plane=plane.lower()
+        plane = plane.lower()
         loc = self.get_position(time)
         if None in loc: return
-        x=loc['xyz'.index(plane[0])]
-        y=loc['xyz'.index(plane[1])]
+        x = loc['xyz'.index(plane[0])]
+        y = loc['xyz'.index(plane[1])]
 
         # Do not label satellite if outside axes bounds.
-        if (x<min(xlim))or(x>max(xlim))or \
-           (y<min(ylim))or(y>max(ylim)): dolabel=False
+        if (x < min(xlim)) or (x > max(xlim))or \
+           (y < min(ylim)) or (y > max(ylim)): dolabel=False
 
         target.plot(x, y, 'o', **kwargs)
         if dolabel:
-            xoff = 0.03*(xlim[1]-xlim[0])
+            xoff = 0.03 * (xlim[1] - xlim[0])
             if dobox:
-                target.text(x+xoff,y,self.attrs['name'],
-                            bbox={'fc':'w','ec':'k'},size=size, va='center')
+                target.text(x + xoff, y, self.attrs['name'],
+                            bbox={'fc':'w', 'ec':'k'}, size=size, va='center')
             else:
-                target.text(x+xoff,y,self.attrs['name'],
+                target.text(x + xoff, y, self.attrs['name'],
                             size=size, va='center', color=c)
 
 
@@ -3983,8 +4014,9 @@ class VirtSat(LogFile):
         plane=plane.upper()
 
         # Set time range of plot.
-        if not trange: trange = [self['time'].min(), self['time'].max()]
-        tloc = (self['time']>=trange[0])&(self['time']<=trange[-1])
+        if not trange:
+            trange = [self['time'].min(), self['time'].max()]
+        tloc = (self['time'] >= trange[0]) & (self['time'] <= trange[-1])
 
         # Extract orbit X, Y, or Z.
         plane=plane.lower()
@@ -3992,7 +4024,7 @@ class VirtSat(LogFile):
             x = self[plane[0]][tloc]
         else:
             raise ValueError('Bad dimension specifier: ' + plane[0])
-        if (plane[1] in ['x','y','z']) and (plane[0]!=plane[1]):
+        if (plane[1] in ['x', 'y', 'z']) and (plane[0] != plane[1]):
             y = self[plane[1]][tloc]
         else:
             raise ValueError('Bad dimension specifier: ' + plane[1])
@@ -4009,8 +4041,8 @@ class VirtSat(LogFile):
         # Finish customizing axis.
         if adjust_axes:
             ax.axis('equal')
-            ax.set_xlabel('GSM %s'%(plane[0].upper()))
-            ax.set_ylabel('GSM %s'%(plane[1].upper()))
+            ax.set_xlabel('GSM %s' % (plane[0].upper()))
+            ax.set_ylabel('GSM %s' % (plane[1].upper()))
             if title:
                 ax.set_title(title)
             if add_grid:
