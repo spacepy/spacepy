@@ -105,7 +105,7 @@ history. The oldest version supported according to this policy is in
      - 2.8.1 (2019/11/3)
      - 2.8.0 (2019/2/5)
      - **2.6.0** (2016/11/8)
-     - tested from 1.4 (2008/2/27)
+     - 2.1.0 (2021/3/28)
    * - `h5py <https://github.com/h5py/h5py/releases>`_
      - 3.7.0 (2022/5/24)
      - 2.7.1 (2017/9/1)

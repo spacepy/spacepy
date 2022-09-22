@@ -36,7 +36,7 @@ Installation via ``pip`` will automatically install most Python
 dependencies (but not the :ref:`NASA CDF library <linux_CDF>`). They
 can also be installed from conda::
 
-  conda install numpy scipy matplotlib h5py
+  conda install numpy python-dateutil scipy matplotlib h5py
 
 .. _linux_dep_apt:
 
@@ -45,7 +45,7 @@ Dependencies via system packages
 
 SpacePy usually works with the system Python on Linux. To install dependencies via the package manager on Debian or Ubuntu::
 
-  sudo apt-get install python3-dev python3-h5py python3-matplotlib python3-numpy python3-scipy
+  sudo apt-get install python3-dev python3-h5py python3-matplotlib python3-numpy python3-dateutil python3-scipy
 
 For other distributions, check :doc:`dependencies` and install by hand
 or via your package manager. 
@@ -136,7 +136,7 @@ SpacePy works on Raspberry Pi, using Raspberry Pi OS in 32-bit or
      pip, as prebuilt wheels are not generally available and compiling
      dependencies on the Pi can take a very long time::
 
-      sudo apt-get install gfortran python3-numpy python3-scipy python3-h5py python3-matplotlib
+      sudo apt-get install gfortran python3-numpy python3-dateutil python3-scipy python3-h5py python3-matplotlib
 
    * Similarly, if installing SpacePy via pip, use the
      ``--no-build-isolation`` flag to use the system numpy.

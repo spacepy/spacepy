@@ -15,7 +15,9 @@ here. :doc:`dep_versions` describes future support.
 
 Hard Dependencies
 =================
-Without these packages installed, SpacePy will not function.
+Without these packages installed, SpacePy will not
+function. Installing via ``pip`` will normally install Python-based
+dependencies automatically.
 
 Python 3.6+
 -----------
@@ -40,9 +42,7 @@ On Python 3.9, numpy 1.18 or later is required.
 
 dateutil
 --------
-If you choose not to install :ref:`matplotlib <dependencies_mpl>`,
-`dateutil <http://labix.org/python-dateutil>`_ 1.4 or later is required.
-(Installing matplotlib will fulfill this dependency.)
+`dateutil <https://dateutil.readthedocs.io/>`_ 2.1 or later is required.
 
 C compiler
 ----------
