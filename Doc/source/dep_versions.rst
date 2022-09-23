@@ -63,12 +63,11 @@ history. The oldest version supported according to this policy is in
 **bold**.
 
 .. list-table:: SpacePy dependency versions (2022/9/20)
-   :widths: 10 10 10 10 10 10 10 10
+   :widths: 10 10 10 10 10 10 10
    :header-rows: 1
 
    * - Dependency
      - Current Release
-     - Ubuntu 18.04LTS (reference only)
      - Ubuntu 20.04LTS
      - Ubuntu 22.04LTS
      - NEP 29 (42/24 mo.)
@@ -76,7 +75,6 @@ history. The oldest version supported according to this policy is in
      - SpacePy current minimum
    * - `CPython <https://www.python.org/downloads/>`_
      - 3.10.7 (2022/9/6)
-     - 3.6.5 (2018/2/5)
      - 3.8.2 (2020/2/24)
      - 3.10.4 (2022/3/24)
      - **3.8.0** (2019/10/14)
@@ -84,7 +82,6 @@ history. The oldest version supported according to this policy is in
      - 3.6.0 (2016/12/23)
    * - `AstroPy <https://docs.astropy.org/en/stable/changelog.html#changelog>`_
      - 5.1 (2022/5/24)
-     - 2.0.4 (2018/2/6)
      - **4.0** (2019/12/16)
      - 5.0.2 (2022/3/10)
      - 4.1 (2020/10/21)
@@ -94,13 +91,11 @@ history. The oldest version supported according to this policy is in
      - 3.8.1 (2021/10/27)
      - N/A
      - N/A
-     - N/A
      - 3.8.0 (2019/10/27)
      - **3.6.0** (2015/2/5)
      - 3.5.0 (2013/2/25)
    * - `dateutil <https://github.com/dateutil/dateutil/releases>`_
      - 2.8.2 (2021/7/8)
-     - 2.6.1 (2017/7/10)
      - 2.7.3 (2018/5/9)
      - 2.8.1 (2019/11/3)
      - 2.8.0 (2019/2/5)
@@ -108,7 +103,6 @@ history. The oldest version supported according to this policy is in
      - 2.1.0 (2021/3/28)
    * - `h5py <https://github.com/h5py/h5py/releases>`_
      - 3.7.0 (2022/5/24)
-     - 2.7.1 (2017/9/1)
      - **2.10.0** (2019/9/6)
      - 3.6.0 (2021/11/16)
      - 3.0.0 (2020/10/30)
@@ -116,7 +110,6 @@ history. The oldest version supported according to this policy is in
      - 2.10.0 (2019/9/6)
    * - `matplotlib <https://github.com/matplotlib/matplotlib/releases>`_
      - 3.6.0 (2022/9/16)
-     - 2.1.1 (2017/12/9)
      - **3.1.2** (2019/12/4)
      - 3.5.1 (2021/12/11)
      - 3.4.0 (2021/3/26)
@@ -124,7 +117,6 @@ history. The oldest version supported according to this policy is in
      - 3.1.0 (2019/5/18)
    * - `numpy <https://github.com/numpy/numpy/releases>`_
      - 1.23.3 (2022/9/9)
-     - 1.13.3 (2017/7/6)
      - **1.16.5** (2019/8/27)
      - 1.21.5 (2021/12/19)
      - 1.20.0 (2021/1/30)
@@ -132,7 +124,6 @@ history. The oldest version supported according to this policy is in
      - 1.15.1 (2018/8/21)
    * - `scipy <https://github.com/scipy/scipy/releases>`_
      - 1.9.1 (2022/8/26)
-     - 0.19.1 (2017/6/23)
      - **1.3.3** (2019/11/23)
      - 1.8.0 (2022/2/5)
      - 1.6.0 (2020/12/31)
@@ -141,7 +132,6 @@ history. The oldest version supported according to this policy is in
    * - `sphinx <https://www.sphinx-doc.org/en/master/changes.html>`_
        (only needed for developers to build documentation)
      - 5.1.1 (2022/7/26)
-     - 1.6.7 (2018/2/4)
      - **1.8.5** (2019/3/10)
      - 4.3.2 (2021/12/19)
      - 3.3.0 (2020/11/2)
