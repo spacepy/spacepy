@@ -17,7 +17,7 @@ source ${HOME}/cdf/bin/definitions.B
 # coupled with what's the earliest and latest version of each dep
 # which works with that Python.
 TESTS=(
-       "3.6|numpy~=1.15.1|python-dateutil~=2.1.0 scipy>=0.19.0,<0.20.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1"
+       "3.6|numpy~=1.15.1|python-dateutil~=2.1.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1"
        "3.6|numpy>=1.19.0,<1.20.0|python-dateutil scipy matplotlib h5py astropy"
        "3.7|numpy>=1.15.1,<1.16.0|python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
        "3.7|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy"

@@ -60,8 +60,8 @@ methods such as pip.
 
 .. _dependencies_scipy:
 
-SciPy 0.19+
------------
+SciPy 1.0+
+----------
 `SciPy <http://www.scipy.org/>`_ provides several useful scientific
 and numerical functions build on top of NumPy.  It is highly
 recommended. The following modules may have limited functionality
