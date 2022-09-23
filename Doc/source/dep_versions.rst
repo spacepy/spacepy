@@ -129,7 +129,7 @@ history. The oldest version supported according to this policy is in
      - 1.21.5 (2021/12/19)
      - 1.20.0 (2021/1/30)
      - 1.21.0 (2021/6/22)
-     - 1.12.0 (2017/1/15)
+     - 1.15.1 (2018/8/21)
    * - `scipy <https://github.com/scipy/scipy/releases>`_
      - 1.9.1 (2022/8/26)
      - 0.19.1 (2017/6/23)
