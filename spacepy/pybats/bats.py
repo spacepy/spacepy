@@ -1715,7 +1715,8 @@ class Bats2d(IdlFile):
         if type(target) == type(ax):
             # Is this a new, empty axes object? Check for any relevant artists:
             use_ax_lims = bool(ax.texts) or bool(ax.containers) \
-                or bool(ax.lines) or bool(ax.patches) or bool(ax.images)
+                or bool(ax.lines) or bool(ax.patches) or bool(ax.images) \
+                or bool(ax.artists)
 
         # Set range over which to place lines.  Use keyword values if provided
         # OR subset of axes ranges that fit in domain (if axes are reasonable)
