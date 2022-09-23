@@ -26,11 +26,11 @@ Python 3.6+
 
 Required to install SpacePy.
 
-NumPy 1.12+
------------
+NumPy 1.15.1+
+-------------
 `NumPy <http://numpy.scipy.org/>`_ provides the
 high-performance array data structure used throughout SpacePy. Version
-1.12 or later is required.
+1.15.1 or later is required.
 
 Required to install SpacePy. f2py is part of NumPy, but is sometimes
 packaged separately; it is required (at installation time) if

@@ -913,7 +913,7 @@ setup_kwargs = {
     'url': 'https://github.com/spacepy/spacepy',
 #download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
 #    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
-    'requires': ['numpy (>=1.12, !=1.15.0)', 'scipy (>=0.19)', 'matplotlib (>=3.1)', 'python_dateutil (>=2.1)',
+    'requires': ['numpy (>=1.15.1)', 'scipy (>=0.19)', 'matplotlib (>=3.1)', 'python_dateutil (>=2.1)',
                  'h5py (>=2.10)', 'python (>=3.6)'],
     'packages': packages,
     'package_data': {'spacepy': package_data},
@@ -953,7 +953,7 @@ if not egginfo_only:
 if use_setuptools:
 #Sadly the format here is DIFFERENT than the distutils format
     setup_kwargs['install_requires'] = [
-        'numpy>=1.10,!=1.15.0',
+        'numpy>=1.15.1',
         'scipy>=0.11',
         'matplotlib>=3.1',
         'h5py>=2.10',
