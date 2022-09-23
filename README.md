@@ -43,7 +43,7 @@ SpacePy supports Python 3.6 and later.
 SpacePy has a number of well-maintained dependencies, most of which are automatically installed by ```pip```. These include:
  - numpy (>=1.15.1)
  - dateutil (>=2.1)
- - scipy (>=0.19)
+ - scipy (>=1.0)
  - matplotlib (>=3.1)
  - h5py (>=2.10)
 

@@ -137,7 +137,7 @@ history. The oldest version supported according to this policy is in
      - 1.8.0 (2022/2/5)
      - 1.6.0 (2020/12/31)
      - 1.7.0 (2021/6/20)
-     - 0.19.0 (2017/3/9)
+     - 1.0.0 (2017/10/25)
    * - `sphinx <https://www.sphinx-doc.org/en/master/changes.html>`_
        (only needed for developers to build documentation)
      - 5.1.1 (2022/7/26)

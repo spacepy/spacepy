@@ -35,7 +35,7 @@ SpacePy 0.5.0. Minimum versions are:
   * h5py 2.10
   * matplotlib 3.1
   * numpy 1.15.1
-  * scipy 0.19
+  * scipy 1.0
 
 0.4 Series
 ==========
