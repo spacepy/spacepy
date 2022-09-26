@@ -103,6 +103,7 @@ class PlasmaFile(PbData):
         '''
 
         import datetime as dt
+        import gzip
         from spacepy.datamodel import dmarray
 
         super(PlasmaFile, self).__init__(*args, **kwargs)  # Init as PbData.
@@ -123,8 +124,13 @@ class PlasmaFile(PbData):
                  ('totaln', '#'), ('vol', 'km^3')]
         units = dict(units)
 
+        # Open file; unzip if necessary.
+        if self.attrs['file'][-3:] == '.gz':
+            infile = gzip.open(self.attrs['file'], 'rt')
+        else:
+            infile = open(self.attrs['file'], 'r')
+
         # Read the header of the file.
-        infile = open(filename, 'r')
         parts = infile.readline().split()
         nLat, nLon = int(parts[-2]), int(parts[-1])
         self.attrs['time'] = dt.datetime.strptime(parts[0],
