@@ -29,6 +29,7 @@ import warnings
 import spacepy_testing
 import spacepy.datamodel as dm
 import spacepy.pycdf
+import spacepy.pycdf.const
 import spacepy.time as spt
 import numpy as np
 
@@ -767,6 +768,8 @@ class converterTests(unittest.TestCase):
         np.testing.assert_array_equal(dm._dateToISO(d1), ['2012-12-21T00:00:00', '2012-12-22T00:00:00'])
 
 class converterTestsCDF(unittest.TestCase):
+    longMessage = True
+
     def setUp(self):
         super(converterTestsCDF, self).setUp()
         self.SDobj = dm.SpaceData(attrs={'global': 'test'})
@@ -823,6 +826,36 @@ class converterTestsCDF(unittest.TestCase):
         dm.toCDF(self.testfile, self.SDobj, backward=True)
         with spacepy.pycdf.CDF(self.testfile) as f:
             self.assertTrue(f.backward)
+
+    def test_toCDF_timetypes(self):
+        """Convert time to CDF"""
+        # Can't use 64-bit int if backward compat
+        self.SDobj['var'] = np.require(self.SDobj['var'], dtype=np.int32)
+        self.SDobj['Epoch'] = dm.dmarray([
+            datetime.datetime(2010, 1, 1), datetime.datetime(2010, 1, 2)])
+        for backward, tt2000, expected in [
+                (None, None, spacepy.pycdf.const.CDF_TIME_TT2000),
+                (None, True, spacepy.pycdf.const.CDF_TIME_TT2000),
+                (None, False, spacepy.pycdf.const.CDF_EPOCH),
+                (True, None, spacepy.pycdf.const.CDF_EPOCH),
+                (False, None, spacepy.pycdf.const.CDF_TIME_TT2000),
+                # True, True is an exception
+                (True, False, spacepy.pycdf.const.CDF_EPOCH),
+                (False, True, spacepy.pycdf.const.CDF_TIME_TT2000),
+                (False, False, spacepy.pycdf.const.CDF_EPOCH),
+                ]:
+            dm.toCDF(self.testfile, self.SDobj,
+                     backward=backward, TT2000=tt2000)
+            with spacepy.pycdf.CDF(self.testfile) as f:
+                self.assertEqual(
+                    expected.value,
+                    f['Epoch'].type(),
+                    msg='Backward: {} TT2000: {}'.format(backward, tt2000))
+            os.remove(self.testfile)
+        with self.assertRaises(ValueError) as cm:
+            dm.toCDF(self.testfile, self.SDobj, backward=True, TT2000=True)
+        self.assertEqual('Cannot use TT2000 in backward-compatible CDF.',
+                         str(cm.exception))
 
 
 class JSONTests(unittest.TestCase):
