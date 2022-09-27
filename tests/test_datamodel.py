@@ -28,6 +28,7 @@ import warnings
 
 import spacepy_testing
 import spacepy.datamodel as dm
+import spacepy.pycdf
 import spacepy.time as spt
 import numpy as np
 
@@ -802,6 +803,27 @@ class converterTestsCDF(unittest.TestCase):
         a.toCDF(self.testfile)
         newobj = dm.fromCDF(self.testfile)
         np.testing.assert_array_equal([1, 2, 3], newobj['dat'])
+
+    def test_toCDF_unset_backward(self):
+        """Convert to CDF, default not backward compatible"""
+        dm.toCDF(self.testfile, self.SDobj)
+        with spacepy.pycdf.CDF(self.testfile) as f:
+            self.assertFalse(f.backward)
+
+    def test_toCDF_not_backward(self):
+        """Convert to CDF, force not backward compatible"""
+        dm.toCDF(self.testfile, self.SDobj, backward=False)
+        with spacepy.pycdf.CDF(self.testfile) as f:
+            self.assertFalse(f.backward)
+
+    def test_toCDF_backward(self):
+        """Convert to CDF, force backward compatible"""
+        # Can't use 64-bit int if backward compat
+        self.SDobj['var'] = np.require(self.SDobj['var'], dtype=np.int32)
+        dm.toCDF(self.testfile, self.SDobj, backward=True)
+        with spacepy.pycdf.CDF(self.testfile) as f:
+            self.assertTrue(f.backward)
+
 
 class JSONTests(unittest.TestCase):
     def setUp(self):
