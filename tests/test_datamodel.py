@@ -799,7 +799,7 @@ class converterTestsCDF(unittest.TestCase):
     def test_toCDF_method(self):
         """Convert to CDF, using the method, catching #404"""
         a = dm.SpaceData({'dat': dm.dmarray([1, 2, 3])})
-        a.toCDF(self.testfile, mode='a')
+        a.toCDF(self.testfile)
         newobj = dm.fromCDF(self.testfile)
         np.testing.assert_array_equal([1, 2, 3], newobj['dat'])
 

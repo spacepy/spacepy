@@ -820,7 +820,8 @@ def fromCDF(fname, **kwargs):
     with pycdf.CDF(fname) as cdfdata:
         return cdfdata.copy()
 
-def toCDF(fname, SDobject, **kwargs):
+def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
+          autoNRV=False, backward=False, TT2000=False, verbose=False):
     '''
     Create a CDF file from a SpacePy datamodel representation
 
@@ -858,22 +859,16 @@ def toCDF(fname, SDobject, **kwargs):
     Returns
     -------
     None
-    '''
-    defaults = {'skeleton': '',
-                'flatten': False,
-                'overwrite': False,
-                'compress': False,
-                'autoNRV': False,
-                'backward': False,
-                'TT2000': False,
-                'verbose': False}
-    for key in kwargs:
-        if key in defaults:
-            defaults[key] = kwargs[key]
 
-    if defaults['flatten']:
+    Notes
+    -----
+
+    .. versionchanged:: 0.5.0
+       Invalid keyword arguments now raise :exc:`TypeError` rather than being ignored.
+    '''
+    if flatten:
         SDobject = SDobject.flatten()
-    if defaults['overwrite']:
+    if overwrite:
         raise NotImplementedError('Overwriting CDFs is not currently enabled - please remove the file manually')
 
     try:
@@ -881,7 +876,7 @@ def toCDF(fname, SDobject, **kwargs):
     except ImportError:
         raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
     pycdf.lib.set_backward(False)
-    with pycdf.CDF(fname, defaults['skeleton']) as outdata:
+    with pycdf.CDF(fname, skeleton) as outdata:
         if hasattr(SDobject, 'attrs'):
             for akey in SDobject.attrs:
                 outdata.attrs[akey] = dmcopy(SDobject.attrs[akey])
@@ -890,7 +885,7 @@ def toCDF(fname, SDobject, **kwargs):
         for key in SDobject:
             if isinstance(SDobject[key], dict):
                 raise TypeError('This data structure appears to be nested, please try spacepy.datamodel.flatten')
-            if not defaults['skeleton']:
+            if not skeleton:
                 if not SDobject[key].shape:
                     shape_tup=-1
                 else:
@@ -902,12 +897,12 @@ def toCDF(fname, SDobject, **kwargs):
                 if shape_tup[0] != NRVtest: #naive check for 'should-be' NRV
                     try:
                         foo = outdata.new(key, SDobject[key][...], recVary=False)
-                        if defaults['verbose']: print('{0} is being made NRV'.format(key))
+                        if verbose: print('{0} is being made NRV'.format(key))
                         outdata[key].attrs = dmcopy(SDobject[key].attrs)
                     except ValueError:
                         foo = outdata.new(key, SDobject[key].tolist, recVary=False)
                         outdata[key].attrs = dmcopy(SDobject[key].attrs)
-                if defaults['TT2000'] and 'Epoch' in key:
+                if TT2000 and 'Epoch' in key:
                     foo = outdata.new(key, SDobject[key][...], type=pycdf.const.CDF_TIME_TT2000)
                 else:
                     try:
