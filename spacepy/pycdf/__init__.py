@@ -243,6 +243,7 @@ class Library(object):
         'CDF_TT2000_to_UTC_EPOCH': [ctypes.c_double, ctypes.c_longlong],
         'CDF_TT2000_to_UTC_EPOCH16': [ctypes.c_double, ctypes.c_longlong,
                                       ctypes.POINTER(ctypes.c_double * 2)],
+        'CDFgetFileBackward': [ctypes.c_int],
         'CDFlib': [ctypes.c_long, ctypes.c_long],
         'CDFsetFileBackward': [None, ctypes.c_long],
         'computeEPOCH': [ctypes.c_double] + [ctypes.c_long] * 7,
@@ -630,11 +631,30 @@ class Library(object):
 
         Parameters
         ==========
-        backward : boolean
-            Set backward compatible mode if True; clear it if False.
+        backward : bool, optional
+            Set backward compatible mode if True; clear it if False. If not
+            specified, will not change current setting.
+
+            .. versionchanged:: 0.5.0
+               Added ability to not change setting (previously defaulted
+               to setting backward compatible).
+
+        Returns
+        =======
+        bool
+            Previous value of backward-compatible mode.
+
+            .. versionadded:: 0.5.0
+
+        Raises
+        ======
+        ValueError : if backward=False and underlying CDF library is V2
         """
-        self._library.CDFsetFileBackward(const.BACKWARDFILEon if backward
-                                         else const.BACKWARDFILEoff)
+        former = bool(self._library.CDFgetFileBackward())
+        if backward is not None:
+            self._library.CDFsetFileBackward(
+                const.BACKWARDFILEon if backward else const.BACKWARDFILEoff)
+        return former
 
     def epoch_to_datetime(self, epoch):
         """

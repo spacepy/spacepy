@@ -42,6 +42,9 @@ New features
 now support reading from gzipped input files; filenames ending with
 ``.gz`` are assumed to be gzipped.
 
+:mod:`.pycdf` :meth:`~.pycdf.Library.set_backward` now returns the prior
+state of backward compatibility mode.
+
 Other changes
 *************
 :func:`~.datamodel.toCDF` now only accepts valid keyword arguments.
