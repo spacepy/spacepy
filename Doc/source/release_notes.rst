@@ -47,6 +47,11 @@ state of backward compatibility mode.
 
 :func:`~.datamodel.toCDF` now supports writing backward-compatible CDFs.
 
+Major bugfixes
+**************
+:func:`~.datamodel.toCDF` handling of time types other than TT2000 has
+been fixed.
+
 Other changes
 *************
 :func:`~.datamodel.toCDF` now only accepts valid keyword arguments.

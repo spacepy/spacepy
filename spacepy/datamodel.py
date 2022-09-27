@@ -821,7 +821,7 @@ def fromCDF(fname, **kwargs):
         return cdfdata.copy()
 
 def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
-          autoNRV=False, backward=None, TT2000=False, verbose=False):
+          autoNRV=False, backward=None, TT2000=None, verbose=False):
     '''
     Create a CDF file from a SpacePy datamodel representation
 
@@ -857,7 +857,15 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
             previous versions always wrote v3+ CDFs (even if ``False``).
 
     TT2000 : bool (optional)
-        write variables beginning with 'Epoch' as datatype CDF_TT2000 (default is automatic selection of EPOCH or EPOCH16)
+        Specify type for variables with names beginning 'Epoch'. Default
+        CDF_EPOCH for backward-compatible CDF (``backward`` True) and
+        CDF_TT20000 otherwise (``backward`` False or unspecified).
+
+        .. versionchanged:: 0.5.0
+           Current handling introduced.
+
+        .. versionchanged:: 0.3.0
+           Always write TT2000 variables (due to change in :mod:`~.pycdf`).
 
     verbose : bool (optional)
         verbosity flag
@@ -876,7 +884,8 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
         SDobject = SDobject.flatten()
     if overwrite:
         raise NotImplementedError('Overwriting CDFs is not currently enabled - please remove the file manually')
-
+    if TT2000 and backward:
+        raise ValueError('Cannot use TT2000 in backward-compatible CDF.')
     try:
         from spacepy import pycdf
     except ImportError:
@@ -885,6 +894,7 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
         former_backward = None
     else:
         former_backward = pycdf.lib.set_backward(backward)
+    force_epoch = not backward and TT2000 == False  # backward defaults falsey
     with pycdf.CDF(fname, skeleton) as outdata:
         if hasattr(SDobject, 'attrs'):
             for akey in SDobject.attrs:
@@ -911,8 +921,8 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
                     except ValueError:
                         foo = outdata.new(key, SDobject[key].tolist, recVary=False)
                         outdata[key].attrs = dmcopy(SDobject[key].attrs)
-                if TT2000 and 'Epoch' in key:
-                    foo = outdata.new(key, SDobject[key][...], type=pycdf.const.CDF_TIME_TT2000)
+                if force_epoch and 'Epoch' in key:
+                    foo = outdata.new(key, SDobject[key][...], type=pycdf.const.CDF_EPOCH)
                 else:
                     try:
                         outdata[key] = SDobject[key]
