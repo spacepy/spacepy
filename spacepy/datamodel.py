@@ -821,7 +821,7 @@ def fromCDF(fname, **kwargs):
         return cdfdata.copy()
 
 def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
-          autoNRV=False, backward=False, TT2000=False, verbose=False):
+          autoNRV=False, backward=None, TT2000=False, verbose=False):
     '''
     Create a CDF file from a SpacePy datamodel representation
 
@@ -848,7 +848,13 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
         attempt automatic identification of non-record varying entries in CDF
 
     backward : bool (optional)
-        create CDF in backward-compatible format (default is v3+ compatibility only)
+        ``False`` to create CDF in backward-compatible format; ``True``
+         to force v3+ compatibility only. (Default: do not change current
+         state, see :meth:`~.pycdf.Library.set_backward`).
+
+         .. versionchanged:: 0.5.0
+            Now supports specifying backward compatible or no change;
+            previous versions always wrote v3+ CDFs (even if ``False``).
 
     TT2000 : bool (optional)
         write variables beginning with 'Epoch' as datatype CDF_TT2000 (default is automatic selection of EPOCH or EPOCH16)
@@ -875,7 +881,10 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
         from spacepy import pycdf
     except ImportError:
         raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
-    pycdf.lib.set_backward(False)
+    if backward is None:
+        former_backward = None
+    else:
+        former_backward = pycdf.lib.set_backward(backward)
     with pycdf.CDF(fname, skeleton) as outdata:
         if hasattr(SDobject, 'attrs'):
             for akey in SDobject.attrs:
@@ -931,7 +940,8 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
                         outdata[key][...] = dmarray([SDobject[key].tolist()], attrs=dmcopy(SDobject[key].attrs))
                     except KeyError:
                         pass
-    return None
+    if former_backward is not None:
+        pycdf.lib.set_backward(former_backward)
 
 
 def fromHDF5(fname, **kwargs):
