@@ -692,7 +692,8 @@ class MakeCDF(unittest.TestCase):
 
     def testCreateCDFBackward(self):
         """Try a backward-compatible CDF"""
-        cdf.lib.set_backward(True)
+        former = cdf.lib.set_backward(True)
+        self.assertFalse(former)
         newcdf = cdf.CDF(self.testfspec, '')
         (ver, rel, inc) = newcdf.version()
         backward = newcdf.backward
@@ -700,8 +701,10 @@ class MakeCDF(unittest.TestCase):
         os.remove(self.testfspec)
         self.assertEqual(2, ver)
         self.assertTrue(backward)
+        self.assertTrue(cdf.lib.set_backward())
 
-        cdf.lib.set_backward(False)
+        former = cdf.lib.set_backward(False)
+        self.assertTrue(former)
         newcdf = cdf.CDF(self.testfspec, '')
         (ver, rel, inc) = newcdf.version()
         backward = newcdf.backward
