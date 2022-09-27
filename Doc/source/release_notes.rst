@@ -42,6 +42,10 @@ New features
 now support reading from gzipped input files; filenames ending with
 ``.gz`` are assumed to be gzipped.
 
+Other changes
+*************
+:func:`~.datamodel.toCDF` now only accepts valid keyword arguments.
+
 0.4 Series
 ==========
 0.4.1 (2022-09-15)
