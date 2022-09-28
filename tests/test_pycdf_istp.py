@@ -620,9 +620,9 @@ class VariablesTestsNew(ISTPTestsBase):
 
     def setUp(self):
         """Disable backward-compat before making test CDF"""
-        spacepy.pycdf.lib.set_backward(False)
+        oldback = spacepy.pycdf.lib.set_backward(False)
         super(VariablesTestsNew, self).setUp()
-        spacepy.pycdf.lib.set_backward(True)
+        spacepy.pycdf.lib.set_backward(oldback)
 
     def testFillvalEpoch16(self):
         """Test for fillval being okay with epoch16"""
@@ -828,11 +828,11 @@ class VarBundleChecksBase(unittest.TestCase):
     def setUp(self):
         """Setup: make an empty, open, writeable CDF"""
         self.tempdir = tempfile.mkdtemp()
-        spacepy.pycdf.lib.set_backward(False)
+        oldback = spacepy.pycdf.lib.set_backward(False)
         self.outcdf = spacepy.pycdf.CDF(os.path.join(
             self.tempdir, 'source_descriptor_datatype_19990101_v00.cdf'),
                                      create=True)
-        spacepy.pycdf.lib.set_backward(True)
+        spacepy.pycdf.lib.set_backward(oldback)
         self.incdf = spacepy.pycdf.CDF(os.path.join(
             spacepy_testing.testsdir, self.testfile))
         # Same in this instance, some tests may distinguish
