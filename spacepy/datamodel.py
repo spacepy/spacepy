@@ -1324,7 +1324,7 @@ def readJSONMetadata(fname, **kwargs):
     fname : str
         Filename to read metadata from
 
-        .. versionchanged:: 0.2.2
+        .. versionchanged:: 0.5.0
                 Filename can now be a .gz to indicate the file is gzipped
 
     Other Parameters
@@ -1392,7 +1392,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
     fname : str or list
         Filename(s) to read data from
 
-            .. versionchanged:: 0.2.2
+            .. versionchanged:: 0.5.0
                 Filename can now be a .gz to indicate the file is gzipped
 
     Other Parameters

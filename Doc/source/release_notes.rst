@@ -12,7 +12,6 @@ This document presents user-visible changes in each release of SpacePy.
 ==========
 0.5.0 (2022-xx-xx)
 ------------------
-
 This release marks the end of all support for Python 2. SpacePy now
 requires Python 3.6 or later. Minimum supported versions for other
 dependencies were also increased; see :ref:`release_0_5_0_deps` for details.
@@ -36,6 +35,12 @@ SpacePy 0.5.0. Minimum versions are:
   * matplotlib 3.1
   * numpy 1.15.1
   * scipy 1.0
+
+New features
+************
+`~.datamodel.readJSONheadedASCII` and `~.datamodel.readJSONMetadata`
+now support reading from gzipped input files; filenames ending with
+``.gz`` are assumed to be gzipped.
 
 0.4 Series
 ==========
