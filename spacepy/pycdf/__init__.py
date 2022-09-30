@@ -155,7 +155,6 @@ class Library(object):
     .. automethod:: epoch16_to_tt2000
     .. automethod:: get_minmax
     .. automethod:: set_backward
-
     .. attribute:: supports_int8
 
        True if this library supports INT8 and TIME_TT2000 types; else False.
@@ -163,60 +162,16 @@ class Library(object):
     .. automethod:: tt2000_to_datetime
     .. automethod:: tt2000_to_epoch
     .. automethod:: tt2000_to_epoch16
-
-    .. method:: v_datetime_to_epoch(datetime)
-    
-        A vectorized version of :meth:`datetime_to_epoch` which takes a
-        numpy array of datetimes as input and returns an array of epochs.
-
-    .. method:: v_datetime_to_epoch16(datetime)
-    
-        A vectorized version of :meth:`datetime_to_epoch16` which takes a
-        numpy array of datetimes as input and returns an array of epoch16.
-
-    .. method:: v_datetime_to_tt2000(datetime)
-    
-        A vectorized version of :meth:`datetime_to_tt2000` which takes a
-        numpy array of datetimes as input and returns an array of TT2000.
-
-    .. method:: v_epoch_to_datetime(epoch)
-    
-        A vectorized version of :meth:`epoch_to_datetime` which takes a
-        numpy array of epochs as input and returns an array of datetimes.
-
-    .. method:: v_epoch_to_tt2000(epoch)
-    
-        A vectorized version of :meth:`epoch_to_tt2000` which takes a
-        numpy array of epochs as input and returns an array of tt2000s.
-
-    .. method:: v_epoch16_to_datetime(epoch0, epoch1)
-    
-        A vectorized version of :meth:`epoch16_to_datetime` which takes
-        a numpy array of epoch16 as input and returns an array of datetimes.
-        An epoch16 is a pair of doubles; the input array's last dimension
-        must be two (and the returned array will have one fewer dimension).
-
-    .. method:: v_epoch16_to_tt2000(epoch16)
-    
-        A vectorized version of :meth:`epoch16_to_tt2000` which takes
-        a numpy array of epoch16 as input and returns an array of tt2000s.
-        An epoch16 is a pair of doubles; the input array's last dimension
-        must be two (and the returned array will have one fewer dimension).
-
-    .. method:: v_tt2000_to_datetime(tt2000)
-    
-        A vectorized version of :meth:`tt2000_to_datetime` which takes
-        a numpy array of tt2000 as input and returns an array of datetimes.
-
-    .. method:: v_tt2000_to_epoch(tt2000)
-    
-        A vectorized version of :meth:`tt2000_to_epoch` which takes
-        a numpy array of tt2000 as input and returns an array of epochs.
-
-    .. method:: v_tt2000_to_epoch16(tt2000)
-    
-        A vectorized version of :meth:`tt2000_to_epoch16` which takes
-        a numpy array of tt2000 as input and returns an array of epoch16.
+    .. automethod:: v_datetime_to_epoch
+    .. automethod:: v_datetime_to_epoch16
+    .. automethod:: v_datetime_to_tt2000
+    .. automethod:: v_epoch_to_datetime
+    .. automethod:: v_epoch_to_tt2000
+    .. automethod:: v_epoch16_to_datetime
+    .. automethod:: v_epoch16_to_tt2000
+    .. automethod:: v_tt2000_to_datetime
+    .. automethod:: v_tt2000_to_epoch
+    .. automethod:: v_tt2000_to_epoch16
 
     .. attribute:: libpath
 
@@ -230,6 +185,13 @@ class Library(object):
 
        Version of the CDF library, (version, release, increment, subincrement)
     """
+    supports_int8 = True
+    """True if this library supports INT8 and TIME_TT2000 types; else False."""
+    libpath = ''
+    """The path where pycdf found the CDF C library, potentially useful in
+       debugging."""
+    version = (0, 0, 0, '')
+    """Version of the CDF library"""
 
     _arm32 = platform.uname()[4].startswith('arm') and sys.maxsize <= 2 ** 32
     """Excuting on 32-bit ARM, which requires typepunned arguments"""
@@ -1233,6 +1195,93 @@ class Library(object):
             raise ValueError('Unknown data type: {}'.format(cdftype))
         return (inf.min, inf.max)
 
+    # Stubs of vectorized functions for documentation; actual versions
+    # are populated when class instantiated.
+
+    def v_datetime_to_epoch(self, datetime):
+        """A vectorized version of `datetime_to_epoch`.
+
+        Takes a numpy array of datetimes as input and returns an array of
+        epochs.
+        """
+        pass
+
+    def v_datetime_to_epoch16(self, datetime):
+        """A vectorized version of `datetime_to_epoch16`.
+
+        Takes a numpy array of datetimes as input and returns an array of
+        epoch16.
+        """
+        pass
+
+    def v_datetime_to_tt2000(self, datetime):
+        """A vectorized version of `datetime_to_tt2000`.
+
+        Takes a numpy array of datetimes as input and returns an array of
+        TT2000.
+        """
+        pass
+
+    def v_epoch_to_datetime(self, epoch):
+        """A vectorized version of `epoch_to_datetime`.
+
+        Takes a numpy array of epochs as input and returns an array of
+        datetimes.
+        """
+        pass
+
+    def v_epoch_to_tt2000(self, epoch):
+        """A vectorized version of `epoch_to_tt2000`.
+
+        Takes a numpy array of epochs as input and returns an array of
+        tt2000s.
+        """
+        pass
+
+    def v_epoch16_to_datetime(self, epoch):
+        """A vectorized version of `epoch16_to_datetime`.
+
+        Takes a numpy array of epoch16 as input and returns an array of
+        datetimes. An epoch16 is a pair of doubles; the input array's last
+        dimension must be two (and the returned array will have one fewer
+        dimension).
+        """
+        pass
+
+    def v_epoch16_to_tt2000(self, epoch16):
+        """A vectorized version of `epoch16_to_tt2000`.
+
+        Takes a numpy array of epoch16 as input and returns an array of
+        tt2000s. An epoch16 is a pair of doubles; the input array's last
+        dimension must be two (and the returned array will have one fewer
+        dimension).
+        """
+        pass
+
+    def v_tt2000_to_datetime(self, tt2000):
+        """A vectorized version of `tt2000_to_datetime`.
+
+        Takes a numpy array of tt2000 as input and returns an array of
+        datetimes.
+        """
+        pass
+
+    def v_tt2000_to_epoch(self, tt2000):
+        """A vectorized version of `tt2000_to_epoch`.
+
+        Takes a numpy array of tt2000 as input and returns an array of
+        epochs.
+        """
+        pass
+
+    def v_tt2000_to_epoch16(self, tt2000):
+        """A vectorized version of `tt2000_to_epoch16`.
+
+        Takes a numpy array of tt2000 as input and returns an array of
+        epoch16.
+        """
+        pass
+
 
 def download_library():
     """Download and install the CDF library"""
@@ -1704,6 +1753,9 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
     .. automethod:: version
 
     """
+    backward = False
+    """True if this CDF was created in backward-compatible mode."""
+
     def __init__(self, pathname, masterpath=None, create=None, readonly=None,
                  encoding='utf-8'):
         """Open or create a CDF file.
