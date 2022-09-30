@@ -163,7 +163,7 @@ class PlasmaFile(PbData):
 
         # Sometimes, SI units aren't the best.
         if 'n' in self:
-            self['n'] /= 100**3
+            self['n'] /= 100.0**3
         if 'pot' in self:
             self['pot'] /= 1000.0
         if 'corot' in self:
