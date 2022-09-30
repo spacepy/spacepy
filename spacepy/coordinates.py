@@ -8,22 +8,22 @@ follow the names used by the popular IRBEM library, but for inertial
 systems we use a more consistent, fine-grained naming convention that
 clarifies the different systems.
 
-    Earth-centered Inertial Systems
-    -------------------------------
+Earth-centered Inertial Systems
+-------------------------------
     * **ECI2000** Earth-centered Inertial, J2000 epoch
     * **ECIMOD** Earth-centered Inertial, mean-of-date
     * **ECITOD** Earth-centered Inertial, true-of-date
     * **GEI** Geocentric Equatorial Inertial (IRBEM approximation of TOD)
 
-    Magnetospheric Systems
-    ----------------------
+Magnetospheric Systems
+----------------------
     * **GSM** Geocentric Solar Magnetospheric
     * **GSE** Geocentric Solar Ecliptic
     * **SM** Solar Magnetic
     * **MAG** Geomagnetic Coordinate System (aka CDMAG)
 
-    Earth-fixed Systems
-    -------------------
+Earth-fixed Systems
+-------------------
     * **GEO** Geocentric geographic, aka Earth-centered Earth-fixed
     * **GDZ** Geodetic coordinates
 
@@ -234,7 +234,7 @@ class Coords(object):
         ~Coords.append
         ~Coords.convert
         ~Coords.from_skycoord
-        ~Coord.to_skycoord
+        ~Coords.to_skycoord
     .. automethod:: append
     .. automethod:: convert
     .. automethod:: from_skycoord
