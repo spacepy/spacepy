@@ -47,7 +47,7 @@ state of backward compatibility mode.
 
 :func:`~.datamodel.toCDF` now supports writing backward-compatible CDFs.
 
-`~.spacepy.pybats.ImfInput` has been updated with a more flexible
+`~.pybats.ImfInput` has been updated with a more flexible
 quick-look plot capability. Variable naming has been unified to remove issues
 with temperature and density naming.
 
