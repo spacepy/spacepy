@@ -123,7 +123,7 @@ class Spectrogram(dm.SpaceData):
 
         ~Spectrogram.plot
 
-    .. automethod:: plot
+    .. automethod:: Spectrogram.plot
 
     """
 
@@ -570,10 +570,11 @@ def simpleSpectrogram(*args, **kwargs):
     Parameters
     ==========
     *args : 1 or 3 arraylike
+
         Call Signatures::
 
-        simpleSpectrogram(Z, **kwargs)
-        simpleSpectrogram(X, Y, Z, **kwargs)
+            simpleSpectrogram(Z, **kwargs)
+            simpleSpectrogram(X, Y, Z, **kwargs)
 
     Other Parameters
     ================
