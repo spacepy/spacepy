@@ -115,7 +115,6 @@ __contact__ = 'Dan Welling, daniel.welling@uta.edu'
 # Global imports (used ubiquitously throughout this module.
 import os.path
 from functools import wraps
-from turtle import color
 
 from spacepy.datamodel import dmarray, SpaceData
 import numpy as np
@@ -1704,14 +1703,21 @@ class ImfInput(PbData):
 
     >>> obj.keys()
     ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'n', 't']
-    >>> density=obj['rho']
+    >>> density=obj['n']
 
     Adding new data entries is equally simple so long as you have the values
-    and the name for the values::
+    and the name for the values:
 
     >>> import numpy as np
     >>> u = np.sqrt(obj['ux']**2 + obj['uy']**2 + obj['uz']**2)
     >>> obj['u']=u
+
+    If new data entries are added as :class:`~spacepy.datamodel.dmarray`
+    objects, the `label` and `units` attributes can be set to enhance plotting.
+
+    >>> from spacepy import datamodel
+    >>> u = np.sqrt(obj['ux']**2 + obj['uy']**2 + obj['uz']**2)
+    >>> obj['u']= datamodel.dmarray(u, {'units': '$km/s$', 'label': '|U|'})
 
     Concerning Variable Naming & Order
     ----------------------------------
@@ -1730,8 +1736,19 @@ class ImfInput(PbData):
 
     To illustrate, consider this example of converting a single fluid input
     file to a multi-fluid input file where density is split evenly across
-    two ion species:
+    two ion species: a solar wind fluid and an ionosphere fluid that has
+    minimal density upstream of the Earth. Each fluid has an explicit state
+    variable name defined in the BATS-R-US equation module that configures the
+    multi-fluid configuration.
 
+    >>> import numpy as np
+    >>> from spacepy import pybats, datamodel
+    >>> imf = pybats.ImfInput('tests/data/pybats_test/imf_single.dat')
+    >>> imf['IonoRho'] = datamodel.dmarray(np.zeros(imf['n'].shape) + 0.01,
+    ... {'units': '$cm^{-3}$', 'label': '$\\rho_{Iono}$'})
+    >>> imf['SwRho'] = imf['n'] - imf['IonoRho']
+    >>> imf['SwRho'].attrs['label'] = '$\\rho_{Sw}$'
+    >>> imf.quicklook( ['bz', ['n', 'SwRho', 'IonoRho'], 'pram'])
 
     =========== ============================================================
     Kwarg       Description
@@ -1740,6 +1757,9 @@ class ImfInput(PbData):
     load        Read file upon instantiation?  Defaults to **True**
     npoints     For empty data sets, sets number of points (default is 0)
     =========== ============================================================
+
+    .. versionchanged:: 0.5.0
+        Default variable names for temperature and density are now 't' and 'n'.
     '''
 
     def __init__(self, filename=False, load=True, npoints=0, *args, **kwargs):
@@ -1747,7 +1767,7 @@ class ImfInput(PbData):
 
         # Initialize data object and required attributes.
         super(ImfInput, self).__init__(*args, **kwargs)
-        self.attrs['var'] = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 't']
+        self.attrs['var'] = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'n', 't']
         self.attrs['std_var'] = True
         self.attrs['coor'] = 'GSM'
         self.attrs['satxyz'] = [None, None, None]
@@ -1759,7 +1779,7 @@ class ImfInput(PbData):
         self['time'] = dmarray(zeros(npoints, dtype=object))
 
         # Store standard variable set:
-        self.__stdvar__ = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 't']
+        self.__stdvar = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'n', 't']
 
         # Set Filename.
         if filename:
@@ -1813,7 +1833,8 @@ class ImfInput(PbData):
 
         # Densities & temperature:
         for v in self.keys():
-            if v[0] == 'b' or v[0] == 'u': continue
+            if v[0] == 'b' or v[0] == 'u':
+                continue
             if v == 't':
                 self[v].attrs['units'] = '$K$'
                 self[v].attrs['label'] = "T"
@@ -1836,7 +1857,7 @@ class ImfInput(PbData):
         n = self._denvar
 
         self['pram'] = dmarray(self['ux']**2.*self[n]*1.67621E-6,
-                                {'units':'$nPa$', 'label':r'P$_{dyn}$'})
+                               {'units': '$nPa$', 'label': r'P$_{dyn}$'})
 
     def calc_u(self):
         '''
@@ -1845,7 +1866,7 @@ class ImfInput(PbData):
         '''
 
         self['u'] = dmarray(np.sqrt(self['ux']**2+self['uy']**2+self['uz']**2),
-                            {'units':'$km/s$', 'label':'|U|'})
+                            {'units': '$km/s$', 'label': '|U|'})
 
         return True
 
@@ -1855,7 +1876,7 @@ class ImfInput(PbData):
         '''
 
         self['b'] = dmarray(np.sqrt(self['bx']**2+self['by']**2+self['bz']**2),
-                            {'units':'nT', 'label':'|B|'})
+                            {'units': 'nT', 'label': '|B|'})
 
         return True
 
@@ -1865,13 +1886,14 @@ class ImfInput(PbData):
         internally as self['vAlf']
         '''
 
-        if 'b' not in self: self.calc_b()
+        if 'b' not in self:
+            self.calc_b()
 
         # Const: nT->T, m->km, mu_0, proton mass, cm-3->m-3.
         const = 1E-12/np.sqrt(4.*np.pi*10**-7*1.67E-27*100**3)
 
         self['vAlf'] = dmarray(const*self['b']/np.sqrt(self['rho']),
-                                {'units':'$km/s$', 'label':r'V$_{Alf}'})
+                               {'units': '$km/s$', 'label': r'V$_{Alf}'})
 
         return True
 
@@ -1881,10 +1903,12 @@ class ImfInput(PbData):
         Units default to $km/s$.
         '''
 
-        if 'vAlf' not in self: self.calc_alf()
-        if 'u' not in self: self.calc_u()
-        self['machA'] = dmarray(self['u']/self['vAlf'],
-                                {'units':None, 'label':'M$_{Alfven}$'})
+        if 'vAlf' not in self:
+            self.calc_alf()
+        if 'u' not in self:
+            self.calc_u()
+        self['machA'] = dmarray(self['u'] / self['vAlf'],
+                                {'units': None, 'label': 'M$_{Alfven}$'})
 
         return True
 
@@ -2025,7 +2049,7 @@ class ImfInput(PbData):
                 out.write(b'#ZEROBX\nT\n\n')
             if self.attrs['reread']:
                 out.write(b'#REREAD')
-            if self.attrs['var'] != self.__stdvar__:
+            if self.attrs['var'] != self.__stdvar:
                 out.write('#VAR\n{}\n\n'.format(' '.join(var)).encode())
             if self.attrs['satxyz'].count(None) < 3:
                 xyz = self.attrs['satxyz']
@@ -2145,8 +2169,9 @@ class ImfInput(PbData):
         '''
         Generate a quick-look plot of solar wind conditions driving the
         SWMF.  Default behavior creates a figure showing the three components
-        of IMF, solar wind density, and Earthward velocity. The resulting figure
-        will be a paper-sized plot with one axes object per entry in `plotvars`.
+        of IMF, solar wind density, and Earthward velocity. The resulting
+        figure will be a paper-sized plot with one axes object per entry in
+        `plotvars`.
 
         The `plotvars` keyword controls the behavior of the resulting plot.
         For example, `['rho', 'pram', ['bx','by','bz']]` will create three
@@ -2205,7 +2230,6 @@ class ImfInput(PbData):
         import matplotlib.pyplot as plt
         from spacepy.plot import applySmartTimeTicks
 
-
         # Set default time range if not given.
         if not timerange:
             timerange = [self['time'][0], self['time'][-1]]
@@ -2223,10 +2247,10 @@ class ImfInput(PbData):
             for x in plotvars:
                 if isinstance(x, (list, tuple)):
                     colors.append([f'C{i+j}' for j in range(len(x))])
-                    i+=len(x)
+                    i += len(x)
                 else:
                     colors.append(f'C{i}')
-                    i+=1
+                    i += 1
 
         # Ensure there are enough colors in the `colors` list.
         if len(plotvars) > len(colors):
@@ -2234,9 +2258,9 @@ class ImfInput(PbData):
         # Now ensure correct shape of `colors` compared to `plotvars`:
         for i, x in enumerate(plotvars):
             # Check for nested lists:
-            if isinstance(x, (tuple,list)):
+            if isinstance(x, (tuple, list)):
                 # If colors[i] is a list, ensure correct size:
-                if isinstance(colors[i], (tuple,list)):
+                if isinstance(colors[i], (tuple, list)):
                     if len(x) > len(colors[i]):
                         colors[i].append([None] * (len(x) - len(colors[i])))
                 else:
@@ -2251,6 +2275,8 @@ class ImfInput(PbData):
 
         # Create and configure axes:
         axes = fig.subplots(nPlot, 1, sharex='all')
+        if nPlot == 1:
+            axes = [axes]
 
         # Plot each variable:
         for p, ax, c in zip(plotvars, axes, colors):
@@ -2258,30 +2284,46 @@ class ImfInput(PbData):
             # If multiple values given, plot each:
             if isinstance(p, (list, tuple)):
                 units = []
-                for i,x in enumerate(p):
+                for i, x in enumerate(p):
+                    # Get label and units; use defaults if undefined.
+                    label, unit = x, ''
+                    if type(self[x]) is dmarray:
+                        if 'units' in self[x].attrs:
+                            unit = self[x].attrs['units']
+                        if 'label' in self[x].attrs:
+                            label = self[x].attrs['label']
+
                     # Plot each variable:
                     ax.plot(self['time'], self[x], lw=1.5, c=c[i],
-                            alpha=.78, label=self[x].attrs['label'])
+                            alpha=.78, label=label)
                     # Save data range:
                     ylim = [min(ylim[0], self[x][tloc].min()),
                             max(ylim[1], self[x][tloc].max())]
                     # Push units to list of units:
-                    if self[x].attrs['units'] not in units:
-                        units.append(self[x].attrs['units'])
+                    if unit not in units:
+                        units.append(unit)
                 # Add legend and y-label:
                 ax.legend(loc=legloc, frameon=True)
                 ax.set_ylabel(', '.join(units))
 
             elif p in self:
+                # Get label and units; use defaults if undefined.
+                label, unit = p, ''
+                if type(self[p]) is dmarray:
+                    if 'units' in self[p].attrs:
+                        unit = self[p].attrs['units']
+                    if 'label' in self[p].attrs:
+                        label = self[p].attrs['label']
+
                 # Plot, add label, save y limits:
                 line = ax.plot(self['time'], self[p], lw=1.5, c=c)
-                label = f"{self[p].attrs['label']} ({self[p].attrs['units']})"
+                label = f"{label} ({unit})"
                 ax.set_ylabel(label, color=line[0].get_color())
                 ylim = [self[p][tloc].min(), self[p][tloc].max()]
             else:
                 # Blank axes:
                 ax.set_ylabel(p)
-                ylim = [-1,1]
+                ylim = [-1, 1]
             # Grid and x-ticks/labels:
             ax.grid(True)
             applySmartTimeTicks(ax, timerange, dolabel=ax == axes[-1])
