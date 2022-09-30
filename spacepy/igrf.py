@@ -131,6 +131,12 @@ class IGRF():
 
         Dipole moments (`dict`).
     """
+    dipole = {}
+    """Characteristics of dipole (`dict`)."""
+
+    moment = {}
+    """Dipole moments (`dict`)."""
+
     def __init__(self):
         self.__status = {'coeffs': False,
                          'init': False,
