@@ -830,8 +830,8 @@ class TestImfInput(unittest.TestCase):
         # Test single fluid/default variable names:
         self.assertEqual(self.knownImfBz[0], self.sing['bz'][0])
         self.assertEqual(self.knownImfBz[-1], self.sing['bz'][-1])
-        self.assertEqual(self.knownImfRho[0], self.sing['rho'][0])
-        self.assertEqual(self.knownImfRho[-1], self.sing['rho'][-1])
+        self.assertEqual(self.knownImfRho[0], self.sing['n'][0])
+        self.assertEqual(self.knownImfRho[-1], self.sing['n'][-1])
         self.assertEqual(self.knownImfTemp[0], self.sing['t'][0])
         self.assertEqual(self.knownImfTemp[-1], self.sing['t'][-1])
 
@@ -850,9 +850,9 @@ class TestImfInput(unittest.TestCase):
         # Create plots, exercise plotting options.
         f1 = self.sing.quicklook()
         # Custom vars, default colors:
-        f2 = self.sing.quicklook(plotvars=[['bx', 'by', 'bz'], 'rho', 'v'])
+        f2 = self.sing.quicklook(plotvars=[['bx', 'by', 'bz'], 'n', 'v'])
         # Custom vars, empty color scheme:
-        f3 = self.sing.quicklook(plotvars=[['bx', 'by', 'bz'], 'rho', 'v'],
+        f3 = self.sing.quicklook(plotvars=[['bx', 'by', 'bz'], 'n', 'v'],
                                  colors=[])
         # Custom vars, nested but incomplete colors:
         f4 = self.mult.quicklook([['bx', 'by', 'bz'], ['SwRho', 'IonoRho'], 'v'],
