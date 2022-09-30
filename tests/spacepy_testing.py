@@ -75,8 +75,7 @@ class assertWarns(warnings.catch_warnings):
         The test case from which this is being called, almost always
         ``self`` (so the :meth:`~unittest.TestCase.fail` method is available).
 
-    action : {'always', ``None``, 'default', 'error', 'ignore', 'module',
-              'once'}
+    action : {'always', ``None``, 'default', 'error', 'ignore', 'module', 'once'}
         Unless ``None``, a warning filter matching the specified warning will
         be added to the filter before executing the block. 'always'
         (default) is generally recommended to make sure the tested
