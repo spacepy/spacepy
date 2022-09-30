@@ -233,6 +233,9 @@ class BatsLog(LogFile):
         will be placed at that time.
 
         The figure and axes objects are returned to the user.
+
+        .. versionchanged:: 0.5.0
+            Separated kwargs for Sym-H and Dst lines.
         '''
 
         from datetime import datetime
@@ -680,7 +683,7 @@ class Bats2d(IdlFile):
 
     >>> import numpy as np
     >>> from spacepy.pybats import bats
-    >>> mhd = bats.Bats2d('z=0_example.out')
+    >>> mhd = bats.Bats2d('tests/data/pybats_test/z=0_sine.out')
     >>> mhd['rad'] = np.sqrt( mhd['x']**2 + mhd['y']**2 )
 
     Note, however, that if the user switches the data frame in a *.outs file
@@ -691,6 +694,15 @@ class Bats2d(IdlFile):
     MHD/fluid dynamic calculations (i.e., Alfven wave speed, vorticity, and
     more.)  These values are updated when the data frame is switched (see the
     `switch_frame` method).
+
+    For example, to calculate number density and the fraction of the total
+    density for each species in a multi-fluid simulation,
+
+    >>> mhd = bats.Bats2d('tests/data/pybats_test/cut_multispecies.out')
+    >>> mhd.calc_ndens()
+
+    In an interactive session, users can tab-complete to explore the possible
+    built-in calculation methods.
 
     Plotting
     --------
@@ -887,6 +899,10 @@ class Bats2d(IdlFile):
 
         Values are calculated for each fluid and stored as self['u_perp']
         (using species prefixes as needed).
+
+        Notes
+        =====
+        .. versionadded:: 0.5.0
         '''
 
         from numpy import sqrt
@@ -920,6 +936,10 @@ class Bats2d(IdlFile):
 
         Values arestored as self['u_par']; species prefixes are used for
         multi-species/fluid files.
+
+        Notes
+        =====
+        .. versionadded:: 0.5.0
         '''
 
         # Ensure b_hat is calculated:
@@ -1588,11 +1608,11 @@ class Bats2d(IdlFile):
            Set plot destination.  Defaults to new figure.
         loc : 3-digit integer
            Set subplot location.  Defaults to 111.
-        do_label : boolean
+        do_label : bool
            Adds resolution legend to righthand margin.  Defaults to True.
-        do_fill : boolean
+        do_fill : bool
            If true, fill blocks with color indicating grid resolution.
-        show_nums : boolean
+        show_nums : bool
            Adds quadtree values to each region.  Useful for debugging.
            Defaults to False.
         show_borders : True
@@ -3997,9 +4017,9 @@ class VirtSat(LogFile):
            Set radius of model inner boundary.  Defaults to 1.0
         trange : list of datetimes
            Set the time range to plot.  Defaults to None, or entire dataset.
-        add_grid : boolean
+        add_grid : bool
            Turn on or off grid style of axes.  Default is True.
-        add_arrow : boolean
+        add_arrow : bool
            Add arrow at end of orbit path to indicate direction.
            Default is True.
         arrow_kwargs : dict
