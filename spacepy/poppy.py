@@ -124,6 +124,12 @@ class PPro(object):
     #NB: P2 is the "master" timescale, P1 gets shifted by lags
     #Add lag to p1 to reach p2's timescale, subtract lag from p2 to reach p1's
 
+    ci = None
+    """Upper and lower confidence limits for the association number"""
+
+    conf_above = None
+    """Confidence that the association number is above the asymptotic"""
+
     def __init__(self, process1, process2, lags=None, winhalf=None, verbose=False):
         self.process1 = process1
         self.process2 = process2
@@ -396,23 +402,19 @@ class PPro(object):
             x = [i / xscale for i in x]
         ax0.set_xlim((min(x), max(x)))
 
-        ci = None
+        ci = self.ci
         if norm:
-            if hasattr(self, 'ci'):
+            if self.ci is not None:
                 ci = [[j / self.asympt_assoc for j in self.ci[i]]
                     for i in [0,1]]
             asympt_assoc = 1.0
             assoc_total = [assoc / self.asympt_assoc
                            for assoc in self.assoc_total]
         else:
-            try:
-                ci = self.ci
-            except AttributeError:
-                pass
             asympt_assoc = self.asympt_assoc
             assoc_total = self.assoc_total
 
-        if ci != None:
+        if ci is not None:
             if transparent:
                 ax0.fill_between(x, ci[0], ci[1],
                                  edgecolor='none', facecolor='blue', alpha=0.5)
