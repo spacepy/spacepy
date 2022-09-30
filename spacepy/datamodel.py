@@ -610,6 +610,23 @@ class SpaceData(dict, MetaMixin):
         for key in flatobj:
             self[key] = copy.copy(flatobj[key])
 
+    # Stubs of partialed-in functions for docs; actual versions populated
+    # when class instantiated
+
+    def toCDF(fname, **kwargs):
+        """Create CDF file from this SpaceData.
+
+        See `toCDF`; this object is provided for ``SDobject``."""
+
+    def toHDF5(fname, **kwargs):
+        """Create HDF5 file from this SpaceData.
+
+        See `toHDF5`; this object is provided for ``SDObject``. """
+
+    def toJSONheadedASCII(fname, **kwargs):
+        """Create JSON-headed ASCII file from this SpaceData.
+
+        See `toJSONheadedASCII`; this object is provided for ``insd``."""
             
 
 def convertKeysToStr(SDobject):
