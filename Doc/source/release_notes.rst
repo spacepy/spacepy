@@ -47,6 +47,13 @@ state of backward compatibility mode.
 
 :func:`~.datamodel.toCDF` now supports writing backward-compatible CDFs.
 
+:class:`~spacepy.pybats.ImfFile` has been updated with a more flexible
+quick-look plot capability. Variable naming has been unified to remove issues
+with temperature and density naming.
+
+:class:`~spacepy.pybats.bats.Bats2d` can now calculate parallel and
+perpendicular velocities with new `calc_uperp` and `calc_upar` methods.
+
 Major bugfixes
 **************
 :func:`~.datamodel.toCDF` handling of time types other than TT2000 has
