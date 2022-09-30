@@ -47,12 +47,13 @@ state of backward compatibility mode.
 
 :func:`~.datamodel.toCDF` now supports writing backward-compatible CDFs.
 
-`~.spacepy.pybats.ImfFile` has been updated with a more flexible
+`~.spacepy.pybats.ImfInput` has been updated with a more flexible
 quick-look plot capability. Variable naming has been unified to remove issues
 with temperature and density naming.
 
-`~.spacepy.pybats.bats.Bats2d` can now calculate parallel and
-perpendicular velocities with new `calc_uperp` and `calc_upar` methods.
+`~.pybats.bats.Bats2d` can now calculate parallel and
+perpendicular velocities with new `~.pybats.bats.Bats2d.calc_uperp`
+and `~.pybats.bats.Bats2d.calc_upar` methods.
 
 Major bugfixes
 **************
