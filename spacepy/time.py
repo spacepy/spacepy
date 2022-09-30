@@ -251,12 +251,12 @@ class Ticktock(MutableSequence):
 
     .. only:: latex
 
-        .. image:: ../images/ticktock_relationships.pdf
+        .. image:: ../images/ticktock_relationships.*
 
     .. only:: html
 
         .. image:: ../images/ticktock_relationships.svg
-            :target: ../_images/ticktock_relationships.svg
+            :target: ../_images/ticktock_relationships1.svg
 
     Parameters
     ==========
