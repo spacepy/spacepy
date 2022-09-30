@@ -409,8 +409,8 @@ class TestBatsLog(unittest.TestCase):
 
         # Test plotting with non-existant variable:
         fig, ax = log.add_dst_quicklook(dstvar='invalid')
-        self.assertEqual(fig, None)
-        self.assertEqual(ax,  None)
+        self.assertIs(fig, None)
+        self.assertIs(ax,  None)
 
 
 class TestRim(unittest.TestCase):
