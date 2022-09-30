@@ -172,16 +172,103 @@ jobs:
         run: (! file irbem-lib-*/*.f irbem-lib-*/source/*.f | grep -q Unicode )
         working-directory: ${{ github.workspace }}/spacepy/irbempy/
 
+  docs:
+    name: Build docs
+    runs-on: ${{ matrix.os }}
+    needs: [test]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.6"
+            os: ubuntu-20.04
+            numpy-version: "~=1.15.1"
+            piplist: "python-dateutil~=2.1.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1 sphinx~=1.8.0 numpydoc"
+            cflags: "-Wno-error=format-security"
+            cdf-version: "3.5.1"
+            cdf-munged-version: "35_1"
+            dep-strategy: "oldest"
+          - python-version: "3.10"
+            os: ubuntu-20.04
+            numpy-version: ">=1.21.0"
+            piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
+            cflags: ""
+            cdf-version: "3.8.1"
+            cdf-munged-version: "38_1"
+            dep-strategy: "newest"
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Get Week
+      id: get-week
+      run: |
+        echo "::set-output name=week::$(/bin/date -u "+%G%V")"
+      shell: bash
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        # Different pip cache for docs (includes numpydoc, sphinx)
+        key: docs-pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dep-strategy }}
+        restore-keys: |
+          docs-pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-
+          docs-pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-
+          pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dep-strategy }}
+          pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-
+          pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-
+    - name: Cache cdf
+      uses: actions/cache@v2
+      with:
+        path: ~/cdf
+        # Force-expire the CDF cache weekly
+        key: cdf-v${{ env.cdf-cache-version}}-${{ matrix.cdf-version }}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}
+    - name: Install dependencies
+      env:
+        NUMPY_VERSION: ${{ matrix.numpy-version }}
+        PIPLIST: ${{ matrix.piplist }}
+        CFLAGS: ${{ matrix.cflags }}
+        CDF_VER: ${{ matrix.cdf-munged-version }}
+      run: |
+        sudo apt-get update -qq
+        # Needed for scipy versions without binary wheels
+        sudo apt-get install libhdf5-serial-dev gcc gfortran xvfb libblas-dev liblapack-dev
+        python -m pip install --upgrade pip
+        # This allows pip to build (and thus cache) binary wheels
+        pip install wheel
+        pip install --force-reinstall "numpy${NUMPY_VERSION}"
+        # Make sure new packages don't override numpy version
+        pip install "numpy${NUMPY_VERSION}" ${PIPLIST}
+        pip freeze
+        if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd cdf${CDF_VER}-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
+# Per https://github.com/actions/checkout/issues/15, this gets the MERGE
+# commit of the PR, not just the tip of the PR.
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: Build spacepy and docs
+      working-directory: ${{ github.workspace }}
+      run: |
+        python setup.py build
+        cd Doc
+        . ${HOME}/cdf/bin/definitions.B
+        make html | tee doc_log.txt
+        (! tail -n 20 doc_log.txt | grep -E -q 'build succeeded, [0-9]+ warnings' )
+      shell: bash
+
 # See https://github.community/t/status-check-for-a-matrix-jobs/127354/7
   all-tests:
     name: All tests
     if: ${{ always() }}
     runs-on: ubuntu-20.04
-    needs: [test, irbem-unicode]
+    needs: [test, irbem-unicode, docs]
     steps:
       - name: Check test matrix status
         if: ${{ needs.test.result != 'success' }}
         run: exit 1
       - name: Check IRBEM unicode status
         if: ${{ needs.irbem-unicode.result != 'success' }}
+        run: exit 1
+      - name: Check documentation build status
+        if: ${{ needs.docs.result != 'success' }}
         run: exit 1
