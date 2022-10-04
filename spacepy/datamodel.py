@@ -159,10 +159,10 @@ The file looks like:
 
 """
 
-from __future__ import division
 import copy
 import datetime
 import gzip
+import io
 import itertools
 import json
 from functools import partial
@@ -170,23 +170,13 @@ import os
 import re
 import warnings
 
-try:
-    import StringIO # can't use cStringIO as we might have unicode
-except ImportError:
-    import io as StringIO
-
 import numpy
 # from . import toolbox # handled in functions that use it
 
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
-# python2 python3 string wrangling
-try:
-    str_classes = (str, bytes, unicode)
-except NameError:
-    str_classes = (str, bytes)
-    unicode = str
+str_classes = (str, bytes)
 
 class DMWarning(Warning):
     """
@@ -514,8 +504,8 @@ class SpaceData(dict, MetaMixin):
 ## To enable string output of repr, instead of just printing, uncomment his block
 #    def __repr__(self):
 #        #redirect stdout to StringIO
-#        import StringIO, sys
-#        dum = StringIO.StringIO()
+#        import io, sys
+#        dum = io.StringIO()
 #        sys_stdout_save = sys.stdout
 #        sys.stdout = dum
 #        self.tree(verbose=True)
@@ -1037,12 +1027,12 @@ def fromHDF5(fname, **kwargs):
         if type(value) is allowed_elems[0]: #if a group
             SDobject[key] = fromHDF5(hfile, path=path+'/'+key)
         elif type(value) is allowed_elems[1]: #if a dataset
-            isuni = h5py.check_vlen_dtype(value.dtype) is unicode
+            isuni = h5py.check_vlen_dtype(value.dtype) is str
             try:
                 if isuni:
                     if hasattr(value, 'asstr'):  # h5py 3+
                         value = value.asstr()
-                    value = numpy.require(value[...], dtype=unicode)
+                    value = numpy.require(value[...], dtype=str)
                 SDobject[key] = dmarray(value)
             except (TypeError, ZeroDivisionError): #ZeroDivisionError catches zero-sized DataSets
                 SDobject[key] = dmarray(None)
@@ -1105,16 +1095,10 @@ def toHDF5(fname, SDobject, **kwargs):
                         if value or value == 0: truth = True
 
                     if truth:
-                        if bytes is str:
-                            if type(key) is unicode:
-                                dumkey = key.encode('utf-8')
-                            if type(value) is unicode:
-                                dumval = value.encode('utf-8')
                         uni = False #No special unicode handling
-                        if not bytes is str: #Python 3
-                            dumval = numpy.asanyarray(dumval)
-                            if dumval.size and dumval.dtype.kind == 'U':
-                                uni = True #Unicode list, special handling
+                        dumval = numpy.asanyarray(dumval)
+                        if dumval.size and dumval.dtype.kind == 'U':
+                            uni = True #Unicode list, special handling
                         try:
                             if uni:
                                 #Tell hdf5 this is unicode. Numpy is UCS-4, HDF5 is UTF-8
@@ -1134,8 +1118,6 @@ def toHDF5(fname, SDobject, **kwargs):
                         hfile[path].attrs[dumkey] = ''
                 elif isinstance(value, datetime.datetime):
                     dumval = value.isoformat()
-                    if bytes is str and type(key) is unicode:
-                        dumkey = str(key)
                     hfile[path].attrs[dumkey] = dumval
                 else:
                     #TODO: add support for arrays(?) in attrs (convert to isoformat)
@@ -1174,12 +1156,7 @@ def toHDF5(fname, SDobject, **kwargs):
         must_close = False
     path = kwargs.get('path', '/')
 
-    # long is a type in python2 not in python3
-    # unicode is a type in python2 not in python3
-    try:
-        allowed_attrs = [int, long, float, str, unicode, numpy.ndarray, list, tuple, numpy.string_]
-    except NameError:
-        allowed_attrs = [int,       float, bytes, str, numpy.ndarray, list, tuple, numpy.string_]
+    allowed_attrs = [int, float, bytes, str, numpy.ndarray, list, tuple, numpy.string_]
     for v in numpy.typecodes['AllInteger']:
         allowed_attrs.append(numpy.sctypeDict[v])
     for v in numpy.typecodes['AllFloat']:
@@ -1272,7 +1249,7 @@ def toHTML(fname, SDobject, attrs=(),
         make the variable name a link to a stub page
 
     """
-    output = StringIO.StringIO() # put the output into a StringIO
+    output = io.StringIO() # put the output into a StringIO
     keys = sorted(SDobject.keys())
 
     output.write(tableTag)
@@ -1297,7 +1274,7 @@ def toHTML(fname, SDobject, attrs=(),
 
         for attr in attrs:
             try:
-                if not isinstance(SDobject[key].attrs[attr], (str, unicode)):
+                if not isinstance(SDobject[key].attrs[attr], str):
                     tmp = str(SDobject[key].attrs[attr])
                     output.write('<td>{0}</td>'.format(_idl2html(tmp)))
                 else:
@@ -1373,8 +1350,7 @@ def readJSONMetadata(fname, **kwargs):
         lines = fname.read()
     else:
         if fname.endswith('.gz'):
-            kwargs = {} if str is bytes else {'mode': 'rt', 'encoding': 'latin-1'}
-            with gzip.open(filename=fname, **kwargs) as gzh:
+            with gzip.open(filename=fname, mode='rt', encoding='latin=1') as gzh:
                 lines = gzh.read()
         else:
             with open(fname, 'r') as f:
@@ -1746,7 +1722,7 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
         if key in kwargs:
             kwarg_dict[key] = kwargs[key]
     if not metadata:
-        metadata = StringIO.StringIO()
+        metadata = io.StringIO()
         writeJSONMetadata(metadata, insd, depend0=depend0, order=order)
         metadata.seek(0) #rewind StringIO object to start
     hdr = readJSONMetadata(metadata)
