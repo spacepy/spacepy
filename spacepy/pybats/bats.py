@@ -522,7 +522,6 @@ class Stream(Extraction):
         '''
         Trace through the vector field using the quad tree.
         '''
-        from numpy import sqrt
         if self.method == 'euler' or self.method == 'eul':
             from spacepy.pybats.trace2d import trace2d_eul as trc
         elif self.method == 'rk4':
@@ -617,7 +616,7 @@ class Stream(Extraction):
         # 2) Trim points within body.
         if 'rbody' in bats.attrs:
             # Radial distance:
-            r = sqrt(self.x**2.0 + self.y**2.0)
+            r = np.sqrt(self.x**2.0 + self.y**2.0)
             # Closed field line?  Lobe line?  Set status:
             if (r[0] < bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
                 self.open = False
@@ -636,7 +635,6 @@ class Stream(Extraction):
         '''
         Trace through the vector field.
         '''
-        from numpy import array, sqrt
         if self.method == 'euler':
             from spacepy.pybats.trace2d import trace2d_eul as trc
         elif self.method == 'rk4':
@@ -655,13 +653,13 @@ class Stream(Extraction):
                      bats[grid[0]], bats[grid[1]], ds=-0.1)
         # Join lines together such that point 0 is beginning of line
         # and point -1 is the end (when moving parallel to line.)
-        self.x = array(x2[::-1].tolist() + x1[1:].tolist())
-        self.y = array(y2[::-1].tolist() + y1[1:].tolist())
+        self.x = np.array(x2[::-1].tolist() + x1[1:].tolist())
+        self.y = np.array(y2[::-1].tolist() + y1[1:].tolist())
 
         # Check if line is closed to body.
         if 'rbody' in bats.attrs:
-            r1 = sqrt(self.x[0]**2.0 + self.y[0]**2.0)
-            r2 = sqrt(self.x[-1]**2.0 + self.y[-1]**2.0)
+            r1 = np.sqrt(self.x[0]**2.0 + self.y[0]**2.0)
+            r2 = np.sqrt(self.x[-1]**2.0 + self.y[-1]**2.0)
             if (r1 < bats.attrs['rbody']) and (r2 < bats.attrs['rbody']):
                 self.open = False
 
@@ -787,15 +785,13 @@ class Bats2d(IdlFile):
     def qtree(self):
         if self._qtree is None:
 
-            from numpy import array
-
             import spacepy.pybats.qotree as qo
 
             # Parse grid into quad tree.
             if self['grid'].attrs['gtype'] != 'Regular':
                 xdim, ydim = self['grid'].attrs['dims'][0:2]
                 try:
-                    self._qtree = qo.QTree(array([self[xdim], self[ydim]]))
+                    self._qtree = qo.QTree(np.array([self[xdim], self[ydim]]))
                 except:
                     from traceback import print_exc
                     print_exc()
@@ -863,12 +859,11 @@ class Bats2d(IdlFile):
         Retains units of components.  Additionally, the unit vector
         b-hat is calculated as well.
         '''
-        from numpy import sqrt
 
         if 'b' in self:
             return
 
-        self['b'] = sqrt(self['bx']**2.0 + self['by']**2.0 + self['bz']**2.0)
+        self['b'] = np.sqrt(self['bx']**2.0 + self['by']**2.0 + self['bz']**2.0)
         self['b'].attrs = {'units':self['bx'].attrs['units']}
 
         self['bx_hat'] = self['bx'] / self['b']
@@ -885,9 +880,7 @@ class Bats2d(IdlFile):
         Calculates total current density strength using all three J components.
         Retains units of components, stores in self['j']
         '''
-        from numpy import sqrt
-
-        self['j'] = sqrt(self['jx']**2.0 + self['jy']**2.0 + self['jz']**2.0)
+        self['j'] = np.sqrt(self['jx']**2.0 + self['jy']**2.0 + self['jz']**2.0)
         self['j'].attrs = {'units':self['jx'].attrs['units']}
 
     @calc_wrapper
@@ -904,8 +897,6 @@ class Bats2d(IdlFile):
         =====
         .. versionadded:: 0.5.0
         '''
-
-        from numpy import sqrt
 
         # Ensure b_hat is calculated:
         self.calc_b()
@@ -925,7 +916,7 @@ class Bats2d(IdlFile):
             uz = self[s+'ux']*self['by_hat']-self[s+'uy']*self['bx_hat']
 
             # Get magnitude:
-            self[s+'u_perp'] = sqrt(ux**2+uy**2+uz**2)
+            self[s+'u_perp'] = np.sqrt(ux**2+uy**2+uz**2)
 
     @calc_wrapper
     def calc_upar(self):
@@ -1019,11 +1010,10 @@ class Bats2d(IdlFile):
 
         Values are stored as self['beta'].
         '''
-        from numpy import pi
 
         if 'b' not in self:
             self.calc_b()
-        mu_naught = 4.0E2 * pi  # Mu_0 x unit conversion (nPa->Pa, nT->T)
+        mu_naught = 4.0E2 * np.pi  # Mu_0 x unit conversion (nPa->Pa, nT->T)
         temp_b = self['b']**2.0
         temp_b[temp_b < 1E-8] = -1.0*mu_naught*self['p'][temp_b == 0.0]
         temp_beta = mu_naught*self['p']/temp_b
@@ -1040,7 +1030,6 @@ class Bats2d(IdlFile):
 
         Values are stored as 'jb' (magnitude) and 'jbx', 'jby', 'jbz'.
         '''
-        from numpy import sqrt
         from spacepy.datamodel import dmarray
 
         # Unit conversion (nT, uA, cm^-3 -> nT, A, m^-3) to nN/m^3.
@@ -1052,9 +1041,9 @@ class Bats2d(IdlFile):
                               {'units':'nN/m^3'})
         self['jbz'] = dmarray((self['jx']*self['by']-self['jy']*self['bx'])*conv,
                               {'units':'nN/m^3'})
-        self['jb'] = dmarray(sqrt(self['jbx']**2 +
-                                  self['jby']**2 +
-                                  self['jbz']**2), {'units':'nN/m^3'})
+        self['jb'] = dmarray(np.sqrt(self['jbx']**2 +
+                                     self['jby']**2 +
+                                     self['jbz']**2), {'units':'nN/m^3'})
 
     @calc_wrapper
     def calc_alfven(self):
@@ -1063,13 +1052,12 @@ class Bats2d(IdlFile):
         performed for each species and the total fluid.
         The variable is saved under key "alfven" in self.data.
         '''
-        from numpy import sqrt, pi
         from spacepy.datamodel import dmarray
 
         if 'b' not in self:
             self.calc_b()
         #M_naught * conversion from #/cm^3 to kg/m^3
-        mu_naught = 4.0E-7 * pi * 1.6726E-27 * 1.0E6
+        mu_naught = 4.0E-7 * np.pi * 1.6726E-27 * 1.0E6
 
         # Get all rho-like variables.  Save in new list.
         rho_names = []
@@ -1081,7 +1069,7 @@ class Bats2d(IdlFile):
         # changing dictionary while looping over keys.
         for k in rho_names:
             self[k[:-3]+'alfven'] = dmarray(self['b']*1E-12 /
-                                            sqrt(mu_naught*self[k]),
+                                            np.sqrt(mu_naught*self[k]),
                                             attrs={'units':'km/s'})
 
     @calc_wrapper
@@ -1251,7 +1239,6 @@ class Bats2d(IdlFile):
         This is done on a per-fluid basis.
         '''
 
-        from numpy import sqrt
         from spacepy.datamodel import dmarray
 
         species = []
@@ -1264,9 +1251,9 @@ class Bats2d(IdlFile):
         units = self['ux'].attrs['units']
 
         for s in species:
-            self[s+'u'] = dmarray(sqrt(self[s+'ux']**2 +
-                                       self[s+'uy']**2 +
-                                       self[s+'uz']**2),
+            self[s+'u'] = dmarray(np.sqrt(self[s+'ux']**2 +
+                                          self[s+'uy']**2 +
+                                          self[s+'uz']**2),
                                   attrs={'units':units})
 
     @calc_wrapper
@@ -1276,7 +1263,7 @@ class Bats2d(IdlFile):
         $E=\frac{1}{2}mv^2$.  Note that this is not the same as energy
         density.  Units are $eV$.
         '''
-        from numpy import sqrt
+
         from spacepy.datamodel import dmarray
 
         raise Warning("This calculation is unverified.")
@@ -1294,9 +1281,9 @@ class Bats2d(IdlFile):
 
         for s in species:
             # THIS IS WRONG HERE: 1/2mV**2?  Notsomuch.
-            self[s+'Ekin'] = dmarray(sqrt(self[s+'ux']**2 +
-                                          self[s+'uy']**2 +
-                                          self[s+'uz']**2)
+            self[s+'Ekin'] = dmarray(np.sqrt(self[s+'ux']**2 +
+                                             self[s+'uy']**2 +
+                                             self[s+'uz']**2)
                                      * conv * mass[s.lower()],
                                      attrs={'units':units})
 
@@ -1338,7 +1325,6 @@ class Bats2d(IdlFile):
         added representing the gradient in each direction and then the
         magnitude of the vector.
         '''
-        from numpy import gradient, sqrt
 
         if self.gridtype != 'Regular':
             if not cellsize:
@@ -1353,8 +1339,8 @@ class Bats2d(IdlFile):
 
         dx = self.resolution * 6378000.0  # RE to meters
         p = self['p']*10E-9               # nPa to Pa
-        self[newvars[0]], self[newvars[1]] = gradient(p, dx, dx)
-        self['gradp'] = sqrt(self[newvars[0]]**2.0 + self[newvars[1]]**2.0)
+        self[newvars[0]], self[newvars[1]] = np.gradient(p, dx, dx)
+        self['gradp'] = np.sqrt(self[newvars[0]]**2.0 + self[newvars[1]]**2.0)
 
     def cfl(self, dt, xcoord='x', ycoord='z'):
         """
@@ -1450,11 +1436,10 @@ class Bats2d(IdlFile):
         Result is stored in self['plasm_freq'].
         """
 
-        from numpy import sqrt, pi
         m_avg_kg = m_avg*1.6276e-27
         ndensity = self['rho']/m_avg*1e6
         q = 1.6022e-19
-        self['plasma_freq'] = dmarray(sqrt(4*pi*ndensity*q**2/m_avg_kg),
+        self['plasma_freq'] = dmarray(np.sqrt(4*np.pi*ndensity*q**2/m_avg_kg),
                                       attrs={'units':'rad/s'})
 
     def inertial_length(self, m_avg=3.1):
@@ -1714,7 +1699,6 @@ class Bats2d(IdlFile):
         start_points : nlines x 2 array of line starting points
         '''
 
-        from numpy import array
         from numpy.random import sample
         from matplotlib.collections import LineCollection
         from spacepy.plot import add_arrows
@@ -1773,7 +1757,7 @@ class Bats2d(IdlFile):
             except IndexError:
                 continue
 
-            lines.append(array([stream.x, stream.y][::1-2*flip]).transpose())
+            lines.append(np.array([stream.x, stream.y][::1-2*flip]).transpose())
 
         # Create line collection & plot.
         collect = LineCollection(lines, **kwargs)
@@ -1826,8 +1810,6 @@ class Bats2d(IdlFile):
 
         '''
 
-        from numpy import (cos, sin, pi, arctan, arctan2, sqrt)
-
         # Get the dipole tilt by tracing a field line near the inner
         # boundary.  Find the max radial distance; tilt angle == angle off
         # equator of point of min R (~=max |B|).
@@ -1835,15 +1817,15 @@ class Bats2d(IdlFile):
         stream = self.get_stream(x_small, 0, 'bx', 'bz', method=method)
         r = stream.x**2 + stream.y**2
         loc = r == r.max()
-        tilt = arctan(stream.y[loc]/stream.x[loc])[0]
+        tilt = np.arctan(stream.y[loc]/stream.x[loc])[0]
 
         if debug:
             print('Dipole is tilted {} degress above the z=0 plane.'.format(
-                tilt*180./pi))
+                tilt*180./np.pi))
 
         # Dayside- start by tracing from plane of min |B| and perp. to that:
         R = self.attrs['rbody']*1.15
-        s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'bx', 'bz',
+        s1 = self.get_stream(R*np.cos(tilt), R*np.sin(tilt), 'bx', 'bz',
                              method=method)
 
         # Get initial angle and step.
@@ -1862,7 +1844,7 @@ class Bats2d(IdlFile):
             theta += (closed and isDay) * dTheta  # adjust nightwards.
             theta -= (s1.open or isNig) * dTheta  # adjust daywards.
             # Trace at the new theta to further restrict angular range:
-            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz',
+            s1 = self.get_stream(R*np.cos(theta), R*np.sin(theta), 'bx', 'bz',
                                  method=method)
             # Reduce angular step:
             dTheta /= 2.
@@ -1876,32 +1858,32 @@ class Bats2d(IdlFile):
         isNig = s1.x.mean() < 0
         while (s1.open or isNig):
             theta -= tol / 2  # inch daywards.
-            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz',
+            s1 = self.get_stream(R*np.cos(theta), R*np.sin(theta), 'bx', 'bz',
                                  method=method)
             isNig = s1.x.mean() < 0
 
         # Use last line to get southern hemisphere theta:
         npts = int(s1.x.size/2)
-        r = sqrt(s1.x**2+s1.y**2)  # Distance from origin.
+        r = np.sqrt(s1.x**2+s1.y**2)  # Distance from origin.
         # This loc finds the point(s) nearest to Rbody.
         loc = np.abs(r-self.attrs['rbody']) == np.min(np.abs(
             r[:npts]-self.attrs['rbody']))  # point closest to IB.
         xSouth, ySouth = s1.x[loc], s1.y[loc]
         # "+ 0" syntax is to quick-copy object.
-        theta_day = [theta+0, 2*np.pi+arctan(ySouth/xSouth)[0]+0]
+        theta_day = [theta+0, 2*np.pi+np.arctan(ySouth/xSouth)[0]+0]
         day = s1
 
         # Nightside: Use more points in tracing (lines are long!)
         theta += tol/2.0  # Nudge nightwards.
 
         # Set dTheta to half way between equator and dayside last-closed:
-        dTheta = (pi+tilt-theta)/2.
+        dTheta = (np.pi+tilt-theta)/2.
 
         nIter = 0
         while (dTheta > tol) or (s1.open):
             nIter += 1
 
-            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz',
+            s1 = self.get_stream(R*np.cos(theta), R*np.sin(theta), 'bx', 'bz',
                                  method=method, maxPoints=1E6)
             # Closed?  Nightside?
             closed = not(s1.open)
@@ -1914,8 +1896,8 @@ class Bats2d(IdlFile):
             # Don't cross over into dayside territory.
             if theta < theta_day[0]:
                 theta = theta_day[0]+tol
-                s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz',
-                                     method=method, maxPoints=1E6)
+                s1 = self.get_stream(R*np.cos(theta), R*np.sin(theta),
+                                     'bx', 'bz', method=method, maxPoints=1E6)
                 if debug:
                     print('No open flux over polar cap.')
                 break
@@ -1928,11 +1910,11 @@ class Bats2d(IdlFile):
 
         # Use last line to get southern hemisphere theta:
         npts = int(s1.x.size/2)  # Similar to above for dayside.
-        r = sqrt(s1.x**2+s1.y**2)
+        r = np.sqrt(s1.x**2+s1.y**2)
         loc = np.abs(r-self.attrs['rbody']) == np.min(np.abs(
             r[:npts]-self.attrs['rbody']))
         xSouth, ySouth = s1.x[loc], s1.y[loc]
-        theta_night = [theta+0, 2*np.pi+arctan2(ySouth, xSouth)[0]+0]
+        theta_night = [theta+0, 2*np.pi+np.arctan2(ySouth, xSouth)[0]+0]
         night = s1
         # plt.plot(s1.x, s1.y, 'r-')
 
@@ -2047,7 +2029,6 @@ class Bats2d(IdlFile):
         '''
         import re
         from matplotlib.collections import LineCollection
-        from numpy import (cos, sin, linspace, array)
         from spacepy.plot import add_arrows
 
         # Set ax and fig based on given target.
@@ -2081,34 +2062,34 @@ class Bats2d(IdlFile):
         # Do closed field lines #
         if DoClosed:
             for tDay, tNit in zip(
-                    linspace(0,     thetaD[0]-dTheta, nClosed),
-                    linspace(np.pi, thetaN[1]-dTheta, nClosed)):
-                x, y = R*cos(tDay), R*sin(tDay)
+                    np.linspace(0,     thetaD[0]-dTheta, nClosed),
+                    np.linspace(np.pi, thetaN[1]-dTheta, nClosed)):
+                x, y = R*np.cos(tDay), R*np.sin(tDay)
                 sD = self.get_stream(x, y, compX, compY, method=method,
                                      maxPoints=maxPoints, style=style)
-                x, y = R*cos(tNit), R*sin(tNit)
+                x, y = R*np.cos(tNit), R*np.sin(tNit)
                 sN = self.get_stream(x, y, compX, compY, method=method,
                                      maxPoints=maxPoints, style=style)
                 # Append to lines, colors.
-                lines.append(array([sD.x, sD.y]).transpose())
-                lines.append(array([sN.x, sN.y]).transpose())
+                lines.append(np.array([sD.x, sD.y]).transpose())
+                lines.append(np.array([sN.x, sN.y]).transpose())
                 cols.append(sD.color)
                 cols.append(sN.color)
 
         # Do open field lines
         if DoOpen:
             for tNorth, tSouth in zip(
-                    linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
-                    linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
-                x, y = R*cos(tNorth), R*sin(tNorth)
+                    np.linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
+                    np.linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
+                x, y = R*np.cos(tNorth), R*np.sin(tNorth)
                 sD = self.get_stream(x, y, compX, compY, method=method,
                                      maxPoints=maxPoints, style=style)
-                x, y = R*cos(tSouth), R*sin(tSouth)
+                x, y = R*np.cos(tSouth), R*np.sin(tSouth)
                 sN = self.get_stream(x, y, compX, compY, method=method,
                                      maxPoints=maxPoints, style=style)
                 # Append to lines, colors.
-                lines.append(array([sD.x, sD.y]).transpose())
-                lines.append(array([sN.x, sN.y]).transpose())
+                lines.append(np.array([sD.x, sD.y]).transpose())
+                lines.append(np.array([sN.x, sN.y]).transpose())
                 cols.append(sD.color)
                 cols.append(sN.color)
 
@@ -2120,8 +2101,8 @@ class Bats2d(IdlFile):
 
         # Add last-closed field lines at end so they are plotted "on top".
         if DoLast:
-            lines += [array([last1.x, last1.y]).transpose(),
-                      array([last2.x, last2.y]).transpose()]
+            lines += [np.array([last1.x, last1.y]).transpose(),
+                      np.array([last2.x, last2.y]).transpose()]
             cols += 2 * ['r']
 
         # Create line collection & plot.
@@ -2210,8 +2191,6 @@ class Bats2d(IdlFile):
         '''
 
         from matplotlib.collections import LineCollection
-        from numpy import (arctan, cos, sin, where, pi, log,
-                           arange, sqrt, linspace, array)
 
         # Set ax and fig based on given target.
         fig, ax = set_target(target, figsize=(10, 10), loc=loc)
@@ -2222,19 +2201,19 @@ class Bats2d(IdlFile):
         # Approximate the dipole tilt of the central body.
         stream = self.get_stream(3.0, 0, 'bx', 'bz', method=method)
         r = stream.x**2 + stream.y**2
-        loc, = where(r == r.max())
-        tilt = arctan(stream.y[loc[0]]/stream.x[loc[0]])
+        loc, = np.where(r == r.max())
+        tilt = np.arctan(stream.y[loc[0]]/stream.x[loc[0]])
 
         # Initial values:
-        daymax = tilt + pi/2.0
-        nightmax = tilt + 3.0*pi/2.0
+        daymax = tilt + np.pi/2.0
+        nightmax = tilt + 3.0*np.pi/2.0
 
         # Day side:
-        n = arange(25)+1.0
-        angle = tilt + 5.0*pi*log(n)/(12.0*log(n[-1]))
+        n = np.arange(25)+1.0
+        angle = tilt + 5.0*np.pi*np.log(n)/(12.0*np.log(n[-1]))
         for theta in angle:
-            x = self.attrs['rbody'] * cos(theta)
-            y = self.attrs['rbody'] * sin(theta)
+            x = self.attrs['rbody'] * np.cos(theta)
+            y = self.attrs['rbody'] * np.sin(theta)
             stream = self.get_stream(x, y, 'bx', 'bz',
                                      style=style, method=method)
             if (stream.y[0] > self.attrs['rbody']) or (stream.style[0] == 'k'):
@@ -2242,57 +2221,57 @@ class Bats2d(IdlFile):
                 break
             savestream = stream
             if DoDay:
-                lines.append(array([stream.x, stream.y]).transpose())
+                lines.append(np.array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
         # Add IMF field lines.
         if DoImf:
             stream = savestream
-            r = sqrt(stream.x**2 + stream.y**2)
-            loc, = where(r == r.max())
+            r = np.sqrt(stream.x**2 + stream.y**2)
+            loc, = np.where(r == r.max())
             x_mp = stream.x[loc[0]]+0.15
             y_mp = stream.y[loc[0]]
             delx = 2.0
-            for i, x in enumerate(arange(x_mp, 15.0, delx)):
+            for i, x in enumerate(np.arange(x_mp, 15.0, delx)):
                 # From dayside x-line out and up:
                 y = y_mp - x_mp+x
                 stream = self.get_stream(x, y, 'bx', 'bz', style=style,
                                          method=method)
-                lines.append(array([stream.x, stream.y]).transpose())
+                lines.append(np.array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From top of magnetosphere down:
                 y = x_mp + 15.0-x+delx/3.0
                 stream = self.get_stream(x-delx/3.0, y, 'bx', 'bz',
                                          method=method, style=style)
-                lines.append(array([stream.x, stream.y]).transpose())
+                lines.append(np.array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From bottom of mag'sphere down:
                 y = x_mp - 10.0 - x + 2.0*delx/3.0
                 stream = self.get_stream(x-2.0*delx/3.0, y, 'bx',
                                          'bz', style=style, method=method)
-                lines.append(array([stream.x, stream.y]).transpose())
+                lines.append(np.array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
         # Night side:
-        angle = pi + tilt + pi*log(n)/(2.5*log(n[-1]))
+        angle = np.pi + tilt + np.pi*np.log(n)/(2.5*np.log(n[-1]))
         for theta in angle:
-            x = self.attrs['rbody'] * cos(theta)
-            y = self.attrs['rbody'] * sin(theta)
+            x = self.attrs['rbody'] * np.cos(theta)
+            y = self.attrs['rbody'] * np.sin(theta)
             stream = self.get_stream(x, y, 'bx', 'bz',
                                      style=style, method=method)
             if stream.open:
                 nightmax = theta
                 break
             savestream = stream
-            lines.append(array([stream.x, stream.y]).transpose())
+            lines.append(np.array([stream.x, stream.y]).transpose())
             colors.append(stream.style[0])
 
         # March down tail.
         stream = savestream
-        r = sqrt(stream.x**2 + stream.y**2)
-        loc, = where(r == r.max())
+        r = np.sqrt(stream.x**2 + stream.y**2)
+        loc, = np.where(r == r.max())
         x1 = stream.x[loc[0]]
         y1 = stream.y[loc[0]]
         x = x1
@@ -2300,47 +2279,47 @@ class Bats2d(IdlFile):
         while (x-1.5) > self['x'].min():
             stream = self.get_stream(x-1.5, y, 'bx', 'bz', style=style,
                                      method=method)
-            r = sqrt(stream.x**2 + stream.y**2)
+            r = np.sqrt(stream.x**2 + stream.y**2)
             if stream.open:
                 break
-            lines.append(array([stream.x, stream.y]).transpose())
+            lines.append(np.array([stream.x, stream.y]).transpose())
             colors.append(stream.style[0])
-            loc, = where(r == r.max())
+            loc, = np.where(r == r.max())
             x = stream.x[loc[0]]
             y = stream.y[loc[0]]
 
         if x1 == x:
             stream = self.get_stream(x1+1.0, y1, 'bx', 'bz', method=method)
-            r = sqrt(stream.x**2 + stream.y**2)
-            loc, = where(r == r.max())
+            r = np.sqrt(stream.x**2 + stream.y**2)
+            loc, = np.where(r == r.max())
             x1 = stream.x[loc[0]]
             y1 = stream.y[loc[0]]
 
         # Add more along neutral sheet.
         if DoTail:
             m = (y-y1)/(x-x1)
-            xmore = arange(x, -100, -3.0)
+            xmore = np.arange(x, -100, -3.0)
             ymore = m*(xmore-x)+y
             for x, y in zip(xmore[1:], ymore[1:]):
                 stream = self.get_stream(x, y, 'bx', 'bz', style=style,
                                          method=method)
-                lines.append(array([stream.x, stream.y]).transpose())
+                lines.append(np.array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
         # Add open field lines.
         if DoOpen:
-            for theta in linspace(daymax, 0.99*(2.0*(pi+tilt))-nightmax, 15):
-                x = self.attrs['rbody'] * cos(theta)
-                y = self.attrs['rbody'] * sin(theta)
+            for theta in np.linspace(daymax, 0.99*(2.0*(np.pi+tilt))-nightmax, 15):
+                x = self.attrs['rbody'] * np.cos(theta)
+                y = self.attrs['rbody'] * np.sin(theta)
                 stream = self.get_stream(x, y, 'bx', 'bz', method=method)
                 if stream.open:
-                    lines.append(array([stream.x, stream.y]).transpose())
+                    lines.append(np.array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
-                x = self.attrs['rbody'] * cos(theta+pi)
-                y = self.attrs['rbody'] * sin(theta+pi)
+                x = self.attrs['rbody'] * np.cos(theta+np.pi)
+                y = self.attrs['rbody'] * np.sin(theta+np.pi)
                 stream = self.get_stream(x, y, 'bx', 'bz', method=method)
                 if stream.open:
-                    lines.append(array([stream.x, stream.y]).transpose())
+                    lines.append(np.array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
 
         if 'colors' in kwargs:
@@ -2798,7 +2777,6 @@ class ShellSlice(IdlFile):
         Extra keywords are sent to the matplotlib contour command.
         '''
 
-        from numpy import pi
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
         from matplotlib.ticker import (LogLocator, LogFormatterMathtext,
@@ -2861,13 +2839,13 @@ class ShellSlice(IdlFile):
         opts = {'size':yticksize, 'rotation':-45, 'ha':'center', 'va':'center'}
         for theta in np.arange(90-latticks, 90-colat_max, -latticks):
             txt = '{:02.0f}'.format(theta)+r'$^{\circ}$'
-            ax.text(pi/4., 90.-theta, txt, color='w', weight='extra bold',
+            ax.text(np.pi/4., 90.-theta, txt, color='w', weight='extra bold',
                     **opts)
-            ax.text(pi/4., 90.-theta, txt, color='k', weight='light', **opts)
+            ax.text(np.pi/4., 90.-theta, txt, color='k', weight='light', **opts)
 
         # Use MLT-type labels.
         lt_labels = ['Noon', '18', '00',   '06']
-        xticks = [0, pi/2,   pi, 3*pi/2]
+        xticks = [0, np.pi/2,   np.pi, 3*np.pi/2]
         xticks = np.array(xticks) + rotate
 
         # Apply x-labels:
@@ -3264,7 +3242,6 @@ class MagFile(PbData):
         Read and parse GM file and IE file (if name given.)
         '''
         import datetime as dt
-        from numpy import zeros
 
         # Slurp lines.
         infile = open(self.attrs['gmfile'], 'r')
