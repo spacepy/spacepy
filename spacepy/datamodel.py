@@ -40,10 +40,11 @@ using the function fromHDF5:
 >>> import spacepy.datamodel as dm
 >>> data = dm.fromHDF5('test.h5')
 
-Functions are also available to directly load data and metadata into a SpacePy datamodel from
-NASA CDF as well as JSON-headed ASCII. Writers also exist to output a SpacePy datamodel directly
-to HDF5 or JSON-headed ASCII. See :py:func:`datamodel.fromCDF`, :py:func:`datamodel.readJSONheadedASCII`,
-:py:func:`datamodel.toHDF5`, and :py:func:`datamodel.toJSONheadedASCII` for more details.
+Functions are also available to directly load data and metadata into a
+SpacePy datamodel from NASA CDF as well as JSON-headed ASCII. Writers also
+exist to output a SpacePy datamodel directly to HDF5 or JSON-headed ASCII.
+See `datamodel.fromCDF`, `datamodel.readJSONheadedASCII`,
+`datamodel.toHDF5`, and `datamodel.toJSONheadedASCII` for more details.
 
 
 Examples
@@ -192,7 +193,7 @@ class MetaMixin(object):
     access to metadata via either an ``attrs`` attribute or ``meta``.
     This mixin class supports that recommendation.
     """
-    
+
     @property
     def meta(self):
         """Equivalent to ``attrs``
@@ -259,19 +260,19 @@ class dmarray(numpy.ndarray, MetaMixin):
     Allowed_Attributes = ['attrs']
 
     def __new__(cls, input_array, attrs=None, dtype=None):
-       # Input array is an already formed ndarray instance
-       # We first cast to be our class type
-       if not dtype:
-           obj = numpy.asarray(input_array).view(cls)
-       else:
-           obj = numpy.asarray(input_array).view(cls).astype(dtype)
-       # add the new attribute to the created instance
-       if attrs != None:
-           obj.attrs = attrs
-       else:
-           obj.attrs = {}
-       # Finally, return the newly created object:
-       return obj
+        # Input array is an already formed ndarray instance
+        # We first cast to be our class type
+        if not dtype:
+            obj = numpy.asarray(input_array).view(cls)
+        else:
+            obj = numpy.asarray(input_array).view(cls).astype(dtype)
+        # add the new attribute to the created instance
+        if attrs != None:
+            obj.attrs = attrs
+        else:
+            obj.attrs = {}
+        # Finally, return the newly created object:
+        return obj
 
     def __array_finalize__(self, obj):
        # see InfoArray.__array_finalize__ for comments
@@ -285,8 +286,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         #this traps most of the bad behaviour ( std() and var() still problems)
         if out_arr.ndim > 0:
             return numpy.ndarray.__array_wrap__(self, out_arr, context)
-        else:
-            return numpy.ndarray.__array_wrap__(self, out_arr, context).tolist()
+        return numpy.ndarray.__array_wrap__(self, out_arr, context).tolist()
 
     def __reduce__(self):
         """This is called when pickling, see:
@@ -296,7 +296,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         """
         object_state = list(numpy.ndarray.__reduce__(self))
         subclass_state = tuple([tuple([val, self.__getattribute__(val)]) for val in self.Allowed_Attributes])
-        object_state[2] = (object_state[2],subclass_state)
+        object_state[2] = (object_state[2], subclass_state)
         return tuple(object_state)
 
     def __setstate__(self, state):
@@ -304,7 +304,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         the way it was saved and reset.
         """
         nd_state, own_state = state
-        numpy.ndarray.__setstate__(self,nd_state)
+        numpy.ndarray.__setstate__(self, nd_state)
         for i, val in enumerate(own_state):
             if not val[0] in self.Allowed_Attributes: # this is attrs
                 self.Allowed_Attributes.append(own_state[i][0])
@@ -321,7 +321,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         if name in ('Allowed_Attributes', 'meta'):
             pass
         elif not name in self.Allowed_Attributes:
-            raise(TypeError("Only attribute listed in Allowed_Attributes can be set"))
+            raise TypeError("Only attribute listed in Allowed_Attributes can be set")
         super(dmarray, self).__setattr__(name, value)
 
     def addAttribute(self, name, value=None):
@@ -331,7 +331,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
         """
         if name in self.Allowed_Attributes:
-            raise(NameError('{0} is already an attribute cannot add again'.format(name)))
+            raise NameError('{0} is already an attribute cannot add again'.format(name))
         self.Allowed_Attributes.append(name)
         self.__setattr__(name, value)
 
@@ -346,7 +346,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         Allowed_Attributes = self.Allowed_Attributes
         backup = []
         for atr in Allowed_Attributes:
-            backup.append( (atr, dmcopy(self.__getattribute__(atr)) ) )
+            backup.append((atr, dmcopy(self.__getattribute__(atr))))
         return backup
 
     @classmethod
@@ -375,7 +375,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         vstack data to an existing dmarray
         """
         backup = one._saveAttrs()
-        outarr = dmarray(numpy.vstack( (one, other) ))
+        outarr = dmarray(numpy.vstack((one, other)))
         return cls._replaceAttrs(outarr, backup)
 
     @classmethod
@@ -384,7 +384,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         hstack data to an existing dmarray
         """
         backup = one._saveAttrs()
-        outarr = dmarray(numpy.hstack( (one, other) ))
+        outarr = dmarray(numpy.hstack((one, other)))
         return cls._replaceAttrs(outarr, backup)
 
     @classmethod
@@ -393,7 +393,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         dstack data to an existing dmarray
         """
         backup = one._saveAttrs()
-        outarr = dmarray(numpy.dstack( (one, other) ))
+        outarr = dmarray(numpy.dstack((one, other)))
         return cls._replaceAttrs(outarr, backup)
 
     @classmethod
@@ -402,7 +402,7 @@ class dmarray(numpy.ndarray, MetaMixin):
         concatenate data to an existing dmarray
         """
         backup = one._saveAttrs()
-        outarr = dmarray(numpy.concatenate( (one, other) , axis=axis ))
+        outarr = dmarray(numpy.concatenate((one, other), axis=axis))
         return cls._replaceAttrs(outarr, backup)
 
 def dmfilled(shape, fillval=0, dtype=None, order='C', attrs=None):
@@ -432,7 +432,6 @@ def dmfilled(shape, fillval=0, dtype=None, order='C', attrs=None):
            [ nan]])
     >>> a.attrs
     {'units': 'nT'}
-        
     """
     a = dmarray(numpy.empty(shape, dtype, order), attrs=attrs)
     a.fill(fillval)
@@ -458,10 +457,10 @@ class SpaceData(dict, MetaMixin):
     """
     def __getitem__(self, key):
         """
-        This allows one to make a SpaceData indexed with an iterable of keys to return a new spacedata
-        made of the subset of keys
+        This allows one to make a SpaceData indexed with an iterable of
+        keys to return a new spacedata made of the subset of keys
         """
-        try: 
+        try:
             return super(SpaceData, self).__getitem__(key)
         except (KeyError, TypeError):
             if isinstance(key, (tuple, list)):
@@ -472,7 +471,7 @@ class SpaceData(dict, MetaMixin):
                     out[k] = self[k]
                 return out
             else:
-                raise(KeyError('{0}'.format(key)))
+                raise KeyError('{0}'.format(key))
 
     def __init__(self, *args, **kwargs):
         """
@@ -512,7 +511,7 @@ class SpaceData(dict, MetaMixin):
 #        sys.stdout = sys_stdout_save
 #        dum.seek(0)
 #        return ''.join(dum.readlines())
-    
+
     def tree(self, **kwargs):
         '''Print the contents of the SpaceData object in a visual tree
 
@@ -617,7 +616,7 @@ class SpaceData(dict, MetaMixin):
         """Create JSON-headed ASCII file from this SpaceData.
 
         See `toJSONheadedASCII`; this object is provided for ``insd``."""
-            
+
 
 def convertKeysToStr(SDobject):
     if isinstance(SDobject, SpaceData):
@@ -692,7 +691,7 @@ def flatten(dobj):
 
     try:
         addme = dobj.__class__()
-    except (TypeError):
+    except TypeError:
         addme = SpaceData()
     remlist = []
     for key in dobj: #iterate over keys in SpaceData
@@ -761,7 +760,7 @@ def unflatten(dobj, marker='<--'):
     #set up a new object for return
     try:
         addme = dobj.__class__()
-    except (TypeError):
+    except TypeError:
         addme = SpaceData()
     #the input is assumed to be single level (i.e. it is flat)
 
@@ -790,11 +789,12 @@ def unflatten(dobj, marker='<--'):
         for key in keydict[grp]:
             newkey = marker.join(key.split(marker)[1:])
             addme[grp][newkey] = dmcopy(dobj[key])
-        addme[grp] = unflatten(addme[grp], marker=marker) #recurse to make sure everything inside is unpacked
+        # recurse to make sure everything inside is unpacked
+        addme[grp] = unflatten(addme[grp], marker=marker)
     return addme
 
 
-def fromCDF(fname, **kwargs):
+def fromCDF(fname):
     '''
     Create a SpacePy datamodel representation of a NASA CDF file
 
@@ -890,54 +890,59 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
     if flatten:
         SDobject = SDobject.flatten()
     if overwrite:
-        raise NotImplementedError('Overwriting CDFs is not currently enabled - please remove the file manually')
+        raise NotImplementedError('Overwriting CDFs is not currently enabled '
+                                  '- please remove the file manually')
     if TT2000 and backward:
         raise ValueError('Cannot use TT2000 in backward-compatible CDF.')
     try:
         from spacepy import pycdf
     except ImportError:
-        raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
+        raise ImportError("CDF converter requires NASA CDF library and"
+                          " SpacePy's pyCDF")
     if backward is None:
         former_backward = None
     else:
         former_backward = pycdf.lib.set_backward(backward)
-    force_epoch = not backward and TT2000 == False  # backward defaults falsey
+    force_epoch = not backward and TT2000 is False  # backward defaults falsey
     with pycdf.CDF(fname, skeleton) as outdata:
         if hasattr(SDobject, 'attrs'):
             for akey in SDobject.attrs:
                 outdata.attrs[akey] = dmcopy(SDobject.attrs[akey])
         varLengths = [len(SDobject[var]) for var in SDobject]
         modeLength = next(itertools.groupby((reversed(sorted(varLengths)))))[0]
-        for key in SDobject:
-            if isinstance(SDobject[key], dict):
-                raise TypeError('This data structure appears to be nested, please try spacepy.datamodel.flatten')
+        for key, val in SDobject.items():
+            if isinstance(val, dict):
+                raise TypeError('This data structure appears to be nested,'
+                                ' please try spacepy.datamodel.flatten')
             if not skeleton:
-                if not SDobject[key].shape:
-                    shape_tup=-1
+                if not val.shape:
+                    shape_tup = -1
                 else:
-                    shape_tup = SDobject[key].shape
+                    shape_tup = val.shape
                 if 'Epoch' not in SDobject:
                     NRVtest = modeLength
                 else:
                     NRVtest = len(SDobject['Epoch'])
                 if shape_tup[0] != NRVtest: #naive check for 'should-be' NRV
                     try:
-                        foo = outdata.new(key, SDobject[key][...], recVary=False)
-                        if verbose: print('{0} is being made NRV'.format(key))
-                        outdata[key].attrs = dmcopy(SDobject[key].attrs)
+                        v = outdata.new(key, val[...], recVary=False)
+                        if verbose:
+                            print('{0} is being made NRV'.format(key))
+                        v.attrs = dmcopy(val.attrs)
                     except ValueError:
-                        foo = outdata.new(key, SDobject[key].tolist, recVary=False)
-                        outdata[key].attrs = dmcopy(SDobject[key].attrs)
+                        v = outdata.new(key, val.tolist, recVary=False)
+                        v.attrs = dmcopy(val.attrs)
                 if force_epoch and 'Epoch' in key:
-                    foo = outdata.new(key, SDobject[key][...], type=pycdf.const.CDF_EPOCH)
+                    outdata.new(key, val[...], type=pycdf.const.CDF_EPOCH)
                 else:
                     try:
-                        outdata[key] = SDobject[key]
+                        outdata[key] = val
                     except ValueError:
                         try:
-                            outdata[key] = dmarray([SDobject[key].tolist()], attrs=dmcopy(SDobject[key].attrs)).squeeze()
+                            outdata[key] = dmarray(
+                                [val.tolist()], attrs=dmcopy(val.attrs)).squeeze()
                         except UnicodeEncodeError:
-                            tmpAttrs = dmcopy(SDobject[key].attrs)
+                            tmpAttrs = dmcopy(val.attrs)
                             for akey in tmpAttrs:
                                 try: #strings
                                     if hasattr(tmpAttrs[akey], 'encode'):
@@ -949,12 +954,12 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
                                         tmpAttrs[akey][id] = el.encode('utf-8')
 
             else:
-                outdata[key][...] = SDobject[key][...]
+                outdata[key][...] = val[...]
                 for akey in outdata[key].attrs:
                     try:
-                        outdata[key].attrs[akey] = dmcopy(SDobject[key].attrs[akey])
+                        outdata[key].attrs[akey] = dmcopy(val.attrs[akey])
                     except ValueError:
-                        outdata[key][...] = dmarray([SDobject[key].tolist()], attrs=dmcopy(SDobject[key].attrs))
+                        outdata[key][...] = dmarray([val.tolist()], attrs=dmcopy(val.attrs))
                     except KeyError:
                         pass
     if former_backward is not None:
@@ -991,27 +996,27 @@ def fromHDF5(fname, **kwargs):
     raise a warning.
     '''
     def hdfcarryattrs(SDobject, hfile, path):
-        if hasattr(hfile[path],'attrs'):
+        if hasattr(hfile[path], 'attrs'):
             #for key, value in hfile[path].attrs.iteritems():
             for key in hfile[path].attrs:
                 try:
                     value = hfile[path].attrs[key]
                 except TypeError:
-                    warnings.warn('Unsupported datatype in dataset {0}.attrs[{1}]'.format(path,key))
+                    warnings.warn('Unsupported datatype in dataset {}.attrs[{}]'.format(path, key))
                     continue
                 try:
                     SDobject.attrs[key] = value
                 except:
                     warnings.warn('The following key:value pair is not permitted\n' +
-                                    'key = {0} ({1})\n'.format(key, type(key)) +
-                                    'value = {0} ({1})'.format(value, type(value)), DMWarning)
+                                  'key = {0} ({1})\n'.format(key, type(key)) +
+                                  'value = {0} ({1})'.format(value, type(value)), DMWarning)
 
     try:
         import h5py
     except ImportError:
         raise ImportError('HDF5 converter requires h5py')
 
-    if type(fname) in str_classes:
+    if isinstance(fname, str_classes):
         hfile = h5py.File(fname, mode='r')
     else:
         hfile = fname
@@ -1024,9 +1029,9 @@ def fromHDF5(fname, **kwargs):
     hdfcarryattrs(SDobject, hfile, path)
     ##carry over the groups and datasets
     for key, value in hfile[path].items():
-        if type(value) is allowed_elems[0]: #if a group
+        if isinstance(value, allowed_elems[0]):  # if a group
             SDobject[key] = fromHDF5(hfile, path=path+'/'+key)
-        elif type(value) is allowed_elems[1]: #if a dataset
+        elif isinstance(value, allowed_elems[1]):  # if a dataset
             isuni = h5py.check_vlen_dtype(value.dtype) is str
             try:
                 if isuni:
@@ -1037,7 +1042,8 @@ def fromHDF5(fname, **kwargs):
             except (TypeError, ZeroDivisionError): #ZeroDivisionError catches zero-sized DataSets
                 SDobject[key] = dmarray(None)
             hdfcarryattrs(SDobject[key], hfile, path+'/'+key)
-    if path=='/': hfile.close()
+    if path == '/':
+        hfile.close()
     return SDobject
 
 def toHDF5(fname, SDobject, **kwargs):
@@ -1059,7 +1065,8 @@ def toHDF5(fname, SDobject, **kwargs):
     mode : str (optional)
         HDF5 file open mode (a, w, r) (default 'a')
     compression : str (optional)
-        compress all non-scalar variables using this method (default None) (gzip, shuffle, fletcher32, szip, lzf)
+        compress all non-scalar variables using this method (default None)
+        (gzip, shuffle, fletcher32, szip, lzf)
 
         .. versionchanged:: 0.4.0
             No longer compresses scalars (which usually fails).
@@ -1084,7 +1091,7 @@ def toHDF5(fname, SDobject, **kwargs):
         if hasattr(SDobject, 'attrs'):
             for key, value in SDobject.attrs.items():
                 dumval, dumkey = copy.copy(value), copy.copy(key)
-                if type(value) in allowed_attrs:
+                if isinstance(value, allowed_attrs):
                     #test for datetimes in iterables
                     if hasattr(value, '__iter__') and not isinstance(value, str_classes):
                         dumval = [b.isoformat() if isinstance(b, datetime.datetime) else b for b in value]
@@ -1102,8 +1109,8 @@ def toHDF5(fname, SDobject, **kwargs):
                         try:
                             if uni:
                                 #Tell hdf5 this is unicode. Numpy is UCS-4, HDF5 is UTF-8
-                                hfile[path].attrs.create(dumkey, dumval,
-                                    dtype=h5py.string_dtype(encoding='utf-8'))
+                                hfile[path].attrs.create(
+                                    dumkey, dumval, dtype=h5py.string_dtype(encoding='utf-8'))
                             else:
                                 hfile[path].attrs[dumkey] = dumval
                         except TypeError:
@@ -1122,17 +1129,18 @@ def toHDF5(fname, SDobject, **kwargs):
                 else:
                     #TODO: add support for arrays(?) in attrs (convert to isoformat)
                     warnings.warn('The following key:value pair is not permitted\n' +
-                                    'key = {0} ({1})\n'.format(key, type(key)) +
-                                    'value type {0} is not in the allowed attribute list'.format(type(value)),
-                                        DMWarning)
+                                  'key = {0} ({1})\n'.format(key, type(key)) +
+                                  'value type {0} is not in the allowed attribute list'.format(type(value)),
+                                  DMWarning)
 
     try:
         import h5py
     except ImportError:
         raise ImportError('h5py is required to use HDF5 files')
-    
+
     if not isinstance(SDobject, SpaceData):
-        raise ValueError("Input data is not of type SpaceData, check usage: toHDF5(fname, datamodel)")
+        raise ValueError("Input data is not of type SpaceData, check usage:"
+                         " toHDF5(fname, datamodel)")
     #mash these into a defaults dict...
     wr_mo = kwargs.get('mode', 'a')
     h5_compr_type = kwargs.get('compression', None)
@@ -1141,13 +1149,14 @@ def toHDF5(fname, SDobject, **kwargs):
     h5_compr_opts = None if h5_compr_type == 'lzf'\
                     else kwargs.get('compression_opts', None)
 
-    if 'overwrite' not in kwargs: kwargs['overwrite'] = True
-    if type(fname) in str_classes:
+    if 'overwrite' not in kwargs:
+        kwargs['overwrite'] = True
+    if isinstance(fname, str_classes):
         if os.path.isfile(fname):
             if kwargs['overwrite']:
                 os.remove(fname)
             else:
-                raise(IOError('Cannot write HDF5, file exists (see overwrite) "{0!s}"'.format(fname)))
+                raise IOError('Cannot write HDF5, file exists (see overwrite) "{!s}"'.format(fname))
         hfile = h5py.File(fname, mode=wr_mo)
         must_close = True
     else:
@@ -1161,23 +1170,27 @@ def toHDF5(fname, SDobject, **kwargs):
         allowed_attrs.append(numpy.sctypeDict[v])
     for v in numpy.typecodes['AllFloat']:
         allowed_attrs.append(numpy.sctypeDict[v])
+    allowed_attrs = tuple(allowed_attrs)
 
-    allowed_elems = [SpaceData, dmarray]
+    allowed_elems = (SpaceData, dmarray)
 
     #first convert non-string keys to str
     SDobject = convertKeysToStr(SDobject)
-    SDcarryattrs(SDobject,hfile,path,allowed_attrs)
+    SDcarryattrs(SDobject, hfile, path, allowed_attrs)
 
     try:
         for key, value in SDobject.items():
             if isinstance(value, allowed_elems[0]):
                 hfile[path].create_group(key)
-                toHDF5(hfile, SDobject[key], path=path+'/'+key, compression=h5_compr_type, compression_opts=h5_compr_opts)
+                toHDF5(
+                    hfile, value, path=path + '/' + key,
+                    compression=h5_compr_type, compression_opts=h5_compr_opts)
             elif isinstance(value, allowed_elems[1]):
                 comptype, compopts = (None, None) if value.shape == ()\
                                      else (h5_compr_type, h5_compr_opts)
                 try:
-                    hfile[path].create_dataset(key, data=value, compression=comptype, compression_opts=compopts)
+                    hfile[path].create_dataset(key, data=value,
+                                               compression=comptype, compression_opts=compopts)
                 except:
                     dumval = numpy.asanyarray(value.copy())
                     dtype = None
@@ -1185,19 +1198,21 @@ def toHDF5(fname, SDobject, **kwargs):
                         dumval = numpy.char.encode(dumval, 'utf-8')
                         dtype = h5py.string_dtype(encoding='utf-8')
                     elif isinstance(value[0], datetime.datetime):
-                        for i, val in enumerate(value): dumval[i] = val.isoformat()
+                        for i, val in enumerate(value):
+                            dumval[i] = val.isoformat()
                         dumval = dumval.astype('|S35')
                     else:
                         dumval = dumval.atsype('|S35')
-                    hfile[path].create_dataset(key, data=dumval, compression=comptype, compression_opts=compopts, dtype=dtype)
+                    hfile[path].create_dataset(key, data=dumval, compression=comptype,
+                                               compression_opts=compopts, dtype=dtype)
                     #else:
                     #    hfile[path].create_dataset(key, data=value.astype(float))
                 SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
             else:
                 warnings.warn('The following data is not being written as is not of an allowed type\n' +
-                               'key = {0} ({1})\n'.format(key, type(key)) +
-                                  'value type {0} is not in the allowed data type list'.format(type(value)),
-                                      DMWarning)
+                              'key = {0} ({1})\n'.format(key, type(key)) +
+                              'value type {} is not in the allowed data type list'.format(
+                                  type(value)), DMWarning)
     finally:
         if must_close:
             hfile.close()
@@ -1225,7 +1240,7 @@ def fromNC3(fname):
 
 
 def toHTML(fname, SDobject, attrs=(),
-           varLinks=False, linkFormat=None, echo=False, tableTag='<table border="1">'):
+           varLinks=False, echo=False, tableTag='<table border="1">'):
     """
     Create an HTML dump of the structure of a spacedata
 
@@ -1315,12 +1330,12 @@ def _idl2html(idl):
         html = html.replace(code, conv[code])
         if code == '!I':
             if '!N' in html:
-                html = html.replace('!N', '</sub>', 1 ) # just replace 1
+                html = html.replace('!N', '</sub>', 1) # just replace 1
             else:
                 html = html + '</sub>'
         elif code == '!E':
             if '!N' in html:
-                html = html.replace('!N', '</sup>', 1 ) # just replace 1
+                html = html.replace('!N', '</sup>', 1) # just replace 1
             else:
                 html = html + '</sup>'
     return html
@@ -1362,9 +1377,10 @@ def readJSONMetadata(fname, **kwargs):
     header = "".join(hreg)
 
     # isolate JSON field
-    srch = re.search(r'\{\s*(.*)\s*\}', header )
+    srch = re.search(r'\{\s*(.*)\s*\}', header)
     if isinstance(srch, type(None)):
-        raise IOError('The input file has no valid JSON header. Must be valid JSON bounded by braces "{ }".')
+        raise IOError(
+            'The input file has no valid JSON header. Must be valid JSON bounded by braces "{ }".')
     js = srch.group(1)
     inx = js.rfind('end JSON')
 
@@ -1377,15 +1393,15 @@ def readJSONMetadata(fname, **kwargs):
 
     mdata = SpaceData()
     for key in mdatadict:
-       if not hasattr(mdatadict[key], 'keys'): # not dict-like, must be global attrs
-           mdata.attrs[key] = mdatadict[key]
-       elif 'START_COLUMN' in mdatadict[key]: # is a variable
-           mdata[key] = SpaceData(attrs=mdatadict[key])
-       elif 'VALUES' in mdatadict[key]: # is global metadata
-           dum = mdatadict[key].pop('VALUES')
-           mdata[key] = dmarray(dum, attrs=mdatadict[key])
-       else: # don't know how to deal with this, store as global attrs
-           mdata.attrs[key] = mdatadict[key]
+        if not hasattr(mdatadict[key], 'keys'): # not dict-like, must be global attrs
+            mdata.attrs[key] = mdatadict[key]
+        elif 'START_COLUMN' in mdatadict[key]: # is a variable
+            mdata[key] = SpaceData(attrs=mdatadict[key])
+        elif 'VALUES' in mdatadict[key]: # is global metadata
+            dum = mdatadict[key].pop('VALUES')
+            mdata[key] = dmarray(dum, attrs=mdatadict[key])
+        else: # don't know how to deal with this, store as global attrs
+            mdata.attrs[key] = mdatadict[key]
 
     if 'verbose' in kwargs:
         if kwargs['verbose']:
@@ -1425,7 +1441,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
     import dateutil.parser as dup
     filelike = False
     if isinstance(fname, str_classes):
-        fname=[fname]
+        fname = [fname]
     elif hasattr(fname, 'readlines'):
         fname = [fname]
         filelike = True
@@ -1438,18 +1454,15 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
     mdata_copy = dmcopy(mdata)
     def innerloop(fh, mdata, mdata_copy):
         line = fh.readline()
-        if not str is bytes:
-            line = line.decode('latin1')
-        while (line and line[0]==comment):
+        line = line.decode('latin1')
+        while (line and line[0] == comment):
             line = fh.readline()
-            if not str is bytes:
-                line = line.decode('latin1')
+            line = line.decode('latin1')
         fh.seek(-len(line), os.SEEK_CUR) # fixes the missing first data bug
         alldata = fh.readlines()
         if not alldata:
             return mdata
-        if not str is bytes:
-            alldata = [d.decode('latin1') for d in alldata]
+        alldata = [d.decode('latin1') for d in alldata]
         ncols = len(alldata[0].rstrip().split())
         # fixes None in the data from empty lines at the end
         for row in range(len(alldata)): # reverse order
@@ -1467,23 +1480,24 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
                 st = mdata_copy[key].attrs['START_COLUMN']
                 if 'DIMENSION' in mdata_copy[key].attrs:
                     varDims = numpy.array(mdata_copy[key].attrs['DIMENSION'])
-                    if not varDims.shape: varDims = numpy.array([varDims])
+                    if not varDims.shape:
+                        varDims = numpy.array([varDims])
                     singleDim = True
-                    if len(varDims)>1 or varDims[0]>1:
+                    if len(varDims) > 1 or varDims[0] > 1:
                         singleDim = False
                 if ('DIMENSION' in mdata_copy[key].attrs) and not singleDim:
                     en = int(mdata_copy[key].attrs['DIMENSION'][0]) + int(st)
                     try:
-                        assert mdata[key]=={}
-                        mdata[key] = data[:,int(st):int(en)]
+                        assert mdata[key] == {}
+                        mdata[key] = data[:, int(st):int(en)]
                     except (AssertionError, ValueError):
-                        mdata[key] = numpy.vstack((mdata[key], data[:,int(st):int(en)]))
+                        mdata[key] = numpy.vstack((mdata[key], data[:, int(st):int(en)]))
                 else:
                     try:
-                        assert mdata[key]=={}
-                        mdata[key] = data[:,int(st)]
+                        assert mdata[key] == {}
+                        mdata[key] = data[:, int(st)]
                     except (AssertionError, ValueError):
-                        mdata[key] = numpy.hstack((mdata[key], data[:,int(st)]))
+                        mdata[key] = numpy.hstack((mdata[key], data[:, int(st)]))
         return mdata
     for fn in fname:
         if not filelike:
@@ -1505,17 +1519,17 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
 
     if convert:
         if isinstance(convert, dict):
-            conversions=convert
+            conversions = convert
         else:
             conversions = {'DateTime': lambda x: dup.parse(x, ignoretz=True),
-                           'ExtModel': lambda x: str(x)}
+                           'ExtModel': str}
         for conkey in conversions:
             try:
                 name = keys.pop(keys.index(conkey)) #remove from keylist
             except ValueError:
-                warnings.warn('Key {0} for conversion not found in file'.format(conkey), UserWarning)
+                warnings.warn('Key {} for conversion not found in file'.format(conkey), UserWarning)
                 continue
-            for i,element in numpy.ndenumerate(mdata[name]):
+            for i, element in numpy.ndenumerate(mdata[name]):
                 mdata[name][i] = conversions[name](element)
 
     for remkey in keys:
@@ -1555,7 +1569,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     js_out = {}
 
     def stripNL(text):
-        out = text.group().replace('\n','').replace('  ','')
+        out = text.group().replace('\n', '').replace('  ', '')
         return out
 
     #if required, identify depend0 for deciding what's data/metadata
@@ -1580,8 +1594,8 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
                 tmp.append(len(insd[key]))
             depend0 = keylist[tmp.index(numpy.bincount(tmp).argmax())]
             #TODO Set using Time, or Epoch, or similar...
-    else:
-        if not depend0 in insd: raise KeyError('Invalid key supplied for ordering metadata on write')
+    elif not depend0 in insd:
+        raise KeyError('Invalid key supplied for ordering metadata on write')
     datalen = len(insd[depend0])
 
     #start with global attrs
@@ -1602,7 +1616,8 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
         keylist = order
         #now make sure that all missing keys are added to end
         for key in sorted(insd.keys()):
-            if key not in order: keylist.append(key)
+            if key not in order:
+                keylist.append(key)
     else:
         ##TODO do we want to have DEPEND0 first in order by default?
         keylist = sorted(insd.keys())
@@ -1611,15 +1626,18 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     for key in keylist:
         js_out[key] = dmcopy(_dateToISO(insd[key].attrs))
         if len(insd[key]) == datalen: #is data
-            if verbose: print('data: {0}'.format(key))
+            if verbose:
+                print('data: {0}'.format(key))
             try:
                 js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
-                if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
+                if not js_out[key]['DIMENSION']:
+                    js_out[key]['DIMENSION'] = [1]
                 js_out[key]['START_COLUMN'] = idx
                 dims = js_out[key]['DIMENSION']
                 idx += int(dims[0])
-                if len(dims)>1:
-                    l1 = 'The data cannot be properly represented in JSON-headed ASCII as it has too high a rank\n'
+                if len(dims) > 1:
+                    l1 = 'The data cannot be properly represented in JSON-headed ASCII'\
+                         ' as it has too high a rank\n'
                     l2 = 'key = {0} ({1})\n'.format(key, insd[key].shape)
                     l3 = 'Maximum allowed number of dimensions is 2\n'
                     warnings.warn(''.join([l1, l2, l3]), DMWarning)
@@ -1627,7 +1645,8 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
                 #js_out[key]['DIMENSION'] = insd[key].attrs['DIMENSION']
                 pass
         else: #is metadata
-            if verbose: print('metadata: {0}'.format(key))
+            if verbose:
+                print('metadata: {0}'.format(key))
             js_out[key]['VALUES'] = dmcopy(_dateToISO(insd[key]))
             js_out[key]['DIMENSION'] = [len(js_out[key]['VALUES'])]
         for kk in js_out[key]:
@@ -1641,17 +1660,18 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     #add comment field for header
     json_str = ''.join(['#', json_str])
     json_str = '\n#'.join(json_str.split('\n'))
-    json_str = ''.join([json_str,'\n'])
+    json_str = ''.join([json_str, '\n'])
 
     if isinstance(fname, str_classes):
-        with open(fname,'w') as fh:
+        with open(fname, 'w') as fh:
             fh.writelines(json_str)
     elif hasattr(fname, 'writelines'):
         fname.writelines(json_str)
     elif (fname is None) and (returnString):
         return json_str
 
-    if returnString: return json_str
+    if returnString:
+        return json_str
 
 
 def _dateToISO(indict):
@@ -1734,7 +1754,7 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
             datlist.append((hdr[key].attrs['START_COLUMN'], key, hdr[key].attrs['DIMENSION'][0]))
             #also use for data length
             datlen = len(insd[key])
-            if datlen==0:
+            if datlen == 0:
                 raise ValueError('No data present to write: Use writeJSONmetadata')
                 #TODO: Set this to just default to writing the header out and raise a warning
     datlist.sort()
@@ -1742,9 +1762,9 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
 
     #now open file (file-like) and for each line in len(data)
     #write the line using start_column, name, dimension
-    data = numpy.zeros([datlen,ncols], dtype=object)
+    data = numpy.zeros([datlen, ncols], dtype=object)
     for stcol, name, dim in datlist:
-        if dim==1:
+        if dim == 1:
             data[:, stcol] = _dateToISO(insd[name])
         else:
             data[:, stcol:stcol+dim] = _dateToISO(insd[name])
@@ -1753,12 +1773,12 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
         fh.writelines(hdstr)
         for line in data:
             prline = kwarg_dict['delimiter'].join([str(el) for el in line])
-            fh.write(''.join([prline,'\n']))
+            fh.write(''.join([prline, '\n']))
 
 
 def fromRecArray(recarr):
     '''Takes a numpy recarray and returns each field as a dmarray in a SpaceData container
-    
+
     Parameters
     ----------
     recarr : numpy record array
@@ -1816,7 +1836,7 @@ def toRecArray(sdo):
     [(2, 1.0) (4, 2.0)] (numpy.record, [('y', '<i8'), ('x', '<f8')])
     '''
     nametype = numpy.dtype([(k, sdo[k].dtype.str) for k in sdo])
-    recarr = numpy.rec.fromarrays( [sdo[k] for k in sdo], dtype=nametype)
+    recarr = numpy.rec.fromarrays([sdo[k] for k in sdo], dtype=nametype)
     return recarr
 
 
@@ -1848,10 +1868,9 @@ def dmcopy(dobj):
     '''
     if isinstance(dobj, (SpaceData, dmarray)):
         return copy.deepcopy(dobj)
-    elif isinstance(dobj, numpy.ndarray):
+    if isinstance(dobj, numpy.ndarray):
         return numpy.copy(dobj)
-    else:
-        return copy.copy(dobj)
+    return copy.copy(dobj)
 
 def createISTPattrs(datatype, ndims=1, vartype=None, units=' ', NRV=False):
     '''Return set of unpopulated attributes for ISTP compliant variable
@@ -1916,7 +1935,8 @@ def createISTPattrs(datatype, ndims=1, vartype=None, units=' ', NRV=False):
     unit = units
 
     if datatype == 'data':
-        attrs = {'CATDESC': '',
+        attrs = {
+            'CATDESC': '',
             'DISPLAY_TYPE': disp[ndims],
             'FIELDNAM': '',
             'FILLVAL': fill,
@@ -1932,7 +1952,8 @@ def createISTPattrs(datatype, ndims=1, vartype=None, units=' ', NRV=False):
             attrs['DEPEND_{0}'.format(dim)] = ''
         attrs['DEPEND_0'] = 'Epoch'
     elif datatype == 'support_data':
-        attrs = {'CATDESC': '',
+        attrs = {
+            'CATDESC': '',
             'FIELDNAM': '',
             'FORMAT': form,
             'UNITS': unit,
@@ -1948,7 +1969,8 @@ def createISTPattrs(datatype, ndims=1, vartype=None, units=' ', NRV=False):
         else:
             del attrs['DEPEND_0']
     elif datatype == 'metadata':
-        attrs = {'CATDESC': '',
+        attrs = {
+            'CATDESC': '',
             'FIELDNAM': '',
             'FORMAT': form,
             'UNITS': unit,
@@ -1966,10 +1988,11 @@ def createISTPattrs(datatype, ndims=1, vartype=None, units=' ', NRV=False):
 
     return attrs
 
+
 def _getVarLengths(data):
     """
     get the length of all the variables
-    
+
     Parameters
     ----------
     data : SpaceData
@@ -1985,7 +2008,7 @@ def _getVarLengths(data):
         ans[k] = len(v)
     return ans
 
-def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epoch'):
+def resample(data, time=None, winsize=0, overlap=0, st_time=None, outtimename='Epoch'):
     """
     resample a SpaceData to a new time interval
 
@@ -2012,7 +2035,7 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
 
     Returns
     -------
-    ans : SpaceData 
+    ans : SpaceData
         Resampled data, included keys are in the input keys (with the data caveats above)
         and Epoch which contains the output time
 
@@ -2037,20 +2060,21 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
     # Things to note:
     #    - attributes are preserved
     #    - the output variables have their DEPEND_0 changed to Epoch (or outtimename)
-    #    - each dimension of a 2d array is resampled individually 
+    #    - each dimension of a 2d array is resampled individually
     """
     from . import toolbox
     # check for SpaceData or dmarray input before going to a bunch of work
     if not isinstance(data, (SpaceData, dmarray)):
-        raise(TypeError('Input must be a SpaceData or dmarray object'))
-
+        raise TypeError('Input must be a SpaceData or dmarray object')
+    if time is None:
+        time = []
     # can only resample variables that have the same length as time,
     #    if time is default then use all the vals that are the same
     #    as the longest var
     lent = len(time)
-    if lent == 0: lent = len(data[max(data, key=lambda k: len(data[k]))])
+    if lent == 0:
+        lent = len(data[max(data, key=lambda k: len(data[k]))])
     keys = [k for k in data if len(data[k]) == lent]
-    d2 = data[keys]
     # what time are we starting at?
     try:
         t_int = time.UTC
@@ -2061,20 +2085,22 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
 
     ans = SpaceData()
     ans.attrs = data.attrs
-    
+
     for k in keys:
         if len(data[k].shape) > 1:
             if len(data[k].shape) > 2:
-                raise(IndexError("Variables can only be 1d or 2d"))
+                raise IndexError("Variables can only be 1d or 2d")
             for i in range(data[k].shape[1]):
-                d, t = toolbox.windowMean(data[k][:,i], time=t_int, winsize=winsize, overlap=overlap, st_time=st_time)
+                d, t = toolbox.windowMean(data[k][:, i], time=t_int, winsize=winsize,
+                                          overlap=overlap, st_time=st_time)
                 if k not in ans:
                     ans[k] = dmarray(d)
                 else:
                     ans[k] = dmarray.vstack(ans[k], d)
             ans[k] = ans[k].T
         else:
-            d, t = toolbox.windowMean(data[k], time=t_int, winsize=winsize, overlap=overlap, st_time=st_time)
+            d, t = toolbox.windowMean(data[k], time=t_int, winsize=winsize,
+                                      overlap=overlap, st_time=st_time)
             ans[k] = dmarray(d)
         try:
             ans[k].attrs = data[k].attrs
@@ -2082,8 +2108,5 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
             pass
         ans[k].attrs['DEPEND_0'] = outtimename
     ans[outtimename] = dmarray(t)
-        
+
     return ans
-
-
-    
