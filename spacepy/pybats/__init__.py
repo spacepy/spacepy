@@ -376,16 +376,16 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
        selectors (name, hex, etc.)  Defaults to 'lightgrey'.
     show_planet : boolean
        Turns on/off planet indicator inside inner boundary.
-       Defaults to **True**
+       Defaults to ``True``
     ang : float
        Set the rotation of the day-night terminator from the y-axis, in degrees
        Defaults to zero (terminator is aligned with Y-axis.)
     add_night : boolean
-       Add night hemisphere.  Defaults to **True**
+       Add night hemisphere.  Defaults to ``True``
     zorder : int
        Set the matplotlib zorder of the patch to set how other plot
        elements order with the inner boundary patch. Defaults to 1000.
-       If a planet is added, it is given a zorder of *zorder*+5.
+       If a planet is added, it is given a zorder of ``zorder`` + 5.
 
     '''
     from matplotlib.patches import Ellipse
@@ -1164,11 +1164,11 @@ class IdlFile(PbData):
     Parameters
     ----------
     filename : string
-        A *.out or *.outs SWMF output file name.
+        A ``*.out`` or ``*.outs`` SWMF output file name.
 
     Other Parameters
     ----------------
-    header : str or **None**
+    header : str or ``None``
         Determine how to interpret the additional header information.
         Defaults to 'units'.
 
