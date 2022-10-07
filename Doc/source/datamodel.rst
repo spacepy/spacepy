@@ -16,6 +16,7 @@ datamodel - easy to use general data model
 
     SpaceData
     dmarray
+    ISTPContainer
     DMWarning
 
 .. rubric:: Functions

@@ -223,6 +223,60 @@ class MetaMixin(object):
         del self.attrs
 
 
+class ISTPContainer(object):
+    """Mixin class for containers using ISTP metadata.
+
+    Additional methods for container types, such as `SpaceData`, assuming
+    that the attributes of the container and the arrays it contains use
+    the  `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+
+    .. autosummary::
+        ~ISTPContainer.plot
+    .. automethod:: plot
+    """
+
+    def plot(self, vname):
+        """Plot a value (array) from this container
+
+        Parameters
+        ----------
+        vname : `str`
+            The key into this container of the value to plot (i.e.,
+            the name of the variable).
+
+        Returns
+        -------
+        ax : `matplotlib.axes.Axes`
+            The subplot on which the variable was plotted
+        """
+        import spacepy.plot.utils
+        v = self[vname]
+        target = None
+        fig, ax = spacepy.plot.utils.set_target(target)
+        x = self[v.attrs['DEPEND_0']]
+        labels = None
+        if v.attrs.get('LABL_PTR_1'):
+            labels = self[v.attrs['LABL_PTR_1']]
+        for dim in range(v.shape[-1]):
+            ax.plot(numpy.array(x), numpy.array(v[:, dim]), label=labels[dim])
+        ylabel = ''
+        if v.attrs.get('LABLAXIS'):
+            ylabel = v.attrs['LABLAXIS']
+        if v.attrs.get('UNITS'):
+            ylabel = '{}{}({})'.format(
+                ylabel, ' ' if ylabel else '', v.attrs['UNITS'])
+        if ylabel:
+            ax.set_ylabel(ylabel)
+        if x.attrs.get('LABLAXIS'):
+            ax.set_xlabel(x.attrs['LABLAXIS'])
+        if target is not ax:
+            ax.legend(loc='best')
+        if target is None and v.attrs.get('CATDESC'):
+            fig.suptitle(v.attrs['CATDESC'])
+        spacepy.plot.utils.applySmartTimeTicks(ax, x)
+        return ax
+
+
 class dmarray(numpy.ndarray, MetaMixin):
     """
     Container for data within a SpaceData object
@@ -438,9 +492,12 @@ def dmfilled(shape, fillval=0, dtype=None, order='C', attrs=None):
     return a
 
 
-class SpaceData(dict, MetaMixin):
+class SpaceData(dict, MetaMixin, ISTPContainer):
     """
     Datamodel class extending dict by adding attributes.
+
+    Although the format of attributes is not enforced, using ISTP metadata
+    enables the use of methods from `ISTPContainer`.
 
     .. currentmodule:: spacepy.datamodel
     .. autosummary::
