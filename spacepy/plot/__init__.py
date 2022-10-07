@@ -12,10 +12,11 @@ information more cleanly, with less effort
 (e.g. applySmartTimeTicks, style).
 
 This plot module now provides style sheets. For most standard plotting 
-we recommend the *default* style sheet (aka *spacepy*). To auto-apply the
-default plot style the following should be added to your spacepy.rc file::
+we recommend the *default* style sheet (aka *spacepy*). To apply the
+default plot style, use the following::
 
-    apply_plot_styles: True
+    import spacepy.plot as splot
+    splot.style()
 
 Different plot types may not work well with this style, so we have provided
 alternatives. For polar plots, spectrograms, or anything with larger blocks 
@@ -145,34 +146,18 @@ def style(look=None, cmap='plasma'):
 
     Parameters
     ----------
-    look : str
-    Name of style. For a list of available style names, see `spacepy.plot.available`.
+    look : str, optional
+        Name of style. For a list of available style names, see
+        `spacepy.plot.available`. If not specified, will use default
+        ``"spacepy"`` style.
     '''
     lookdict = available(returnvals=True)
-    try:
-        usestyle = lookdict[look]
-    except KeyError:
-        usestyle = lookdict['default']
-    try:
-        plt.style.use(usestyle)
-    except AttributeError: #plt.style.use not available, old matplotlib?
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            dum = mpl.rc_params_from_file(usestyle)
-            styapply = dict()
-            #remove None values as these seem to cause issues...
-            for key in dum:
-                if dum[key] is not None: styapply[key] = dum[key]
-            for key in styapply:
-                mpl.rcParams[key] = styapply[key]
+    usestyle = lookdict.get(look, lookdict['default'])
+    plt.style.use(usestyle)
     mpl.rcParams['image.cmap'] = cmap
 
 #save current rcParams before applying spacepy style
-oldParams = dict()
-for key, val in mpl.rcParams.items():
-        oldParams[key] = dmcopy(val)
-if config['apply_plot_styles']:
-    style()
+oldParams = {key: dmcopy(val) for key, val in mpl.rcParams.items()}
 
 def revert_style():
     '''Revert plot style settings to those in use prior to importing spacepy.plot

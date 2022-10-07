@@ -55,6 +55,11 @@ with temperature and density naming.
 perpendicular velocities with new `~.pybats.bats.Bats2d.calc_uperp`
 and `~.pybats.bats.Bats2d.calc_upar` methods.
 
+Deprecations and removals
+*************************
+Since plot styles are no longer applied on import, importing
+``spacepy.plot.apionly`` has no effect and is deprecated.
+
 Major bugfixes
 **************
 :func:`~.datamodel.toCDF` handling of time types other than TT2000 has
@@ -63,6 +68,9 @@ been fixed.
 Other changes
 *************
 :func:`~.datamodel.toCDF` now only accepts valid keyword arguments.
+
+Plot styles are not automatically applied on import of :mod:`.plot`. Use
+`.plot.style` directly to apply the desired style.
 
 0.4 Series
 ==========

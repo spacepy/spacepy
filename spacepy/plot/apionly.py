@@ -1,11 +1,10 @@
 """
-Import spacepy.plot without changing styles.
+Formerly used to import spacepy.plot without changing styles.
 
-This will import :mod:`spacepy.plot` without applying the default SpacePy
-plot styles. Access all functions and classes through attributes of
- :mod:`~spacepy.plot`; nothing further is defined here.
+.. versionchanged:: 0.5.0
+   Deprecated, as styles are no longer applied on import.
 """
+import warnings
 
-from . import revert_style
-revert_style()
-del revert_style
+warnings.warn('Plot styles no longer applied on import, apionly deprecated'
+              ' in SpacePy 0.5.0', DeprecationWarning)
