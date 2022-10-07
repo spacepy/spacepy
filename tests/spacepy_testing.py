@@ -9,6 +9,7 @@ import os.path
 import re
 import sys
 import sysconfig
+import unittest
 import warnings
 
 
@@ -178,6 +179,29 @@ class assertDoesntWarn(assertWarns):
               + assertWarns.__doc__[assertWarns.__doc__.index('\n'):]
     requireWarning = False
     pass
+
+
+class TestPlot(unittest.TestCase):
+    """Support for unit tests of plot functionality"""
+    save_plots = False
+    """Save current figure at end of test, can be set by subclass or instance"""
+
+    def setUp(self):
+        super().setUp()
+        import matplotlib
+        import matplotlib.pyplot
+        self.old_backend = matplotlib.get_backend()
+        matplotlib.use('agg')
+
+    def tearDown(self):
+        super().tearDown()
+        import matplotlib
+        import matplotlib.pyplot
+        if self.save_plots and matplotlib.pyplot.get_fignums():
+            fname = 'output_{}.png'.format('_'.join(self.id().split('.')[1:]))
+            matplotlib.pyplot.savefig(fname)
+            matplotlib.pyplot.close()
+        matplotlib.use(self.old_backend)
 
 
 add_build_to_path()

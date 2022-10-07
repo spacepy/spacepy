@@ -1219,5 +1219,75 @@ class VariableTests(unittest.TestCase):
         self.assertEqual(a, a_ans)
 
 
+class ISTPPlotTests(spacepy_testing.TestPlot):
+    """Plotting functions of ISTP-based SpaceData"""
+
+    def setUp(self):
+        super().setUp()
+        npoints = 50  # points in synthetic data
+        x = np.linspace(0, 2 * np.pi, npoints)
+        self.sd = dm.SpaceData({
+            'dim': dm.dmarray(
+                [0, 1, 2],
+                attrs={'CATDESC': 'Dimension index',
+                       'FIELDNAM': 'dim',
+                       'FORMAT': 'I2',
+                       'UNITS': ' ',
+                       'VAR_TYPE': 'support_data'}),
+            'Epoch': dm.dmarray(
+                [datetime.datetime(2020, 8, 1, 0, i, 30) for i in range(npoints)],
+                attrs={'CATDESC': 'Time for B field',
+                       'FIELDNAM': 'Epoch',
+                       'FILLVAL': datetime.datetime(9999, 12, 31, 23, 59, 59, 999999),
+                       'LABLAXIS': 'UT',
+                       'MONOTON': 'INCREASE',
+                       'SCALETYP': 'linear',
+                       'UNITS': 'ns',
+                       'VALIDMAX': datetime.datetime(1990, 1, 1),
+                       'VALIDMIN': datetime.datetime(2030, 1, 1),
+                       'VAR_TYPE': 'support_data'}),
+            'B_labels': dm.dmarray(
+                ['X', 'Y', 'Z'],
+                attrs={'CATDESC': 'Labels for B',
+                       'FIELDNAM': 'Labels for B',
+                       'FORMAT': 'A3',
+                       'UNITS': ' ',
+                       'VAR_TYPE': 'metadata'}),
+            'B_vec': dm.dmarray(
+                10 * np.column_stack((np.sin(x), np.cos(x), np.sin(x / 2))),  # fake but pretty
+                attrs={'CATDESC': 'Magnetic field',
+                       'DEPEND_0': 'Epoch',
+                       'DEPEND_1': 'dim',
+                       'DISPLAY_TYPE': 'time_series',
+                       'FIELDNAM': 'B_vec',
+                       'FILLVAL': -1e+31,
+                       'FORMAT': 'F6.1',
+                       'LABLAXIS': 'B',
+                       'LABL_PTR_1': 'B_labels',
+                       'SCALETYP': 'linear',
+                       'UNITS': 'nT',
+                       'VALIDMAX': 1000.,
+                       'VALIDMIN': -1000.,
+                       'VAR_TYPE': 'data'})
+            })
+
+    def test_plot_timeseries(self):
+        """Plot a timeseries"""
+        ax = self.sd.plot('B_vec')
+        lines = ax.get_lines()
+        self.assertEqual(3, len(lines))
+        for i in range(3):
+            np.testing.assert_array_equal(lines[i].get_xdata(), self.sd['Epoch'])
+            np.testing.assert_array_equal(lines[i].get_ydata(),
+                                             self.sd['B_vec'][:, i])
+        self.assertEqual('B (nT)', ax.get_ylabel())
+        self.assertEqual('UT', ax.get_xlabel())
+        self.assertEqual(['X', 'Y', 'Z'], [t.get_text() for t in ax.get_legend().texts])
+        fig = ax.get_figure()
+        self.assertEqual(1, len(fig.texts))
+        self.assertEqual(self.sd['B_vec'].attrs['CATDESC'],
+                         fig.texts[0].get_text())
+
+
 if __name__ == "__main__":
     unittest.main()
