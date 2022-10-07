@@ -27,7 +27,6 @@ Copyright 2010 Los Alamos National Security, LLC.
 import os
 import numpy as np
 from spacepy import deprecated
-import spacepy.plot.apionly
 from spacepy.plot import set_target
 from spacepy.pybats import PbData, dmarray
 

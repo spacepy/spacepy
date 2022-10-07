@@ -11,7 +11,6 @@ import scipy.io
 import spacepy.datamodel as dm
 import spacepy.time as spt
 import spacepy.toolbox as tb
-import spacepy.plot.apionly
 from spacepy.plot import set_target, applySmartTimeTicks
 from spacepy.pybats import PbData
 
