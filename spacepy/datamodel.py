@@ -254,11 +254,20 @@ class ISTPContainer(object):
         target = None
         fig, ax = spacepy.plot.utils.set_target(target)
         x = self[v.attrs['DEPEND_0']]
+        data = numpy.array(v)
+        idx = numpy.zeros_like(data, dtype=bool)
+        if v.attrs.get('FILLVAL') is not None:
+            idx |= numpy.isclose(data, v.attrs['FILLVAL'])
+        if v.attrs.get('VALIDMIN') is not None:
+            idx |= data < v.attrs['VALIDMIN']
+        if v.attrs.get('VALIDMAX') is not None:
+            idx |= data > v.attrs['VALIDMAX']
+        data[idx] = numpy.nan
         labels = None
         if v.attrs.get('LABL_PTR_1'):
             labels = self[v.attrs['LABL_PTR_1']]
         for dim in range(v.shape[-1]):
-            ax.plot(numpy.array(x), numpy.array(v[:, dim]), label=labels[dim])
+            ax.plot(numpy.array(x), data[:, dim], label=labels[dim])
         ylabel = ''
         if v.attrs.get('LABLAXIS'):
             ylabel = v.attrs['LABLAXIS']
