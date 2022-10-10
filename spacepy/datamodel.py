@@ -307,8 +307,17 @@ class ISTPContainer(object):
         labels = None
         if v.attrs.get('LABL_PTR_1'):
             labels = self[v.attrs['LABL_PTR_1']]
+        deltas = self.get_deltas(vname)
         for dim in range(v.shape[-1]):
-            ax.plot(numpy.array(x), data[:, dim], label=labels[dim])
+            if deltas:
+                if len(deltas) == 1:
+                    yerr = deltas[0][:, dim]
+                else:
+                    yerr = numpy.stack((deltas[0][:, dim], deltas[1][:, dim]))
+                ax.errorbar(numpy.array(x), data[:, dim], label=labels[dim],
+                            yerr=yerr)
+            else:
+                ax.plot(numpy.array(x), data[:, dim], label=labels[dim])
         ylabel = ''
         if v.attrs.get('LABLAXIS'):
             ylabel = v.attrs['LABLAXIS']
@@ -325,6 +334,40 @@ class ISTPContainer(object):
             fig.suptitle(v.attrs['CATDESC'])
         spacepy.plot.utils.applySmartTimeTicks(ax, x)
         return ax
+
+    def get_deltas(self, vname):
+        """Return deltas for an array
+
+        Returns ISTP delta values. These may be uncertainties or may
+        be e.g. bin widths; interpretation is undefined.
+
+        Invalid values are replaced with `~numpy.nan`.
+
+        Parameters
+        ----------
+        vname : `str`
+            The key into this container of the value to get delta
+            (i.e.,  the name of the variable).
+
+        Returns
+        -------
+        deltas : `tuple` of `~numpy.ndarray`
+            Deltas for ``vname``. Empty if no deltas available;
+            one-element if symmetric; two-element if not symmetric.
+        """
+        v = self[vname]
+        asymmetric_msg = 'Only one of DELTA_(MINUS_PLUS)_VAR specified.'
+        if 'DELTA_PLUS_VAR' not in v.attrs:
+            if 'DELTA_MINUS_VAR' in v.attrs:
+                raise ValueError(asymmetric_msg)
+            else:
+                return ()
+        elif 'DELTA_MINUS_VAR' not in v.attrs:
+            raise ValueError(asymmetric_msg)
+        dp = self[v.attrs['DELTA_PLUS_VAR']].replace_invalid()
+        if v.attrs['DELTA_PLUS_VAR'] == v.attrs['DELTA_MINUS_VAR']:
+            return(dp,)
+        return(self[v.attrs['DELTA_MINUS_VAR']].replace_invalid(), dp)
 
 
 class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
