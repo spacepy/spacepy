@@ -1288,6 +1288,53 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertFalse(np.isnan(out[:15, 2]).any())
         self.assertFalse(np.isnan(out[16:, 2]).any())
 
+    def test_get_deltas(self):
+        """Get delta plus/minus vars"""
+        self.assertEqual((), self.sd.get_deltas('B_vec'))
+        self.sd['B_err_lo'] = dm.dmarray(
+            np.tile([.2, .3, .4], (self.sd['B_vec'].shape[0], 1)),
+            attrs={'CATDESC': 'Magnetic field error, minus side',
+                   'DEPEND_0': 'Epoch',
+                   'DEPEND_1': 'dim',
+                   'FIELDNAM': 'B_err_lo',
+                   'FILLVAL': -1.e31,
+                   'FORMAT': 'F6.1',
+                   'LABLAXIS': 'Mag unc, minus',
+                   'LABL_PTR_1': 'B_labels',
+                   'UNITS': 'nT',
+                   'VALIDMAX': 1000.,
+                   'VALIDMIN': -1000.,
+                   'VAR_TYPE': 'support_data',})
+        self.sd['B_vec'].attrs.update({
+            'DELTA_MINUS_VAR': 'B_err_lo',
+            'DELTA_PLUS_VAR': 'B_err_lo',
+        })
+        res = self.sd.get_deltas('B_vec')
+        self.assertEqual(1, len(res))
+        np.testing.assert_array_equal(
+            self.sd['B_err_lo'], res[0])
+        self.sd['B_err_hi'] = dm.dmarray(
+            np.tile([.1, .15, .17], (self.sd['B_vec'].shape[0], 1)),
+            attrs={'CATDESC': 'Magnetic field error, plus side',
+                   'DEPEND_0': 'Epoch',
+                   'DEPEND_1': 'dim',
+                   'FIELDNAM': 'B_err_hi',
+                   'FILLVAL': -1.e31,
+                   'FORMAT': 'F6.1',
+                   'LABLAXIS': 'Mag unc, plus',
+                   'LABL_PTR_1': 'B_labels',
+                   'UNITS': 'nT',
+                   'VALIDMAX': 1000.,
+                   'VALIDMIN': -1000.,
+                   'VAR_TYPE': 'support_data',})
+        self.sd['B_vec'].attrs['DELTA_PLUS_VAR'] = 'B_err_hi'
+        res = self.sd.get_deltas('B_vec')
+        self.assertEqual(2, len(res))
+        np.testing.assert_array_equal(
+            self.sd['B_err_lo'], res[0])
+        np.testing.assert_array_equal(
+            self.sd['B_err_hi'], res[1])
+
     def test_plot_timeseries(self):
         """Plot a timeseries"""
         ax = self.sd.plot('B_vec')
@@ -1318,6 +1365,60 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertFalse(np.isnan(lines[0].get_ydata()[6:]).any())
         self.assertFalse(np.isnan(lines[1].get_ydata()[11:]).any())
         self.assertFalse(np.isnan(lines[2].get_ydata()[16:]).any())
+
+    def test_plot_ts_w_fill_and_errs(self):
+        """Plot a timeseries with errorbars"""
+        self.sd['B_vec'][5, 0] = -1e31
+        self.sd['B_vec'][10, 1] = 1.e4
+        self.sd['B_vec'][15, 2] = -1.e4
+        self.sd['B_err_lo'] = dm.dmarray(
+            np.tile([.2, .3, .4], (self.sd['B_vec'].shape[0], 1)),
+            attrs={'CATDESC': 'Magnetic field error, minus side',
+                   'DEPEND_0': 'Epoch',
+                   'DEPEND_1': 'dim',
+                   'FIELDNAM': 'B_err_lo',
+                   'FILLVAL': -1.e31,
+                   'FORMAT': 'F6.1',
+                   'LABLAXIS': 'Mag unc, minus',
+                   'LABL_PTR_1': 'B_labels',
+                   'UNITS': 'nT',
+                   'VALIDMAX': 1000.,
+                   'VALIDMIN': -1000.,
+                   'VAR_TYPE': 'support_data',})
+        self.sd['B_err_hi'] = dm.dmarray(
+            np.tile([.1, .15, .17], (self.sd['B_vec'].shape[0], 1)),
+            attrs={'CATDESC': 'Magnetic field error, plus side',
+                   'DEPEND_0': 'Epoch',
+                   'DEPEND_1': 'dim',
+                   'FIELDNAM': 'B_err_hi',
+                   'FILLVAL': -1.e31,
+                   'FORMAT': 'F6.1',
+                   'LABLAXIS': 'Mag unc, plus',
+                   'LABL_PTR_1': 'B_labels',
+                   'UNITS': 'nT',
+                   'VALIDMAX': 1000.,
+                   'VALIDMIN': -1000.,
+                   'VAR_TYPE': 'support_data',})
+        self.sd['B_vec'].attrs.update({
+            'DELTA_MINUS_VAR': 'B_err_lo',
+            'DELTA_PLUS_VAR': 'B_err_hi',
+        })
+        ax = self.sd.plot('B_vec')
+        lines = ax.get_lines()
+        self.assertEqual(3, len(lines))
+        import matplotlib.collections
+        errs = [c for c in ax.get_children()
+                if isinstance(c, matplotlib.collections.LineCollection)]
+        for i in range(3):
+            bottoms = np.array([s[0, 1] for s in errs[i].get_segments()])
+            tops = np.array([s[1, 1] for s in errs[i].get_segments()])
+            expected = self.sd['B_vec'][:, i] - self.sd['B_err_lo'][:, i]
+            valid = (self.sd['B_vec'][:, i] < 5e3) & (self.sd['B_vec'][:, i] > -5e3)
+            expected = expected[valid]
+            np.testing.assert_array_equal(expected, bottoms)
+            expected = self.sd['B_vec'][:, i] + self.sd['B_err_hi'][:, i]
+            expected = expected[valid]
+            np.testing.assert_array_equal(expected, tops)
 
 
 if __name__ == "__main__":
