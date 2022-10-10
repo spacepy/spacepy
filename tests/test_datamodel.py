@@ -1288,6 +1288,20 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual(self.sd['B_vec'].attrs['CATDESC'],
                          fig.texts[0].get_text())
 
+    def test_plot_ts_w_fill(self):
+        """Plot a timeseries with fill data"""
+        self.sd['B_vec'][5, 0] = -1e31
+        self.sd['B_vec'][10, 1] = 1.e4
+        self.sd['B_vec'][15, 2] = -1.e4
+        ax = self.sd.plot('B_vec')
+        lines = ax.get_lines()
+        self.assertTrue(np.isnan(lines[0].get_ydata()[5]))
+        self.assertTrue(np.isnan(lines[1].get_ydata()[10]))
+        self.assertTrue(np.isnan(lines[2].get_ydata()[15]))
+        self.assertFalse(np.isnan(lines[0].get_ydata()[6:]).any())
+        self.assertFalse(np.isnan(lines[1].get_ydata()[11:]).any())
+        self.assertFalse(np.isnan(lines[2].get_ydata()[16:]).any())
+
 
 if __name__ == "__main__":
     unittest.main()
