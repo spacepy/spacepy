@@ -1220,7 +1220,8 @@ class VariableTests(unittest.TestCase):
 
 
 class ISTPPlotTests(spacepy_testing.TestPlot):
-    """Plotting functions of ISTP-based SpaceData"""
+    """Test ISTP-based SpaceData"""
+    # Not all tests use plotting, but many do, and need a single line of inheritance
 
     def setUp(self):
         super().setUp()
@@ -1270,6 +1271,22 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
                        'VALIDMIN': -1000.,
                        'VAR_TYPE': 'data'})
             })
+
+    def test_replace_invalid(self):
+        """Test replacing invalid values with NaN"""
+        self.sd['B_vec'][5, 0] = -1e31
+        self.sd['B_vec'][10, 1] = 1.e4
+        self.sd['B_vec'][15, 2] = -1.e4
+        out = self.sd['B_vec'].replace_invalid()
+        self.assertTrue(np.isnan(out[5, 0]))
+        self.assertTrue(np.isnan(out[10, 1]))
+        self.assertTrue(np.isnan(out[15, 2]))
+        self.assertFalse(np.isnan(out[:5, 0]).any())
+        self.assertFalse(np.isnan(out[6:, 0]).any())
+        self.assertFalse(np.isnan(out[:10, 1]).any())
+        self.assertFalse(np.isnan(out[11:, 1]).any())
+        self.assertFalse(np.isnan(out[:15, 2]).any())
+        self.assertFalse(np.isnan(out[16:, 2]).any())
 
     def test_plot_timeseries(self):
         """Plot a timeseries"""

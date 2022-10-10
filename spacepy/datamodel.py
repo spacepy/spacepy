@@ -223,6 +223,55 @@ class MetaMixin(object):
         del self.attrs
 
 
+class ISTPArray(object):
+    """Mixin class for array using ISTP metadata.
+
+    Additional methods for array types, such as `dmarray`, assuming
+    that the attributes of the array use the
+    `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+
+    Note that some operations that may seem to relate to an array (e.g.
+    uncertainties) may require the use of other arrays in a container;
+    these are in `ISTPContainer`.
+
+    .. autosummary::
+        ~ISTPArray.replace_invalid
+    .. automethod:: replace_invalid
+    """
+
+    def replace_invalid(self):
+        """Return data from array with invalid values replaced by `~numpy.nan`.
+
+        Makes a copy of the data and, for any values equal to the
+        ``FILLLVAL`` attribute, greater than ``VALIDMAX``, or less than
+        ``VALIDMIN``, replace with NaN.
+
+        Returns
+        -------
+        `~numpy.ndarray`
+            Transformed data
+
+        See Also
+        --------
+        .pycdf.istp.nanfill : an in-place variant
+
+        Notes
+        -----
+        Comparisons with ``FILLVAL`` are done using `~numpy.isclose` and
+        so may NaN values thare are near, but not identical, to fill.
+        """
+        data = numpy.array(self)
+        idx = numpy.zeros_like(data, dtype=bool)
+        if self.attrs.get('FILLVAL') is not None:
+            idx |= numpy.isclose(data, self.attrs['FILLVAL'])
+        if self.attrs.get('VALIDMIN') is not None:
+            idx |= data < self.attrs['VALIDMIN']
+        if self.attrs.get('VALIDMAX') is not None:
+            idx |= data > self.attrs['VALIDMAX']
+        data[idx] = numpy.nan
+        return data
+
+
 class ISTPContainer(object):
     """Mixin class for containers using ISTP metadata.
 
@@ -254,15 +303,7 @@ class ISTPContainer(object):
         target = None
         fig, ax = spacepy.plot.utils.set_target(target)
         x = self[v.attrs['DEPEND_0']]
-        data = numpy.array(v)
-        idx = numpy.zeros_like(data, dtype=bool)
-        if v.attrs.get('FILLVAL') is not None:
-            idx |= numpy.isclose(data, v.attrs['FILLVAL'])
-        if v.attrs.get('VALIDMIN') is not None:
-            idx |= data < v.attrs['VALIDMIN']
-        if v.attrs.get('VALIDMAX') is not None:
-            idx |= data > v.attrs['VALIDMAX']
-        data[idx] = numpy.nan
+        data = v.replace_invalid()
         labels = None
         if v.attrs.get('LABL_PTR_1'):
             labels = self[v.attrs['LABL_PTR_1']]
@@ -286,9 +327,12 @@ class ISTPContainer(object):
         return ax
 
 
-class dmarray(numpy.ndarray, MetaMixin):
+class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
     """
     Container for data within a SpaceData object
+
+    Although the format of attributes is not enforced, using ISTP metadata
+    enables the use of methods from `ISTPArray`.
 
     Raises
     ------
