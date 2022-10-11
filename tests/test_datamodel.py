@@ -1270,6 +1270,20 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
                        'UNITS': 'nT',
                        'VALIDMAX': 1000.,
                        'VALIDMIN': -1000.,
+                       'VAR_TYPE': 'data'}),
+            'B_mag': dm.dmarray(
+                10 * np.sin(x),  # fake but pretty
+                attrs={'CATDESC': 'Magnetic field',
+                       'DEPEND_0': 'Epoch',
+                       'DISPLAY_TYPE': 'time_series',
+                       'FIELDNAM': 'B_mag',
+                       'FILLVAL': -1e+31,
+                       'FORMAT': 'F6.1',
+                       'LABLAXIS': 'B',
+                       'SCALETYP': 'linear',
+                       'UNITS': 'nT',
+                       'VALIDMAX': 1000.,
+                       'VALIDMIN': -1000.,
                        'VAR_TYPE': 'data'})
             })
 
@@ -1361,6 +1375,17 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual(1, len(fig.texts))
         self.assertEqual(self.sd['B_vec'].attrs['CATDESC'],
                          fig.texts[0].get_text())
+
+    def test_lineplot_timeseries_1D(self):
+        """Plot a timeseries with a single line"""
+        ax = self.sd.lineplot('B_mag')
+        lines = ax.get_lines()
+        self.assertEqual(1, len(lines))
+        np.testing.assert_array_equal(lines[0].get_xdata(), self.sd['Epoch'])
+        np.testing.assert_array_equal(lines[0].get_ydata(), self.sd['B_mag'])
+        self.assertEqual('B (nT)', ax.get_ylabel())
+        self.assertEqual('UT', ax.get_xlabel())
+        self.assertIs(None, ax.get_legend())
 
     def test_lineplot_timeseries_target_fig(self):
         """Plot a timeseries, specify a figure"""
