@@ -1352,6 +1352,25 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual(self.sd['B_vec'].attrs['CATDESC'],
                          fig.texts[0].get_text())
 
+    def test_lineplot_timeseries_target_fig(self):
+        """Plot a timeseries, specify a figure"""
+        import matplotlib.pyplot
+        fig = matplotlib.pyplot.figure()
+        ax = self.sd.lineplot('B_vec', target=fig)
+        self.assertIs(ax.get_figure(), fig)
+        self.assertEqual(0, len(fig.texts))
+
+    def test_lineplot_timeseries_target_ax(self):
+        """Plot a timeseries, specify an AxesSubplot"""
+        import matplotlib.pyplot
+        fig = matplotlib.pyplot.figure()
+        ax_in = fig.add_subplot(111)
+        ax = self.sd.lineplot('B_vec', target=ax_in)
+        self.assertIs(fig, ax.get_figure())
+        self.assertIs(ax_in, ax)
+        self.assertEqual(0, len(fig.texts))
+        self.assertIs(None, ax.get_legend())
+
     def test_lineplot_ts_w_fill(self):
         """Plot a timeseries with fill data"""
         self.sd['B_vec'][5, 0] = -1e31
