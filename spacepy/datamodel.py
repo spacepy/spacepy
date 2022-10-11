@@ -308,9 +308,11 @@ class ISTPContainer(collections.abc.Mapping):
     .. autosummary::
         ~ISTPContainer.lineplot
         ~ISTPContainer.main_vars
+        ~ISTPContainer.plot
         ~ISTPContainer.spectrogram
     .. automethod:: lineplot
     .. automethod:: main_vars
+    .. automethod:: plot
     .. automethod:: spectrogram
     """
     attrs:  collections.abc.Mapping
@@ -396,6 +398,46 @@ class ISTPContainer(collections.abc.Mapping):
         if any(('VAR_TYPE' in v.attrs for v in self.values())):
             main = [m for m in main if self[m].attrs.get('VAR_TYPE', '') == 'data']
         return main
+
+    def plot(self, vnames=None, fig=None):
+        """Plot one or more values (arrays) from this container
+
+        Parameters
+        ----------
+        vnames : `list` of `str`, optional.
+            The key into this container of the value(s) to plot (i.e.,
+            the name of the variable). If not specified, plots all
+            'main' variables which are not dependencies of others;
+            see `main_vars`.
+
+        fig : `matplotlib.figure.Figure`, optional
+            Where to draw the plot. Default is to create a new figure. If
+            given, subplots will be added to this figure (it should start
+            empty).
+
+        Returns
+        -------
+        fig : `matplotlib.figure.Figure`
+            The figure on which the variables were plotted
+        """
+        if fig is None:
+            import matplotlib.pyplot
+            fig = matplotlib.pyplot.figure()
+        if isinstance(vnames, collections.abc.Hashable) and vnames in self:
+            vnames = [vnames]
+        if vnames is None:
+            vnames = self.main_vars()
+        n_plots = len(vnames)
+        for i, k in enumerate(vnames):
+            ax = fig.add_subplot(n_plots, 1, i + 1)
+            if self[k].plot_as_line():
+                self.lineplot(k, target=ax)
+                h, l = ax.get_legend_handles_labels()
+                if l:
+                    ax.legend(h, l, loc='best')
+            else:
+                self.spectrogram(k, target=ax)
+        return fig
 
     def spectrogram(self, vname, target=None):
         """Spectrogram plot of a value (array) from this container
