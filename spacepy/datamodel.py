@@ -280,12 +280,12 @@ class ISTPContainer(object):
     the  `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
 
     .. autosummary::
-        ~ISTPContainer.plot
-    .. automethod:: plot
+        ~ISTPContainer.lineplot
+    .. automethod:: lineplot
     """
 
-    def plot(self, vname):
-        """Plot a value (array) from this container
+    def lineplot(self, vname, target=None):
+        """Line plot of a value (array) from this container
 
         Parameters
         ----------
