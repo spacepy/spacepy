@@ -1343,7 +1343,7 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         for i in range(3):
             np.testing.assert_array_equal(lines[i].get_xdata(), self.sd['Epoch'])
             np.testing.assert_array_equal(lines[i].get_ydata(),
-                                             self.sd['B_vec'][:, i])
+                                          self.sd['B_vec'][:, i])
         self.assertEqual('B (nT)', ax.get_ylabel())
         self.assertEqual('UT', ax.get_xlabel())
         self.assertEqual(['X', 'Y', 'Z'], [t.get_text() for t in ax.get_legend().texts])
