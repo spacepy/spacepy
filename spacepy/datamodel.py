@@ -283,7 +283,9 @@ class ISTPContainer(collections.abc.Mapping):
 
     .. autosummary::
         ~ISTPContainer.lineplot
+        ~ISTPContainer.spectrogram
     .. automethod:: lineplot
+    .. automethod:: spectrogram
     """
     attrs:  collections.abc.Mapping
 
@@ -345,6 +347,38 @@ class ISTPContainer(collections.abc.Mapping):
             ax.legend(loc='best')
         if target is None and v.attrs.get('CATDESC'):
             fig.suptitle(v.attrs['CATDESC'])
+        spacepy.plot.utils.applySmartTimeTicks(ax, x)
+        return ax
+
+    def spectrogram(self, vname, target=None):
+        """Spectrogram plot of a value (array) from this container
+
+        Parameters
+        ----------
+        vname : `str`
+            The key into this container of the value to plot (i.e.,
+            the name of the variable).
+
+        target : `matplotlib.axes.Axes` or `matplotlib.figure.Figure`, optional
+            Where to draw the plot. Default is to create a new figure with
+            a single subplot. If ``Axes``, will draw into that subplot (and
+            will not set figure title); if ``Figure``, will make a single
+            subplot (and not set figure title). Handled by
+            `~.plot.utils.set_target`.
+
+        Returns
+        -------
+        ax : `matplotlib.axes.Axes`
+            The subplot on which the variable was plotted
+        """
+        import spacepy.plot.utils
+        v = self[vname]
+        fig, ax = spacepy.plot.utils.set_target(target)
+        x = self[v.attrs['DEPEND_0']]
+        data = v.replace_invalid()
+        x = self[v.attrs['DEPEND_0']]
+        y = self[v.attrs['DEPEND_1']]
+        ax = spacepy.plot.simpleSpectrogram(numpy.array(x), numpy.array(y), data)
         spacepy.plot.utils.applySmartTimeTicks(ax, x)
         return ax
 
