@@ -1334,6 +1334,15 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
             self.sd['B_err_lo'], res[0])
         np.testing.assert_array_equal(
             self.sd['B_err_hi'], res[1])
+        del self.sd['B_vec'].attrs['DELTA_PLUS_VAR']
+        with self.assertRaises(ValueError) as cm:
+            self.sd.get_deltas('B_vec')
+        self.assertEqual('Only one of DELTA_(MINUS|PLUS)_VAR specified.', str(cm.exception))
+        self.sd['B_vec'].attrs['DELTA_PLUS_VAR'] = 'B_err_hi'
+        del self.sd['B_vec'].attrs['DELTA_MINUS_VAR']
+        with self.assertRaises(ValueError) as cm:
+            self.sd.get_deltas('B_vec')
+        self.assertEqual('Only one of DELTA_(MINUS|PLUS)_VAR specified.', str(cm.exception))
 
     def test_lineplot_timeseries(self):
         """Plot a timeseries"""
@@ -1445,6 +1454,40 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
             np.testing.assert_array_equal(expected, bottoms)
             expected = self.sd['B_vec'][:, i] + self.sd['B_err_hi'][:, i]
             expected = expected[valid]
+            np.testing.assert_array_equal(expected, tops)
+
+    def test_lineplot_ts_err_singlesided(self):
+        """Plot a timeseries with symmetric error bars"""
+        self.sd['B_err'] = dm.dmarray(
+            np.tile([.2, .3, .4], (self.sd['B_vec'].shape[0], 1)),
+            attrs={'CATDESC': 'Magnetic field error',
+                   'DEPEND_0': 'Epoch',
+                   'DEPEND_1': 'dim',
+                   'FIELDNAM': 'B_err',
+                   'FILLVAL': -1.e31,
+                   'FORMAT': 'F6.1',
+                   'LABLAXIS': 'Mag unc',
+                   'LABL_PTR_1': 'B_labels',
+                   'UNITS': 'nT',
+                   'VALIDMAX': 1000.,
+                   'VALIDMIN': -1000.,
+                   'VAR_TYPE': 'support_data',})
+        self.sd['B_vec'].attrs.update({
+            'DELTA_MINUS_VAR': 'B_err',
+            'DELTA_PLUS_VAR': 'B_err',
+        })
+        ax = self.sd.lineplot('B_vec')
+        lines = ax.get_lines()
+        self.assertEqual(3, len(lines))
+        import matplotlib.collections
+        errs = [c for c in ax.get_children()
+                if isinstance(c, matplotlib.collections.LineCollection)]
+        for i in range(3):
+            bottoms = np.array([s[0, 1] for s in errs[i].get_segments()])
+            tops = np.array([s[1, 1] for s in errs[i].get_segments()])
+            expected = self.sd['B_vec'][:, i] - self.sd['B_err'][:, i]
+            np.testing.assert_array_equal(expected, bottoms)
+            expected = self.sd['B_vec'][:, i] + self.sd['B_err'][:, i]
             np.testing.assert_array_equal(expected, tops)
 
 
