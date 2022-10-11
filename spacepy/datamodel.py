@@ -236,7 +236,9 @@ class ISTPArray:
     these are in `ISTPContainer`.
 
     .. autosummary::
+        ~ISTPArray.plot_as_line
         ~ISTPArray.replace_invalid
+    .. automethod:: plot_as_line
     .. automethod:: replace_invalid
     """
     attrs: collections.abc.Mapping
@@ -273,6 +275,28 @@ class ISTPArray:
         data[idx] = numpy.nan
         return data
 
+    def plot_as_line(self):
+        """Determines if this array is better plotted as a lineplot or spectrogram.
+
+        Uses array shape and the ``DISPLAY_TYPE`` attribute to determine
+        if should be plotted as a lineplot (potentially stacked) or spectrogram.
+
+        Returns
+        -------
+        `bool`
+            ``True`` if should be a lineplot, ``False`` if should be a
+            spectrogram
+        """
+        if 'DISPLAY_TYPE' in self.attrs:
+            return self.attrs['DISPLAY_TYPE'] == 'time_series'
+        dims = len(self.shape)
+        if dims == 1:
+            return True
+        if dims > 2:
+            return True
+        # Reasonable dividing line is probably 4 stacked line plots
+        return self.shape[-1] < 5
+
 
 class ISTPContainer(collections.abc.Mapping):
     """Mixin class for containers using ISTP metadata.
@@ -283,8 +307,10 @@ class ISTPContainer(collections.abc.Mapping):
 
     .. autosummary::
         ~ISTPContainer.lineplot
+        ~ISTPContainer.main_vars
         ~ISTPContainer.spectrogram
     .. automethod:: lineplot
+    .. automethod:: main_vars
     .. automethod:: spectrogram
     """
     attrs:  collections.abc.Mapping
@@ -349,6 +375,27 @@ class ISTPContainer(collections.abc.Mapping):
             fig.suptitle(v.attrs['CATDESC'])
         spacepy.plot.utils.applySmartTimeTicks(ax, x)
         return ax
+
+    def main_vars(self):
+        """Return names of the 'main' variables in this container.
+
+        These are variables that are likely to be of direct interest, rather
+        than dependencies and support data. They are chosen primarily by
+        not being dependencies of other variables, but if the ``VAR_TYPE``
+        attribute is present it must be ``data``.
+
+        Returns
+        -------
+        `list` of `str`
+        """
+        referenced = set()
+        for k, v in self.items():
+            referenced.update([v.attrs[a] for a in v.attrs
+                               if a.startswith(('DEPEND_', 'LABL_PTR_', 'DELTA_'))])
+        main = sorted(set(self).difference(referenced))
+        if any(('VAR_TYPE' in v.attrs for v in self.values())):
+            main = [m for m in main if self[m].attrs.get('VAR_TYPE', '') == 'data']
+        return main
 
     def spectrogram(self, vname, target=None):
         """Spectrogram plot of a value (array) from this container

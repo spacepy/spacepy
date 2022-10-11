@@ -1387,6 +1387,33 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
             self.sd.get_deltas('B_vec')
         self.assertEqual('Only one of DELTA_(MINUS|PLUS)_VAR specified.', str(cm.exception))
 
+    def test_plot_as_line(self):
+        """See if a variable should be a lineplot"""
+        self.assertTrue(self.sd['B_vec'].plot_as_line())
+        self.assertTrue(self.sd['B_mag'].plot_as_line())
+        self.assertFalse(self.sd['H_Rate'].plot_as_line())
+        for k in ('B_vec', 'B_mag', 'H_Rate'):
+            del self.sd[k].attrs['DISPLAY_TYPE']
+        self.assertTrue(self.sd['B_vec'].plot_as_line())
+        self.assertTrue(self.sd['B_mag'].plot_as_line())
+        self.assertFalse(self.sd['H_Rate'].plot_as_line())
+
+    def test_main_vars(self):
+        """Get list of main variables"""
+        expected = ['B_mag', 'B_vec', 'H_Rate']
+        out = self.sd.main_vars()
+        self.assertEqual(expected, out)
+        del self.sd['B_mag'].attrs['VAR_TYPE']
+        expected = ['B_vec', 'H_Rate']
+        out = self.sd.main_vars()
+        self.assertEqual(expected, out)
+        for v in self.sd.values():
+            if 'VAR_TYPE' in v.attrs:
+                del v.attrs['VAR_TYPE']
+        expected = ['B_mag', 'B_vec', 'H_Rate']
+        out = self.sd.main_vars()
+        self.assertEqual(expected, out)
+
     def test_lineplot_timeseries(self):
         """Plot a timeseries"""
         ax = self.sd.lineplot('B_vec')
