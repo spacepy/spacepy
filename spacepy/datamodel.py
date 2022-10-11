@@ -365,7 +365,7 @@ class ISTPContainer(collections.abc.Mapping):
             one-element if symmetric; two-element if not symmetric.
         """
         v = self[vname]
-        asymmetric_msg = 'Only one of DELTA_(MINUS_PLUS)_VAR specified.'
+        asymmetric_msg = 'Only one of DELTA_(MINUS|PLUS)_VAR specified.'
         if 'DELTA_PLUS_VAR' not in v.attrs:
             if 'DELTA_MINUS_VAR' in v.attrs:
                 raise ValueError(asymmetric_msg)
