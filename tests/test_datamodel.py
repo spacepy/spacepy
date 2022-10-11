@@ -1284,7 +1284,35 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
                        'UNITS': 'nT',
                        'VALIDMAX': 1000.,
                        'VALIDMIN': -1000.,
-                       'VAR_TYPE': 'data'})
+                       'VAR_TYPE': 'data'}),
+            'H_Rate': dm.dmarray(
+                .1 + 1e4 * np.sin(x / 2)[:, None] * (np.logspace(1, 3, 20) ** -2)[None, :],
+                attrs={'CATDESC': 'Proton count rate',
+                       'DEPEND_0': 'Epoch',
+                       'DEPEND_1': 'Energy',
+                       'DISPLAY_TYPE': 'spectrogram',
+                       'FIELDNAM': 'H_Rate',
+                       'FILLVAL': -1e+31,
+                       'FORMAT': 'F6.1',
+                       'LABLAXIS': 'H rate',
+                       'SCALETYP': 'log',
+                       'UNITS': 'counts/s',
+                       'VALIDMAX': 1000.,
+                       'VALIDMIN': 0.,
+                       'VAR_TYPE': 'data'}),
+            'Energy': dm.dmarray(
+                np.logspace(1, 3, 20),
+                attrs={'CATDESC': 'Energy bins for H',
+                       'DISPLAY_TYPE': 'spectrogram',
+                       'FIELDNAM': 'H_Rate',
+                       'FILLVAL': -1e+31,
+                       'FORMAT': 'F6.1',
+                       'LABLAXIS': 'Energy',
+                       'SCALETYP': 'log',
+                       'UNITS': 'keV',
+                       'VALIDMAX': 2000.,
+                       'VALIDMIN': 0.,
+                       'VAR_TYPE': 'support_data'}),
             })
 
     def test_replace_invalid(self):
@@ -1515,6 +1543,37 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
             np.testing.assert_array_equal(expected, bottoms)
             expected = self.sd['B_vec'][:, i] + self.sd['B_err'][:, i]
             np.testing.assert_array_equal(expected, tops)
+
+    def test_spectrogram(self):
+        """Plot a timeseries"""
+        ax = self.sd.spectrogram('H_Rate')
+        import matplotlib.collections
+        import matplotlib.dates
+        mesh = [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(mesh))
+        mesh = mesh[0]
+        np.testing.assert_array_almost_equal(
+            np.array(self.sd['H_Rate']),
+            mesh.get_array().data.reshape(self.sd['H_Rate'].shape[::-1]).transpose())
+        expected_xlim = (matplotlib.dates.date2num(self.sd['Epoch'][0]),
+                         matplotlib.dates.date2num(self.sd['Epoch'][-1]))
+        xlim = ax.get_xlim()
+        self.assertAlmostEqual(expected_xlim[0], xlim[0])
+        self.assertAlmostEqual(expected_xlim[1], xlim[1])
+        ylim = ax.get_ylim()
+        e = self.sd['Energy']
+        expected_ylim = (e[0] * (e[0] / e[1]) ** 0.5,
+                         e[-1] * (e[-1] / e[-2]) ** 0.5)
+        self.assertAlmostEqual(expected_ylim[0], ylim[0], delta = 0.1 * e[0])
+        self.assertAlmostEqual(expected_ylim[1], ylim[1], delta = .1 * e[-1])
+        fig = ax.get_figure()
+        axes = fig.get_axes()
+        self.assertEqual(2, len(axes))
+        self.assertIs(ax, axes[0])
+        cb = axes[1]
+        ylim = cb.get_ylim()
+        self.assertAlmostEqual(self.sd['H_Rate'].min(), ylim[0])
+        self.assertAlmostEqual(self.sd['H_Rate'].max(), ylim[1])
 
 
 if __name__ == "__main__":
