@@ -45,7 +45,8 @@ except NameError:
     str_classes = (str, bytes)
     unicode = str
 
-__all__ = ['SpaceDataTests', 'dmarrayTests', 'converterTests', 'JSONTests', 'converterTestsCDF']
+__all__ = ['SpaceDataTests', 'dmarrayTests', 'converterTests', 'JSONTests', 'converterTestsCDF',
+           'VariableTests', 'ISTPPlotTests']
 
 
 class SpaceDataTests(unittest.TestCase):
