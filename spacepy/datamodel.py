@@ -293,6 +293,13 @@ class ISTPContainer(object):
             The key into this container of the value to plot (i.e.,
             the name of the variable).
 
+        target : `matplotlib.axes.Axes` or `matplotlib.figure.Figure`, optional
+            Where to draw the plot. Default is to create a new figure with
+            a single subplot. If ``Axes``, will draw into that subplot (and
+            will not draw a legend or figure title); if ``Figure``, will
+            make a single subplot (and not set figure title). Handled by
+            `~.plot.utils.set_target`.
+
         Returns
         -------
         ax : `matplotlib.axes.Axes`
@@ -300,7 +307,6 @@ class ISTPContainer(object):
         """
         import spacepy.plot.utils
         v = self[vname]
-        target = None
         fig, ax = spacepy.plot.utils.set_target(target)
         x = self[v.attrs['DEPEND_0']]
         data = v.replace_invalid()
