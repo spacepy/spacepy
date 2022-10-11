@@ -42,6 +42,11 @@ New features
 now support reading from gzipped input files; filenames ending with
 ``.gz`` are assumed to be gzipped.
 
+`.datamodel` now has explicit support for operations using
+ISTP-compliant metadata; see `~.datamodel.dmarray` and
+`~.datamodel.SpaceData` for details. In particular note the plotting
+support with `~.datamodel.ISTPContainer.plot`.
+
 :mod:`.pycdf` :meth:`~.pycdf.Library.set_backward` now returns the prior
 state of backward compatibility mode.
 
