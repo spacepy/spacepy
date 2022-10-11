@@ -160,6 +160,7 @@ The file looks like:
 
 """
 
+import collections.abc
 import copy
 import datetime
 import gzip
@@ -223,7 +224,7 @@ class MetaMixin(object):
         del self.attrs
 
 
-class ISTPArray(object):
+class ISTPArray:
     """Mixin class for array using ISTP metadata.
 
     Additional methods for array types, such as `dmarray`, assuming
@@ -238,6 +239,7 @@ class ISTPArray(object):
         ~ISTPArray.replace_invalid
     .. automethod:: replace_invalid
     """
+    attrs: collections.abc.Mapping
 
     def replace_invalid(self):
         """Return data from array with invalid values replaced by `~numpy.nan`.
@@ -272,17 +274,18 @@ class ISTPArray(object):
         return data
 
 
-class ISTPContainer(object):
+class ISTPContainer(collections.abc.Mapping):
     """Mixin class for containers using ISTP metadata.
 
     Additional methods for container types, such as `SpaceData`, assuming
     that the attributes of the container and the arrays it contains use
-    the  `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+    the `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
 
     .. autosummary::
         ~ISTPContainer.lineplot
     .. automethod:: lineplot
     """
+    attrs:  collections.abc.Mapping
 
     def lineplot(self, vname, target=None):
         """Line plot of a value (array) from this container
@@ -326,9 +329,7 @@ class ISTPContainer(object):
                 ax.errorbar(numpy.array(x), data[:, dim], yerr=yerr, **plot_kwargs)
             else:
                 ax.plot(numpy.array(x), data[:, dim], **plot_kwargs)
-        ylabel = ''
-        if v.attrs.get('LABLAXIS'):
-            ylabel = v.attrs['LABLAXIS']
+        ylabel = v.attrs.get('LABLAXIS', '')
         if v.attrs.get('UNITS'):
             ylabel = '{}{}({})'.format(
                 ylabel, ' ' if ylabel else '', v.attrs['UNITS'])
@@ -368,8 +369,7 @@ class ISTPContainer(object):
         if 'DELTA_PLUS_VAR' not in v.attrs:
             if 'DELTA_MINUS_VAR' in v.attrs:
                 raise ValueError(asymmetric_msg)
-            else:
-                return ()
+            return ()
         elif 'DELTA_MINUS_VAR' not in v.attrs:
             raise ValueError(asymmetric_msg)
         dp = self[v.attrs['DELTA_PLUS_VAR']].replace_invalid()
