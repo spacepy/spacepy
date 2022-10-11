@@ -314,16 +314,18 @@ class ISTPContainer(object):
         if v.attrs.get('LABL_PTR_1'):
             labels = self[v.attrs['LABL_PTR_1']]
         deltas = self.get_deltas(vname)
+        plot_kwargs = {}
         for dim in range(v.shape[-1]):
+            if labels is not None:
+                plot_kwargs['label'] = labels[dim]
             if deltas:
                 if len(deltas) == 1:
                     yerr = deltas[0][:, dim]
                 else:
                     yerr = numpy.stack((deltas[0][:, dim], deltas[1][:, dim]))
-                ax.errorbar(numpy.array(x), data[:, dim], label=labels[dim],
-                            yerr=yerr)
+                ax.errorbar(numpy.array(x), data[:, dim], yerr=yerr, **plot_kwargs)
             else:
-                ax.plot(numpy.array(x), data[:, dim], label=labels[dim])
+                ax.plot(numpy.array(x), data[:, dim], **plot_kwargs)
         ylabel = ''
         if v.attrs.get('LABLAXIS'):
             ylabel = v.attrs['LABLAXIS']
@@ -334,7 +336,7 @@ class ISTPContainer(object):
             ax.set_ylabel(ylabel)
         if x.attrs.get('LABLAXIS'):
             ax.set_xlabel(x.attrs['LABLAXIS'])
-        if target is not ax:
+        if labels is not None and target is not ax:
             ax.legend(loc='best')
         if target is None and v.attrs.get('CATDESC'):
             fig.suptitle(v.attrs['CATDESC'])
