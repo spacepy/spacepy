@@ -227,8 +227,8 @@ class MetaMixin(object):
 class ISTPArray:
     """Mixin class for array using ISTP metadata.
 
-    Additional methods for array types, such as `dmarray`, assuming
-    that the attributes of the array use the
+    Array types like `dmarray` provide all these methods if attributes
+    of the array use the
     `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
 
     Note that some operations that may seem to relate to an array (e.g.
@@ -301,9 +301,9 @@ class ISTPArray:
 class ISTPContainer(collections.abc.Mapping):
     """Mixin class for containers using ISTP metadata.
 
-    Additional methods for container types, such as `SpaceData`, assuming
-    that the attributes of the container and the arrays it contains use
-    the `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+    Container types like `SpaceData` provide all these methods if attributes
+    of the container and the arrays it contains use the
+    `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
 
     .. autosummary::
         ~ISTPContainer.lineplot
@@ -419,6 +419,26 @@ class ISTPContainer(collections.abc.Mapping):
         -------
         fig : `matplotlib.figure.Figure`
             The figure on which the variables were plotted
+
+        See Also
+        --------
+        lineplot : to line plot a single variable
+        spectrogram : to make a spectrogram of a single variable
+
+        Examples
+        --------
+
+        >>> import spacepy.pycdf
+        # https://rbsp-ect.newmexicoconsortium.org/data_pub/rbspa/ECT/level2/
+        >>> with spacepy.pycdf.CDF('rbspa_ect-elec-L2_20140115_v2.1.0.cdf') as f:
+        ...     data = f.copy()
+        >>> fig = data.plot(['FESA', 'Position'])
+        >>> fig.show  # if needed
+        # https://spp-isois.sr.unh.edu/data_public/ISOIS/level2/
+        >>> with spacepy.pycdf.CDF('psp_isois_l2-summary_20201130_v13.cdf') as f:
+        ...     data = f.copy()
+        >>> fig = data.plot(['A_H_Rate_TS', 'H_CountRate_ChanP_SP'])
+        >>> fig.show  # if needed
         """
         if fig is None:
             import matplotlib.pyplot
@@ -552,6 +572,8 @@ class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
 
     >>> name.tolist()
     'TestName'
+
+    See methods of `ISTPArray` if attributes are ISTP-compliant.
 
     .. currentmodule:: spacepy.datamodel
     .. autosummary::
