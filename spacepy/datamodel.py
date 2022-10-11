@@ -318,7 +318,11 @@ class ISTPContainer(collections.abc.Mapping):
             labels = self[v.attrs['LABL_PTR_1']]
         deltas = self.get_deltas(vname)
         plot_kwargs = {}
-        for dim in range(v.shape[-1]):
+        if len(data.shape) == 1:
+            data = data[..., None]
+        if deltas and len(deltas[0].shape) == 1:
+            deltas = tuple([d[..., None] for d in deltas])
+        for dim in range(data.shape[-1]):
             if labels is not None:
                 plot_kwargs['label'] = labels[dim]
             if deltas:
