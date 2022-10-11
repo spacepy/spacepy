@@ -1608,6 +1608,35 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual(self.sd['H_Rate'].attrs['CATDESC'],
                          fig.texts[0].get_text())
 
+    def test_plot_all(self):
+        """Plot everything in this SpaceData"""
+        fig = self.sd.plot()
+        axes = fig.get_axes()
+        self.assertEqual(4, len(axes))  # 3 plots, one colorbar
+        ylabels = [ax.get_ylabel() for ax in axes]
+        self.assertEqual(
+            ['B (nT)', 'B (nT)', 'Energy (keV)', 'H rate (counts/s)'], ylabels)
+        self.assertFalse(axes[1].get_legend() is None)
+        self.assertIs(axes[0].get_legend(), None)
+
+    def test_plot_one(self):
+        """Plot one array in this SpaceData"""
+        fig = self.sd.plot('B_vec')
+        axes = fig.get_axes()
+        self.assertEqual(1, len(axes))
+
+    def test_plot_some(self):
+        """Plot specfic variables in this SpaceData, specify figure"""
+        import matplotlib.pyplot
+        fig = matplotlib.pyplot.figure()
+        figout = self.sd.plot(['B_vec', 'H_Rate'], fig=fig)
+        self.assertIs(fig, figout)
+        axes = fig.get_axes()
+        self.assertEqual(3, len(axes))  # 2 plots, one colorbar
+        ylabels = [ax.get_ylabel() for ax in axes]
+        self.assertEqual(
+            ['B (nT)', 'Energy (keV)', 'H rate (counts/s)'], ylabels)
+
 
 if __name__ == "__main__":
     unittest.main()
