@@ -1371,6 +1371,14 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual(0, len(fig.texts))
         self.assertIs(None, ax.get_legend())
 
+    def test_lineplot_nolabel(self):
+        """Plot a timeseries without a line label"""
+        del self.sd['B_vec'].attrs['LABL_PTR_1']
+        ax = self.sd.lineplot('B_vec')
+        lines = ax.get_lines()
+        self.assertEqual(3, len(lines))
+        self.assertIs(None, ax.get_legend())
+
     def test_lineplot_ts_w_fill(self):
         """Plot a timeseries with fill data"""
         self.sd['B_vec'][5, 0] = -1e31
