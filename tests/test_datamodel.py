@@ -1527,8 +1527,8 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         errs = [c for c in ax.get_children()
                 if isinstance(c, matplotlib.collections.LineCollection)]
         for i in range(3):
-            bottoms = np.array([s[0, 1] for s in errs[i].get_segments()])
-            tops = np.array([s[1, 1] for s in errs[i].get_segments()])
+            bottoms = np.array([s[0, 1] for s in errs[i].get_segments() if s.size])
+            tops = np.array([s[1, 1] for s in errs[i].get_segments() if s.size])
             expected = self.sd['B_vec'][:, i] - self.sd['B_err_lo'][:, i]
             valid = (self.sd['B_vec'][:, i] < 5e3) & (self.sd['B_vec'][:, i] > -5e3)
             expected = expected[valid]
