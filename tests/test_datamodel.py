@@ -1574,6 +1574,12 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         ylim = cb.get_ylim()
         self.assertAlmostEqual(self.sd['H_Rate'].min(), ylim[0])
         self.assertAlmostEqual(self.sd['H_Rate'].max(), ylim[1])
+        self.assertEqual('UT', ax.get_xlabel())
+        self.assertEqual('Energy (keV)', ax.get_ylabel())
+        self.assertEqual('H rate (counts/s)', cb.get_ylabel())
+        self.assertEqual(1, len(fig.texts))
+        self.assertEqual(self.sd['H_Rate'].attrs['CATDESC'],
+                         fig.texts[0].get_text())
 
 
 if __name__ == "__main__":

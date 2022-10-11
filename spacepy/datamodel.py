@@ -378,7 +378,23 @@ class ISTPContainer(collections.abc.Mapping):
         data = v.replace_invalid()
         x = self[v.attrs['DEPEND_0']]
         y = self[v.attrs['DEPEND_1']]
-        ax = spacepy.plot.simpleSpectrogram(numpy.array(x), numpy.array(y), data)
+        zlabel = v.attrs.get('LABLAXIS', '')
+        if v.attrs.get('UNITS'):
+            zlabel = '{}{}({})'.format(
+                zlabel, ' ' if zlabel else '', v.attrs['UNITS'])
+        zlabel = zlabel if zlabel else None
+        ax = spacepy.plot.simpleSpectrogram(numpy.array(x), numpy.array(y), data, cbtitle=zlabel,
+                                            ax=ax)
+        ylabel = y.attrs.get('LABLAXIS', '')
+        if y.attrs.get('UNITS'):
+            ylabel = '{}{}({})'.format(
+                ylabel, ' ' if ylabel else '', y.attrs['UNITS'])
+        if ylabel:
+            ax.set_ylabel(ylabel)
+        if x.attrs.get('LABLAXIS'):
+            ax.set_xlabel(x.attrs['LABLAXIS'])
+        if target is None and v.attrs.get('CATDESC'):
+            fig.suptitle(v.attrs['CATDESC'])
         spacepy.plot.utils.applySmartTimeTicks(ax, x)
         return ax
 
