@@ -235,6 +235,8 @@ class ISTPArray:
     uncertainties) may require the use of other arrays in a container;
     these are in `ISTPContainer`.
 
+    .. versionadded:: 0.5.0
+
     .. autosummary::
         ~ISTPArray.plot_as_line
         ~ISTPArray.replace_invalid
@@ -261,6 +263,8 @@ class ISTPArray:
 
         Notes
         -----
+        .. versionadded:: 0.5.0
+
         Comparisons with ``FILLVAL`` are done using `~numpy.isclose` and
         so may NaN values thare are near, but not identical, to fill.
         """
@@ -286,6 +290,10 @@ class ISTPArray:
         `bool`
             ``True`` if should be a lineplot, ``False`` if should be a
             spectrogram
+
+        Notes
+        -----
+        .. versionadded:: 0.5.0
         """
         if 'DISPLAY_TYPE' in self.attrs:
             return self.attrs['DISPLAY_TYPE'] == 'time_series'
@@ -304,6 +312,8 @@ class ISTPContainer(collections.abc.Mapping):
     Container types like `SpaceData` provide all these methods if attributes
     of the container and the arrays it contains use the
     `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+
+    .. versionadded:: 0.5.0
 
     .. autosummary::
         ~ISTPContainer.lineplot
@@ -337,6 +347,10 @@ class ISTPContainer(collections.abc.Mapping):
         -------
         ax : `matplotlib.axes.Axes`
             The subplot on which the variable was plotted
+
+        Notes
+        -----
+        .. versionadded:: 0.5.0
         """
         import spacepy.plot.utils
         v = self[vname]
@@ -389,6 +403,10 @@ class ISTPContainer(collections.abc.Mapping):
         Returns
         -------
         `list` of `str`
+
+        Notes
+        -----
+        .. versionadded:: 0.5.0
         """
         referenced = set()
         for k, v in self.items():
@@ -424,6 +442,10 @@ class ISTPContainer(collections.abc.Mapping):
         --------
         lineplot : to line plot a single variable
         spectrogram : to make a spectrogram of a single variable
+
+        Notes
+        -----
+        .. versionadded:: 0.5.0
 
         Examples
         --------
@@ -479,6 +501,10 @@ class ISTPContainer(collections.abc.Mapping):
         -------
         ax : `matplotlib.axes.Axes`
             The subplot on which the variable was plotted
+
+        Notes
+        -----
+        .. versionadded:: 0.5.0
         """
         import spacepy.plot.utils
         v = self[vname]
@@ -526,6 +552,10 @@ class ISTPContainer(collections.abc.Mapping):
         deltas : `tuple` of `~numpy.ndarray`
             Deltas for ``vname``. Empty if no deltas available;
             one-element if symmetric; two-element if not symmetric.
+
+        Notes
+        -----
+        .. versionadded:: 0.5.0
         """
         v = self[vname]
         asymmetric_msg = 'Only one of DELTA_(MINUS|PLUS)_VAR specified.'
