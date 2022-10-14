@@ -47,6 +47,9 @@ ISTP-compliant metadata; see `~.datamodel.dmarray` and
 `~.datamodel.SpaceData` for details. In particular note the plotting
 support with `~.datamodel.ISTPContainer.plot`.
 
+`~.plot.spectrogram.simpleSpectrogram()` supports plotting zeros as
+valid data.
+
 :mod:`.pycdf` :meth:`~.pycdf.Library.set_backward` now returns the prior
 state of backward compatibility mode.
 

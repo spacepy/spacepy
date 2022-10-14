@@ -597,6 +597,12 @@ def simpleSpectrogram(*args, **kwargs):
         Plot a colorbar (default: True)
     cbtitle : string
         Label to go on the colorbar (default: None)
+    zero_valid : bool
+        Treat zero as a valid value on zlog plots and use same color as
+        other under-minimum values. No effect with linear colorbar.
+        (default: False, draw as fill)
+
+        .. versionadded:: 0.5.0
 
     Returns
     =======
@@ -633,6 +639,7 @@ def simpleSpectrogram(*args, **kwargs):
 
     # deal with all the default keywords
     zlog    = kwargs.pop('zlog', True)
+    zero_valid = kwargs.pop('zero_valid', False)
     ylog    = kwargs.pop('ylog', True)
     alpha   = kwargs.pop('alpha', None)
     cmap    = kwargs.pop('cmap', None)
@@ -648,6 +655,8 @@ def simpleSpectrogram(*args, **kwargs):
         ax = fig.add_subplot(111)
     else:
         fig = ax.get_figure()
+    if zlog and zero_valid:
+        Z[Z == 0] = vmin / 2.
     Z = Z.filled(0)
     Norm = matplotlib.colors.LogNorm if zlog else matplotlib.colors.Normalize
     if len(Y.shape) > 1:
