@@ -1572,7 +1572,7 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
             np.testing.assert_array_equal(expected, tops)
 
     def test_spectrogram(self):
-        """Plot a timeseries"""
+        """Plot a spectrogram"""
         ax = self.sd.spectrogram('H_Rate')
         import matplotlib.collections
         import matplotlib.dates
