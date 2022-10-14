@@ -455,12 +455,17 @@ class ISTPContainer(collections.abc.Mapping):
         >>> with spacepy.pycdf.CDF('rbspa_ect-elec-L2_20140115_v2.1.0.cdf') as f:
         ...     data = f.copy()
         >>> fig = data.plot(['FESA', 'Position'])
-        >>> fig.show  # if needed
+        >>> fig.show()  # if needed
+        # https://rbsp-ect.newmexicoconsortium.org/data_pub/rbspa/hope/level2/spinaverage/
+        >>> with spacepy.pycdf.CDF('rbspa_rel04_ect-hope-sci-L2SA_20140108_v6.1.0.cdf') as f:
+        ...     data = f.copy()
+        >>> fig = data.plot(['FESA', 'FPSA'])
+        >>> fig.show()  # if needed
         # https://spp-isois.sr.unh.edu/data_public/ISOIS/level2/
         >>> with spacepy.pycdf.CDF('psp_isois_l2-summary_20201130_v13.cdf') as f:
         ...     data = f.copy()
         >>> fig = data.plot(['A_H_Rate_TS', 'H_CountRate_ChanP_SP'])
-        >>> fig.show  # if needed
+        >>> fig.show()  # if needed
         """
         if fig is None:
             import matplotlib.pyplot
@@ -506,6 +511,7 @@ class ISTPContainer(collections.abc.Mapping):
         -----
         .. versionadded:: 0.5.0
         """
+        import matplotlib.cm
         import spacepy.plot.utils
         v = self[vname]
         fig, ax = spacepy.plot.utils.set_target(target)
@@ -518,8 +524,15 @@ class ISTPContainer(collections.abc.Mapping):
             zlabel = '{}{}({})'.format(
                 zlabel, ' ' if zlabel else '', v.attrs['UNITS'])
         zlabel = zlabel if zlabel else None
+        cmap = copy.copy(matplotlib.cm.get_cmap())
+        if cmap(-1.)[:3] == cmap(0.)[:3]:  # Underflow to black if not specified
+            cmap.set_under('k')
+        # Fill to grey or white
+        if cmap(numpy.nan)[:3] == cmap(0.)[:3] and cmap(numpy.nan)[-1] > 0.:
+            cmap.set_bad((.5, .5, .5, 0.) if cmap(1.)[:3] == (1., 1., 1.)
+                         else (1., 1., 1., 0.))
         ax = spacepy.plot.simpleSpectrogram(numpy.array(x), numpy.array(y), data, cbtitle=zlabel,
-                                            ax=ax, zero_valid=True)
+                                            ax=ax, zero_valid=True, cmap=cmap)
         ylabel = y.attrs.get('LABLAXIS', '')
         if y.attrs.get('UNITS'):
             ylabel = '{}{}({})'.format(
