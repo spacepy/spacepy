@@ -208,6 +208,32 @@ class SimpleSpectrogramTests(spacepy_testing.TestPlot):
         self.assertGreater(ylim[1], y[-1])
         self.assertLess(ylim[1], 250)
 
+    def testLinearZ(self):
+        """Linear Z axis"""
+        z = np.arange(72).reshape((12, 6))
+        x = np.arange(12)
+        y = np.arange(6)
+        ax = spacepy.plot.simpleSpectrogram(x, y, z, zlog=False, ylog=False)
+        mesh =  [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(mesh))
+        mesh = mesh[0]
+        np.testing.assert_array_almost_equal(
+            z, mesh.get_array().reshape(z.shape[::-1]).transpose())  # mesh swaps row/column
+
+    def testTimeDepY(self):
+        """Time-dependent Y axis, linear Z"""
+        z = np.full((12, 6), 1.)
+        x = np.arange(12)
+        # Values are all the same, but "time-dependent"
+        y = np.tile(np.logspace(0, 2, 6), (12, 1))
+        ax = spacepy.plot.simpleSpectrogram(x, y, z)
+        mesh =  [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(mesh))
+        mesh = mesh[0]
+        data = mesh.get_array()
+        np.testing.assert_array_almost_equal(1., data)
+        self.assertEqual(6 * 12, data.size)
+
 
 if __name__ == "__main__":
     unittest.main()

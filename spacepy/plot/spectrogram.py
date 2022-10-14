@@ -50,6 +50,7 @@ import matplotlib
 import matplotlib.axes
 import matplotlib.collections as mcoll
 from matplotlib.dates import date2num, num2date
+import matplotlib.colors
 from matplotlib.colors import LogNorm
 import matplotlib.transforms as mtransforms
 import matplotlib.pyplot as plt
@@ -648,20 +649,20 @@ def simpleSpectrogram(*args, **kwargs):
     else:
         fig = ax.get_figure()
     Z = Z.filled(0)
+    Norm = matplotlib.colors.LogNorm if zlog else matplotlib.colors.Normalize
     if len(Y.shape) > 1:
-        for yy in Y_uniq:
+        for i, yy in enumerate(Y_uniq):
             # which indices in X have these values
             ind = (yy == Y_orig).all(axis=1)
-            print(Y_orig[ind][0].min(), Y_orig[ind][0].max())
-            Y_tmp = np.zeros_like(Y_orig)
-            Y_tmp[ind] = Y_orig[ind][0]
+            Y_tmp = np.zeros((Y_orig.shape[0], Y.shape[1]), dtype=Y.dtype)
+            Y_tmp[ind] = Y[i]
             Z_tmp = np.zeros_like(Z)
             Z_tmp[ind] = Z[ind]
             pc = ax.pcolormesh(X, Y_tmp[ind][0], Z_tmp.T,
-                               norm=LogNorm(vmin=vmin, vmax=vmax), cmap=cmap,
+                               norm=Norm(vmin=vmin, vmax=vmax), cmap=cmap,
                                alpha=alpha)
     else:
-        pc = ax.pcolormesh(X, Y, Z.T, norm=LogNorm(vmin=vmin, vmax=vmax),
+        pc = ax.pcolormesh(X, Y, Z.T, norm=Norm(vmin=vmin, vmax=vmax),
                            cmap=cmap,
                            alpha=alpha)
     if ylog: ax.set_yscale('log')
