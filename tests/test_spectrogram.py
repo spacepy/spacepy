@@ -213,7 +213,7 @@ class SimpleSpectrogramTests(spacepy_testing.TestPlot):
         z = np.arange(72).reshape((12, 6))
         x = np.arange(12)
         y = np.arange(6)
-        ax = spacepy.plot.simpleSpectrogram(x, y, z, zlog=False, ylog=False)
+        ax = simpleSpectrogram(x, y, z, zlog=False, ylog=False)
         mesh =  [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
         self.assertEqual(1, len(mesh))
         mesh = mesh[0]
@@ -226,13 +226,38 @@ class SimpleSpectrogramTests(spacepy_testing.TestPlot):
         x = np.arange(12)
         # Values are all the same, but "time-dependent"
         y = np.tile(np.logspace(0, 2, 6), (12, 1))
-        ax = spacepy.plot.simpleSpectrogram(x, y, z)
+        ax = simpleSpectrogram(x, y, z)
         mesh =  [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
         self.assertEqual(1, len(mesh))
         mesh = mesh[0]
         data = mesh.get_array()
         np.testing.assert_array_almost_equal(1., data)
         self.assertEqual(6 * 12, data.size)
+
+    def testFillAndLow(self):
+        """Distinguish between fill and below range cutoff"""
+        self.save_plots = True
+        z = np.tile(np.arange(1., 6), (10, 1))
+        z[0, :2] = .5
+        z[1, :2] = .1
+        z[2, :2] = 0
+        z[3, :2] = np.nan
+        ax = simpleSpectrogram(z, ylog=False, vmin=0.5, vmax=6, zero_valid=True)
+        mesh =  [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(mesh))
+        mesh = mesh[0]
+        matplotlib.pyplot.draw()  # Force rendering of mesh colors
+        colors = np.rollaxis(mesh.get_facecolor().reshape(5, 10, 4), 1, 0)
+        np.testing.assert_array_equal(  # the two .5 are same
+            colors[0, 0, :], colors[0, 1, :])
+        np.testing.assert_array_equal(  # top strips is same
+            colors[0, 4, :], colors[8, 4, :])
+        np.testing.assert_array_equal(  # .5 and .1 are the same
+            colors[0, 0, :], colors[1, 0, :])
+        np.testing.assert_array_equal(  # .1 and 0 are the same (under-value)
+            colors[1, 0, :], colors[2, 0, :])
+        # 0 and nan are different
+        self.assertFalse(np.allclose(colors[0, 2, :], colors[0, 3, :]))
 
 
 if __name__ == "__main__":

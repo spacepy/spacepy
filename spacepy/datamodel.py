@@ -493,7 +493,7 @@ class ISTPContainer(collections.abc.Mapping):
                 zlabel, ' ' if zlabel else '', v.attrs['UNITS'])
         zlabel = zlabel if zlabel else None
         ax = spacepy.plot.simpleSpectrogram(numpy.array(x), numpy.array(y), data, cbtitle=zlabel,
-                                            ax=ax)
+                                            ax=ax, zero_valid=True)
         ylabel = y.attrs.get('LABLAXIS', '')
         if y.attrs.get('UNITS'):
             ylabel = '{}{}({})'.format(
