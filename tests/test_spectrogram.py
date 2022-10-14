@@ -10,17 +10,19 @@ import unittest
 
 import numpy as np
 import datetime
+import matplotlib.collections
 import matplotlib.dates as mdates
+import matplotlib.pyplot
 
 import spacepy_testing
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
 
-from spacepy.plot.spectrogram import Spectrogram
+from spacepy.plot.spectrogram import simpleSpectrogram, Spectrogram
 import spacepy.plot
 
 
-__all__ = ['spectrogramTests', 'spectrogramDateTests']
+__all__ = ['spectrogramTests', 'spectrogramDateTests', 'SimpleSpectrogramTests']
 
 class spectrogramTests(unittest.TestCase):
     def setUp(self):
@@ -138,6 +140,74 @@ class spectrogramDateTests(unittest.TestCase):
                     np.testing.assert_allclose(a.specSettings[key], ans[key], atol=1e-2, rtol=1e-3)
                 else:
                     np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
+
+
+class SimpleSpectrogramTests(spacepy_testing.TestPlot):
+    """Test simpleSpectrogram function"""
+
+    def testBadInputs(self):
+        """Pass invalid number of arrays"""
+        z = np.full((12, 6), 1.)
+        x = np.arange(12)
+        with self.assertRaises(TypeError) as cm:
+            simpleSpectrogram(x, z)
+        self.assertEqual('simpleSpectrogram, takes Z or X, Y, Z', str(cm.exception))
+
+    def testSimpleZ(self):
+        """Simple, single input"""
+        x = np.linspace(0, np.pi, 12)
+        y = np.logspace(0, 2, 6)
+        # Power-law in energy, sin in time
+        z = 1e4 * np.sin(x)[:, None] * (y ** -2)[None, :] + 1
+        ax = simpleSpectrogram(z, ylog=False, cbtitle='COLORBAR')
+        mesh =  [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(mesh))
+        mesh = mesh[0]
+        np.testing.assert_array_almost_equal(
+            z, mesh.get_array().reshape(z.shape[::-1]).transpose())  # mesh swaps row/column
+        self.assertEqual((0, 12), ax.get_xlim())
+        self.assertEqual((0, 6), ax.get_ylim())
+        fig = ax.get_figure()
+        axes = fig.get_axes()
+        self.assertEqual(2, len(axes))
+        self.assertIs(ax, axes[0])
+        cb = axes[1]
+        zlim = cb.get_ylim()
+        self.assertEqual(1., zlim[0])
+        self.assertAlmostEqual(1e4, zlim[1], delta=1e3)
+        self.assertEqual('COLORBAR', cb.get_ylabel())
+
+    def testSimpleZGiveAxes(self):
+        """Simple, single input, provide axes"""
+        z = np.full((12, 6), 1.)
+        fig = matplotlib.pyplot.figure()
+        ax0 = fig.add_subplot(111)
+        ax = simpleSpectrogram(z, ax=ax0)
+        self.assertIs(ax0, ax)
+
+    def testSimpleXYZ(self):
+        """Simple, three inputs"""
+        x = np.linspace(0, np.pi, 12)
+        y = np.logspace(0, 2, 6)
+        # Power-law in energy, sin in time
+        z = 1e4 * np.sin(x)[:, None] * (y ** -2)[None, :] + 1
+        ax = simpleSpectrogram(x, y, z)
+        mesh =  [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(mesh))
+        mesh = mesh[0]
+        np.testing.assert_array_almost_equal(
+            z, mesh.get_array().reshape(z.shape[::-1]).transpose())  # mesh swaps row/column
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        self.assertGreater(xlim[0], -0.5)
+        self.assertLess(xlim[0], x[1])
+        self.assertGreater(xlim[1], x[-1])
+        self.assertLess(xlim[1], 4)
+        self.assertGreater(ylim[0], .1)
+        self.assertLess(ylim[0], y[1])
+        self.assertGreater(ylim[1], y[-1])
+        self.assertLess(ylim[1], 250)
+
 
 if __name__ == "__main__":
     unittest.main()
