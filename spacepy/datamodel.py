@@ -266,7 +266,7 @@ class ISTPArray:
         .. versionadded:: 0.5.0
 
         Comparisons with ``FILLVAL`` are done using `~numpy.isclose` and
-        so may NaN values thare are near, but not identical, to fill.
+        so may replace values thare are near, but not identical, to fill.
         """
         data = numpy.array(self)
         idx = numpy.zeros_like(data, dtype=bool)
