@@ -1303,7 +1303,6 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
             'Energy': dm.dmarray(
                 np.logspace(1, 3, 20),
                 attrs={'CATDESC': 'Energy bins for H',
-                       'DISPLAY_TYPE': 'spectrogram',
                        'FIELDNAM': 'H_Rate',
                        'FILLVAL': -1e+31,
                        'FORMAT': 'F6.1',
