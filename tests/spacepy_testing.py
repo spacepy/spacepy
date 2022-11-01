@@ -79,12 +79,8 @@ class assertWarns(warnings.catch_warnings):
         Unless ``None``, a warning filter matching the specified warning will
         be added to the filter before executing the block. 'always'
         (default) is generally recommended to make sure the tested
-        warning will be raised. If 'always' is specified, on Python 2 the log
-        of previously-issued warnings will be edited to work around a
-        `Python bug <https://stackoverflow.com/questions/56821539/>`_. In this
-        case using ``module`` is strongly recommended to minimize the impact
-        of this editing. This filter will be removed on completion of the
-        block.
+        warning will be raised. This filter will be removed on completion
+        of the block.
 
     message : str, optional
         Regular expression to match the start of warning message. Default
@@ -133,21 +129,6 @@ class assertWarns(warnings.catch_warnings):
         """Log of warnings issued within context block."""
         if self._filterspec[0] is not None:
             warnings.filterwarnings(*self._filterspec)
-        if self._filterspec[0] == 'always' and sys.version_info[0:2] == (2, 7):
-            # Bug in 2.7: 'always' doesn't work if warning was previously
-            # issued, so remove any record of it being issued, which
-            # is stored by module.
-            msg_pat = re.compile(self._filterspec[1], re.I)
-            cat = self._filterspec[2]
-            mod_pat = re.compile(self._filterspec[3])
-            for m in list(sys.modules):
-                if mod_pat.match(m)\
-                   and hasattr(sys.modules[m], '__warningregistry__'):
-                    reg = sys.modules[m].__warningregistry__
-                    for k in list(reg.keys()):
-                        if msg_pat.match(k[0]) and issubclass(k[1], cat):
-                            del reg[k]
-                            break
 
     def __exit__(self, *exc_info):
         """Exit context manager, called at exit of block"""
