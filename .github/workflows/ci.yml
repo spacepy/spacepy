@@ -111,7 +111,7 @@ jobs:
             dep-strategy: "newest"
     steps:
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Get Week
@@ -120,7 +120,7 @@ jobs:
         echo "week=$(/bin/date -u "+%G%V")" >> $GITHUB_OUTPUT
       shell: bash
     - name: Cache pip
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         # Force-expire the pip cache weekly
@@ -129,7 +129,7 @@ jobs:
           pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-
           pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-
     - name: Cache cdf
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/cdf
         # Force-expire the CDF cache weekly
@@ -198,7 +198,7 @@ jobs:
             dep-strategy: "newest"
     steps:
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Get Week
@@ -207,7 +207,7 @@ jobs:
         echo "week=$(/bin/date -u "+%G%V")" >> $GITHUB_OUTPUT
       shell: bash
     - name: Cache pip
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         # Different pip cache for docs (includes numpydoc, sphinx)
@@ -219,7 +219,7 @@ jobs:
           pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-
           pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-
     - name: Cache cdf
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/cdf
         # Force-expire the CDF cache weekly
