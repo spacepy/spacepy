@@ -18,6 +18,9 @@ default plot style, use the following::
     import spacepy.plot as splot
     splot.style()
 
+.. versionchanged:: 0.5.0
+   Plot styles are no longer applied automatically.
+
 Different plot types may not work well with this style, so we have provided
 alternatives. For polar plots, spectrograms, or anything with larger blocks 
 of color, it may be better to use one of the alternatives::
