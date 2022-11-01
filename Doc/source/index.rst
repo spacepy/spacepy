@@ -56,7 +56,7 @@ validate the analysis and receive appropriate credit for his or her
 work.
 
 
-.. module:: spacepy
+.. currentmodule:: spacepy
 
 Getting Started
 ===============
