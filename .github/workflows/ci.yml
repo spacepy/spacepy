@@ -155,7 +155,7 @@ jobs:
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
 # commit of the PR, not just the tip of the PR.
     - name: checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Install and run tests
       working-directory: ${{ github.workspace }}
       run: |
@@ -167,7 +167,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Unicode check
         run: (! file irbem-lib-*/*.f irbem-lib-*/source/*.f | grep -q Unicode )
         working-directory: ${{ github.workspace }}/spacepy/irbempy/
@@ -245,7 +245,7 @@ jobs:
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
 # commit of the PR, not just the tip of the PR.
     - name: checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Build spacepy and docs
       working-directory: ${{ github.workspace }}
       run: |
