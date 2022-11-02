@@ -227,9 +227,10 @@ class MetaMixin(object):
 class ISTPArray:
     """Mixin class for array using ISTP metadata.
 
-    Array types like `dmarray` provide all these methods if attributes
-    of the array use the
+    Array types like `dmarray` provide all these methods; they assume
+    attributes of the array use the
     `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+    and are unlikely to give good results if that is not the case.
 
     Note that some operations that may seem to relate to an array (e.g.
     uncertainties) may require the use of other arrays in a container;
@@ -266,7 +267,7 @@ class ISTPArray:
         .. versionadded:: 0.5.0
 
         Comparisons with ``FILLVAL`` are done using `~numpy.isclose` and
-        so may replace values thare are near, but not identical, to fill.
+        so may replace values that are near, but not identical, to fill.
         """
         data = numpy.array(self)
         idx = numpy.zeros_like(data, dtype=bool)
@@ -309,9 +310,10 @@ class ISTPArray:
 class ISTPContainer(collections.abc.Mapping):
     """Mixin class for containers using ISTP metadata.
 
-    Container types like `SpaceData` provide all these methods if attributes
-    of the container and the arrays it contains use the
+    Container types like `SpaceData` provide all these methods; they assume
+    attributes of the container and the arrays it contains use the
     `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+    and are unlikely to give good results if that is not the case.
 
     .. versionadded:: 0.5.0
 
@@ -450,17 +452,21 @@ class ISTPContainer(collections.abc.Mapping):
         Examples
         --------
 
-        >>> import spacepy.pycdf
+        >>> import spacepy.datamodel
         # https://rbsp-ect.newmexicoconsortium.org/data_pub/rbspa/ECT/level2/
-        >>> with spacepy.pycdf.CDF('rbspa_ect-elec-L2_20140115_v2.1.0.cdf') as f:
-        ...     data = f.copy()
+        >>> data = spacepy.datamodel.fromCDF(
+        ...     'rbspa_ect-elec-L2_20140115_v2.1.0.cdf')
         >>> fig = data.plot(['FESA', 'Position'])
         >>> fig.show()  # if needed
+
+        >>> import spacepy.pycdf
         # https://rbsp-ect.newmexicoconsortium.org/data_pub/rbspa/hope/level2/spinaverage/
         >>> with spacepy.pycdf.CDF('rbspa_rel04_ect-hope-sci-L2SA_20140108_v6.1.0.cdf') as f:
         ...     data = f.copy()
         >>> fig = data.plot(['FESA', 'FPSA'])
         >>> fig.show()  # if needed
+
+        >>> import spacepy.pycdf
         # https://spp-isois.sr.unh.edu/data_public/ISOIS/level2/
         >>> with spacepy.pycdf.CDF('psp_isois_l2-summary_20201130_v13.cdf') as f:
         ...     data = f.copy()
