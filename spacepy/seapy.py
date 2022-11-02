@@ -75,6 +75,17 @@ class SeaBase(object):
             self.times=times.UTC
         else:
             self.times = times
+        td = np.diff(times)
+        noncontig = (not np.isclose(td, td[0]).all()) if np.issubdtype(td.dtype, np.inexact)\
+              else (len(np.unique(td)) > 1)
+        nonmon = ((np.array([t.total_seconds() for t in td])
+                if isinstance(td[0], dt.timedelta) else td) < 0).any()
+        if nonmon or noncontig:
+            warnings.warn('Input time not {}; results are unlikely to be valid.'.format(
+                          ('monotonic or contiguous' if nonmon else 'contiguous')
+                          if noncontig else 'monotonic'))
+        if len(epochs) > len(times) / 2:
+            warnings.warn('Too many epochs; results are unlikely to be valid.')
         if isinstance(epochs, spt.Ticktock):
             self.epochs = epochs.UTC
         else:
@@ -208,9 +219,21 @@ class Sea(SeaBase):
     data : array_like
         list or array of data
     times : array_like
-        list of datetime objects (or list of serial times)
+        list of datetime objects (or list of serial times). Must be contiguous
+        (constant cadence) and monotonically increasing.
+
+        .. versionchanged:: 0.5.0
+           Issues a warning for non-contiguous/non-monotonic times.
+
     epochs : array_like
-        list of datetime objects (or serial times) for zero epochs in SEA
+        list of datetime objects (or serial times) for zero epochs in SEA.
+        For a suitable SEA, this should be substantially shorter than
+        ``times``.
+
+        .. versionchanged:: 0.5.0
+           Issues a warning for too many epochs; arbitrarily defined as
+           more than half the number of times.
+
     window : datetime.timedelta
         size of the half-window for the SEA (can also be given as serial time)
     delta : datetime.timedelta
@@ -557,9 +580,21 @@ class Sea2d(SeaBase):
     data : array_like
         2-D array of data (0th dimension is quantity y, 1st dimension is time)
     times : array_like
-        list of datetime objects (or list of serial times)
+        list of datetime objects (or list of serial times). Must be contiguous
+        (constant cadence) and monotonically increasing.
+
+        .. versionchanged: 0.5.0
+           Issues a warning for non-contiguous/non-monotonic times.
+
     epochs : array_like
-        list of datetime objects (or serial times) for zero epochs in SEA
+        list of datetime objects (or serial times) for zero epochs in SEA.
+        For a suitable SEA, this should be substantially shorter than
+        ``times``.
+
+        .. versionchanged: 0.5.0
+           Issues a warning for too many epochs; arbitrarily defined as
+           more than half the number of times.
+
     window : datetime.timedelta
         size of the half-window for the SEA (can also be given as serial time)
     delta : datetime.timedelta
