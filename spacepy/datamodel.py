@@ -1586,7 +1586,7 @@ def toHDF5(fname, SDobject, **kwargs):
                             dumval[i] = val.isoformat()
                         dumval = dumval.astype('|S35')
                     else:
-                        dumval = dumval.atsype('|S35')
+                        dumval = dumval.astype('|S35')
                     hfile[path].create_dataset(key, data=dumval, compression=comptype,
                                                compression_opts=compopts, dtype=dtype)
                     #else:
