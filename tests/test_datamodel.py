@@ -709,6 +709,17 @@ class converterTests(unittest.TestCase):
         np.testing.assert_array_equal(a['dat'], newobj['dat'])
         np.testing.assert_array_equal(a['scalar'], newobj['scalar'])
 
+    def test_toHDF5ObjectArray(self):
+        """Convert to HDF5 with object array input"""
+        a = dm.SpaceData({
+            'test': dm.dmarray(['a', 'b', 'c'], dtype=object)})
+        a.toHDF5(self.testfile, mode='a')
+        newobj = dm.fromHDF5(self.testfile)
+        np.testing.assert_array_equal(
+            np.array(['a', 'b', 'c'], dtype='S'),
+            newobj['test'])
+        self.assertEqual('|S35', newobj['test'].dtype)
+
     def test_HDF5Exceptions(self):
         """HDF5 has warnings and exceptions"""
         dm.toHDF5(self.testfile, self.SDobj)
