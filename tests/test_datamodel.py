@@ -16,9 +16,9 @@ import os
 import os.path
 import pickle
 import shutil
+import sys
 import tempfile
 import unittest
-import sys
 import warnings
 
 import spacepy_testing
@@ -699,9 +699,8 @@ class converterTests(unittest.TestCase):
 
     def test_toHDF5String(self):
         """Convert to HDF5 with (unicode) strings"""
-        # Can change to just strings when drop python 2
-        a = dm.SpaceData({'scalar': dm.dmarray(b'foo'.decode()),
-                          'dat': dm.dmarray([b'foo'.decode(), b'bar'.decode()])
+        a = dm.SpaceData({'scalar': dm.dmarray('foo'),
+                          'dat': dm.dmarray(['foo', 'bar'])
         })
         a.toHDF5(self.testfile, mode='a')
         newobj = dm.fromHDF5(self.testfile)
