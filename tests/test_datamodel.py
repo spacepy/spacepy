@@ -954,7 +954,7 @@ class JSONTests(unittest.TestCase):
             with open(self.filename, 'rb') as f_in:
                 gzipname = os.path.join(tmpdirname, os.path.basename(self.filename) + '.gz')
                 with gzip.open(gzipname, 'wb') as f_out:
-                    f_out.writelines(f_in)  # py2
+                    f_out.writelines(f_in)
             dat = dm.readJSONheadedASCII(gzipname, convert=True)
             self.readJSONheadedASCII_checking(dat)
         finally:
@@ -972,7 +972,7 @@ class JSONTests(unittest.TestCase):
             with open(self.filename, 'rb') as f_in:
                 gzipname = os.path.join(tmpdirname, os.path.basename(self.filename) + '.gz')
                 with gzip.open(gzipname, 'wb') as f_out:
-                    f_out.writelines(f_in)  # py2
+                    f_out.writelines(f_in)
             dat = dm.readJSONheadedASCII([gzipname, self.filename], convert=True)
             self.readJSONheadedASCII_checking(dat, double=True)
         finally:
