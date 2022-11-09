@@ -159,7 +159,7 @@ jobs:
     - name: Install and run tests
       working-directory: ${{ github.workspace }}
       run: |
-        python setup.py build
+        pip install .
         cd tests; . ${HOME}/cdf/bin/definitions.B; xvfb-run python test_all.py -v
 
   irbem-unicode:
