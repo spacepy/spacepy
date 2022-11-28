@@ -241,8 +241,10 @@ class ISTPArray:
     .. autosummary::
         ~ISTPArray.plot_as_line
         ~ISTPArray.replace_invalid
+        ~ISTPArray.units
     .. automethod:: plot_as_line
     .. automethod:: replace_invalid
+    .. automethod:: units
     """
     attrs: collections.abc.Mapping
 
@@ -305,6 +307,48 @@ class ISTPArray:
             return True
         # Reasonable dividing line is probably 4 stacked line plots
         return self.shape[-1] < 5
+
+    def units(self, fmt='minimal'):
+        """Finds units of array.
+
+        Looks up the unit attribute and performs minor cleanup (including
+        intepreting IDL codes).
+
+        Returns
+        -------
+        `str`
+            Physical units of this array. `None` if not present.
+
+        Parameters
+        ----------
+        fmt : {'minimal', 'latex', 'astropy', 'raw'}
+            How to format the units: ``minimal`` (default) is a
+            minimally-processed rendering, ``latex`` is in LaTeX,
+            ``astropy`` is meant to give good results when passed to
+            `astropy.units.Unit`, and ``raw`` has no processing. No
+            checks are done on processing for AstroPy or LaTeX, and it
+            should not be assumed they will parse.
+
+        Notes
+        -----
+        .. versionadded:: 0.6.0
+        """
+        u = self.attrs.get('UNITS', None)
+        if fmt == 'raw' or u is None:
+            return u
+        if fmt in ('minimal', 'astropy'):
+            u = re.sub(r'![EU]([^!]*)!N', r'^\1', u)  # IDL to exponent
+            u = re.sub(r'\^{([^!]*)}', r'^\1', u)  # LaTeX to exponent
+        if fmt == 'minimal':
+            u = re.sub(r'(?<=\d)(?=[\w^_])', r' ', u)  # Insert spaces
+        if fmt == 'astropy':
+            # Common substitutions
+            for orig, ap in (('ster', 'sr'),
+                             ):
+                u = re.sub(fr'(?<=[\W\d]){orig}(?=[\W\d])', ap, u)
+        if fmt == 'latex':
+            u = re.sub(r'![EU]([^!]*)!N', r'^{\1}', u)  # IDL to exponent
+        return u
 
 
 class ISTPContainer(collections.abc.Mapping):
