@@ -1214,6 +1214,7 @@ class VariableTests(unittest.TestCase):
 class ISTPPlotTests(spacepy_testing.TestPlot):
     """Test ISTP-based SpaceData"""
     # Not all tests use plotting, but many do, and need a single line of inheritance
+    longMessage = True
 
     def setUp(self):
         super().setUp()
@@ -1626,6 +1627,28 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         ylabels = [ax.get_ylabel() for ax in axes]
         self.assertEqual(
             ['B (nT)', 'Energy (keV)', 'H rate (counts/s)'], ylabels)
+
+    def test_units(self):
+        """Get units of a variable"""
+        # In order of: input unit, then results for minimal, latex, astropy
+        cases = [
+            # PSP FIELDS
+            ('nT', 'nT', 'nT', 'nT'),
+            # EPI-Lo
+            ('cm!U-2!N s!U-1!N sr!U-1!N keV!U-1!N', 'cm^-2 s^-1 sr^-1 keV^-1',
+             'cm^{-2} s^{-1} sr^{-1} keV^{-1}', 'cm^-2 s^-1 sr^-1 keV^-1'),
+            # SPC
+            ('cm^{-3}', 'cm^-3', 'cm^{-3}', 'cm^-3'),
+            # HOPE
+            ('s!E-1!Ncm!E-2!Nster!E-1!NkeV!E-1!N', 's^-1 cm^-2 ster^-1 keV^-1',
+             's^{-1}cm^{-2}ster^{-1}keV^{-1}', 's^-1cm^-2sr^-1keV^-1',),
+            ]
+        formats = ['raw', 'minimal', 'latex', 'astropy']
+        for c in cases:
+            foo = dm.dmarray([], attrs={'UNITS': c[0]})
+            for i, f in enumerate(formats):
+                self.assertEqual(c[i], foo.units(f),
+                                 '{}: {}'.format(c[0], f))
 
 
 if __name__ == "__main__":
