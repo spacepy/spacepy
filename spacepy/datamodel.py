@@ -1679,6 +1679,131 @@ def toHTML(fname, SDobject, attrs=(),
         print(output.getvalue())
     output.close()
 
+def fromSunPyTimeSeries(SunPyObject):
+    """ Antunes Jul 21 - Dec 22 PyAdapters project
+
+    Intent is the 'fromSunPy' to SpacePy and/or HAPI datamodel adapters
+    This code has 2 functions so far:
+
+    'TimeSeriesToSpaceData()' takes a SunPy 'TimeSeries' data object
+    and converts it to a SpacePy 'SpaceData' object.
+
+    'NDCubeToSpaceData()' takes a SunPy 'NDCube' data object
+    and converts it to a SpacePy 'SpaceData' object.
+
+    Testing is via 'sunpy_timeseries_tests.py'
+    mySpaceData = fromSunPyTimeSeries(SunPy_TimeSeries)
+    mySpaceData = fromNDCube(SunPy_Map)
+
+    core data: data (a pandas dataframe)
+    optional: meta (TimeSeriesMetaData obj or 'None')
+         and units (dict or 'None')
+    """
+    
+    #### SunPy warns to not use .data in favor of to_dataframe()
+    #### but this is contentious-- https://github.com/sunpy/sunpy/issues/4622
+
+    label = SunPyObject.source # e.g. 'xrs'
+    # Many but not all SunPy objects are from FITS, which has rich metadata
+    # attrs for entire dataset, extracting FITS headers
+    try:
+        fitshdr = SunPyObject.meta.metadata[0][2]
+    except:
+        fitshdr = {}
+    # common keys, if needed, are bitpix, naxis, extend, date,
+    # telescop, instrume, object, origin,
+    # date-obs, time-obs, date-end, time-end, comment, history
+    # also a dup of hdrs called 'keycomments' for some reason
+    temp = {'CATDESC': label, 'VAR_TYPE': 'metadata'}
+    for mykey in fitshdr.keys():
+        temp[mykey] = fitshdr[mykey]
+    if 'keycomments' in temp: del temp['keycomments']
+    SDObject = SpaceData(attrs=temp)
+    
+    SDObject['Epoch'] = dmarray(SunPyObject.index,
+                                    attrs = {'DISPLAY_TYPE': 'time_series',
+                                             'VAR_TYPE': 'support_data',
+                                             'FIELDNAM': 'epoch',
+                                             'FORMAT': 'I22',
+                                             'LABLAXIS': 'Epoch',
+                                             'MONOTON': 'INCREASE'})
+
+    #hdr = SunPyObject.meta.metadata[0][2]['keycomments'] # hash of FITS hdr rehash
+    # hdr = SunPyObject.meta.metadata[0][2] # hash of FITS hdr
+    # not using hdr['telescop'] or hdr['instrume'] yet
+    for id in SunPyObject.columns:
+        #print("Debug, adding spacedata element ",id)
+        SDObject[id] = dmarray(SunPyObject.data[id].to_numpy())
+        try:
+            obs = SunPyObject.observatory
+        except:
+            # lacks 'observatory' keyword, go with a default
+            obs = id
+        SDObject[id].attrs = {'CATDESC': id,
+                          'DEPEND_0': 'Epoch',
+                          'object': obs,
+                          'DISPLAY_TYPE': 'time_series',
+                          'VAR_TYPE': 'data',
+                          'FIELD_NAME': id,
+                          'UNITS': SunPyObject.units[id]}
+        if len(SunPyObject.data[id].shape) > 1:
+            # is not 1-D, so needs a 2nd axis of indices
+            nele = list(range(1, 1+SunPyObject.data[id].shape[1]))
+            indexname = 'index_'+id
+            SDObject[indexname]=dmarray(nindices,
+                            attrs={'CATDESC': str(nele)+'vect',
+                                   'FIELDNAM': str(nele)+'vect',
+                                   'FORMAT': 'I10',
+                                   'UNITS': SunPyObject.units[id],
+                                   'VAR_TYPE': 'metadata'})
+            SDObject['id'].attrs['DEPEND_1'] = indexname
+
+    return SDObject
+
+
+def ndcubeToSpaceData(nd, header=None, plot_settings=None):
+
+    # core data: single numpy ndarray of data + WCS transformations
+    # see NDCollections for sets of cubes + optional aligned_axes & meta
+    # see NDCubeSequence for sequence of NDCubes + optional meta & common_axis
+
+    # Note SunPy 'map' and 'ndcube' are nearly identical, with 'ndcube' having
+    # additional WCS info.
+    # e.g. SDObject = ndcubeToSpaceData(sunmap, sunmap.header, sunmap.plot_settings)
+
+    data = nd.data # numpy ndarray
+    # ndarray has  .shape (tuple),
+    # and optional dtype (any object), buffer (object), offset (int),
+    #     strides (tuple of ints) and order (either 'C' or 'F')
+
+    wcs = ns.wcs # astroPy wcs object
+    
+    # optional supplementary data
+    uncertainty = nd.uncertainty # any type, def None
+    mask = nd.mask   # any type, def None
+    meta = nd.meta   # dict-like object, def None
+    units = nd.units # string for the entire dataset, def None
+    extra_coords = nd.extra_coords # (name, axis and array-or-obj of values)
+   
+    SDObject = spacepy.datamodel.SpaceData()
+
+    SDObject['data']=data
+    SDObject['wcs']=wcs
+    if uncertainty != None: SDObject['uncertainty']=uncertainty
+    if mask != None: SDObject['mask']=mask
+    if meta != None: SDObject['meta']=meta
+    if units != None:  SDObject['units']=units
+    if extra_coords != None: SDObject['extra_coords']=extra_coords
+
+    # these next 2 are only used for the map (not ndcube) class
+    if header != None: SDObject['header']=header
+    if plot_settings != None: SDObject['plot_settings']=plot_settings
+
+    #SDObject.attrs = ????
+
+    return SDObject
+    
+
 def _idl2html(idl):
     """
     given an idl format string for text change it to html
