@@ -36,6 +36,10 @@ SpacePy 0.5.0. Minimum versions are:
   * numpy 1.15.1
   * scipy 1.0
 
+The only supported compiler is the GNU gfortran compiler, aka
+"gnu95". Support for the older g77 compiler, as well as the Portland
+Group and Intel compilers, has been removed.
+
 New features
 ************
 `~.datamodel.readJSONheadedASCII` and `~.datamodel.readJSONMetadata`

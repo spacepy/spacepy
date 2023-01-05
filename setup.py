@@ -275,13 +275,10 @@ def finalize_compiler_options(cmd):
                     optdict[option] = otheroptdict[option]
                     break
     #Special-case defaults, checks
-    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'none', 'None'):
+    if not cmd.fcompiler in ('gnu95', 'none', 'None'):
         raise DistutilsOptionError(
             '--fcompiler={0} unknown'.format(cmd.fcompiler) +
-            ', options: pg, gnu, gnu95, intelem, intel, None')
-    if len('%x' % sys.maxsize)*4 == 32 and cmd.fcompiler == 'intelem':
-        raise DistutilsOptionError(
-            '--fcompiler=intelem requires a 64-bit architecture')
+            ', options: gnu95, None')
     if cmd.compiler == None and sys.platform == 'win32':
         cmd.compiler = 'mingw32'
     #Add interpreter to f2py if it needs it (usually on Windows)
@@ -485,16 +482,6 @@ class build(_build):
                 '%s not supported at this time. ' % sys.platform +
                 'IRBEM will not be available')
             return
-        if fcompiler == 'pg' and sys.platform == 'darwin':
-            warnings.warn(
-                'Portland Group compiler "pg" not supported on Mac OS\n'
-                'IRBEM will not be available.')
-            return
-        if fcompiler != 'gnu95' and sys.platform == 'win32':
-            warnings.warn(
-                'Only supported compiler on Win32 is gnu95\n'
-                'IRBEM will not be available.')
-            return
 
         if not os.path.exists(outdir):
             os.makedirs(outdir)
@@ -558,31 +545,16 @@ class build(_build):
         # compile (platform dependent)
         os.chdir('source')
         comppath = {
-            'pg': 'pgf77',
-            'gnu': 'g77',
             'gnu95': 'gfortran',
-            'intel': 'ifort',
-            'intelem': 'ifort',
             }[fcompiler]
         compflags = {
-            'pg': ['-Mnosecond_underscore', '-w', '-fastsse', '-fPIC'],
-            'gnu': ['-w', '-O2', '-fPIC', '-fno-second-underscore'] ,
             'gnu95': ['-w', '-O2', '-fPIC', '-ffixed-line-length-none',
                       '-std=legacy'],
-            'intel': ['-Bstatic', '-assume', '2underscores', '-O2', '-fPIC'],
-            'intelem': ['-Bdynamic', '-O2', '-fPIC'],
             }[fcompiler]
-        if fcompiler == 'gnu' and bit == 64:
-                compflags = ['-m64'] + compflags
         if not sys.platform.startswith('win') and fcompiler == 'gnu95' \
            and not os.uname()[4].startswith(('arm', 'aarch64')):
             # Raspberry Pi doesn't have or need this switch
             compflags = ['-m{0}'.format(bit)] + compflags
-        if fcompiler.startswith('intel'):
-            if bit == 32:
-                compflags = ['-Bstatic', '-assume', '2underscores'] + compflags
-            else:
-                compflags = ['-Bdynamic'] + compflags
         comp_candidates = [comppath]
         if fcompexec is not None and 'compiler_f77' in fcompexec:
             comp_candidates.insert(0, fcompexec['compiler_f77'][0])
@@ -634,10 +606,6 @@ class build(_build):
         os.chdir('..')
 
         f2py_flags = ['--fcompiler={0}'.format(fcompiler)]
-        if fcompiler == 'gnu':
-            f2py_flags.append('--f77flags=-fno-second-underscore,-mno-align-double')
-            if bit == 64:
-                f2py_flags[-1] += ',-m64'
         if fcompiler == 'gnu95':
             f2py_flags.extend(['--f77flags=-std=legacy',
                                '--f90flags=-std=legacy'])

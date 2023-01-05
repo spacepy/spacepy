@@ -118,8 +118,7 @@ Fortran compiler
 ----------------
 If installing from source, :mod:`~spacepy.irbempy` requires a Fortran
 compiler. (This is not required for the Windows binary installer).
-Supported compilers are the GNU compiler ``gfortran``, the older GNU
-compiler ``g77``, and the Portland Group PGI compiler.
+The Supported compiler is the GNU compiler ``gfortran``.
 
 If :mod:`~spacepy.irbempy` is to be used, the Fortran compiler (and
 f2py) must be installed before SpacePy.
