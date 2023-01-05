@@ -96,9 +96,8 @@ If this fails, specify a Fortran compiler::
     python setup.py build --fcompiler=gnu95
 
 ``python setup.py build --help-fcompiler`` will list options for
-Fortran compilers. Currently available compilers are ``pg``,
-``gnu95``, ``gnu``, ``intelem``, ``intel`` or ``none`` (to skip all
-Fortran); ``gnu95`` (the GNU gfortran compiler) is recommended.
+Fortran compilers. The supported compiler is ``gnu95`` (the GNU gfortran
+compiler); ``none`` can be specified as a "compiler" to skip all Fortran.
 
 Install for one user::
 
