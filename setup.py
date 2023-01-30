@@ -28,32 +28,19 @@ use_wininst = "bdist_wininst" in sys.argv
 
 import copy
 import os, shutil, getopt, glob, re
+import platform
 import subprocess
 import warnings
 
 import distutils.ccompiler
-#Save these because numpy will smash them, but need numpy for Fortran stuff
-#numpy REPLACES new_compiler function, and EDITS compiler class dict
-real_compiler_class = copy.deepcopy(distutils.ccompiler.compiler_class)
-real_distutils_ccompiler_new_compiler = distutils.ccompiler.new_compiler
-try:
-    from numpy.distutils.core import setup
-    from numpy.distutils.command.build import build as _build
-    #The numpy versions automatically use setuptools if necessary
-    #We need the numpy setup to handle fortran compiler options
-    from numpy.distutils.command.install import install as _install
-    from numpy.distutils.command.sdist import sdist as _sdist
-except: #numpy not installed, hopefully just getting egg info
-    if not egginfo_only:
-        raise
-    from distutils.core import setup
-    from distutils.command.build import build as _build
-    if use_setuptools:
-        from setuptools.command.install import install as _install
-        from setuptools.command.sdist import sdist as _sdist
-    else:
-        from distutils.command.install import install as _install
-        from distutils.command.sdist import sdist as _sdist
+from distutils.core import setup
+from distutils.command.build import build as _build
+if use_setuptools:
+    from setuptools.command.install import install as _install
+    from setuptools.command.sdist import sdist as _sdist
+else:
+    from distutils.command.install import install as _install
+    from distutils.command.sdist import sdist as _sdist
 
 if use_wininst:
     if use_setuptools:
@@ -76,14 +63,6 @@ else:
         imp = None
     else:
         import imp #fall back to old-style
-try:
-    import numpy
-    import numpy.distutils.command.config_compiler
-except:
-    if egginfo_only:
-        pass
-    else:
-        raise
 
 
 #These are files that are no longer in spacepy (or have been moved)
@@ -177,34 +156,65 @@ def default_f2py():
         return 'f2py'
 
 
-def f2py_options(fcompiler, dist=None):
+def f2py_options(fcompiler):
     """Get an OS environment for f2py, and find name of Fortan compiler
 
     The OS environment puts in the shared options if LDFLAGS is set
     """
     env = None
-    import numpy.distutils.fcompiler
-    numpy.distutils.fcompiler.load_all_fcompiler_classes()
-    if not fcompiler in numpy.distutils.fcompiler.fcompiler_class:
-        return (None, None) #and hope for the best
-    fcomp = numpy.distutils.fcompiler.fcompiler_class[fcompiler][1]
-    #Various compilers specify executables for ranlib/ar, but the base
-    #class command_vars explicitly ignores them. So monkeypatch.
-    for k in ('archiver', 'ranlib'):
-        if k in fcomp.executables and k in fcomp.command_vars._conf_keys:
-            oldval = fcomp.command_vars._conf_keys[k]
-            if oldval[0] is None:
-                fcomp.command_vars._conf_keys[k] = ('exe.{0}'.format(k),) +  \
-                                                   oldval[1:]
-    fcomp = fcomp()
-    try:
-        fcomp.customize(dist)
-    except numpy.distutils.fcompiler.CompilerNotFound:
-        return False
-    if 'LDFLAGS' in os.environ:
+    # Only used on OSX
+    isarm = platform.uname()[4].startswith('arm')
+    stack_protector = 'no-stack-protector' if isarm else 'stack-protector'
+    # what numpy uses (M1 is 8.5-a; nocona is first Intel x86-64)
+    arch = 'armv8.3-a' if isarm else 'nocona'
+    executables = {
+        'darwin': {
+            # NOTE: -isystem is used on M2 Mac, check if works without
+            'compiler_f77': [
+                'gfortran', '-Wall', '-g', '-ffixed-form', '-fno-second-underscore',
+                f'-march={arch}', '-ftree-vectorize', '-fPIC',
+                f'-f{stack_protector}', '-pipe', '-O3', '-funroll-loops'],
+            'archiver': ['ar', '-cr'],
+            'ranlib': ['ranlib'],
+        },
+        'linux': {
+            'compiler_f77': [
+                'gfortran', '-Wall', '-g', '-ffixed-form', '-fno-second-underscore',
+                '-fPIC', '-O3', '-funroll-loops'],
+            'archiver': ['ar', '-cr'],
+            'ranlib': ['ranlib'],
+        },
+        'win32': {
+            'compiler_f77': [
+                'gfortran.exe', '-Wall', '-g', '-ffixed-form', '-fno-second-underscore',
+                '-fPIC', '-O3', '-funroll-loops'],
+            'archiver': ['ar.exe', '-cr'],
+            'ranlib': ['ranlib.exe'],
+        },
+        }[sys.platform]
+    if 'LDFLAGS' in os.environ \
+       or sys.platform == 'darwin' and 'SDKROOT' in os.environ:
         env = os.environ.copy()
-        currflags = os.environ['LDFLAGS'].split()
-        fcompflags = fcomp.get_flags_linker_so()
+    else:
+        return (None, executables)
+    if sys.platform == 'darwin' and 'SDKROOT' in env:
+        if 'LDFLAGS' in env:
+            env['LDFLAGS'] = '{} -isysroot {}'.format(
+                env['LDFLAGS'], env['SDKROOT'])
+        else:
+            env['LDFLAGS'] = '-isysroot {}'.format(env['SDKROOT'])
+    if 'LDFLAGS' in env:
+        currflags = env['LDFLAGS'].split()
+        fcompflags = {
+            'darwin': ['-m64', '-Wall', '-g', '-undefined', 'dynamic_lookup',
+                       '-bundle'],
+            'linux': ['-Wall', '-g', '-shared'],
+            'win32': ['-Wall', '-g', '-shared'],
+        }[sys.platform]
+        if sys.platform == 'darwin' and platform.uname()[4].startswith('arm'):
+            # numpy distutils also does rpathing; hopefully not necessary!
+            fcompflags.extend(['-Wl,-pie', '-Wl,-headerpad_max_install_names',
+                               '-Wl,-dead_strip_dylibs'])
         it = iter(range(len(fcompflags)))
         for i in it:
             if i == len(fcompflags) - 1 or fcompflags[i + 1].startswith('-'):
@@ -225,7 +235,7 @@ def f2py_options(fcompiler, dist=None):
                 currflags.append(fcompflags[i])
                 currflags.append(fcompflags[i + 1])
         env['LDFLAGS'] = ' '.join(currflags)
-    return (env, fcomp.executables)
+    return (env, executables)
 
 
 def initialize_compiler_options(cmd):
@@ -253,7 +263,6 @@ def finalize_compiler_options(cmd):
                 'compiler': None,
                 'f77exec': None,
                 'f90exec': None,}
-    optdict = dist.get_option_dict(cmd.get_command_name())
     #Check all options on all other commands, reverting to default
     #as necessary
     for option in defaults:
@@ -267,13 +276,6 @@ def finalize_compiler_options(cmd):
                     break
             if getattr(cmd, option) == None:
                 setattr(cmd, option, defaults[option])
-        #Also explicitly carry over command line option, needed for config_fc
-        if not option in optdict:
-            for c in dist.commands:
-                otheroptdict = dist.get_option_dict(c)
-                if option in otheroptdict:
-                    optdict[option] = otheroptdict[option]
-                    break
     #Special-case defaults, checks
     if not cmd.fcompiler in ('gnu95', 'none', 'None'):
         raise DistutilsOptionError(
@@ -397,9 +399,6 @@ def get_irbem_libfiles():
 class build(_build):
     """Extends base distutils build to make pybats, libspacepy, irbem"""
 
-    if not egginfo_only:
-        sub_commands = [('config_fc', lambda *args:True)] + _build.sub_commands
-
     user_options = _build.user_options + compiler_options
 
     def initialize_options(self):
@@ -494,12 +493,7 @@ class build(_build):
             os.path.join(builddir, 'source', 'wrappers_{0}.inc'.format(bit)),
             os.path.join(builddir, 'source', 'wrappers.inc'.format(bit)))
 
-        res  = f2py_options(fcompiler, self.distribution)
-        if not res:
-           warnings.warn('Unable to load compiler {}\n'
-                         'IRBEM will not be available.'.format(fcompiler))
-           return
-        f2py_env, fcompexec = res
+        f2py_env, fcompexec = f2py_options(fcompiler)
 
         # compile irbemlib
         olddir = os.getcwd()
@@ -552,7 +546,7 @@ class build(_build):
                       '-std=legacy'],
             }[fcompiler]
         if not sys.platform.startswith('win') and fcompiler == 'gnu95' \
-           and not os.uname()[4].startswith(('arm', 'aarch64')):
+           and not platform.uname()[4].startswith(('arm', 'aarch64')):
             # Raspberry Pi doesn't have or need this switch
             compflags = ['-m{0}'.format(bit)] + compflags
         comp_candidates = [comppath]
@@ -616,13 +610,10 @@ class build(_build):
         if self.f90exec:
             f2py_flags.append('--f90exec={0}'.format(self.f90exec))
         if sys.platform == 'darwin':
-            if 'SDKROOT' in os.environ:
-                sdkroot = os.environ['SDKROOT']
-                f2py_env['LDFLAGS'] = '{} -isysroot {}'.format(
-                    f2py_env['LDFLAGS'], sdkroot)
-            else:
-                sdkroot = os.path.join(os.sep, 'Library',
-                    'Developer', 'CommandLineTools', 'SDKs', 'MacOSX.sdk')
+            sdkroot = os.environ.get(
+                'SDKROOT', os.path.join(
+                    os.sep, 'Library', 'Developer', 'CommandLineTools',
+                    'SDKs', 'MacOSX.sdk'))
             sdklibs = os.path.join(sdkroot, 'usr', 'lib')
             # Explicitly include path for -lSystem
             if os.path.isdir(sdklibs):
@@ -667,22 +658,10 @@ class build(_build):
         srcdir = os.path.join('spacepy', 'libspacepy')
         outdir = os.path.join(self.build_lib, 'spacepy')
         try:
+            comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
             if sys.platform == 'win32':
-                #numpy whacks our C compiler options. We need it for Fortran,
-                #but since we're using C to build a standard shared object,
-                #not a numpy extension module, need vanilla C back.
-                numpy_compiler_class = distutils.ccompiler.compiler_class
-                distutils.ccompiler.compiler_class = real_compiler_class
-                comp = real_distutils_ccompiler_new_compiler(
-                    compiler=self.compiler)
-                distutils.ccompiler.compiler_class = numpy_compiler_class
-                #Cut out MSVC runtime https://bugs.python.org/issue16472
-                #For some reason they're named differently on py2 and py3
-                comp.dll_libraries = [
-                    l for l in comp.dll_libraries if not l.startswith((
-                        'msvcr', 'vcruntime'))]
-            else:
-                comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
+                # Cut out MSVC runtime https://bugs.python.org/issue16472
+                comp.dll_libraries = []
             if hasattr(distutils.ccompiler, 'customize_compiler'):
                 distutils.ccompiler.customize_compiler(comp)
             else:
@@ -843,26 +822,6 @@ class sdist(_sdist):
         _sdist.run(self)
 
 
-try:
-    class config_fc(numpy.distutils.command.config_compiler.config_fc):
-        """Get the options sharing with build, install"""
-
-        def initialize_options(self):
-            initialize_compiler_options(self)
-            numpy.distutils.command.config_compiler.config_fc.initialize_options(
-                self)
-
-        def finalize_options(self):
-            numpy.distutils.command.config_compiler.config_fc.finalize_options(
-                self)
-            finalize_compiler_options(self)
-except:
-    if egginfo_only:
-        pass
-    else:
-        raise
-
-
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
             'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox',
             'spacepy.ctrans', ]
@@ -914,9 +873,6 @@ setup_kwargs = {
 }
 if use_wininst:
     setup_kwargs['cmdclass']['bdist_wininst'] = bdist_wininst
-
-if not egginfo_only:
-    setup_kwargs['cmdclass']['config_fc'] = config_fc
 
 if use_setuptools:
 #Sadly the format here is DIFFERENT than the distutils format
