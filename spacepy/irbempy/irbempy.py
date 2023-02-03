@@ -145,24 +145,31 @@ def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
 # -----------------------------------------------
 def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals=None):
     """
-    call get_bfield in irbem lib and return a dictionary with the B-field vector and
-    strenght.
+    Return magnetic field vector (in GEO) and magnitude
+
+    Calls get_bfield from IRBEMlib and uses the underlying model
+    implementations and coordinate transforms in IRBEMlib to obtain the
+    result.
 
     Parameters
     ----------
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
-        - extMag (string) : optional; will choose the external magnetic field model
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
-                            'T05', 'ALEX', 'TS07']
+        - extMag (string) : optional; will choose the external magnetic
+                            field model possible values ['0', 'MEAD',
+                            'T87SHORT', 'T87LONG', 'T89', 'OPQUIET',
+                            'OPDYN', 'T96', 'OSTA', 'T01QUIET',
+                            'T01STORM', 'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
-        - omni values as dictionary (optional) : if not provided, will use lookup table
+        - omni values as dictionary (optional) : if not provided, will
+                                                 use OMNI module to
+                                                 look up
         - (see Lstar documentation for further explanation)
 
     Returns
     -------
         - results (dictionary) : containing keys: Bvec, and Blocal
+                                 Bvec is specified in GEO coordinates
 
     Examples
     --------
