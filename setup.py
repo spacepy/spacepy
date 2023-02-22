@@ -47,16 +47,7 @@ import distutils.ccompiler
 import distutils.dep_util
 import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
-try:
-    import importlib.machinery #Py3.3 and later
-except ImportError:
-    import imp #pre-3.3
-else:
-    #importlib.machinery exists in 3.2, but doesn't have this
-    if hasattr(importlib.machinery, 'ExtensionFileLoader'):
-        imp = None
-    else:
-        import imp #fall back to old-style
+import importlib.machinery
 
 
 #These are files that are no longer in spacepy (or have been moved)
@@ -430,31 +421,14 @@ class build(_build):
         importable = []
         for f in existing_libfiles:
             fspec = os.path.join(outdir, f)
-            if imp: #old-style imports
-                suffixes = imp.get_suffixes()
-                desc = next(
-                    (s for s in imp.get_suffixes() if f.endswith(s[0])), None)
-                if not desc: #apparently not loadable
-                    os.remove(fspec)
-                    continue
-                fp = open(fspec, 'rb')
-                try:
-                    imp.load_module('irbempylib', fp, fspec, desc)
-                except ImportError:
-                    fp.close()
-                    os.remove(fspec)
-                else:
-                    fp.close()
-                    importable.append(f)
-            else: #Py3.3 and later imports, not tested
-                loader = importlib.machinery.ExtensionFileLoader(
-                    'irbempylib', fspec)
-                try:
-                    loader.load_module('irbempylib')
-                except ImportError:
-                    os.remove(fspec)
-                else:
-                    importable.append(f)
+            loader = importlib.machinery.ExtensionFileLoader(
+                'irbempylib', fspec)
+            try:
+                loader.load_module('irbempylib')
+            except ImportError:
+                os.remove(fspec)
+            else:
+                importable.append(f)
         existing_libfiles = importable
         #if MORE THAN ONE matching output library file, delete all;
         #no way of knowing which is the correct one or if it's up to date
