@@ -12,41 +12,30 @@ Copyright 2010 - 2014 Los Alamos National Security, LLC.
 """
 
 import sys
-# Calling egg info, so a lot of stuff doesn't have to work
-egginfo_only = any([a in sys.argv for a in (
-    'pip-egg-info', 'egg_info', 'dist_info')])
-if egginfo_only:
-    # pip force-imports setuptools, on INSTALL, so then need to use its versions
-    # but on reading egg info, it DOESN'T force-import, assumes you are using
-    import setuptools
+
+import setuptools
 if 'bdist_wheel' in sys.argv:
-    # Similarly, self-inject setuptools if making wheel
-    import setuptools
     import wheel
-use_setuptools = "setuptools" in globals()
 
 import copy
 import os, shutil, getopt, glob, re
 import platform
 import subprocess
+import sysconfig
 import warnings
 
 import distutils.ccompiler
-from distutils.core import setup
+from setuptools import setup
 from distutils.command.build import build as _build
-if use_setuptools:
-    from setuptools.command.install import install as _install
-    from setuptools.command.sdist import sdist as _sdist
-else:
-    from distutils.command.install import install as _install
-    from distutils.command.sdist import sdist as _sdist
+from setuptools.command.install import install as _install
+from setuptools.command.sdist import sdist as _sdist
 
 if 'bdist_wheel' in sys.argv:
     from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
-import distutils.ccompiler
-import distutils.dep_util
+import setuptools.dep_util
+
 import distutils.sysconfig
-from distutils.errors import DistutilsOptionError
+import setuptools.errors
 import importlib.machinery
 
 
@@ -263,7 +252,7 @@ def finalize_compiler_options(cmd):
                 setattr(cmd, option, defaults[option])
     #Special-case defaults, checks
     if not cmd.fcompiler in ('gnu95', 'none', 'None'):
-        raise DistutilsOptionError(
+        raise setuptools.errors.OptionError(
             '--fcompiler={0} unknown'.format(cmd.fcompiler) +
             ', options: gnu95, None')
     if cmd.compiler == None and sys.platform == 'win32':
@@ -368,11 +357,10 @@ def rebuild_static_docs():
 #Possible names of the irbem output library. Unfortunately this seems
 #to depend on Python version, f2py version, and phase of the moon
 def get_irbem_libfiles():
-    cvars = distutils.sysconfig.get_config_vars()
-    libfiles = ['irbempylib' + cvars[ext] for ext in ('SO', 'EXT_SUFFIX')
-                if ext in cvars]
+    cvars = sysconfig.get_config_vars('SO', 'EXT_SUFFIX')
+    libfiles = ['irbempylib' + ext for ext in cvars if ext is not None]
     if len(libfiles) < 2: #did we get just the ABI-versioned one?
-        abi = distutils.sysconfig.get_config_var('SOABI')
+        abi = sysconfig.get_config_var('SOABI')
         if abi and libfiles[0].startswith('irbempylib.' + abi):
             libfiles.append('irbempylib' +
                             libfiles[0][(len('irbempylib.') + len(abi)):])
@@ -440,7 +428,7 @@ class build(_build):
         if existing_libfiles:
             sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                       glob.glob(os.path.join(srcdir, '*.inc'))
-            if not distutils.dep_util.newer_group(
+            if not setuptools.dep_util.newer_group(
                 sources, os.path.join(outdir, existing_libfiles[0])):
                 return
 
@@ -641,13 +629,12 @@ class build(_build):
             #Assume every .o file associated with similarly-named .c file,
             #and EVERY header file
             outdated = [s for s, o in zip(sources, objects)
-                        if distutils.dep_util.newer(s, o) or
-                        distutils.dep_util.newer_group(headers, o)]
+                        if setuptools.dep_util.newer_group([s] + headers, o)]
             if outdated:
                 comp.compile(outdated, output_dir=self.build_temp)
             libpath = os.path.join(
                 outdir, comp.library_filename('spacepy', lib_type='shared'))
-            if distutils.dep_util.newer_group(objects, libpath):
+            if setuptools.dep_util.newer_group(objects, libpath):
                 comp.link_shared_lib(objects, 'spacepy', libraries=['m'],
                                      output_dir=outdir)
         except:
@@ -825,19 +812,18 @@ setup_kwargs = {
           },
 }
 
-if use_setuptools:
 #Sadly the format here is DIFFERENT than the distutils format
-    setup_kwargs['install_requires'] = [
-        'numpy>=1.15.1',
-        'scipy>=1.0',
-        'matplotlib>=3.1',
-        'h5py>=2.10',
-        'python_dateutil>=2.1',
-        # AstroPy is only required to convert to/from AstroPy, so either
-        # user has it or don't care.
-        #'astropy>=1.0',
-    ]
-    setup_kwargs['python_requires'] = '>=3.6'
+setup_kwargs['install_requires'] = [
+    'numpy>=1.15.1',
+    'scipy>=1.0',
+    'matplotlib>=3.1',
+    'h5py>=2.10',
+    'python_dateutil>=2.1',
+    # AstroPy is only required to convert to/from AstroPy, so either
+    # user has it or don't care.
+    #'astropy>=1.0',
+]
+setup_kwargs['python_requires'] = '>=3.6'
 if 'bdist_wheel' in sys.argv:
     setup_kwargs['cmdclass']['bdist_wheel'] = bdist_wheel
 
