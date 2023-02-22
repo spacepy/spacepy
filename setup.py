@@ -24,7 +24,6 @@ if 'bdist_wheel' in sys.argv:
     import setuptools
     import wheel
 use_setuptools = "setuptools" in globals()
-use_wininst = "bdist_wininst" in sys.argv
 
 import copy
 import os, shutil, getopt, glob, re
@@ -42,11 +41,6 @@ else:
     from distutils.command.install import install as _install
     from distutils.command.sdist import sdist as _sdist
 
-if use_wininst:
-    if use_setuptools:
-        from setuptools.command.bdist_wininst import bdist_wininst as _bdist_wininst
-    else:
-        from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
 if 'bdist_wheel' in sys.argv:
     from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 import distutils.ccompiler
@@ -694,7 +688,7 @@ class build(_build):
         self.compile_libspacepy()
         if sys.platform == 'win32':
             #Copy mingw32 DLLs. This keeps them around if ming is uninstalled,
-            #but more important puts them where bdist_wininst and bdist_wheel
+            #but more important puts them where bdist_wheel
             #will include them in binary installers
             copy_dlls(os.path.join(self.build_lib, 'spacepy', 'mingw'))
         _build.run(self) #need subcommands BEFORE building irbem
@@ -765,21 +759,6 @@ def copy_dlls(outdir):
         os.makedirs(outdir)
     for f in libnames:
         shutil.copy(os.path.join(libdir, f), outdir)
-
-
-if use_wininst:
-    class bdist_wininst(_bdist_wininst):
-        """Handle compiler options, libraries for build on Windows install"""
-
-        user_options = _bdist_wininst.user_options + compiler_options
-
-        def initialize_options(self):
-            initialize_compiler_options(self)
-            _bdist_wininst.initialize_options(self)
-
-        def finalize_options(self):
-            _bdist_wininst.finalize_options(self)
-            finalize_compiler_options(self)
 
 
 if 'bdist_wheel' in sys.argv:
@@ -871,8 +850,6 @@ setup_kwargs = {
                  'sdist': sdist,
           },
 }
-if use_wininst:
-    setup_kwargs['cmdclass']['bdist_wininst'] = bdist_wininst
 
 if use_setuptools:
 #Sadly the format here is DIFFERENT than the distutils format
