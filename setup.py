@@ -39,39 +39,6 @@ import setuptools.errors
 import importlib.machinery
 
 
-#These are files that are no longer in spacepy (or have been moved)
-#having this here makes sure that during an upgrade old versions are
-#not hanging out
-#Files will be deleted in the order specified, so list files
-#before directories containing them!
-#Paths are relative to spacepy. Unix path separators are OK
-#Don't forget to delete the .pyc
-deletefiles = ['toolbox.py', 'toolbox.pyc', 'LANLstar/LANLstar.py',
-               'LANLstar/LANLstar.pyc', 'LANLstar/libLANLstar.so',
-               'LANLstar/LANLstar.pyd', 'LANLstar/__init__.py',
-               'LANLstar/__init__.pyc', 'LANLstar',
-               'time/__init__.py', 'time/__init__.pyc',
-               'time/_dates.so', 'time/_dates.dylib',
-               'time/_dates.pyd',
-               'time/time.py', 'time/time.pyc', 'time',
-               'data/LANLstar/*.net',
-               'pycdf/_pycdf.*', 'toolbox/toolbox.py*', ]
-
-
-def delete_old_files(basepath):
-    """Delete files from old versions of spacepy, under a particular path"""
-    for f in deletefiles:
-        path = os.path.join(basepath, 'spacepy',
-                            os.path.normpath(f)) #makes pathing portable
-        for p in glob.glob(path):
-            if os.path.exists(p):
-                print('Deleting {0} from old version of spacepy.'.format(p))
-                if os.path.isdir(p):
-                    os.rmdir(p)
-                else:
-                    os.remove(p)
-
-
 #Patch out bad options in Python's view of mingw
 if sys.platform == 'win32':
     import distutils.cygwinccompiler
@@ -654,7 +621,6 @@ class build(_build):
             copy_dlls(os.path.join(self.build_lib, 'spacepy', 'mingw'))
         _build.run(self) #need subcommands BEFORE building irbem
         self.compile_irbempy()
-        delete_old_files(self.build_lib)
 
 
 class install(_install):
