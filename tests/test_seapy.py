@@ -8,6 +8,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 import datetime as dt
+import matplotlib.axes
 import unittest
 import warnings
 import numpy as np
@@ -160,7 +161,7 @@ class SEATestsUniform(unittest.TestCase):
     def testSeaPlotShowFalse(self):
         '''Test that plot method (show=False) returns axes'''
         ax = self.obj.plot(show=False)
-        self.assertTrue(hasattr(ax, '_axes_class'))
+        self.assertTrue(isinstance(ax, matplotlib.axes.SubplotBase))
 
 
 class SEATestsUniWithBad(unittest.TestCase):
