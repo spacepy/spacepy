@@ -711,12 +711,15 @@ class converterTests(unittest.TestCase):
 
     def test_toHDF5ObjectArray(self):
         """Convert to HDF5 with object array input"""
+        class foo:
+            def __str__(self):
+                return 'foo'
         a = dm.SpaceData({
-            'test': dm.dmarray(['a', 'b', 'c'], dtype=object)})
+            'test': dm.dmarray([foo(), foo()])})
         a.toHDF5(self.testfile, mode='a')
         newobj = dm.fromHDF5(self.testfile)
         np.testing.assert_array_equal(
-            np.array(['a', 'b', 'c'], dtype='S'),
+            np.array(['foo', 'foo'], dtype='S'),
             newobj['test'])
         self.assertEqual('|S35', newobj['test'].dtype)
 
