@@ -4,11 +4,9 @@ include INSTALL
 include CHANGELOG
 # Defining build requirements (numpy)
 include pyproject.toml
-#Sphinx docs and source
-graft Doc/build/html
+# Sphinx docs source
 include Doc/Makefile
 graft Doc/source
-include Doc/build/latex/SpacePy.pdf
 #Data. Despite distutils docs, package_data not auto-included.
 graft spacepy/data
 graft spacepy/pybats/sample_data
