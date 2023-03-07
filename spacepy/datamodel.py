@@ -424,9 +424,9 @@ class ISTPContainer(collections.abc.Mapping):
             else:
                 ax.plot(numpy.array(x), data[:, dim], **plot_kwargs)
         ylabel = v.attrs.get('LABLAXIS', '')
-        if v.attrs.get('UNITS'):
-            ylabel = '{}{}({})'.format(
-                ylabel, ' ' if ylabel else '', v.attrs['UNITS'])
+        u = v.units(fmt='latex')
+        if u:
+            ylabel = '{}{}(${}$)'.format(ylabel, ' ' if ylabel else '', u)
         if ylabel:
             ax.set_ylabel(ylabel)
         if x.attrs.get('LABLAXIS'):
@@ -570,9 +570,10 @@ class ISTPContainer(collections.abc.Mapping):
         x = self[v.attrs['DEPEND_0']]
         y = self[v.attrs['DEPEND_1']]
         zlabel = v.attrs.get('LABLAXIS', '')
-        if v.attrs.get('UNITS'):
-            zlabel = '{}{}({})'.format(
-                zlabel, ' ' if zlabel else '', v.attrs['UNITS'])
+        u = v.units(fmt='latex')
+        if u:
+            zlabel = '{}{}(${}$)'.format(
+                zlabel, ' ' if zlabel else '', u)
         zlabel = zlabel if zlabel else None
         try:  # mpl >=3.7
             cmap = matplotlib.colormaps.get_cmap(None)
@@ -588,9 +589,10 @@ class ISTPContainer(collections.abc.Mapping):
         ax = spacepy.plot.simpleSpectrogram(numpy.array(x), numpy.array(y), data, cbtitle=zlabel,
                                             ax=ax, zero_valid=True, cmap=cmap)
         ylabel = y.attrs.get('LABLAXIS', '')
-        if y.attrs.get('UNITS'):
-            ylabel = '{}{}({})'.format(
-                ylabel, ' ' if ylabel else '', y.attrs['UNITS'])
+        u = y.units(fmt='latex')
+        if u:
+            ylabel = '{}{}(${}$)'.format(
+                ylabel, ' ' if ylabel else '', u)
         if ylabel:
             ax.set_ylabel(ylabel)
         if x.attrs.get('LABLAXIS'):
