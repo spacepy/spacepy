@@ -1288,7 +1288,7 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
                        'FORMAT': 'F6.1',
                        'LABLAXIS': 'H rate',
                        'SCALETYP': 'log',
-                       'UNITS': 'counts/s',
+                       'UNITS': 's!E-1!N',
                        'VALIDMAX': 1000.,
                        'VALIDMIN': 0.,
                        'VAR_TYPE': 'data'}),
@@ -1414,7 +1414,7 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
             np.testing.assert_array_equal(lines[i].get_xdata(), self.sd['Epoch'])
             np.testing.assert_array_equal(lines[i].get_ydata(),
                                           self.sd['B_vec'][:, i])
-        self.assertEqual('B (nT)', ax.get_ylabel())
+        self.assertEqual('B ($nT$)', ax.get_ylabel())
         self.assertEqual('UT', ax.get_xlabel())
         self.assertEqual(['X', 'Y', 'Z'], [t.get_text() for t in ax.get_legend().texts])
         fig = ax.get_figure()
@@ -1429,7 +1429,7 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual(1, len(lines))
         np.testing.assert_array_equal(lines[0].get_xdata(), self.sd['Epoch'])
         np.testing.assert_array_equal(lines[0].get_ydata(), self.sd['B_mag'])
-        self.assertEqual('B (nT)', ax.get_ylabel())
+        self.assertEqual('B ($nT$)', ax.get_ylabel())
         self.assertEqual('UT', ax.get_xlabel())
         self.assertIs(None, ax.get_legend())
 
@@ -1593,8 +1593,8 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertAlmostEqual(self.sd['H_Rate'].min(), ylim[0])
         self.assertAlmostEqual(self.sd['H_Rate'].max(), ylim[1])
         self.assertEqual('UT', ax.get_xlabel())
-        self.assertEqual('Energy (keV)', ax.get_ylabel())
-        self.assertEqual('H rate (counts/s)', cb.get_ylabel())
+        self.assertEqual('Energy ($keV$)', ax.get_ylabel())
+        self.assertEqual('H rate ($s^{-1}$)', cb.get_ylabel())
         self.assertEqual(1, len(fig.texts))
         self.assertEqual(self.sd['H_Rate'].attrs['CATDESC'],
                          fig.texts[0].get_text())
@@ -1606,7 +1606,8 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual(4, len(axes))  # 3 plots, one colorbar
         ylabels = [ax.get_ylabel() for ax in axes]
         self.assertEqual(
-            ['B (nT)', 'B (nT)', 'Energy (keV)', 'H rate (counts/s)'], ylabels)
+            ['B ($nT$)', 'B ($nT$)', 'Energy ($keV$)', 'H rate ($s^{-1}$)'],
+            ylabels)
         self.assertFalse(axes[1].get_legend() is None)
         self.assertIs(axes[0].get_legend(), None)
 
@@ -1626,7 +1627,7 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual(3, len(axes))  # 2 plots, one colorbar
         ylabels = [ax.get_ylabel() for ax in axes]
         self.assertEqual(
-            ['B (nT)', 'Energy (keV)', 'H rate (counts/s)'], ylabels)
+            ['B ($nT$)', 'Energy ($keV$)', 'H rate ($s^{-1}$)'], ylabels)
 
     def test_units(self):
         """Get units of a variable"""
