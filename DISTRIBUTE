@@ -69,8 +69,8 @@ Then:
     PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py sdist --formats=gztar,zip
 Tarball and zip are in the dist directory.
 
-Note: building the source distribution will build the docs, but no longer needs
-to do a binary build.
+Note: Building the source distribution will not build the docs, this
+needs to be done manually so they can be uploaded separately later.
 
 Prepare the Windows binaries
 ----------------------------

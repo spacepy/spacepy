@@ -28,7 +28,6 @@ import distutils.ccompiler
 from setuptools import setup
 from distutils.command.build import build as _build
 from setuptools.command.install import install as _install
-from setuptools.command.sdist import sdist as _sdist
 
 if 'bdist_wheel' in sys.argv:
     from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
@@ -294,31 +293,6 @@ compiler_options = [
         ('f90exec=', None,
          'specify the path to the F90 compiler'),
         ]
-
-
-def rebuild_static_docs():
-    """Rebuild the 'static' documentation in Doc/build"""
-    builddir = os.path.join(os.path.join('Doc', 'build', 'doctrees'))
-    indir = os.path.join('Doc', 'source')
-    outdir = os.path.join('Doc', 'build', 'html')
-    cmd = '{0} -b html -d {1} {2} {3}'.format(
-        os.environ['SPHINXBUILD'] if 'SPHINXBUILD' in os.environ
-        else 'sphinx-build',
-        builddir, indir, outdir)
-    subprocess.check_call(cmd.split())
-    os.chdir('Doc')
-    try:
-        cmd = '{0}{1} latexpdf'.format(
-            os.environ['MAKE'] if 'MAKE' in os.environ else 'make',
-            ('SPHINXBUILD=' + os.environ['SPHINXBUILD'])
-            if 'SPHINXBUILD' in os.environ else '')
-        subprocess.check_call(cmd.split())
-    except:
-        warnings.warn('PDF documentation rebuild failed:')
-        (t, v, tb) = sys.exc_info()
-        print(v)
-    finally:
-        os.chdir('..')
 
 
 #Possible names of the irbem output library. Unfortunately this seems
@@ -710,24 +684,6 @@ if 'bdist_wheel' in sys.argv:
             self.root_is_pure = False
 
 
-class sdist(_sdist):
-    """Rebuild the docs before making a source distribution"""
-
-    user_options = _sdist.user_options + compiler_options
-
-    def initialize_options(self):
-        initialize_compiler_options(self)
-        _sdist.initialize_options(self)
-
-    def finalize_options(self):
-        _sdist.finalize_options(self)
-        finalize_compiler_options(self)
-
-    def run(self):
-        rebuild_static_docs()
-        _sdist.run(self)
-
-
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
             'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox',
             'spacepy.ctrans', ]
@@ -774,7 +730,6 @@ setup_kwargs = {
     'platforms':  ['Windows', 'Linux', 'MacOS X', 'Unix'],
     'cmdclass': {'build': build,
                  'install': install,
-                 'sdist': sdist,
           },
 }
 
