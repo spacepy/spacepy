@@ -768,6 +768,12 @@ class converterTests(unittest.TestCase):
         d1 = [datetime.datetime(2012,12,21), datetime.datetime(2012,12,22)]
         np.testing.assert_array_equal(dm._dateToISO(d1), ['2012-12-21T00:00:00', '2012-12-22T00:00:00'])
 
+    def test_fromHAPI(self):
+        """Convert from HAPI server to SpaceData"""
+        hapidata=()
+        sd = dm.fromHAPI(hapidata)
+        self.assertEqual({}, sd.attrs)
+
 class converterTestsCDF(unittest.TestCase):
     longMessage = True
 

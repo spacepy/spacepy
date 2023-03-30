@@ -1341,6 +1341,12 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
         pycdf.lib.set_backward(former_backward)
 
 
+def fromHAPI(hapidata):
+    """ """
+    sd= SpaceData()
+    return sd
+
+
 def fromHDF5(fname, **kwargs):
     '''
     Create a SpacePy datamodel representation of an HDF5 file or netCDF4 file which is HDF5 compliant
