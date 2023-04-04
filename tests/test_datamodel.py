@@ -1682,6 +1682,12 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         df = data.toDataFrame()
         np.testing.assert_allclose(df.values, self.sd['B_vec'])
 
+    def test_toDataFrameFill(self):
+        """Convert to DataFrame, handle fill"""
+        self.sd['B_vec'][5, 0] = -1e31
+        df = self.sd.toDataFrame('B_vec')
+        self.assertTrue(np.isnan(df.values[5, 0]))
+
 
 if __name__ == "__main__":
     unittest.main()

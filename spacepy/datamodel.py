@@ -644,7 +644,8 @@ class ISTPContainer(collections.abc.Mapping):
     def toDataFrame(self, vname=None, copy=True):
         """Convert to Pandas DataFrame
 
-        Converts one variable (and its dependencies) to a Pandas `~pandas.DataFrame`.
+        Converts one variable (and its dependencies) to a Pandas
+        `~pandas.DataFrame`. Invalid values are replaced with `~numpy.nan`.
 
         Parameters
         ----------
@@ -663,7 +664,8 @@ class ISTPContainer(collections.abc.Mapping):
         ----------------
         copy : `bool`, default ``True``
             Copy data to the DataFrame. If ``False``, changes to the
-            DataFrame may affect the source data.
+            DataFrame may affect the source data. In some cases a copy
+            may be made even if ``False``.
 
         Notes
         -----
@@ -687,9 +689,12 @@ class ISTPContainer(collections.abc.Mapping):
                     f'No variable specified; possible matches: {matches}.')
             vname = main_vars[0]
         a = self[vname].attrs
+        data = self[vname].replace_invalid()  # makes copy
+        if not numpy.isnan(data).any() and not copy:
+            data = self[vname][...]
         df = pandas.DataFrame(
-            data=self[vname][...], index=self[a['DEPEND_0']][...],
-            columns=self[a['LABL_PTR_1']][...], copy=copy)
+            data=data, index=self[a['DEPEND_0']][...],
+            columns=self[a['LABL_PTR_1']][...], copy=False)
         return df
 
 
