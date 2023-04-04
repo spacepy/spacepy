@@ -1654,6 +1654,34 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
                 self.assertEqual(c[i], foo.units(f),
                                  '{}: {}'.format(c[0], f))
 
+    def test_toDataFrame(self):
+        """Convert SpaceData to Pandas DataFrame"""
+        df = self.sd.toDataFrame('B_vec')
+        np.testing.assert_allclose(df.values, self.sd['B_vec'])
+        np.testing.assert_array_equal(df.index.to_pydatetime(),
+                                      self.sd['Epoch'])
+        np.testing.assert_array_equal(df.columns, self.sd['B_labels'])
+        # Copy is default
+        self.assertFalse(np.may_share_memory(df.values, self.sd['B_vec']))
+
+    def test_toDataFrameNoCopy(self):
+        """Convert to DataFrame, do not copy data"""
+        df = self.sd.toDataFrame('B_vec', copy=False)
+        self.assertTrue(np.may_share_memory(df.values, self.sd['B_vec']))
+
+    def test_toDataFrameNoVar(self):
+        """Convert to DataFrame, do not specify variable"""
+        with self.assertRaises(ValueError) as cm:
+            df = self.sd.toDataFrame()
+        self.assertEqual(
+            'No variable specified; possible matches: B_mag, B_vec, H_Rate.',
+            str(cm.exception))
+        data = dm.SpaceData(attrs=self.sd.attrs)
+        for k in ['Epoch', 'B_labels', 'B_vec', 'dim']:
+            data[k] = self.sd[k]
+        df = data.toDataFrame()
+        np.testing.assert_allclose(df.values, self.sd['B_vec'])
+
 
 if __name__ == "__main__":
     unittest.main()

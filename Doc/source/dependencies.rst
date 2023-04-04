@@ -153,6 +153,13 @@ Astropy :class:`~astropy.coordinates.SkyCoord` is desired.
 Because Astropy is only required for these conversions, it is not
 automatically installed with SpacePy.
 
+.. _dependencies_pandas:
+
+Pandas 0.18+
+------------
+`Pandas <https://pandas.pydata.org/>`_ is only required if converting
+from `~.datamodel.SpaceData` to `~pandas.DataFrame` is desired.
+
 Soft Dependency Summary
 =======================
 
@@ -172,6 +179,7 @@ unaffected by that dependency.
      - :ref:`matplotlib <dependencies_mpl>`
      - :ref:`SciPy <dependencies_scipy>`
      - :ref:`AstroPy <dependencies_astropy>`
+     - :ref:`Pandas <dependencies_pandas>`
    * - :mod:`~spacepy.coordinates`
      -
      - :class:`~spacepy.coordinates.Coords` IRBEM backend (except binaries)
@@ -180,12 +188,14 @@ unaffected by that dependency.
      - :mod:`Entire module <spacepy.coordinates>`
      - * :meth:`~spacepy.coordinates.Coords.from_skycoord`
        * :meth:`~spacepy.coordinates.Coords.to_skycoord`
+     -
    * - :mod:`~spacepy.ctrans`
      -
      -
      -
      -
      - :mod:`Entire module <spacepy.ctrans>`
+     -
      -
    * - :mod:`~spacepy.datamodel`
      - * :meth:`~spacepy.datamodel.SpaceData.toCDF`
@@ -199,6 +209,7 @@ unaffected by that dependency.
      -
      -
      -
+     - `~.datamodel.ISTPContainer.toDataFrame`
    * - :mod:`~spacepy.empiricals`
      -
      -
@@ -207,6 +218,7 @@ unaffected by that dependency.
      - * :func:`~spacepy.empiricals.vampolaPA`
        * :func:`~spacepy.empiricals.omniFromDirectionalFlux`
      -
+     -
    * - :mod:`~spacepy.irbempy`
      -
      - :mod:`Entire module <spacepy.irbempy>` (except binaries)
@@ -214,7 +226,9 @@ unaffected by that dependency.
      -
      -
      -
+     -
    * - :mod:`~spacepy.LANLstar`
+     -
      -
      -
      -
@@ -228,11 +242,13 @@ unaffected by that dependency.
      -
      -
      -
+     -
    * - :mod:`~spacepy.plot`
      -
      -
      -
      - :mod:`Entire module <spacepy.plot>`
+     -
      -
      -
    * - :mod:`~spacepy.poppy`
@@ -243,6 +259,7 @@ unaffected by that dependency.
        * :meth:`~spacepy.poppy.PPro.plot`
        * :meth:`~spacepy.poppy.PPro.plot_mult`
        * :func:`~spacepy.poppy.plot_two_ppro`
+     -
      -
      -
    * - :mod:`~spacepy.pybats`
@@ -286,8 +303,10 @@ unaffected by that dependency.
        * :func:`~spacepy.pybats.trace2d.test_dipole`
      -
      -
+     -
    * - :mod:`~spacepy.pycdf`
      - :mod:`Entire module <spacepy.pycdf>` (except binaries)
+     -
      -
      -
      -
@@ -301,12 +320,14 @@ unaffected by that dependency.
        * :meth:`~spacepy.radbelt.RBmodel.plot_obs`
      -
      -
+     -
    * - :mod:`~spacepy.seapy`
      -
      -
      -
      - :mod:`Entire module <spacepy.seapy>`
      - * :func:`~spacepy.seapy.sea_signif`
+     -
      -
    * - :mod:`~spacepy.time`
      -
@@ -315,6 +336,7 @@ unaffected by that dependency.
      -
      -
      - AstroPy support in :class:`~spacepy.time.Ticktock`
+     -
    * - :mod:`~spacepy.toolbox`
      -
      -
@@ -327,4 +349,5 @@ unaffected by that dependency.
      - * :func:`~spacepy.toolbox.dist_to_list`
        * :func:`~spacepy.toolbox.intsolve`
        * :func:`~spacepy.toolbox.poisson_fit`
+     -
      -

@@ -284,4 +284,5 @@ intersphinx_mapping = {
     'matplotlib': ('https://matplotlib.org/', None),
     'astropy': ('https://docs.astropy.org/en/stable/', None),
     'pip': ('https://pip.pypa.io/en/stable/', None),
+    'pandas': ('https://pandas.pydata.org/docs/', None),
 }
