@@ -692,9 +692,15 @@ class ISTPContainer(collections.abc.Mapping):
         data = self[vname].replace_invalid()  # makes copy
         if not numpy.isnan(data).any() and not copy:
             data = self[vname][...]
+        if 'LABL_PTR_1' in a:
+            columns = self[a['LABL_PTR_1']][...]
+        else:
+            columns = [a.get('FIELDNAM', vname)]
+            if len(data.shape) > 1:
+                columns *= data.shape[-1]
         df = pandas.DataFrame(
             data=data, index=self[a['DEPEND_0']][...],
-            columns=self[a['LABL_PTR_1']][...], copy=False)
+            columns=columns, copy=False)
         return df
 
 
