@@ -366,10 +366,12 @@ class ISTPContainer(collections.abc.Mapping):
         ~ISTPContainer.main_vars
         ~ISTPContainer.plot
         ~ISTPContainer.spectrogram
+        ~ISTPContainer.toDataFrame
     .. automethod:: lineplot
     .. automethod:: main_vars
     .. automethod:: plot
     .. automethod:: spectrogram
+    .. automethod:: toDataFrame
     """
     attrs:  collections.abc.Mapping
 
@@ -638,6 +640,57 @@ class ISTPContainer(collections.abc.Mapping):
         if v.attrs['DELTA_PLUS_VAR'] == v.attrs['DELTA_MINUS_VAR']:
             return(dp,)
         return(self[v.attrs['DELTA_MINUS_VAR']].replace_invalid(), dp)
+
+    def toDataFrame(self, vname=None, copy=True):
+        """Convert to Pandas DataFrame
+
+        Converts one variable (and its dependencies) to a Pandas `~pandas.DataFrame`.
+
+        Parameters
+        ----------
+        vname : `str`, optional
+            The key into this container of the value to convert
+            (i.e.,  the name of the variable). Strongly recommended;
+            if not specified, will try to find one using `main_vars`,
+            and raise `ValueError` if there is more than one candidate.
+
+        Returns
+        -------
+        `~pandas.DataFrame`
+            Data from the array named by ``vname`` and its dependencies.
+
+        Other Parameters
+        ----------------
+        copy : `bool`, default ``True``
+            Copy data to the DataFrame. If ``False``, changes to the
+            DataFrame may affect the source data.
+
+        Notes
+        -----
+        .. versionadded:: 0.6.0
+
+        Examples
+        --------
+        >>> import spacepy.datamodel
+        # https://rbsp-ect.newmexicoconsortium.org/data_pub/rbspa/ECT/level2/
+        >>> data = spacepy.datamodel.fromCDF(
+        ...     'rbspa_ect-elec-L2_20140115_v2.1.0.cdf')
+        >>> df = data.toDataFrame('Position')
+        >>> df.plot()
+        """
+        import pandas
+        if vname is None:
+            main_vars = self.main_vars()
+            if len(main_vars) != 1:
+                matches = ', '.join(main_vars) if main_vars else 'none'
+                raise ValueError(
+                    f'No variable specified; possible matches: {matches}.')
+            vname = main_vars[0]
+        a = self[vname].attrs
+        df = pandas.DataFrame(
+            data=self[vname][...], index=self[a['DEPEND_0']][...],
+            columns=self[a['LABL_PTR_1']][...], copy=copy)
+        return df
 
 
 class dmarray(numpy.ndarray, MetaMixin, ISTPArray):

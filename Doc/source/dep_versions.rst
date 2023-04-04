@@ -127,6 +127,13 @@ history. The oldest version supported according to this policy is in
      - 1.20.0 (2021/1/30)
      - 1.21.0 (2021/6/22)
      - 1.15.1 (2018/8/21)
+   * - `pandas <https://pandas.pydata.org/docs/whatsnew/>`_
+     - 2.0.0 (2023/4/3)
+     - **0.25.3** (2019/12/16)
+     - 1.3.5 (2022/3/10)
+     - 1.3.0 (2021/7/2)
+     - 1.4.0 (2022/1/22)
+     - 0.18.0 (2016/3/13)
    * - `scipy <https://github.com/scipy/scipy/releases>`_
      - 1.9.1 (2022/8/26)
      - **1.3.3** (2019/11/23)
