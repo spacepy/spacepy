@@ -1688,6 +1688,12 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         df = self.sd.toDataFrame('B_vec')
         self.assertTrue(np.isnan(df.values[5, 0]))
 
+    def test_toDataFrameScalar(self):
+        """Convert to DataFrame, scalar records"""
+        df = self.sd.toDataFrame('B_mag')
+        np.testing.assert_allclose(df.values, self.sd['B_mag'].reshape((-1, 1)))
+        np.testing.assert_array_equal(df.columns, ['B_mag'])
+
 
 if __name__ == "__main__":
     unittest.main()
