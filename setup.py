@@ -963,6 +963,8 @@ setup_kwargs = {
         # AstroPy is only required to convert to/from AstroPy, so either
         # user has it or don't care.
         #'astropy>=1.0',
+        # Similar for pandas
+        #'pandas>=0.18',
     ],
     'python_requires': '>=3.6',
     'cmdclass': {'build': build,
