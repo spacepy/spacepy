@@ -40,9 +40,9 @@ Due to a numpy bug, numpy 1.15.0 is not supported. Use 1.15.1 or later.
 
 On Python 3.9, numpy 1.18 or later is required.
 
-dateutil
---------
-`dateutil <https://dateutil.readthedocs.io/>`_ 2.1 or later is required.
+dateutil 2.5+
+-------------
+`dateutil <https://dateutil.readthedocs.io/>`_ 2.5 or later is required.
 
 C compiler
 ----------
