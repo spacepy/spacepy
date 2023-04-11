@@ -82,16 +82,13 @@ __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni",
            "irbempy", "empiricals", "radbelt", "data_assimilation", "pycdf",
            "datamanager", "datamodel", "ae9ap9"]
 
-# on windows, make sure the mingw runtime libs are findable
-if sys.platform == 'win32':
-    minglibs = os.path.join(os.path.dirname(__file__), 'mingw')
-    if 'PATH' in os.environ:
+# Make sure the mingw runtime libs from our binary wheel are findable
+minglibs = os.path.join(os.path.dirname(__file__), 'mingw')
+if sys.platform == 'win32' and os.path.isdir(minglibs):
+    if os.environ.get('PATH'):
         if not minglibs in os.environ['PATH']:
-            if os.environ['PATH']:
-                os.environ['PATH'] += (';' + minglibs)
-            else: #empth PATH
-                os.environ['PATH'] = minglibs
-    else:
+            os.environ['PATH'] += (';' + minglibs)
+    else:  # empty or nonexistent PATH
         os.environ['PATH'] = minglibs
     try:
         os.add_dll_directory(minglibs)
