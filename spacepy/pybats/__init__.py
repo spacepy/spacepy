@@ -400,7 +400,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
     ax.add_artist(body)
 
 
-def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True, sort_unstructured_data=False):
+def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True, sort_unstructured=False):
     '''
     Load a SWMF IDL ascii output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`.
@@ -548,7 +548,7 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True, sort_uns
                                               order='F'), attrs=pbdat[v].attrs)
 
     # Unstructured data can be in any order, so let's sort it.
-    if gtyp == 'Unstructured' and sort_unstructured_data:
+    if gtyp == 'Unstructured' and sort_unstructured:
         gridtotal = np.zeros(npts)
         offset = 0.0  # The offset ensures no repeating vals while sorting.
         for key in pbdat['grid'].attrs['dims']:
@@ -839,7 +839,7 @@ def _probe_idlfile(filename):
 
 
 def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
-                  headeronly=False, sort_unstructured_data=False):
+                  headeronly=False, sort_unstructured=False):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`, which will
@@ -875,7 +875,7 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
 
-    sort_unstructured_data : bool, default False
+    sort_unstructured : bool, default False
 
       .. versionadded:: 0.5.0
 
@@ -1014,7 +1014,7 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
                     pbdat['grid'], order='F')
 
         # Unstructured data can be in any order, so let's sort it.
-        if gtyp == 'Unstructured' and sort_unstructured_data:
+        if gtyp == 'Unstructured' and sort_unstructured:
             gridtotal = np.zeros(npts)
             offset = 0.0  # The offset ensures no repeating vals while sorting.
             for key in pbdat['grid'].attrs['dims']:
@@ -1197,7 +1197,7 @@ class IdlFile(PbData):
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
 
-    sort_unstructured_data : bool, default: ``False``
+    sort_unstructured : bool, default: ``False``
 
         .. versionadded:: 0.5.0
 
@@ -1212,7 +1212,7 @@ class IdlFile(PbData):
     '''
 
     def __init__(self, filename, iframe=0, header='units',
-                 keep_case=True, sort_unstructured_data=False, *args, **kwargs):
+                 keep_case=True, sort_unstructured=False, *args, **kwargs):
         super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
 
         # Gather information about the file: format, endianess (if necessary),
@@ -1242,7 +1242,7 @@ class IdlFile(PbData):
             self._scan_asc_frames()
 
         # Read one entry of the file (defaults to first frame):
-        self.read(iframe=iframe, sort_unstructured_data=sort_unstructured_data)
+        self.read(iframe=iframe, sort_unstructured=sort_unstructured)
 
         # Update information about the currently loaded frame.
         self.attrs['iframe'] = iframe
@@ -1360,7 +1360,7 @@ class IdlFile(PbData):
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
 
-    def read(self, iframe=0, sort_unstructured_data=False):
+    def read(self, iframe=0, sort_unstructured=False):
         '''
         This method reads an IDL-formatted BATS-R-US output file and places
         the data into the object.  The file read is self.filename which is
@@ -1368,7 +1368,7 @@ class IdlFile(PbData):
 
         .. versionchanged:: 0.5.0
 
-        The new sort_unstructured_data keyword can enable data sorting
+        The new sort_unstructured keyword can enable data sorting
         (formerly default in the binary file reader).
         '''
 
@@ -1378,11 +1378,11 @@ class IdlFile(PbData):
         if self.attrs['format'] == 'asc':
             _read_idl_ascii(self, header=self._header, start_loc=loc,
                             keep_case=self._keep_case,
-                            sort_unstructured_data=sort_unstructured_data)
+                            sort_unstructured=sort_unstructured)
         elif self.attrs['format'] == 'bin':
             _read_idl_bin(self, header=self._header, start_loc=loc,
                           keep_case=self._keep_case,
-                          sort_unstructured_data=sort_unstructured_data)
+                          sort_unstructured=sort_unstructured)
         else:
             raise ValueError('Unrecognized file format: {}'.format(
                 self._format))

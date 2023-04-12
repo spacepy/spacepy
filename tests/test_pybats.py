@@ -289,7 +289,7 @@ class TestIdlFile(unittest.TestCase):
         mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir,
                                       'pybats_test',
                                       'y=0_mhd_1_e20140410-000050.out'),
-                         sort_unstructured_data=True)
+                         sort_unstructured=True)
         for v in range(len(self.knownMhdX_sorted)):
             self.assertEqual(self.knownMhdX_sorted[v], (mhd['x'])[v])
 
