@@ -66,6 +66,7 @@ and `~.pybats.bats.Bats2d.calc_upar` methods.
 `~.pybats.IdlFile` supports reading binary files without sorting
 unstructured data (and adds support for sorting in reading ASCII
 files). Unsorted is now the default for all except `~.pybats.bats.Bats2d`.
+Thanks Lutz Rastaetter.
 
 Deprecations and removals
 *************************
