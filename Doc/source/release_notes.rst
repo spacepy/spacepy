@@ -63,6 +63,10 @@ with temperature and density naming.
 perpendicular velocities with new `~.pybats.bats.Bats2d.calc_uperp`
 and `~.pybats.bats.Bats2d.calc_upar` methods.
 
+`~.pybats.IdlFile` supports reading binary files without sorting
+unstructured data (and adds support for sorting in reading ASCII
+files).
+
 Deprecations and removals
 *************************
 Since plot styles are no longer applied on import, importing
