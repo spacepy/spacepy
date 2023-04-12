@@ -1183,15 +1183,23 @@ class IdlFile(PbData):
         Determine how to interpret the additional header information.
         Defaults to 'units'.
 
-    keep_case : boolean
+    keep_case : bool
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
-    sort_unstructured_data : boolean 9default: None
-        If not set, the behavior of the _read_idl_bin() and _read-idl-ascii() readers reamin, as described below:
-        If set to True, the positions and data are sorted so nearby positions are arranged as close as possible to each other in the data arrays. 
-          True is the default in the _read_idl_bin() reader.
-        If set to False the positions in the unstructured grid data are not rearranged. When reading 3D magnetosphere files, the 3D block structure is preserved and can then be used by the BATSRUS interpolator developed for the Kamodo Heliohysics model readers package (https://github.com/nasa/kamodo) that relies on these Spacepy.pybats readers.
-          False is the default for the _read_idl_ascii() reader where the feature was not implemented before this keyword was added.
+
+    sort_unstructured_data : bool, default: ``None``
+
+        .. versionadded:: 0.5.0
+
+        If ``True``, the positions and data are sorted so nearby
+        positions are arranged as close as possible to each other in
+        the data arrays (default in the ``_read_idl_bin()`` reader).
+        If ``False`` the positions in the unstructured grid data are
+        not rearranged. (default for ``_read_idl_ascii()``
+        reader). When reading 3D magnetosphere files, the 3D block
+        structure is preserved. Needed for the BATSRUS interpolator
+        in the `Kamodo Heliophysics model readers package
+        <https://github.com/nasa/kamodo>`_.
     '''
 
     def __init__(self, filename, iframe=0, header='units',
@@ -1350,13 +1358,16 @@ class IdlFile(PbData):
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
 
-    def read(self, iframe=0,sort_unstructured_data=None):
+    def read(self, iframe=0, sort_unstructured_data=None):
         '''
         This method reads an IDL-formatted BATS-R-US output file and places
         the data into the object.  The file read is self.filename which is
         set when the object is instantiated.
-        The new sort_unstructured_data keyword can turn off the data sorting run by default in the binary file reader.
-        The idl_ascii reader now has the option to perform the same sorting as the idl_bin reader when teh keyword is set to True.
+
+        The new sort_unstructured_data keyword can turn off the data sorting
+        run by default in the binary file reader; the idl_ascii reader now
+        has the option to perform the same sorting as the idl_bin reader when
+        the keyword is set to True.
         '''
 
         # Get location of frame that we wish to read:
