@@ -755,14 +755,14 @@ class Bats2d(IdlFile):
 
     '''
     # Init by calling IdlFile init and then building qotree, etc.
-    def __init__(self, filename, *args, sort_unstructured_data=True, **kwargs):
+    def __init__(self, filename, *args, sort_unstructured=True, **kwargs):
 
         # Create quad tree object attribute:
         self._qtree = None
 
         # Read file.
         IdlFile.__init__(self, filename, keep_case=False, *args,
-                         sort_unstructured_data=sort_unstructured_data,
+                         sort_unstructured=sort_unstructured,
                          **kwargs)
 
         # Behavior of output files changed Jan. 2017:
