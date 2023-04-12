@@ -284,6 +284,12 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdXmin, mhd['x'].min())
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
+        for v in range(len(self.knownMhdX_unsorted)):
+            self.assertEqual(self.knownMhdX_unsorted[v], (mhd['x'])[v])
+        mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir,
+                                      'pybats_test',
+                                      'y=0_mhd_1_e20140410-000050.out'),
+                         sort_unstructured_data=True)
         for v in range(len(self.knownMhdX_sorted)):
             self.assertEqual(self.knownMhdX_sorted[v], (mhd['x'])[v])
 

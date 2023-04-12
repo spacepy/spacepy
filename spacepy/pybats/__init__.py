@@ -839,7 +839,7 @@ def _probe_idlfile(filename):
 
 
 def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
-                  headeronly=False, sort_unstructured_data=True):
+                  headeronly=False, sort_unstructured_data=False):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`, which will
@@ -865,13 +865,23 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
     ----------------
     header : string or **None**
         A string indicating how the header line will be handled; see above.
+
     start_loc : int
         Location to start reading inside the file as number of bytes.  This is
         used to set the starting position of a given data frame for *.outs
         files.  Default is zero (read at beginning of file).
+
     keep_case : boolean
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
+
+    sort_unstructured_data : bool, default False
+
+      .. versionadded:: 0.5.0
+
+      In unstructured data, sort so nearby positions are arranged as close
+      as possible to each other in the data arrays. (This was the behavior
+      before 0.5.0).
 
     Returns
     -------
@@ -1187,23 +1197,22 @@ class IdlFile(PbData):
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
 
-    sort_unstructured_data : bool, default: ``None``
+    sort_unstructured_data : bool, default: ``False``
 
         .. versionadded:: 0.5.0
 
         If ``True``, the positions and data are sorted so nearby
         positions are arranged as close as possible to each other in
-        the data arrays (default in the ``_read_idl_bin()`` reader).
-        If ``False`` the positions in the unstructured grid data are
-        not rearranged. (default for ``_read_idl_ascii()``
-        reader). When reading 3D magnetosphere files, the 3D block
-        structure is preserved. Needed for the BATSRUS interpolator
-        in the `Kamodo Heliophysics model readers package
-        <https://github.com/nasa/kamodo>`_.
+        the data arrays. If ``False`` (default) the positions in the
+        unstructured grid data are not rearranged. When reading 3D
+        magnetosphere files, this preserves the 3D block structure, as
+        required for the BATSRUS interpolator in the `Kamodo Heliophysics
+        model readers package <https://github.com/nasa/kamodo>`_.
+        (Subclasses may have different defaults.)
     '''
 
     def __init__(self, filename, iframe=0, header='units',
-                 keep_case=True, sort_unstructured_data=None, *args, **kwargs):
+                 keep_case=True, sort_unstructured_data=False, *args, **kwargs):
         super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
 
         # Gather information about the file: format, endianess (if necessary),
@@ -1231,13 +1240,6 @@ class IdlFile(PbData):
             self._scan_bin_frames()
         else:
             self._scan_asc_frames()
-
-        # sort_unstructured_data--if None set keyword to preserve old behavior
-        if sort_unstructured_data is None:
-            if fmt=='bin':
-                sort_unstructured_data=True
-            else:
-                sort_unstructured_data=False
 
         # Read one entry of the file (defaults to first frame):
         self.read(iframe=iframe, sort_unstructured_data=sort_unstructured_data)
@@ -1358,32 +1360,26 @@ class IdlFile(PbData):
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
 
-    def read(self, iframe=0, sort_unstructured_data=None):
+    def read(self, iframe=0, sort_unstructured_data=False):
         '''
         This method reads an IDL-formatted BATS-R-US output file and places
         the data into the object.  The file read is self.filename which is
         set when the object is instantiated.
 
-        The new sort_unstructured_data keyword can turn off the data sorting
-        run by default in the binary file reader; the idl_ascii reader now
-        has the option to perform the same sorting as the idl_bin reader when
-        the keyword is set to True.
+        .. versionchanged:: 0.5.0
+
+        The new sort_unstructured_data keyword can enable data sorting
+        (formerly default in the binary file reader).
         '''
 
         # Get location of frame that we wish to read:
         loc = self._offsets[iframe]
 
         if self.attrs['format'] == 'asc':
-            # set keyword default to preserve behavior
-            if sort_unstructured_data is None:  
-                sort_unstructured_data=False
             _read_idl_ascii(self, header=self._header, start_loc=loc,
                             keep_case=self._keep_case,
                             sort_unstructured_data=sort_unstructured_data)
         elif self.attrs['format'] == 'bin':
-            # set keyword default to preserve behavior
-            if sort_unstructured_data is None:
-                sort_unstructured_data=True
             _read_idl_bin(self, header=self._header, start_loc=loc,
                           keep_case=self._keep_case,
                           sort_unstructured_data=sort_unstructured_data)
