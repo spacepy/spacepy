@@ -59,5 +59,4 @@ packages = ["spacepy"]
 zip-safe = false
 
 [tool.setuptools.package-data]
-spacepy = ["data/*.*", "pybats/sample_data/*", "data/LANLstar/*",
-           "data/TS07D/TAIL_PAR/*"]
+spacepy = ["data/*.*", "data/LANLstar/*", "data/TS07D/TAIL_PAR/*"]

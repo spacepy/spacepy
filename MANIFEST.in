@@ -9,7 +9,6 @@ include Doc/Makefile
 graft Doc/source
 #Data. Despite distutils docs, package_data not auto-included.
 graft spacepy/data
-graft spacepy/pybats/sample_data
 #C and Fortan sources, not in extension modules
 graft spacepy/irbempy/irbem-lib-*
 include spacepy/libspacepy/*.h
