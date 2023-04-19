@@ -690,6 +690,8 @@ packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*', 'data/TS07D/TAIL_PAR/*']
 
+# Duplicated between here and pyproject.toml because pyproject.toml support
+# requires setuptools 61.0.0
 setup_kwargs = {
     'name': 'spacepy',
     'version': '0.5.0a0',
@@ -697,13 +699,9 @@ setup_kwargs = {
     'long_description': 'SpacePy: Tools for Space Science Applications',
     'author': 'SpacePy team',
     'author_email': 'spacepy@lanl.gov',
-    'maintainer': 'Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
+    'maintainer': 'Steve Morley, Dan Welling, Brian Larsen, Jon Niehof',
     'maintainer_email': 'spacepy@lanl.gov',
     'url': 'https://github.com/spacepy/spacepy',
-#download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
-#    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
-    'requires': ['numpy (>=1.15.1)', 'scipy (>=1.0)', 'matplotlib (>=3.1)', 'python_dateutil (>=2.1)',
-                 'h5py (>=2.10)', 'python (>=3.6)'],
     'packages': packages,
     'package_data': {'spacepy': package_data},
     'classifiers': [
@@ -728,23 +726,23 @@ setup_kwargs = {
     'keywords': ['magnetosphere', 'plasma', 'physics', 'space', 'solar.wind', 'space.weather', 'magnetohydrodynamics'],
     'license':  'PSF',
     'platforms':  ['Windows', 'Linux', 'MacOS X', 'Unix'],
+    'install_requires': [
+        'numpy>=1.15.1',
+        'scipy>=1.0',
+        'matplotlib>=3.1',
+        'h5py>=2.10',
+        'python_dateutil>=2.1',
+        # AstroPy is only required to convert to/from AstroPy, so either
+        # user has it or don't care.
+        #'astropy>=1.0',
+    ],
+    'python_requires': '>=3.6',
     'cmdclass': {'build': build,
                  'install': install,
           },
+    'zip_safe': False,
 }
 
-#Sadly the format here is DIFFERENT than the distutils format
-setup_kwargs['install_requires'] = [
-    'numpy>=1.15.1',
-    'scipy>=1.0',
-    'matplotlib>=3.1',
-    'h5py>=2.10',
-    'python_dateutil>=2.1',
-    # AstroPy is only required to convert to/from AstroPy, so either
-    # user has it or don't care.
-    #'astropy>=1.0',
-]
-setup_kwargs['python_requires'] = '>=3.6'
 if 'bdist_wheel' in sys.argv:
     setup_kwargs['cmdclass']['bdist_wheel'] = bdist_wheel
 

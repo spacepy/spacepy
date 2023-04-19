@@ -9,3 +9,55 @@ requires = ["setuptools", "wheel",
     "numpy ~= 1.21.0 ; python_version == '3.9' and platform_system == 'Darwin' and platform_machine == 'arm64'",
     "numpy ~= 1.21.0 ; python_version >= '3.10'",
     ]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spacepy"
+version = "0.5.0a0"
+description = "SpacePy: Tools for Space Science Applications"
+readme = "README.md"
+requires-python = ">=3.6"
+license = { "file" = "LICENSE.md" }
+authors = [{ "name" = "SpacePy team", "email" = "spacepy@lanl.gov" }]
+maintainers = [
+  {"name" = "Steve Morley", "email" = "smorley@lanl.gov"},
+  {"name" = "Dan Welling", "email" = "dwelling@umich.edu"},
+  {"name" = "Brian Larsen", "email" = "balarsen@lanl.gov"},
+  {"name" = "Jon Niehof", "email" = "Jonathan.Niehof@unh.edu"},
+]
+keywords = ["magnetosphere","plasma","physics","space","solar.wind","space.weather","magnetohydrodynamics"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Python Software Foundation License",
+  "Operating System :: MacOS :: MacOS X",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: C",
+  "Programming Language :: Fortran",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  "Topic :: Scientific/Engineering :: Atmospheric Science",
+  "Topic :: Scientific/Engineering :: Physics",
+  "Topic :: Scientific/Engineering :: Visualization",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+]
+urls = { "homepage" = "https://spacepy.github.io/", "repository" = "https://github.com/spacepy/spacepy.git" }
+dependencies = [
+  "numpy>=1.15.1",
+  "scipy>=1.0",
+  "matplotlib>=3.1",
+  "h5py>=2.10",
+  "python_dateutil>=2.1",
+]
+
+[tool.setuptools]
+packages = ["spacepy"]
+zip-safe = false
+
+[tool.setuptools.package-data]
+spacepy = ["data/*.*", "pybats/sample_data/*", "data/LANLstar/*",
+           "data/TS07D/TAIL_PAR/*"]
