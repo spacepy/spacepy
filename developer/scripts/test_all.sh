@@ -17,33 +17,45 @@ source ${HOME}/cdf/bin/definitions.B
 # coupled with what's the earliest and latest version of each dep
 # which works with that Python.
 TESTS=(
-       "3.6|numpy~=1.15.1|python-dateutil~=2.1.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1"
-       "3.6|numpy>=1.19.0,<1.20.0|python-dateutil scipy matplotlib h5py astropy"
-       "3.7|numpy>=1.15.1,<1.16.0|python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
-       "3.7|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy"
-       "3.8|numpy>=1.17.0,<1.18.0|python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
-       "3.8|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy"
-       "3.9|numpy>=1.18.0,<1.19.0|python-dateutil~=2.1.0 scipy>=1.5.0,<1.6.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
-       "3.9|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy"
-       "3.10|numpy>=1.21.0,<1.22.0|python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib~=3.1.0  h5py>=3.6,<3.7 astropy>=4.0,<4.1"
-       "3.10|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy"
+       "3.6|pip~=20.0.0 setuptools~=44.1.0|numpy~=1.15.1|python-dateutil~=2.1.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1|old"
+       "3.6|pip setuptools|numpy>=1.19.0,<1.20.0|python-dateutil scipy matplotlib h5py astropy|new"
+       "3.7|pip~=20.0.0 setuptools~=44.1.0|numpy>=1.15.1,<1.16.0|python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1|old"
+       "3.7|pip setuptools|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy|new"
+       "3.8|pip~=20.0.0 setuptools~=44.1.0|numpy>=1.17.0,<1.18.0|python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1|old"
+       "3.8|pip setuptools|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy|new"
+       "3.9|pip~=20.0.0 setuptools~=44.1.0|numpy>=1.18.0,<1.19.0|python-dateutil~=2.1.0 scipy>=1.5.0,<1.6.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1|old"
+       "3.9|pip setuptools|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy|new"
+       "3.10|pip~=20.0.0 setuptools~=44.1.0|numpy>=1.21.0,<1.22.0|python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib~=3.1.0 h5py>=3.6,<3.7 astropy>=4.0,<4.1|old"
+       "3.10|pip setuptools|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy|new"
       )
 for thisTest in "${TESTS[@]}"
 do
     IFS='|' read -ra tmpTest <<< "$thisTest"
     PYVER=${tmpTest[0]}
-    NUMPY="${tmpTest[1]}"
-    PIPLIST="${tmpTest[2]}"
+    PIP="${tmpTest[1]}"
+    NUMPY="${tmpTest[2]}"
+    PIPLIST="${tmpTest[3]}"
+    DEPSTRAT="${tmpTest[4]}"
     ENVNAME=py${PYVER//.}
     ~/miniconda/bin/conda create -y -n ${ENVNAME} python=${PYVER}
     source ~/miniconda/bin/activate ${ENVNAME}
+    # Get the preferred version of pip and setuptools
+    pip install --no-build-isolation ${PIP}
     # Get numpy in first (lots uses distutils)
+    # ALLOW build isolation here so it can grab cython if necessary
     pip install ${NUMPY}
-    # But don't let it grab a different version of numpy later
-    pip install ${NUMPY} ${PIPLIST}
+    # But don't let it grab a different version of numpy later,
+    # and build against the installed numpy
+    if [ "$DEPSTRAT" = "old" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
+	# scipy < 1.5 doesn't build on gcc 10+ without this argument
+	FOPT="-fallow-argument-mismatch" pip install --no-build-isolation ${NUMPY} ${PIPLIST}
+    else
+	pip install --no-build-isolation ${NUMPY} ${PIPLIST}
+    fi
     rm -rf build
     # Make sure not building against user's version of libraries
-    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py build
+    # pip install . does not cache the wheel (phew)
+    PYTHONNOUSERSITE=1 PYTHONPATH= pip install --no-build-isolation --no-deps .
     pushd tests
     echo Python ${PYVER}
     echo ${NUMPY} ${PIPLIST}
