@@ -49,6 +49,16 @@ C compiler
 If you are installing SpacePy from source, a working C compiler
 is required. (Not necessary for the Windows binary installer.)
 
+pip
+---
+`pip <https://pip.pypa.io/>`_ is now the expected installer for Python
+packages. Almost any modern Python installation will include it.
+
+setuptools
+----------
+`setuptools <https://setuptools.pypa.io>`_ is the installer backend. It
+is commonly included and, if necessary, installable with ``pip``.
+
 Soft Dependencies
 =================
 Without these packages, SpacePy will install, but certain features may

@@ -129,6 +129,20 @@ history. The oldest version supported according to this policy is in
      - 1.6.0 (2020/12/31)
      - 1.7.0 (2021/6/20)
      - 1.0.0 (2017/10/25)
+   * - `pip <https://pip.pypa.io/en/stable/news/>`_
+     - 23.1.2 (2023/4/26)
+     - **20.0.2** (2020/1/24)
+     - 22.0.2 (2022/1/30)
+     - 21.1 (2021/4/24)
+     - 22.3 (2022/10/15)
+     - tested with 20.0.2
+   * - `setuptools <https://setuptools.pypa.io/en/latest/history.html>`_
+     - 67.7.1 (2023/4/21)
+     - **44.1.1** (c. 2020/1/1)
+     - 59.6.0 (2021/12/12)
+     - 56.1.0 (2021/5/4)
+     - 67.5.0 (2023/3/5)
+     - tested with 44.1.1
    * - `sphinx <https://www.sphinx-doc.org/en/master/changes.html>`_
        (only needed for developers to build documentation)
      - 5.1.1 (2022/7/26)
@@ -137,3 +151,11 @@ history. The oldest version supported according to this policy is in
      - 3.3.0 (2020/11/2)
      - 4.5.0 (2022/3/28)
      - 1.8.0 (2018/9/13)
+   * - `build <https://pypa-build.readthedocs.io/en/latest/changelog.html>`_
+       (only needed for developers to build releases)
+     - 0.10.0 (2023/1/11)
+     - N/A
+     - 0.7.0 (2021/9/16)
+     - **0.4.0** (2021/5/23)
+     - 0.8.0 (2022/5/22)
+     - tested with 0.4.0
