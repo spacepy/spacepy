@@ -644,14 +644,16 @@ def copy_dlls(outdir):
     """
     libdir = None
     libnames = None
-    libneeded = ('libgfortran', 'libgcc_s', 'libquadmath', 'libwinpthread')
+    libneeded = ('libgfortran', 'libgcc_s', 'libquadmath',)
+    liboptional = ('libwinpthread',)
     for p in os.environ['PATH'].split(';'):
         if not os.path.isdir(p):
             continue
         libnames = [
-            f for f in os.listdir(p) if f[-4:].lower() == '.dll'
-            and f.startswith(libneeded)]
-        if len(libnames) == len(libneeded):
+            f for f in os.listdir(p) if f.lower().endswith('.dll')
+            and f.startswith(libneeded + liboptional)]
+        if len([f for f in libnames if f.startswith(libneeded)])\
+           == len(libneeded):
             libdir = p
             break
     if libdir is None:
