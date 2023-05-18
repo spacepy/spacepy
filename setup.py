@@ -284,7 +284,7 @@ def is_win_exec(*args):
 
 compiler_options = [
         ('fcompiler=', None,
-         'specify the fortran compiler to use: pg, gnu95, gnu, intelem, intel, none [gnu95]'),
+         'specify the fortran compiler to use: gnu95, none [gnu95]'),
         ('f2py=', None,
          'specify name (or full path) of f2py executable [{0}]'.format(
         default_f2py())),
