@@ -101,9 +101,9 @@ jobs:
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
-          - python-version: "3.10"
-            os: ubuntu-20.04
-            numpy-version: ">=1.21.0"
+          - python-version: "3.11"
+            os: ubuntu-22.04
+            numpy-version: ">=1.22.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
             cdf-version: "3.8.1"
