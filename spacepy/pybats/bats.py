@@ -27,8 +27,8 @@ from spacepy.datamodel import dmarray
 
 # Module-level variables:
 # recognized species:
-mass = {'hp':1.0, 'op':16.0, 'he':4.0,
-        'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0, '':1.0}
+mass = {'hp': 1.0, 'op': 16.0, 'he': 4.0,
+        'sw': 1.0, 'o': 16.0, 'h': 1.0, 'iono': 1.0, '': 1.0}
 
 RE = 6371000  # Earth radius in meters.
 
@@ -104,11 +104,11 @@ def _calc_ndens(obj):
         else:
             m = 1.0
         obj[n+'N'] = dmarray(obj[s]/m,
-                             attrs={'units':'$cm^{-3}$', 'amu mass':m})
+                             attrs={'units': '$cm^{-3}$', 'amu mass': m})
 
     # Total N is sum of individual  number densities.
     obj['N'] = dmarray(np.zeros(obj[rho].shape),
-                       attrs={'units':'$cm^{-3}$'})
+                       attrs={'units': '$cm^{-3}$'})
     if species:
         # Total number density:
         for n in names:
@@ -116,10 +116,10 @@ def _calc_ndens(obj):
         # Composition as fraction of total per species:
         for n in names:
             obj[n+'Frac'] = dmarray(100.*obj[n+'N']/obj['N'],
-                                    {'units':'Percent'})
+                                    {'units': 'Percent'})
     else:
         # No individual species => no composition, simple ndens.
-        obj['N'] += dmarray(obj[rho], attrs={'units':'$cm^{-3}$'})
+        obj['N'] += dmarray(obj[rho], attrs={'units': '$cm^{-3}$'})
 
 
 # Classes:
@@ -173,8 +173,8 @@ class BatsLog(LogFile):
         Fetch the observed SYM-H index for the time period covered in the
         logfile.  Return *True* on success.
 
-        Observed SYM-H is automatically fetched from the Kyoto World Data Center
-        via the :mod:`spacepy.pybats.kyoto` module.  The associated
+        Observed SYM-H is automatically fetched from the Kyoto World Data
+        Center via the :mod:`spacepy.pybats.kyoto` module.  The associated
         :class:`spacepy.pybats.kyoto.KyotoSym` object, which holds the observed
         Dst, is stored as *self.obs_sym* for future use.
         '''
@@ -201,8 +201,8 @@ class BatsLog(LogFile):
 
     def add_dst_quicklook(self, target=None, loc=111, plot_obs=False,
                           epoch=None, add_legend=True, plot_sym=False,
-                          dstvar=None, lw=2.0, obs_kwargs={'ls':'-.'},
-                          sym_kwargs={'ls':'-'}, **kwargs):
+                          dstvar=None, lw=2.0, obs_kwargs={'ls': '-.'},
+                          sym_kwargs={'ls': '-'}, **kwargs):
         '''
         Create a quick-look plot of Dst (if variable present in file)
         and compare against observations.
@@ -268,13 +268,13 @@ class BatsLog(LogFile):
         ax.set_xlabel('Time from ' + self['time'][0].isoformat()+' UTC')
 
         # Add observations (Dst and/or SYM-H):
-        if(plot_obs):
+        if plot_obs:
             # Attempt to fetch observations, plot if success.
             if self.fetch_obs_dst():
                 ax.plot(self.obs_dst['time'], self.obs_dst['dst'],
                         **obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
-        if(plot_sym):
+        if plot_sym:
             # Attempt to fetch SYM-h observations, plot if success.
             if self.fetch_obs_sym():
                 ax.plot(self.obs_sym['time'], self.obs_sym['sym-h'],
@@ -314,7 +314,8 @@ class Extraction(PbData):
     y : float or sequence
         Y value(s) for points at which to extract data values.
     dataset : Bats
-        :class:`~spacepy.pybats.bats.Bats2d` object from which to extract values
+        :class:`~spacepy.pybats.bats.Bats2d` object from which to extract
+        values.
 
     Other Parameters
     ----------------
@@ -540,7 +541,7 @@ class Stream(Extraction):
         xnow, ynow = self.xstart, self.ystart
 
         # Trace forwards.
-        while(block):
+        while block:
             # Grab indices of all values inside current block.
             # Ghost cell check is for experimental testing:
             if hasattr(bats.qtree[block], 'ghost'):
@@ -557,7 +558,8 @@ class Stream(Extraction):
             newblock = bats.find_block(xnow, ynow)
             # If we didn't leave the block, stop tracing.
             # Additionally, if inside rBody, stop.
-            if(block == newblock) or (xnow**2+ynow**2) < bats.attrs['rbody'] * .8 :
+            radnow = xnow**2+ynow**2
+            if (block == newblock) or radnow < bats.attrs['rbody']*0.8:
                 block = False
             elif newblock:
                 block = newblock
@@ -566,8 +568,7 @@ class Stream(Extraction):
             # Append to full trace vectors.
             xfwd = np.append(xfwd, x[1:])
             yfwd = np.append(yfwd, y[1:])
-            del(x)
-            del(y)
+            del x, y
             # It's possible to get stuck swirling around across
             # a few blocks.  If we spend a lot of time tracing,
             # call it quits.
@@ -579,7 +580,7 @@ class Stream(Extraction):
         xbwd = [self.xstart]
         ybwd = [self.ystart]
         xnow, ynow = self.xstart, self.ystart
-        while(block):
+        while block:
             if hasattr(bats.qtree[block], 'ghost'):
                 loc = bats.qtree[block].ghost
             else:
@@ -589,7 +590,8 @@ class Stream(Extraction):
                        bats[grid[1]][loc][:, 0], ds=-0.01)
             xnow, ynow = x[-1], y[-1]
             newblock = bats.find_block(xnow, ynow)
-            if(block == newblock) or (xnow**2+ynow**2) < bats.attrs['rbody'] * .8:
+            radnow = xnow**2+ynow**2
+            if (block == newblock) or radnow < bats.attrs['rbody'] * .8:
                 block = False
             elif newblock:
                 block = newblock
@@ -759,7 +761,10 @@ class Bats2d(IdlFile):
        `~pybats.IdlFile` for details.
     '''
     # Init by calling IdlFile init and then building qotree, etc.
-    def __init__(self, filename, *args, **kwargs):
+    def __init__(self, filename, *args, blocksize=8, **kwargs):
+
+        # Stash blocksize as an attribute:
+        self.blocksize = blocksize
 
         # Create quad tree object attribute:
         self._qtree = None
@@ -796,7 +801,8 @@ class Bats2d(IdlFile):
             if self['grid'].attrs['gtype'] != 'Regular':
                 xdim, ydim = self['grid'].attrs['dims'][0:2]
                 try:
-                    self._qtree = qo.QTree(np.array([self[xdim], self[ydim]]))
+                    points = np.array([self[xdim], self[ydim]])
+                    self._qtree = qo.QTree(points, blocksize=self.blocksize)
                 except:
                     from traceback import print_exc
                     print_exc()
@@ -855,7 +861,7 @@ class Bats2d(IdlFile):
                 continue
             self[key[:-1]+'t'] = dmarray(
                 conv[units] * self[key[:-1]+'p']/self[key],
-                attrs={'units':units})
+                attrs={'units': units})
 
     @calc_wrapper
     def calc_b(self):
@@ -868,16 +874,16 @@ class Bats2d(IdlFile):
         if 'b' in self:
             return
 
-        self['b'] = np.sqrt(self['bx']**2.0 + self['by']**2.0 + self['bz']**2.0)
-        self['b'].attrs = {'units':self['bx'].attrs['units']}
+        self['b'] = np.sqrt(self['bx']**2 + self['by']**2 + self['bz']**2)
+        self['b'].attrs = {'units': self['bx'].attrs['units']}
 
         self['bx_hat'] = self['bx'] / self['b']
         self['by_hat'] = self['by'] / self['b']
         self['bz_hat'] = self['bz'] / self['b']
 
-        self['bx_hat'].attrs = {'units':'unitless'}
-        self['by_hat'].attrs = {'units':'unitless'}
-        self['bz_hat'].attrs = {'units':'unitless'}
+        self['bx_hat'].attrs = {'units': 'unitless'}
+        self['by_hat'].attrs = {'units': 'unitless'}
+        self['bz_hat'].attrs = {'units': 'unitless'}
 
     @calc_wrapper
     def calc_j(self):
@@ -885,8 +891,8 @@ class Bats2d(IdlFile):
         Calculates total current density strength using all three J components.
         Retains units of components, stores in self['j']
         '''
-        self['j'] = np.sqrt(self['jx']**2.0 + self['jy']**2.0 + self['jz']**2.0)
-        self['j'].attrs = {'units':self['jx'].attrs['units']}
+        self['j'] = np.sqrt(self['jx']**2 + self['jy']**2.0 + self['jz']**2)
+        self['j'].attrs = {'units': self['jx'].attrs['units']}
 
     @calc_wrapper
     def calc_uperp(self):
@@ -967,8 +973,8 @@ class Bats2d(IdlFile):
         '''
 
         # Some quick declarations for more readable code.
-        ux = self['ux']; uy = self['uy']; uz = self['uz']
-        bx = self['bx']; by = self['by']; bz = self['bz']
+        ux, uy, uz = self['ux'], self['uy'], self['uz']
+        bx, by, bz = self['bx'], self['by'], self['bz']
 
         # Check units.  Should be nT(=Volt*s/m^2) and km/s.
         if (bx.attrs['units'] != 'nT') or (ux.attrs['units'] != 'km/s'):
@@ -978,9 +984,9 @@ class Bats2d(IdlFile):
         self['Ex'] = -1.0*(uy*bz - uz*by) / 1000.0
         self['Ey'] = -1.0*(uz*bx - ux*bz) / 1000.0
         self['Ez'] = -1.0*(ux*by - uy*bx) / 1000.0
-        self['Ex'].attrs = {'units':'mV/m'}
-        self['Ey'].attrs = {'units':'mV/m'}
-        self['Ez'].attrs = {'units':'mV/m'}
+        self['Ex'].attrs = {'units': 'mV/m'}
+        self['Ey'].attrs = {'units': 'mV/m'}
+        self['Ez'].attrs = {'units': 'mV/m'}
 
         # Total magnitude.
         self['E'] = np.sqrt(self['Ex']**2+self['Ey']**2+self['Ez']**2)
@@ -1023,7 +1029,7 @@ class Bats2d(IdlFile):
         temp_b[temp_b < 1E-8] = -1.0*mu_naught*self['p'][temp_b == 0.0]
         temp_beta = mu_naught*self['p']/temp_b
         self['beta'] = temp_beta
-        self['beta'].attrs = {'units':'unitless'}
+        self['beta'].attrs = {'units': 'unitless'}
 
     @calc_wrapper
     def calc_jxb(self):
@@ -1041,14 +1047,14 @@ class Bats2d(IdlFile):
         conv = 1E-6
         # Calculate cross product, convert units.
         self['jbx'] = dmarray((self['jy']*self['bz']-self['jz']*self['by'])*conv,
-                              {'units':'nN/m^3'})
+                              {'units': 'nN/m^3'})
         self['jby'] = dmarray((self['jz']*self['bx']-self['jx']*self['bz'])*conv,
-                              {'units':'nN/m^3'})
+                              {'units': 'nN/m^3'})
         self['jbz'] = dmarray((self['jx']*self['by']-self['jy']*self['bx'])*conv,
-                              {'units':'nN/m^3'})
+                              {'units': 'nN/m^3'})
         self['jb'] = dmarray(np.sqrt(self['jbx']**2 +
                                      self['jby']**2 +
-                                     self['jbz']**2), {'units':'nN/m^3'})
+                                     self['jbz']**2), {'units': 'nN/m^3'})
 
     @calc_wrapper
     def calc_alfven(self):
@@ -1061,7 +1067,7 @@ class Bats2d(IdlFile):
 
         if 'b' not in self:
             self.calc_b()
-        #M_naught * conversion from #/cm^3 to kg/m^3
+        # M_naught * conversion from #/cm^3 to kg/m^3
         mu_naught = 4.0E-7 * np.pi * 1.6726E-27 * 1.0E6
 
         # Get all rho-like variables.  Save in new list.
@@ -1075,7 +1081,7 @@ class Bats2d(IdlFile):
         for k in rho_names:
             self[k[:-3]+'alfven'] = dmarray(self['b']*1E-12 /
                                             np.sqrt(mu_naught*self[k]),
-                                            attrs={'units':'km/s'})
+                                            attrs={'units': 'km/s'})
 
     @calc_wrapper
     def _calc_divmomen(self):
@@ -1093,8 +1099,8 @@ class Bats2d(IdlFile):
 
         # Create empty arrays to hold new values.
         size = self['ux'].shape
-        self['divmomx'] = dmarray(np.zeros(size), {'units':'nN/m3'})
-        self['divmomz'] = dmarray(np.zeros(size), {'units':'nN/m3'})
+        self['divmomx'] = dmarray(np.zeros(size), {'units': 'nN/m3'})
+        self['divmomz'] = dmarray(np.zeros(size), {'units': 'nN/m3'})
 
         # Units!
         c1 = 1000. / 6371.0  # km2/Re/s2 -> m/s2
@@ -1111,8 +1117,10 @@ class Bats2d(IdlFile):
             ux = self['ux'][leaf.locs]
             uz = self['uz'][leaf.locs]
 
-            self['divmomx'][leaf.locs] = ux*d_dx(ux, leaf.dx)+uz*d_dy(ux, leaf.dx)
-            self['divmomz'][leaf.locs] = ux*d_dx(uz, leaf.dx)+uz*d_dy(uz, leaf.dx)
+            self['divmomx'][leaf.locs] = ux*d_dx(ux, leaf.dx) + \
+                uz*d_dy(ux, leaf.dx)
+            self['divmomz'][leaf.locs] = ux*d_dx(uz, leaf.dx) + \
+                uz*d_dy(uz, leaf.dx)
 
         # Unit conversion.
         self['divmomx'] *= self['rho']*c1*c2*c3
@@ -1176,7 +1184,7 @@ class Bats2d(IdlFile):
         for s in species:
             # Create new arrays to hold curl.
             size = self[s+'ux'].shape
-            self[s+w] = dmarray(np.zeros(size), {'units':'1/s'})
+            self[s+w] = dmarray(np.zeros(size), {'units': '1/s'})
 
             # Navigate quad tree, calculate curl at every leaf.
             for k in self.qtree:
@@ -1190,7 +1198,8 @@ class Bats2d(IdlFile):
                 u2 = self[s+'u'+dim2][leaf.locs]
 
                 # Calculate curl
-                self[s+w][leaf.locs] = conv * (dx1(u1, leaf.dx) - dx2(u2, leaf.dx))
+                self[s+w][leaf.locs] = conv * (dx1(u1, leaf.dx) -
+                                               dx2(u2, leaf.dx))
 
     @calc_wrapper
     def calc_gradP(self):
@@ -1210,9 +1219,9 @@ class Bats2d(IdlFile):
         # Create new arrays to hold pressure.
         dims = self['grid'].attrs['dims']
         size = self['p'].shape
-        self['gradP'] = dmarray(np.zeros(size), {'units':'nN/cm^3'})
+        self['gradP'] = dmarray(np.zeros(size), {'units': 'nN/cm^3'})
         for d in dims:
-            self['gradP_'+d] = dmarray(np.zeros(size), {'units':'nN/m^3'})
+            self['gradP_'+d] = dmarray(np.zeros(size), {'units': 'nN/m^3'})
 
         for k in self.qtree:
             # Plot only leafs of the tree.
@@ -1259,7 +1268,7 @@ class Bats2d(IdlFile):
             self[s+'u'] = dmarray(np.sqrt(self[s+'ux']**2 +
                                           self[s+'uy']**2 +
                                           self[s+'uz']**2),
-                                  attrs={'units':units})
+                                  attrs={'units': units})
 
     @calc_wrapper
     def _calc_Ekin(self, units='eV'):
@@ -1290,7 +1299,7 @@ class Bats2d(IdlFile):
                                              self[s+'uy']**2 +
                                              self[s+'uz']**2)
                                      * conv * mass[s.lower()],
-                                     attrs={'units':units})
+                                     attrs={'units': units})
 
     def calc_all(self, exclude=[]):
         '''
@@ -1354,9 +1363,7 @@ class Bats2d(IdlFile):
         Result is stored in self['cfl'].
         """
 
-        try:
-            U = self['u']
-        except KeyError:
+        if 'u' not in self:
             self.calc_utotal()
 
         cfl = np.zeros(self['u'].shape)
@@ -1373,7 +1380,7 @@ class Bats2d(IdlFile):
 
             cfl[pts] = self['u'][pts]*dt/child.dx
 
-        self['cfl'] = dmarray(cfl, attrs={'units':''})
+        self['cfl'] = dmarray(cfl, attrs={'units': ''})
 
     def vth(self, m_avg=3.1):
         """
@@ -1386,7 +1393,7 @@ class Bats2d(IdlFile):
         m_avg_kg = m_avg*1.6276e-27
         ndensity = self['rho']/m_avg*1e6
         self['vth'] = dmarray(np.sqrt(self['p']*1e-9/ndensity/(m_avg_kg))
-                              / 1000, attrs={'units':'km/s'})
+                              / 1000, attrs={'units': 'km/s'})
 
     def gyroradius(self, velocities=('u', 'vth'), m_avg=3.1):
         """
@@ -1407,11 +1414,8 @@ class Bats2d(IdlFile):
             except KeyError:
                 self.vth()
 
-        if 'u' in velocities:
-            try:
-                U = self['u']
-            except KeyError:
-                self.calc_utotal()
+        if 'u' in velocities and 'u' not in self:
+            self.calc_utotal()
 
         velocities_squared_sum = self[velocities[0]]**2
 
@@ -1430,7 +1434,7 @@ class Bats2d(IdlFile):
         q = 1.6022e-19
 
         self['gyroradius'] = dmarray(m_avg_kg*v/(q*B)/6378000,
-                                     attrs={'units':'Re'})
+                                     attrs={'units': 'Re'})
 
     def plasma_freq(self, m_avg=3.1):
         """
@@ -1445,7 +1449,7 @@ class Bats2d(IdlFile):
         ndensity = self['rho']/m_avg*1e6
         q = 1.6022e-19
         self['plasma_freq'] = dmarray(np.sqrt(4*np.pi*ndensity*q**2/m_avg_kg),
-                                      attrs={'units':'rad/s'})
+                                      attrs={'units': 'rad/s'})
 
     def inertial_length(self, m_avg=3.1):
         """
@@ -1465,7 +1469,7 @@ class Bats2d(IdlFile):
             self.calc_alfven()
 
         self['inertial_length'] = dmarray(self['alfven']/self['plasma_freq']
-                                          / 6378000, attrs={'units':'Re'})
+                                          / 6378000, attrs={'units': 'Re'})
 
     def regrid(self, cellsize=1.0, dim1range=-1, dim2range=-1, debug=False):
         '''
@@ -1630,7 +1634,7 @@ class Bats2d(IdlFile):
         ax.set_ylim([self.qtree[1].lim[2], self.qtree[1].lim[3]])
         # Plot.
 
-        if(show_borders):
+        if show_borders:
             for key in list(self.qtree.keys()):
                 self.qtree[key].plotbox(ax)
         self.qtree.plot_res(ax, tag_leafs=show_nums, do_label=do_label,
@@ -1762,7 +1766,8 @@ class Bats2d(IdlFile):
             except IndexError:
                 continue
 
-            lines.append(np.array([stream.x, stream.y][::1-2*flip]).transpose())
+            iflip = 1-2*flip
+            lines.append(np.array([stream.x, stream.y][::iflip]).transpose())
 
         # Create line collection & plot.
         collect = LineCollection(lines, **kwargs)
@@ -1841,7 +1846,7 @@ class Bats2d(IdlFile):
             nIter += 1
 
             # Are we closed or open?  Day or nightside?
-            closed = not(s1.open)    # open or closed?
+            closed = not s1.open     # open or closed?
             isNig = s1.x.mean() < 0  # line on day or night side?
             isDay = not isNig
 
@@ -1891,7 +1896,7 @@ class Bats2d(IdlFile):
             s1 = self.get_stream(R*np.cos(theta), R*np.sin(theta), 'bx', 'bz',
                                  method=method, maxPoints=1E6)
             # Closed?  Nightside?
-            closed = not(s1.open)
+            closed = not s1.open
             isNig = s1.x.mean() < 0
             isDay = not isNig
 
@@ -2037,7 +2042,7 @@ class Bats2d(IdlFile):
         from spacepy.plot import add_arrows
 
         # Set ax and fig based on given target.
-        adj_lims = not(target)  # If no target set, adjust axes limits.
+        adj_lims = not target  # If no target set, adjust axes limits.
         fig, ax = set_target(target, figsize=(10, 10), loc=111)
         self.add_body(ax)
 
@@ -2313,7 +2318,8 @@ class Bats2d(IdlFile):
 
         # Add open field lines.
         if DoOpen:
-            for theta in np.linspace(daymax, 0.99*(2.0*(np.pi+tilt))-nightmax, 15):
+            for theta in np.linspace(daymax,
+                                     0.99*(2.0*(np.pi+tilt))-nightmax, 15):
                 x = self.attrs['rbody'] * np.cos(theta)
                 y = self.attrs['rbody'] * np.sin(theta)
                 stream = self.get_stream(x, y, 'bx', 'bz', method=method)
@@ -2458,7 +2464,7 @@ class Bats2d(IdlFile):
             z = self[value]
             norm = Normalize(vmin=zlim[0], vmax=zlim[1])
 
-        if self['grid'].attrs['gtype']=='Regular':
+        if self['grid'].attrs['gtype'] == 'Regular':
             pass
         else:
             # Indices corresponding to QTree dimensions:
@@ -2689,8 +2695,8 @@ class ShellSlice(IdlFile):
 
         # Get grid spacing.  If npoints ==1, set to 1 to avoid math errors.
         self.drad = (self['r'][-1] - self['r'][0])/max(self['grid'][0]-1, 1)
-        self.dlon = (self['lon'][-1] - self['lon'][0])/max(self['grid'][1]-1, 1)
-        self.dlat = (self['lat'][-1] - self['lat'][0])/max(self['grid'][2]-1, 1)
+        self.dlon = (self['lon'][-1]-self['lon'][0])/max(self['grid'][1]-1, 1)
+        self.dlat = (self['lat'][-1]-self['lat'][0])/max(self['grid'][2]-1, 1)
 
         self.dphi = d2r*self.dlon
         self.dtheta = d2r*self.dlat
@@ -2707,10 +2713,10 @@ class ShellSlice(IdlFile):
         Calculate radial velocity.
         '''
         ur = self['ux']*np.sin(self.theta)*np.cos(self.phi) + \
-             self['uy']*np.sin(self.theta)*np.sin(self.phi) + \
-             self['uz']*np.cos(self.theta)
+            self['uy']*np.sin(self.theta)*np.sin(self.phi) + \
+            self['uz']*np.cos(self.theta)
 
-        self['ur'] = dmarray(ur, {'units':self['ux'].attrs['units']})
+        self['ur'] = dmarray(ur, {'units': self['ux'].attrs['units']})
 
     @calc_wrapper
     def calc_radflux(self, var, conv=1000. * (100.0)**3):
@@ -2841,12 +2847,14 @@ class ShellSlice(IdlFile):
         ax.yaxis.set_major_locator(MultipleLocator(latticks))
         ax.set_ylim([0, colat_max])
         ax.set_yticklabels('')
-        opts = {'size':yticksize, 'rotation':-45, 'ha':'center', 'va':'center'}
+        opts = {'size': yticksize, 'rotation': -45,
+                'ha': 'center', 'va': 'center'}
         for theta in np.arange(90-latticks, 90-colat_max, -latticks):
             txt = '{:02.0f}'.format(theta)+r'$^{\circ}$'
             ax.text(np.pi/4., 90.-theta, txt, color='w', weight='extra bold',
                     **opts)
-            ax.text(np.pi/4., 90.-theta, txt, color='k', weight='light', **opts)
+            ax.text(np.pi/4., 90.-theta, txt, color='k', weight='light',
+                    **opts)
 
         # Use MLT-type labels.
         lt_labels = ['Noon', '18', '00',   '06']
@@ -2955,7 +2963,8 @@ class Mag(PbData):
         '''
 
         # If values already exist, do not overwrite.
-        if 'dBn' in self: return
+        if 'dBn' in self:
+            return
 
         # New containers:
         self['totaln'] = np.zeros(self.attrs['nlines'])
@@ -2971,16 +2980,18 @@ class Mag(PbData):
                 self['totald'] = self['totald']+self[key]
 
         # Old names -> new names:
-        varmap = {'totaln':'dBn',       'totale':'dBe',      'totald':'dBd',
-                  'gm_dBn':'dBnMhd',    'gm_dBe':'dBeMhd',   'gm_dBd':'dBdMhd',
-                  'gm_facdBn':'dBnFac', 'gm_facdBe':'dBeFac','gm_facdBd':'dBdFac',
-                  'ie_JhdBn':'dBnHal',  'ie_JhdBe':'dBeHal', 'ie_JhdBd':'dBdHal',
-                  'ie_JpBn':'dBnPed',   'ie_JpBe':'dBePed',  'ie_JpBd':'dBdPed'}
+        varmap = {'totaln': 'dBn', 'totale': 'dBe', 'totald': 'dBd',
+                  'gm_dBn': 'dBnMhd', 'gm_dBe': 'dBeMhd', 'gm_dBd': 'dBdMhd',
+                  'gm_facdBn': 'dBnFac', 'gm_facdBe': 'dBeFac',
+                  'gm_facdBd': 'dBdFac', 'ie_JhdBn': 'dBnHal',
+                  'ie_JhdBe': 'dBeHal', 'ie_JhdBd': 'dBdHal',
+                  'ie_JpBn': 'dBnPed',  'ie_JpBe': 'dBePed',
+                  'ie_JpBd': 'dBdPed'}
 
         # Replace variable names.
         for key in list(self.keys()):
             if key in varmap:
-                self[ varmap[key] ] = self.pop(key)
+                self[varmap[key]] = self.pop(key)
 
     def calc_h(self):
         '''
@@ -3017,7 +3028,8 @@ class Mag(PbData):
         '''
 
         # Do not calculate twice.
-        if 'dBdtn' in self: return
+        if 'dBdtn' in self:
+            return
 
         # Get dt values:
         dt = np.array([x.total_seconds() for x in np.diff(self['time'])])
@@ -3025,23 +3037,24 @@ class Mag(PbData):
         # Loop through variables:
         oldvars = list(self.keys())
         for k in oldvars:
-            if 'dB' not in k: continue
+            if 'dB' not in k:
+                continue
 
             # Create new variable name and container:
-            new = k.replace('dB','dBdt')
-            self[new] = dmarray(np.zeros(self.attrs['nlines']),{'units':'nT/s'})
+            new = k.replace('dB', 'dBdt')
+            self[new] = dmarray(np.zeros(self.attrs['nlines']),
+                                {'units': 'nT/s'})
 
             # Central diff:
             self[new][1:-1] = (self[k][2:]-self[k][:-2])/(dt[1:]+dt[:-1])
 
             # Forward diff:
             self[new][0] = (-self[k][2] + 4*self[k][1] - 3*self[k][0]) \
-                           / (dt[1]+dt[0])
+                / (dt[1]+dt[0])
 
             # Backward diff:
             self[new][-1] = (3*self[k][-1] - 4*self[k][-2] + self[k][-3]) \
-                            / (dt[-1]+dt[-2])
-
+                / (dt[-1]+dt[-2])
 
         self['dBdth'] = np.sqrt(self['dBdtn']**2+self['dBdte']**2)
 
@@ -3084,15 +3097,13 @@ class Mag(PbData):
 
         '''
 
-        import matplotlib.pyplot as plt
-
         if not label:
-            label=value
+            label = value
 
         # Set figure and axes based on target:
-        fig, ax = set_target(target, figsize=(10,4), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 4), loc=loc)
 
-        line=ax.plot(self['time'], self[value], style, label=label, **kwargs)
+        ax.plot(self['time'], self[value], style, label=label, **kwargs)
         applySmartTimeTicks(ax, self['time'], dolabel=True)
 
         return fig, ax
@@ -3145,40 +3156,43 @@ class Mag(PbData):
         prefix = 'dB'+direc
 
         # Use a dictionary to assign line styles, widths.
-        styles={prefix+'Mhd':'--', prefix+'Fac':'--',
-                prefix+'Hal':'-.', prefix+'Ped':'-.',
-                prefix:'-'}
-        widths={prefix+'Mhd':lw, prefix+'Fac':lw,
-                prefix+'Hal':lw, prefix+'Ped':lw,
-                prefix:1.5*lw}
-        colors={prefix+'Mhd':'#FF6600', prefix+'Fac':'r',
-                prefix+'Hal':'b',       prefix+'Ped':'c',
-                prefix:'k'}
+        styles = {prefix+'Mhd': '--', prefix+'Fac': '--',
+                  prefix+'Hal': '-.', prefix+'Ped': '-.',
+                  prefix: '-'}
+        widths = {prefix+'Mhd': lw, prefix+'Fac': lw,
+                  prefix+'Hal': lw, prefix+'Ped': lw,
+                  prefix: 1.5*lw}
+        colors = {prefix+'Mhd': '#FF6600', prefix+'Fac': 'r',
+                  prefix+'Hal': 'b',       prefix+'Ped': 'c',
+                  prefix: 'k'}
 
         # Labels:
-        labels={prefix+'Mhd':r'$J_{Mag}$',  prefix+'Fac':r'$J_{Gap}$',
-                prefix+'Hal':r'$J_{Hall}$', prefix+'Ped':r'$J_{Peder}$',
-                prefix:r'Total $\Delta B'+'_{}$'.format(direc)}
+        labels = {prefix+'Mhd': r'$J_{Mag}$',  prefix+'Fac': r'$J_{Gap}$',
+                  prefix+'Hal': r'$J_{Hall}$', prefix+'Ped': r'$J_{Peder}$',
+                  prefix: r'Total $\Delta B'+'_{}$'.format(direc)}
 
         # Plot.
         for k in sorted(self):
-            if ('dB'+direc not in k) or (k=='time') or (k[:4]=='dBdt'):continue
+            if ('dB'+direc not in k) or (k == 'time') or (k[:4] == 'dBdt'):
+                continue
             ax.plot(self['time'], self[k], label=labels[k],
-                    lw=widths[k], c=colors[k])#,ls=styles[k]
+                    lw=widths[k], c=colors[k])  # ,ls=styles[k]
 
         # Ticks, zero-line, and legend:
         applySmartTimeTicks(ax, self['time'], True, True)
         ax.hlines(0.0, self['time'][0], self['time'][-1],
                   linestyles=':', lw=2.0, colors='k')
-        if add_legend: ax.legend(ncol=3, loc='best')
+        if add_legend:
+            ax.legend(ncol=3, loc='best')
 
         # Axis labels:
-        ax.set_ylabel(r'$\Delta B_{%s}$ ($nT$)'%(direc.upper()))
+        ax.set_ylabel(r'$\Delta B_{%s}$ ($nT$)' % (direc.upper()))
 
-        if target==None:
+        if target is None:
             fig.tight_layout()
 
         return fig, ax
+
 
 class MagFile(PbData):
     '''
@@ -3222,23 +3236,22 @@ class MagFile(PbData):
         self.attrs['gmfile'] = filename
 
         # Try to find the IE file based on our current location.
-        if(find_ie and not ie_name):
+        if find_ie and not ie_name:
             basedir = filename[0:filename.rfind('/')+1]
             if glob(basedir + '../IE/IE_mag_*.mag'):
-                self.attrs['iefile']=glob(basedir + '../IE/IE_mag_*.mag')[-1]
+                self.attrs['iefile'] = glob(basedir + '../IE/IE_mag_*.mag')[-1]
             elif glob(basedir + '../../IE/ionosphere/IE_mag_*.mag'):
                 self.attrs['iefile'] = \
                     glob(basedir + '../../IE/ionosphere/IE_mag_*.mag')[-1]
             elif glob(basedir + '/IE_mag_*.mag'):
-                self.attrs['iefile']= glob(basedir + '/IE_mag_*.mag')[-1]
+                self.attrs['iefile'] = glob(basedir + '/IE_mag_*.mag')[-1]
             else:
-                self.attrs['iefile']=None
+                self.attrs['iefile'] = None
         else:
-            self.attrs['iefile']=ie_name
+            self.attrs['iefile'] = ie_name
 
         # Set legacy mode to handle old variable names:
         self.legacy = find_ie or bool(ie_name)
-
 
         self.readfiles()
 
@@ -3255,7 +3268,7 @@ class MagFile(PbData):
 
         # Parse header:
         # Get number of stations.
-        nmags=int((lines[0].split(':')[0]).split()[0])
+        nmags = int((lines[0].split(':')[0]).split()[0])
 
         # Get station names.
         names = lines[0].split(':')[1]
@@ -3282,8 +3295,8 @@ class MagFile(PbData):
             infile = open(self.attrs['iefile'], 'r')
             ielns = infile.readlines()
             infile.close()
-            nmags=int((ielns[0].split(':')[0]).split()[0])
-            iestats=(ielns[0].split(':')[1]).split()
+            nmags = int((ielns[0].split(':')[0]).split()[0])
+            iestats = (ielns[0].split(':')[1]).split()
             # Check nmags vs number of mags in header.
             if nmags != len(iestats):
                 raise BaseException(
@@ -3292,11 +3305,11 @@ class MagFile(PbData):
             if iestats != self.attrs['namemag']:
                 raise RuntimeError("Files do not have matching stations.")
             ie_namevar = ielns[1].split()[11:]
-            self.attrs['ie_namevar']=ie_namevar
+            self.attrs['ie_namevar'] = ie_namevar
             if (len(ielns)/self.attrs['nmag']) != (nrecords-1):
                 print('Number of lines do not match: GM=%d, IE=%d!' %
                       (nrecords-1, len(ielns)/self.attrs['nmag']))
-                nrecords=min(ielns, nrecords-1)
+                nrecords = min(ielns, nrecords-1)
         else:
             ie_namevar = ()
             self.attrs['ie_namevar'] = ()
@@ -3307,7 +3320,7 @@ class MagFile(PbData):
         for name in namemag:
             self[name] = Mag(nrecords, self['time'], gm_namevar, ie_namevar)
 
-        data_buffer = np.zeros((nrecords,nmags,(len(gm_namevar)+3)))
+        data_buffer = np.zeros((nrecords, nmags, (len(gm_namevar)+3)))
 
         # Read file data.
         for i in range(nrecords):
@@ -3325,12 +3338,12 @@ class MagFile(PbData):
                 )
             for j in range(nmags):
                 line = lines[i*nmags+j+2]
-                if j>0:
+                if j > 0:
                     parts = line.split()
                 values = [float(part) for part in parts[9:]]
-                data_buffer[i,j] = values
+                data_buffer[i, j] = values
 
-            if self.attrs['iefile'] and i>0:
+            if self.attrs['iefile'] and i > 0:
                 line = ielns[i*nmags+2]
                 self[namemag[0]].parse_ieline(i, line, ie_namevar)
                 for j in range(1, nmags):
@@ -3339,9 +3352,9 @@ class MagFile(PbData):
 
         for j in range(nmags):
             mag = self[namemag[j]]
-            mag['x'] = data_buffer[:,j,0]
-            mag['y'] = data_buffer[:,j,1]
-            mag['z'] = data_buffer[:,j,2]
+            mag['x'] = data_buffer[:, j, 0]
+            mag['y'] = data_buffer[:, j, 1]
+            mag['z'] = data_buffer[:, j, 2]
             for k, key in enumerate(gm_namevar):
                 mag[key] = data_buffer[:, j, k+3]
 
@@ -3393,6 +3406,7 @@ class MagFile(PbData):
                 continue
             self[k].calc_dbdt()
 
+
 class MagGridFile(IdlFile):
     '''
     Magnetometer grids are a recent addition to BATS-R-US: instead of
@@ -3405,7 +3419,6 @@ class MagGridFile(IdlFile):
     def __init__(self, *args, **kwargs):
         import re
         from spacepy.pybats import parse_filename_time
-        from spacepy.coordinates import Coords
 
         # Initialize as an IdlFile.
         super(MagGridFile, self).__init__(header=None, *args, **kwargs)
@@ -3429,9 +3442,9 @@ class MagGridFile(IdlFile):
             if v == 'grid':
                 continue
             elif v in self['grid'].attrs['dims']:
-                self[v].attrs['units']=unit1
+                self[v].attrs['units'] = unit1
             else:
-                self[v].attrs['units']=unit2
+                self[v].attrs['units'] = unit2
 
     @calc_wrapper
     def calc_h(self):
@@ -3447,7 +3460,7 @@ class MagGridFile(IdlFile):
             if v[:3] == 'dBn':
                 v_east = v.replace('dBn', 'dBe')
                 self[v.replace('dBn', 'dBh')] = dmarray(
-                    np.sqrt(self[v]**2 + self[v_east]**2), {'units':'nT'})
+                    np.sqrt(self[v]**2 + self[v_east]**2), {'units': 'nT'})
 
     def add_contour(self, value, nlev=30, target=None, loc=111,
                     title=None, xlabel=None, ylabel=None,
@@ -3462,12 +3475,12 @@ class MagGridFile(IdlFile):
         from spacepy.pybats import mhdname_to_tex
 
         import matplotlib.pyplot as plt
-        from matplotlib.colors import (LogNorm, Normalize)
-        from matplotlib.ticker import (LogLocator, LogFormatter, FuncFormatter,
+        from matplotlib.colors import LogNorm
+        from matplotlib.ticker import (LogLocator, FuncFormatter,
                                        LogFormatterMathtext, MultipleLocator)
 
         # Set ax and fig based on given target.
-        fig, ax = set_target(target, figsize=(10,7), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 7), loc=loc)
 
         # Get max/min if none given.
         if zlim is None:
@@ -3478,27 +3491,27 @@ class MagGridFile(IdlFile):
 
         # No zero-level for log scales:
         if dolog and zlim[0] <= 0:
-            zlim[0] = np.min( [0.0001, zlim[1]/1000.0] )
+            zlim[0] = np.min([0.0001, zlim[1]/1000.0])
 
         # Better default color maps:
         if 'cmap' not in kwargs:
             # If zlim spans positive and negative:
-            if zlim[1]-zlim[0]>np.max(zlim):
+            if zlim[1]-zlim[0] > np.max(zlim):
                 kwargs['cmap'] = 'bwr'
             else:
                 kwargs['cmap'] = 'Reds'
 
         # Set contour command based on filled/unfilled contours:
         if filled:
-            contour=ax.contourf
+            contour = ax.contourf
         else:
-            contour=ax.contour
+            contour = ax.contour
 
-                # Create levels and set norm based on dolog.
+        # Create levels and set norm based on dolog.
         if dolog:
             levs = np.power(10, np.linspace(np.log10(zlim[0]),
                                             np.log10(zlim[1]), nlev))
-            z = np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
+            z = np.where(self[value] > zlim[0], self[value], 1.01*zlim[0])
             norm = LogNorm()
             ticks = LogLocator()
             fmt = LogFormatterMathtext()
@@ -3506,7 +3519,7 @@ class MagGridFile(IdlFile):
             levs = np.linspace(zlim[0], zlim[1], nlev)
             z = self[value]
             norm = None
-            ticks = MultipleLocator((zlim[1]-zlim[0])/10) ### fix this
+            ticks = MultipleLocator((zlim[1]-zlim[0])/10)  # fix this
             fmt = None
 
         # Add Contour to plot:
@@ -3516,7 +3529,7 @@ class MagGridFile(IdlFile):
         # Add cbar if necessary.
         if add_cbar:
             cbar = plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
-            if clabel == None:
+            if clabel is None:
                 varname = mhdname_to_tex(value)
                 units = mhdname_to_tex(self[value].attrs['units'])
                 clabel = "%s (%s)" % (varname, units)
@@ -3529,9 +3542,9 @@ class MagGridFile(IdlFile):
             ax.set_title(title)
         coord_sys = self['grid'].attrs['coord']
         if ylabel is None:
-            ylabel='Latitude ({})'.format(coord_sys)
+            ylabel = 'Latitude ({})'.format(coord_sys)
         if xlabel is None:
-            xlabel='Longitude ({})'.format(coord_sys)
+            xlabel = 'Longitude ({})'.format(coord_sys)
         ax.set_ylabel(ylabel)
         ax.set_xlabel(xlabel)
         if type(xlim) is not None:
@@ -3590,7 +3603,7 @@ class GeoIndexFile(LogFile):
         super(GeoIndexFile, self).__init__(filename, *args, **kwargs)
 
         # Re-parse the file header; look for key info.
-        head  = (self.attrs['descrip']).replace('=',' ')
+        head = (self.attrs['descrip']).replace('=', ' ')
         parts = head.split()
         if 'DtOutput=' in head:
             self.attrs['dt'] = float(parts[parts.index('DtOutput=') + 1])
@@ -3600,8 +3613,7 @@ class GeoIndexFile(LogFile):
         if 'Lat' in head:
             self.attrs['lat'] = float(parts[parts.index('Lat') + 1])
         if 'K9' in head:
-            self.attrs['k9']  = float(parts[parts.index('K9') + 1])
-
+            self.attrs['k9'] = float(parts[parts.index('K9') + 1])
 
     def fetch_obs_kp(self):
         '''
@@ -3617,7 +3629,8 @@ class GeoIndexFile(LogFile):
         import spacepy.pybats.kyoto as kt
 
         # Return if already obtained:
-        if hasattr(self, 'obs_kp'): return True
+        if hasattr(self, 'obs_kp'):
+            return True
 
         # Start and end time to collect observations:
         stime = self['time'][0]
@@ -3647,7 +3660,8 @@ class GeoIndexFile(LogFile):
         import spacepy.pybats.kyoto as kt
 
         # Return if already obtained:
-        if hasattr(self, 'obs_ae'): return True
+        if hasattr(self, 'obs_ae'):
+            return True
 
         # Start and end time to collect observations:
         stime = self['time'][0]
@@ -3665,10 +3679,12 @@ class GeoIndexFile(LogFile):
 
     def add_kp_quicklook(self, target=None, loc=111, label=None,
                          plot_obs=False, add_legend=True,
-                         obs_kwargs={'c':'k', 'ls':'--', 'lw':2}, **kwargs):
+                         obs_kwargs={'c': 'k', 'ls': '--', 'lw': 2}, **kwargs):
         '''
         Similar to "dst_quicklook"-type functions, this method fetches observed
-        Kp from the web and plots it alongside the Kp read from the GeoInd file.
+        Kp from the web and plots it alongside the Kp read from the GeoIndex
+        file.
+
         Usage:
         >>> obj.kp_quicklook(target=SomeMplTarget)
         The target kwarg works like in other PyBats plot functions: it can be
@@ -3685,13 +3701,12 @@ class GeoIndexFile(LogFile):
         The observed line can be customized via the *obs_kwargs* kwarg, which
         is a dictionary of plotting keyword arguments.
         '''
-        import matplotlib.pyplot as plt
 
         # Set up plot target.
         fig, ax = set_target(target, figsize=(10, 4), loc=loc)
 
         # Create label:
-        if not(label):
+        if not label:
             label = 'fa$K$e$_{P}$'
             if ('lat' in self.attrs) and ('k9' in self.attrs):
                 label += ' (Lat=%04.1f$^{\circ}$, K9=%03i)' % \
@@ -3699,14 +3714,16 @@ class GeoIndexFile(LogFile):
 
         # Sometimes, the "Kp" varname is caps, sometimes not.
         kp = 'Kp'
-        if kp not in self.keys(): kp='kp'
+        if kp not in self.keys():
+            kp = 'kp'
 
-        ax.plot(self['time'], self['Kp'], label=label,**kwargs)
+        ax.plot(self['time'], self['Kp'], label=label, **kwargs)
         ax.set_ylabel('$K_{P}$')
-        ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
+        ax.set_xlabel('Time from ' + self['time'][0].isoformat()+' UTC')
         applySmartTimeTicks(ax, self['time'])
 
-        if target==None: fig.tight_layout()
+        if target is None:
+            fig.tight_layout()
 
         if plot_obs:
             # Attempt to fetch Kp:
@@ -3715,12 +3732,14 @@ class GeoIndexFile(LogFile):
                 self.obs_kp.add_histplot(target=ax, **obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
 
-        if add_legend: ax.legend(loc='best')
+        if add_legend:
+            ax.legend(loc='best')
         return fig, ax
 
     def add_ae_quicklook(self, target=None, loc=111, label=None,
                          plot_obs=False, val='AE', add_legend=True,
-                         obs_kwargs={'c':'k', 'ls':'--', 'lw':1.5}, **kwargs):
+                         obs_kwargs={'c': 'k', 'ls': '--', 'lw': 1.5},
+                         **kwargs):
         '''
         Similar to "dst_quicklook"-type functions, this method fetches observed
         AE indices from the web and plots it alongside the corresponding
@@ -3743,15 +3762,14 @@ class GeoIndexFile(LogFile):
         The observed line can be customized via the *obs_kwargs* kwarg, which
         is a dictionary of plotting keyword arguments.
         '''
-        import matplotlib.pyplot as plt
 
         # Set up plot target.
-        fig, ax = set_target(target, figsize=(10,4), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 4), loc=loc)
 
-        if not(label):
+        if not label:
             label = 'Virtual {}'.format(val)
 
-        ax.plot(self['time'], self[val], label=label,**kwargs)
+        ax.plot(self['time'], self[val], label=label, **kwargs)
         ax.set_ylabel('{} ($nT$)'.format(val))
         ax.set_xlabel('Time from ' + self['time'][0].isoformat() + ' UTC')
         applySmartTimeTicks(ax, self['time'])
@@ -3761,16 +3779,19 @@ class GeoIndexFile(LogFile):
 
         if plot_obs:
             # Check for label in obs. kwargs:
-            if 'label' not in obs_kwargs: obs_kwargs['label'] = 'Obs. ' + val
+            if 'label' not in obs_kwargs:
+                obs_kwargs['label'] = 'Obs. ' + val
 
             if self.fetch_obs_ae():
                 ax.plot(self.obs_ae['time'], self.obs_ae[val.lower()],
                         **obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
 
-        if add_legend: ax.legend(loc='best')
+        if add_legend:
+            ax.legend(loc='best')
 
         return fig, ax
+
 
 class VirtSat(LogFile):
     '''
@@ -3792,7 +3813,7 @@ class VirtSat(LogFile):
             name = list(filter(None, a))[0]
         except IndexError:
             name = None
-        self.attrs['name']=name
+        self.attrs['name'] = name
 
         # Create interpolation functions for position.
         self._interp = {}
@@ -3835,12 +3856,12 @@ class VirtSat(LogFile):
         units = units.lower()
 
         # Create dictionary of unit conversions.
-        conv  = {'ev' : 6241.50935,  # nPa/cm^3 --> eV.
-                 'kev': 6.24150935,  # nPa/cm^3 --> KeV.
-                 'k'  : 72429626.47} # nPa/cm^3 --> K.
+        conv = {'ev': 6241.50935,   # nPa/cm^3 --> eV.
+                'kev': 6.24150935,  # nPa/cm^3 --> KeV.
+                'k': 72429626.47}   # nPa/cm^3 --> K.
 
         # Calculate number density if not done already.
-        if not 'N' in self:
+        if 'N' not in self:
             self.calc_ndens()
 
         # Find all number density variables.
@@ -3853,7 +3874,7 @@ class VirtSat(LogFile):
                 continue
             self[key[:-1] + 't'] = dmarray(
                 conv[units] * self[key[:-1] + 'p']/self[key],
-                attrs = {'units':units})
+                attrs={'units': units})
 
     def calc_bmag(self):
         '''
@@ -3862,9 +3883,9 @@ class VirtSat(LogFile):
         '''
 
         if 'b' not in self:
-            self['b']=np.sqrt(self['bx']**2+
-                              self['by']**2+
-                              self['bz']**2)
+            self['b'] = np.sqrt(self['bx']**2 +
+                                self['by']**2 +
+                                self['bz']**2)
 
         return True
 
@@ -3880,14 +3901,15 @@ class VirtSat(LogFile):
         the keyword **units** can be changed to 'rad' to change this.
         '''
 
-        if 'b' not in self: self.calc_bmag()
+        if 'b' not in self:
+            self.calc_bmag()
 
         incl = np.arcsin(self['bz'] / self['b'])
 
         if units == 'deg':
-            self['b_incl'] = dmarray(incl * 180. / np.pi, {'units':'degrees'})
+            self['b_incl'] = dmarray(incl * 180. / np.pi, {'units': 'degrees'})
         elif units == 'rad':
-            self['b_incl'] = dmarray(incl, {'units':'radians'})
+            self['b_incl'] = dmarray(incl, {'units': 'radians'})
         else:
             raise ValueError('Unrecognized units.  Use "deg" or "rad"')
 
@@ -3914,8 +3936,8 @@ class VirtSat(LogFile):
             testval = time
 
         # Test if datetime or not.
-        if type(testval) == type(self['time'][0]):
-            time=date2num(time)
+        if isinstance(testval, type(self['time'][0])):
+            time = date2num(time)
 
         # Interpolate, using "try" as to not pass time limits and extrapolate.
         try:
@@ -3943,20 +3965,23 @@ class VirtSat(LogFile):
 
         plane = plane.lower()
         loc = self.get_position(time)
-        if None in loc: return
+        if None in loc:
+            return
         x = loc['xyz'.index(plane[0])]
         y = loc['xyz'.index(plane[1])]
 
         # Do not label satellite if outside axes bounds.
-        if (x < min(xlim)) or (x > max(xlim))or \
-           (y < min(ylim)) or (y > max(ylim)): dolabel=False
+        if (x < min(xlim)) or (x > max(xlim)) or \
+           (y < min(ylim)) or (y > max(ylim)):
+            dolabel = False
 
         target.plot(x, y, 'o', **kwargs)
         if dolabel:
             xoff = 0.03 * (xlim[1] - xlim[0])
             if dobox:
                 target.text(x + xoff, y, self.attrs['name'],
-                            bbox={'fc':'w', 'ec':'k'}, size=size, va='center')
+                            bbox={'fc': 'w', 'ec': 'k'},
+                            size=size, va='center')
             else:
                 target.text(x + xoff, y, self.attrs['name'],
                             size=size, va='center', color=c)
@@ -3969,7 +3994,7 @@ class VirtSat(LogFile):
     def add_orbit_plot(self, plane='XY', target=None, loc=111, rbody=1.0,
                        title=None, trange=None, add_grid=True, style='g.',
                        adjust_axes=True, add_arrow=True,
-                       arrow_kwargs={'color':'g', 'width':.05, 'ec':'k'},
+                       arrow_kwargs={'color': 'g', 'width': .05, 'ec': 'k'},
                        **kwargs):
         '''
         Create a 2D orbit plot in the given plane (e.g. 'XY' or 'ZY').
@@ -4010,11 +4035,10 @@ class VirtSat(LogFile):
 
         from spacepy.pybats import add_body
         from spacepy.pybats.ram import grid_zeros
-        import matplotlib.pyplot as plt
 
-        fig, ax = set_target(target, figsize=(5,5), loc=loc)
+        fig, ax = set_target(target, figsize=(5, 5), loc=loc)
 
-        plane=plane.upper()
+        plane = plane.upper()
 
         # Set time range of plot.
         if not trange:
@@ -4022,8 +4046,8 @@ class VirtSat(LogFile):
         tloc = (self['time'] >= trange[0]) & (self['time'] <= trange[-1])
 
         # Extract orbit X, Y, or Z.
-        plane=plane.lower()
-        if plane[0] in ['x','y','z']:
+        plane = plane.lower()
+        if plane[0] in ['x', 'y', 'z']:
             x = self[plane[0]][tloc]
         else:
             raise ValueError('Bad dimension specifier: ' + plane[0])
@@ -4051,6 +4075,6 @@ class VirtSat(LogFile):
             if add_grid:
                 ax.grid()
             grid_zeros(ax)
-            add_body(ax, rad=rbody, add_night=('X' in plane.upper()) )
+            add_body(ax, rad=rbody, add_night=('X' in plane.upper()))
 
         return fig, ax
