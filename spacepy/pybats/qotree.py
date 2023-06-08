@@ -88,21 +88,24 @@ class QTree(object):
         # Bats blocks are nPoints by nPoints,
         # blocks must have no less than nPts points.
         # Stop branching as soon as possible (e.g. combine blocks of like dx).
-        # Here, npts=2^a * self.blocksize**2
+        # Here, npts=self.blocksize**2 * 2^a
+        # 2^a is the number of complete blocks of size blocksize**2 within the
+        # current group of points. If 'a' is non-integer, we include blocks
+        # of different grid spacing.
         a = log2(self[i].npts/self.blocksize**2)
-        if (int(a) == a):
+        if int(a) == a:
             # integer 'a' implies correct number of points to be a "leaf".
             # Approximate dx assuming a proper block.
             xmax = max(grid[0, :][self[i].locs])
             xmin = min(grid[0, :][self[i].locs])
             dx = (xmax-xmin) / (sqrt(self[i].npts)-1)
 
-            # Count points along x=xmax and x= xmin.  These are equal in Leafs.
+            # Count points along x=xmax and x=xmin.  These are equal in Leafs.
             nxmin = len(grid[0, :][self[i].locs][grid[0, :][self[i].locs] == xmin])
             nxmax = len(grid[0, :][self[i].locs][grid[0, :][self[i].locs] == xmax])
 
             # Define leaf as area of constant dx (using approx above)
-            # or npts=64 (min level.)
+            # or npts=blocksize**2 (min level.)
             if (a == 0) or (nxmax == nxmin == sqrt(self[i].npts)):
                 # An NxN block can be considered a "leaf" or stopping point
                 # if above criteria are met.  Leafs must "know" the
@@ -122,7 +125,7 @@ class QTree(object):
                     arange(self[i].lim[2], self[i].lim[3]+dx, dx))
                 self.nleafs += 1
                 return
-        elif (self[i].npts < 64):
+        elif (self[i].npts < self.blocksize**2):
             # If we do not reach a true leaf but have few points,
             # we likely have hit an interface surface.  This is an
             # interface region: the space between two blocks of
