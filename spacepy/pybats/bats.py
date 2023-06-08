@@ -803,7 +803,7 @@ class Bats2d(IdlFile):
                 try:
                     points = np.array([self[xdim], self[ydim]])
                     self._qtree = qo.QTree(points, blocksize=self.blocksize)
-                except:
+                except Exception:
                     from traceback import print_exc
                     print_exc()
                     self._qtree = False
@@ -2484,7 +2484,10 @@ class Bats2d(IdlFile):
         if add_cbar:
             cbar = plt.colorbar(pcol, ax=ax, pad=0.01)
             if clabel is None:
-                clabel = "%s (%s)" % (value, self[value].attrs['units'])
+                if 'units' in self[value].attrs:
+                    clabel = f"{value}, ({self[value].attrs['units']})"
+                else:
+                    clabel = f"{value}"
             cbar.set_label(clabel)
         else:
             cbar = None  # Need to return something, even if none.
@@ -2621,7 +2624,10 @@ class Bats2d(IdlFile):
         if add_cbar:
             cbar = plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
             if clabel is None:
-                clabel = "%s (%s)" % (value, self[value].attrs['units'])
+                if 'units' in self[value].attrs:
+                    clabel = f"{value}, ({self[value].attrs['units']})"
+                else:
+                    clabel = f"{value}"
             cbar.set_label(clabel)
         else:
             cbar = None  # Need to return something, even if none.
@@ -2835,7 +2841,10 @@ class ShellSlice(IdlFile):
             cbar = plt.colorbar(cnt, ax=ax, ticks=ticks, format=fmt,
                                 shrink=.85)
             if clabel is None:
-                clabel = "{} ({})".format(value, self[value].attrs['units'])
+                if 'units' in self[value].attrs:
+                    clabel = f"{value}, ({self[value].attrs['units']})"
+                else:
+                    clabel = f"{value}"
             cbar.set_label(clabel)
         else:
             cbar = None  # Need to return something, even if none.
@@ -3531,8 +3540,11 @@ class MagGridFile(IdlFile):
             cbar = plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
             if clabel is None:
                 varname = mhdname_to_tex(value)
-                units = mhdname_to_tex(self[value].attrs['units'])
-                clabel = "%s (%s)" % (varname, units)
+                if 'units' in self[value].attrs:
+                    units = mhdname_to_tex(self[value].attrs['units'])
+                else:
+                    units = 'unitless'
+                clabel = f"{varname} ({units})"
             cbar.set_label(clabel)
         else:
             cbar = None  # Need to return something, even if none.
