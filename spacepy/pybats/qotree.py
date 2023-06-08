@@ -26,6 +26,7 @@ class QTree(object):
         from numpy import sqrt, where, lexsort, inf
 
         # Set size of each block
+        self.blocksize = blocksize
 
         (self.d, self.npoints) = grid.shape
 
