@@ -34,7 +34,11 @@ if 'bdist_wheel' in sys.argv:
 import setuptools.dep_util
 
 import distutils.sysconfig
-import setuptools.errors
+# setuptools goes back and forth on having setuptools.errors
+try:
+    from setuptools.errors import OptionError
+except ImportError:
+    from distutils.errors import DistutilsOptionError as OptionError
 import importlib.machinery
 
 
@@ -218,7 +222,7 @@ def finalize_compiler_options(cmd):
                 setattr(cmd, option, defaults[option])
     #Special-case defaults, checks
     if not cmd.fcompiler in ('gnu95', 'none', 'None'):
-        raise setuptools.errors.OptionError(
+        raise OptionError(
             '--fcompiler={0} unknown'.format(cmd.fcompiler) +
             ', options: gnu95, None')
     if cmd.compiler == None and sys.platform == 'win32':
