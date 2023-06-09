@@ -175,6 +175,8 @@ jobs:
         # pip install . does not cache wheel
         pip install --no-build-isolation --no-deps --log=install_log.txt .
         echo "pip log:" && cat install_log.txt && echo "End pip log"
+        pushd tests; python -c "import spacepy; print(spacepy.__file__); import os.path; print(os.listdir(os.path.dirname(spacepy.__file__)))"; popd
+        ls build/* || true
         cd tests; . ${HOME}/cdf/bin/definitions.B; xvfb-run python test_all.py -v
 
   irbem-unicode:
