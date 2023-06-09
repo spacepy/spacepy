@@ -1644,7 +1644,8 @@ class Bats2d(IdlFile):
         ax.set_xlabel('GSM %s' % xdim.upper())
         ax.set_ylabel('GSM %s' % ydim.upper())
         ax.set_title(title)
-        self.add_body(ax)
+        if 'rbody' in self.attrs or 'body' in self.attrs:
+            self.add_body(ax)
 
         return fig, ax
 
@@ -1935,7 +1936,8 @@ class Bats2d(IdlFile):
                         compX='bx', compY='bz', narrow=0, arrsize=12,
                         method='rk4', tol=np.pi/720., DoClosed=True,
                         colors=None, linestyles=None, maxPoints=1E6,
-                        nOpen=5, nClosed=15, arrstyle='->', **kwargs):
+                        nOpen=5, nClosed=15, arrstyle='->',
+                        add_body=False, **kwargs):
         '''
         Create an array of field lines closed to the central body in the
         domain.  Add these lines to Matplotlib target object *target*.
@@ -2012,6 +2014,7 @@ class Bats2d(IdlFile):
         linestyles A single line style indicator, defaults to '-';
                    see :class:`~matplotlib.collections.LineCollection` for
                    possible options.
+        add_body   Add an planet/body to the figure. Defaults to False.
         ========== ===========================================================
 
         Extra kwargs are passed to Matplotlib's LineCollection class as
@@ -2044,7 +2047,8 @@ class Bats2d(IdlFile):
         # Set ax and fig based on given target.
         adj_lims = not target  # If no target set, adjust axes limits.
         fig, ax = set_target(target, figsize=(10, 10), loc=111)
-        self.add_body(ax)
+        if add_body:
+            self.add_body(ax)
 
         # Lines, colors, and styles:
         lines = []
@@ -2527,7 +2531,7 @@ class Bats2d(IdlFile):
             ang = 90.0
         else:
             ang = 0.0
-        if add_body:
+        if add_body and 'rbody' in self.attrs:
             self.add_body(ax, ang=ang)
 
         return fig, ax, pcol, cbar
@@ -2668,7 +2672,7 @@ class Bats2d(IdlFile):
             ang = 90.0
         else:
             ang = 0.0
-        if add_body:
+        if add_body and 'rbody' in self.attrs:
             self.add_body(ax, ang=ang)
 
         return fig, ax, cont, cbar
