@@ -623,10 +623,12 @@ class Stream(Extraction):
             if (r[0] < bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
                 self.open = False
                 self.status = 'closed'
-            elif (r[0] > bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
+            elif (r[0] > bats.attrs['rbody']) and \
+                 (r[-1] < bats.attrs['rbody']):
                 self.open = True
                 self.status = 'north lobe'
-            elif (r[0] < bats.attrs['rbody']) and (r[-1] > bats.attrs['rbody']):
+            elif (r[0] < bats.attrs['rbody']) and \
+                 (r[-1] > bats.attrs['rbody']):
                 self.open = True
                 self.status = 'south lobe'
             # Trim the fat!
@@ -1046,11 +1048,14 @@ class Bats2d(IdlFile):
         # Unit conversion (nT, uA, cm^-3 -> nT, A, m^-3) to nN/m^3.
         conv = 1E-6
         # Calculate cross product, convert units.
-        self['jbx'] = dmarray((self['jy']*self['bz']-self['jz']*self['by'])*conv,
+        self['jbx'] = dmarray((self['jy']*self['bz'] -
+                               self['jz']*self['by'])*conv,
                               {'units': 'nN/m^3'})
-        self['jby'] = dmarray((self['jz']*self['bx']-self['jx']*self['bz'])*conv,
+        self['jby'] = dmarray((self['jz']*self['bx'] -
+                               self['jx']*self['bz'])*conv,
                               {'units': 'nN/m^3'})
-        self['jbz'] = dmarray((self['jx']*self['by']-self['jy']*self['bx'])*conv,
+        self['jbz'] = dmarray((self['jx']*self['by'] -
+                               self['jy']*self['bx'])*conv,
                               {'units': 'nN/m^3'})
         self['jb'] = dmarray(np.sqrt(self['jbx']**2 +
                                      self['jby']**2 +
@@ -2057,7 +2062,7 @@ class Bats2d(IdlFile):
         # Try to get line style from "style" string.
         # Default to regular line if not successful.
         if not linestyles:
-            lstyle = re.sub('\w', '', style)
+            lstyle = re.sub(r'\w', '', style)
             if not lstyle:
                 linestyles = '-'
             else:
@@ -2511,7 +2516,8 @@ class Bats2d(IdlFile):
             assert isinstance(xlim[1], numbers.Number)
         except (TypeError, AssertionError):
             if xlim is not None:
-                raise ValueError('add_pcolor: xlim must be list- or array-like and have 2 elements')
+                raise ValueError('add_pcolor: xlim must be list- ' +
+                                 'or array-like and have 2 elements')
         else:
             ax.set_xlim(xlim)
         try:
@@ -2520,7 +2526,8 @@ class Bats2d(IdlFile):
             assert isinstance(ylim[1], numbers.Number)
         except (TypeError, AssertionError):
             if ylim is not None:
-                raise ValueError('add_pcolor: ylim must be list- or array-like and have 2 elements')
+                raise ValueError('add_pcolor: ylim must be list- ' +
+                                 'or array-like and have 2 elements')
         else:
             ax.set_ylim(ylim)
 
@@ -2651,7 +2658,8 @@ class Bats2d(IdlFile):
             assert isinstance(xlim[1], numbers.Number)
         except (TypeError, AssertionError):
             if xlim is not None:
-                raise ValueError('add_contour: xlim must be list- or array-like and have 2 elements')
+                raise ValueError('add_contour: xlim must be list- ' +
+                                 'or array-like and have 2 elements')
         else:
             ax.set_xlim(xlim)
         try:
@@ -2759,7 +2767,7 @@ class ShellSlice(IdlFile):
 
         # Need at least 2D in angle space:
         if self.dphi == 0 or self.dtheta == 0:
-            raise ValueError('Fluence can only be calculated for 2D+ surfaces.')
+            raise ValueError('Fluence can be calculated for >=2D surfaces.')
 
         # Trim flux off of val name:
         if '_rflx' in var:
@@ -2967,9 +2975,9 @@ class Mag(PbData):
 
     def _recalc(self):
         '''
-        Calculate total :math:`\Delta B` from GM and IE; store under object keys
-        *totaln*, *totale*, and *totald* (one for each component of the HEZ
-        coordinate system).
+        Calculate total :math:`\Delta B` from GM and IE; store under object
+        keys *totaln*, *totale*, and *totald* (one for each component of the
+        HEZ coordinate system).
 
         This function should only be called to correct legacy versions of
         magnetometer files.
@@ -3022,7 +3030,7 @@ class Mag(PbData):
             if v[:3] == 'dBn':
                 v_east = v.replace('dBn', 'dBe')
                 self[v.replace('dBn', 'dBh')] = dmarray(
-                    np.sqrt(self[v]**2+self[v_east]**2), {'units':'nT'})
+                    np.sqrt(self[v]**2+self[v_east]**2), {'units': 'nT'})
 
     def calc_dbdt(self):
         '''
@@ -3164,7 +3172,7 @@ class Mag(PbData):
         '''
 
         # Set plot targets.
-        fig, ax = set_target(target, figsize=(10,4), loc=loc)
+        fig, ax = set_target(target, figsize=(10, 4), loc=loc)
 
         prefix = 'dB'+direc
 
@@ -3438,7 +3446,7 @@ class MagGridFile(IdlFile):
 
         # Additional header parsing:
         head = self.attrs['header']
-        match = re.search('\((\w+)\).*\[(\w+)\].*\[(\w+)\]', head)
+        match = re.search(r'\((\w+)\).*\[(\w+)\].*\[(\w+)\]', head)
         coord, unit1, unit2 = match.groups()
 
         self['grid'].attrs['coord'] = coord
@@ -3768,7 +3776,8 @@ class GeoIndexFile(LogFile):
         The target kwarg works like in other PyBats plot functions: it can be
         a figure, an axes, or None, and it determines where the plot is placed.
 
-        Other kwargs customize the line.  Extra kwargs are passed to pyplot.plot
+        Other kwargs customize the line.  Extra kwargs are passed to
+        pyplot.plot
 
         Observed AE can be added via the *plot_obs* kwarg.  AE is automatically
         fetched from the Kyoto World Data Center via the
@@ -3825,7 +3834,8 @@ class VirtSat(LogFile):
         # Attempt to extract the satellite's name and save it.
         try:
             s = self.attrs['file']
-            a = findall('sat_([\-\w]+)_\d+_n\d+\.sat|sat_(\w+)_n\d+\.sat', s)[0]
+            searchstr = r'sat_([\-\w]+)_\d+_n\d+\.sat|sat_(\w+)_n\d+\.sat'
+            a = findall(searchstr, s)[0]
             name = list(filter(None, a))[0]
         except IndexError:
             name = None
@@ -3970,8 +3980,8 @@ class VirtSat(LogFile):
         '''
         For a given axes, *target*, add the location of the satellite at
         time *time* as a circle.  If kwarg *dolabel* is True, the satellite's
-        name will be used to label the dot.  Optional kwargs are any accepted by
-        matplotlib.axes.Axes.plot.  The kwarg *plane* specifies the plane
+        name will be used to label the dot.  Optional kwargs are any accepted
+        by matplotlib.axes.Axes.plot.  The kwarg *plane* specifies the plane
         of the plot, e.g., 'XY', 'YZ', etc.
         '''
 
@@ -4001,7 +4011,6 @@ class VirtSat(LogFile):
             else:
                 target.text(x + xoff, y, self.attrs['name'],
                             size=size, va='center', color=c)
-
 
         # Restore Axes' limits.
         target.set_ylim(ylim)
