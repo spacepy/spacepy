@@ -31,6 +31,7 @@ jobs:
         include:
           - python-version: "3.6"
             os: ubuntu-20.04
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0"
             numpy-version: "~=1.15.1"
             piplist: "python-dateutil~=2.1.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1"
             cflags: "-Wno-error=format-security"
@@ -39,6 +40,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.6"
             os: ubuntu-20.04
+            build-deps: "pip setuptools"
             numpy-version: ">=1.19.0,<1.20.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -47,6 +49,7 @@ jobs:
             dep-strategy: "newest"
           - python-version: "3.7"
             os: ubuntu-20.04
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0"
             numpy-version: ">=1.15.1,<1.16.0"
             piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
             cflags: "-Wno-error=format-security"
@@ -55,6 +58,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.7"
             os: ubuntu-20.04
+            build-deps: "pip setuptools"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -63,6 +67,7 @@ jobs:
             dep-strategy: "newest"
           - python-version: "3.8"
             os: ubuntu-20.04
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0"
             numpy-version: ">=1.17.0,<1.18.0"
             piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
             cflags: "-Wno-error=format-security"
@@ -71,6 +76,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.8"
             os: ubuntu-20.04
+            build-deps: "pip setuptools"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -79,6 +85,7 @@ jobs:
             dep-strategy: "newest"
           - python-version: "3.9"
             os: ubuntu-20.04
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0"
             numpy-version: ">=1.18.0,<1.19.0"
             piplist: "python-dateutil~=2.1.0 scipy>=1.5.0,<1.6.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
             cflags: "-Wno-error=format-security"
@@ -87,6 +94,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.9"
             os: ubuntu-20.04
+            build-deps: "pip setuptools"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -95,6 +103,7 @@ jobs:
             dep-strategy: "newest"
           - python-version: "3.10"
             os: ubuntu-20.04
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0"
             numpy-version: ">=1.21.0,<1.22.0"
             piplist: "python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib~=3.1.0 h5py>=3.6,<3.7 astropy>=4.0,<4.1"
             cflags: "-Wno-error=format-security"
@@ -103,6 +112,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.10"
             os: ubuntu-20.04
+            build-deps: "pip setuptools"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -136,6 +146,7 @@ jobs:
         key: cdf-v${{ env.cdf-cache-version}}-${{ matrix.cdf-version }}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}
     - name: Install dependencies
       env:
+        BUILD_DEPS: ${{ matrix.build-deps }}
         NUMPY_VERSION: ${{ matrix.numpy-version }}
         PIPLIST: ${{ matrix.piplist }}
         CFLAGS: ${{ matrix.cflags }}
@@ -144,13 +155,14 @@ jobs:
         sudo apt-get update -qq
         # Needed for scipy versions without binary wheels
         sudo apt-get install libhdf5-serial-dev gcc gfortran xvfb libblas-dev liblapack-dev
-        python -m pip install --upgrade pip
+        python -m pip install --no-build-isolation ${BUILD_DEPS}
         # This allows pip to build (and thus cache) binary wheels
         pip install wheel
+        # ALLOW build isolation here so it can grab cython if necessary
         pip install --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
         pip install "numpy${NUMPY_VERSION}" ${PIPLIST}
-        pip freeze
+        pip freeze --all
         if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd cdf${CDF_VER}-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
 # commit of the PR, not just the tip of the PR.
@@ -159,7 +171,9 @@ jobs:
     - name: Install and run tests
       working-directory: ${{ github.workspace }}
       run: |
-        python setup.py build
+        # Install (not in build)
+        # pip install . does not cache wheel
+        pip install --no-build-isolation --no-deps .
         cd tests; . ${HOME}/cdf/bin/definitions.B; xvfb-run python test_all.py -v
 
   irbem-unicode:
@@ -182,6 +196,7 @@ jobs:
         include:
           - python-version: "3.6"
             os: ubuntu-20.04
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0"
             numpy-version: "~=1.15.1"
             piplist: "python-dateutil~=2.1.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1 sphinx~=1.8.0 numpydoc"
             cflags: "-Wno-error=format-security"
@@ -190,6 +205,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.10"
             os: ubuntu-20.04
+            build-deps: "pip setuptools"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
             cflags: ""
@@ -226,6 +242,7 @@ jobs:
         key: cdf-v${{ env.cdf-cache-version}}-${{ matrix.cdf-version }}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}
     - name: Install dependencies
       env:
+        BUILD_DEPS: ${{ matrix.build-deps }}
         NUMPY_VERSION: ${{ matrix.numpy-version }}
         PIPLIST: ${{ matrix.piplist }}
         CFLAGS: ${{ matrix.cflags }}
@@ -234,13 +251,13 @@ jobs:
         sudo apt-get update -qq
         # Needed for scipy versions without binary wheels
         sudo apt-get install libhdf5-serial-dev gcc gfortran xvfb libblas-dev liblapack-dev
-        python -m pip install --upgrade pip
+        python -m pip install --no-build-isolation ${BUILD_DEPS}
         # This allows pip to build (and thus cache) binary wheels
         pip install wheel
         pip install --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
         pip install "numpy${NUMPY_VERSION}" ${PIPLIST}
-        pip freeze
+        pip freeze --all
         if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd cdf${CDF_VER}-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
 # commit of the PR, not just the tip of the PR.
@@ -249,7 +266,7 @@ jobs:
     - name: Build spacepy and docs
       working-directory: ${{ github.workspace }}
       run: |
-        python setup.py build
+        pip install --no-build-isolation --no-deps .
         cd Doc
         . ${HOME}/cdf/bin/definitions.B
         make html | tee doc_log.txt
