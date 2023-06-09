@@ -76,7 +76,7 @@ class QTree(object):
         '''
         Internal recursive method for populating tree.
         '''
-        from numpy import sqrt, max, min, log2, arange, meshgrid, mod
+        from numpy import sqrt, log2, arange, meshgrid, mod
 
         # Start by limiting locations to within block limits:
         self[i].locs = self.locs[(grid[0, :][self.locs] > self[i].lim[0]) &
@@ -93,20 +93,39 @@ class QTree(object):
         # current group of points. If 'a' is non-integer, we include blocks
         # of different grid spacing.
         a = log2(self[i].npts/self.blocksize**2)
+
+        # Grab some grid information to be used in evaluating current block:
+        xnow = grid[0, :][self[i].locs]
+        xmax, xmin = xnow.max(), xnow.min()
+
         if int(a) == a:
-            # integer 'a' implies correct number of points to be a "leaf".
+            # integer 'a' implies correct number of points to be a "leaf", but
+            # more investigation required.
             # Approximate dx assuming a proper block.
-            xmax = max(grid[0, :][self[i].locs])
-            xmin = min(grid[0, :][self[i].locs])
             dx = (xmax-xmin) / (sqrt(self[i].npts)-1)
 
             # Count points along x=xmax and x=xmin.  These are equal in Leafs.
-            nxmin = len(grid[0, :][self[i].locs][grid[0, :][self[i].locs] == xmin])
-            nxmax = len(grid[0, :][self[i].locs][grid[0, :][self[i].locs] == xmax])
+            nxmin = xnow[xnow == xmin].size
+            nxmax = xnow[xnow == xmax].size
+
+            # Is block square? Is it integer multiple of other blocks?
+            blksize = int(sqrt(self[i].npts))
+            issquare = (a == 0) or (nxmax == nxmin == blksize)
+
+            # Check for uniform grid spacing (only if a "square" block):
+            isuniform = False
+            if issquare:
+                temploc = self[i].locs.reshape((blksize, blksize))
+                xsquare = grid[0, :][temploc]
+                ysquare = grid[1, :][temploc]
+                dxblk = abs(xsquare[1:, :]) - abs(xsquare[:-1, :])
+                dyblk = abs(ysquare[:, 1:]) - abs(ysquare[:, :-1])
+                isuniform = dxblk.min() == dxblk.max() \
+                    == dyblk.min() == dyblk.max()
 
             # Define leaf as area of constant dx (using approx above)
-            # or npts=blocksize**2 (min level.)
-            if (a == 0) or (nxmax == nxmin == sqrt(self[i].npts)):
+            # or npts=a*blocksize**2 where "a" is an integer.
+            if issquare and isuniform:
                 # An NxN block can be considered a "leaf" or stopping point
                 # if above criteria are met.  Leafs must "know" the
                 # indices of the x,y points located inside of them as a
@@ -114,7 +133,7 @@ class QTree(object):
                 self[i].isLeaf = True
                 a = int(sqrt(self[i].npts))
 
-                self[i].locs = self[i].locs.reshape((a, a))
+                self[i].locs = self[i].locs.reshape((blksize, blksize))
                 self[i].dx = dx
                 if dx > self.dx_max:
                     self.dx_max = dx
@@ -133,8 +152,6 @@ class QTree(object):
             # are included in the output file.  Create a leaf that uses the
             # smaller of the two and discards the rest.
             self[i].isLeaf = True  # Interfaces are considered leafs
-            xmax = max(grid[0, :][self[i].locs])  # These conditions still hold
-            xmin = min(grid[0, :][self[i].locs])
 
             # The number of points along each dimension should follow
             # this relationship at interface blocks:
@@ -149,8 +166,7 @@ class QTree(object):
             dx = (xmax-xmin) / (a-1)
 
             # Refine locs so that only multiples of dx are included:
-            subloc = mod(grid[0, :][self[i].locs]-grid[0, :][
-                self[i].locs[0]], dx) == 0
+            subloc = mod(xnow-grid[0, :][self[i].locs[0]], dx) == 0
             self[i].locs = self[i].locs[subloc]
 
             self[i].locs = self[i].locs.reshape((a, a))
