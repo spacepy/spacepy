@@ -55,7 +55,9 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["spacepy"]
+packages = ["spacepy", "spacepy.irbempy", "spacepy.pycdf",
+  "spacepy.plot", "spacepy.pybats", "spacepy.toolbox", "spacepy.ctrans",
+]
 zip-safe = false
 
 [tool.setuptools.package-data]
