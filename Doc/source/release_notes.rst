@@ -83,6 +83,10 @@ that documentation for details. Thanks Lutz Rastaetter.
 Plot styles are not automatically applied on import of :mod:`.plot`. Use
 `.plot.style` directly to apply the desired style.
 
+`~.pybats.bats.Bats2d` plot functions will no longer raise an exception when
+trying to add a planet/inner boundary patch without an 'rbody' attribute
+present. Rather, the patch will not be applied to the axes object.
+
 0.4 Series
 ==========
 0.4.1 (2022-09-15)
