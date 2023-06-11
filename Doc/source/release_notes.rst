@@ -63,6 +63,10 @@ with temperature and density naming.
 perpendicular velocities with new `~.pybats.bats.Bats2d.calc_uperp`
 and `~.pybats.bats.Bats2d.calc_upar` methods.
 
+`~.pybats.bats.Bats2d` objects and the class that handles quad tree building
+(`~.pybats.qotree.QTree`) now accepts a keyword argument to set the size
+of each block: `blocksize`. Default value is 8.
+
 Deprecations and removals
 *************************
 Since plot styles are no longer applied on import, importing
