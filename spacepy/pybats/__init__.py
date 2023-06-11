@@ -42,10 +42,10 @@ slowly being brought up-to-date with each release.
 Visualization methods have two prefixes: *plot_* and *add_*.  Whenever a method
 begins with *plot_*, a quick-look product will be created that is not highly-
 configurable.  These methods are meant to yeild either simple
-diagnostic plots or static, often-used products.  There are few methods that use
-this prefix.  The prefix *add_* is always followed by *plot_type*; it indicates
-a plotting method that is highly configurable and meant to be combined with
-other *add_*-like methods and matplotlib commands.
+diagnostic plots or static, often-used products.  There are few methods that
+use this prefix.  The prefix *add_* is always followed by *plot_type*; it
+indicates a plotting method that is highly configurable and meant to be
+combined with other *add_*-like methods and matplotlib commands.
 
 Common calculations, such as calculating Alfven wave speeds of MHD results,
 are strewn about PyBats' classes.  They are always given the method prefix
@@ -133,10 +133,12 @@ def calc_wrapper(meth):
     @wraps(meth)
     def wrapped(self, *args, **kwargs):
         # Establish list of calculations:
-        if not hasattr(self, '_calcs'): self._calcs = {}
+        if not hasattr(self, '_calcs'):
+            self._calcs = {}
 
         # Check to see if we're in the list, return if true.
-        if meth.__name__ in self._calcs: return
+        if meth.__name__ in self._calcs:
+            return
 
         # If not, add to list and stash args/kwargs:
         self._calcs[meth.__name__] = [args, kwargs]
@@ -222,12 +224,14 @@ def parse_filename_time(filename):
         groups = re.findall('\d+', subname)
         if len(groups[0]) == 14:
             time = [parse(x) for x in groups]
-            if len(time) == 1: time = time[0]
+            if len(time) == 1:
+                time = time[0]
             runtime = None
         else:
             runtime = [3600*float(x[:-4])+60*float(x[-4:-2])+float(x[-2:])
                        for x in groups]
-            if len(runtime) == 1: runtime = runtime[0]
+            if len(runtime) == 1:
+                runtime = runtime[0]
     else:
         runtime = None
 
@@ -236,7 +240,8 @@ def parse_filename_time(filename):
         subname = re.search('_n((\d+\_?)+)', filename).groups()[0]
         i_iter = [int(x) for x in re.findall('\d+', subname)]
         # Reduce to scalar if necessary.
-        if len(i_iter) == 1: i_iter = i_iter[0]
+        if len(i_iter) == 1:
+            i_iter = i_iter[0]
     else:
         i_iter = None
 
@@ -344,7 +349,8 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, zorder=1000,
                  zorder=zorder+5, **extra_kwargs)
 
     ax.add_artist(body)
-    if add_night: ax.add_artist(arch)
+    if add_night:
+        ax.add_artist(arch)
 
     return body, arch
 
@@ -473,7 +479,6 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
 
     # Quick ref vars:
-    time = pbdat.attrs['runtime']
     gtyp = pbdat['grid'].attrs['gtype']
     npts = pbdat['grid'].attrs['npoints']
     ndim = pbdat['grid'].size
@@ -508,7 +513,8 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     # in file but only X and Y are present.)  Let's try to work
     # around this rather egregious error.
     nSkip = len(units)+npar-len(names)
-    if nSkip < 0: nSkip = 0
+    if nSkip < 0:
+        nSkip = 0
 
     # Save grid names (e.g. 'x' or 'r') and save associated params.
     pbdat['grid'].attrs['dims'] = tuple(names[0:ndim])
@@ -517,7 +523,7 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
 
     # Create containers for the rest of the data:
     for v, u in zip(names, units[nSkip:]):
-        pbdat[v] = dmarray(np.zeros(npts), {'units':u})
+        pbdat[v] = dmarray(np.zeros(npts), {'units': u})
 
     # Load grid points and data:
     for i, line in enumerate(infile.readlines()):
@@ -529,10 +535,10 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     infile.close()
 
     # Arrange data into multidimentional arrays if necessary.
-    gridnames = names[:ndim]
     if gtyp == 'Irregular':
         for v in names:
-            if v not in pbdat: continue
+            if v not in pbdat:
+                continue
             pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'], order='F'),
                                attrs=pbdat[v].attrs)
     elif gtyp == 'Regular':
@@ -542,7 +548,8 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
             pbdat[x] = dmarray(pbdat[x][0:prod[i+1]-prod[i]+1:prod[i]],
                                attrs=pbdat[x].attrs)
         for v in names:
-            if v not in pbdat.keys(): continue
+            if v not in pbdat.keys():
+                continue
             if v not in pbdat['grid'].attrs['dims']:
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
@@ -703,7 +710,7 @@ def _scan_bin_header(f, endchar, inttype, floattype):
     rec_start = f.tell()
 
     # Create a dictionary to store the info from the file:
-    info = {'start':rec_start}
+    info = {'start': rec_start}
 
     # Read initial header:
     headline = readarray(f, str, inttype)
@@ -943,7 +950,8 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
         names = readarray(infile, str, inttype).decode('utf-8')
 
         # Preserve or destroy original case of variable names:
-        if not keep_case: names = names.lower()
+        if not keep_case:
+            names = names.lower()
 
         names.strip()
         names = names.split()
@@ -964,7 +972,8 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
         # in file but only X and Y are present.)  Let's try to work
         # around this curiousity:
         nSkip = len(units) + npar - len(names)
-        if nSkip < 0: nSkip = 0
+        if nSkip < 0:
+            nSkip = 0
 
         # Save grid names (e.g. 'x' or 'r') and save associated params.
         pbdat['grid'].attrs['dims'] = tuple(names[0:ndim])
@@ -993,14 +1002,17 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
                 for j in range(int(pbdat['grid'][i])):
                     pbdat[names[i]][j] = tempgrid[j*int(prod[i])]
             else:
-                raise ValueError('Unknown grid type: {0}'.format(pbdat.gridtype))
+                raise ValueError('Unknown grid type: {0}'.format(
+                    pbdat.gridtype))
             # Add units to grid.
-            if units: pbdat[names[i]].attrs['units'] = units.pop(nSkip)
+            if units:
+                pbdat[names[i]].attrs['units'] = units.pop(nSkip)
 
         # Get the actual data and sort.
         for i in range(ndim, nvar+ndim):
             pbdat[names[i]] = dmarray(readarray(infile, floattype, inttype))
-            if units: pbdat[names[i]].attrs['units'] = units.pop(nSkip)
+            if units:
+                pbdat[names[i]].attrs['units'] = units.pop(nSkip)
             if gtyp != 'Unstructured':
                 # Put data into multidimensional arrays.
                 pbdat[names[i]] = pbdat[names[i]].reshape(
@@ -1056,7 +1068,8 @@ class PbData(SpaceData):
         keys.sort()
         length = 0
         for key in keys:
-            if len(key) > length: length = len(key)
+            if len(key) > length:
+                length = len(key)
         form = "%%%is:%%s" % length
         for key in keys:
             if 'units' in self[key].attrs:
@@ -1084,8 +1097,10 @@ class PbData(SpaceData):
         for v in self:
             # Only combine vectors that are the same size as time and are
             # in both objects.
-            if v not in obj: continue
-            if self[v].size != npts: continue
+            if v not in obj:
+                continue
+            if self[v].size != npts:
+                continue
             # Append away.
             self[v] = dmarray(np.append(self[v], obj[v]), self[v].attrs)
 
@@ -1206,7 +1221,8 @@ class IdlFile(PbData):
         # Gather information about time range of file from name:
         t_info = list(parse_filename_time(filename))
         for i in range(len(t_info)):
-            if type(t_info[i]) != list: t_info[i] = [t_info[i]]
+            if type(t_info[i]) != list:
+                t_info[i] = [t_info[i]]
         self.attrs['iter_range'] = t_info[0]
         self.attrs['runtime_range'] = t_info[1]
         self.attrs['time_range'] = t_info[2]
@@ -1256,7 +1272,8 @@ class IdlFile(PbData):
 
             # Loop over all data frames and collect information:
             while f.tell() < file_size:
-                info = _scan_bin_header(f, self._endchar, self._int, self._float)
+                info = _scan_bin_header(f, self._endchar,
+                                        self._int, self._float)
                 # Stash information into lists:
                 offset.append(info['start'])
                 iters.append(info['iter'])
@@ -1318,7 +1335,8 @@ class IdlFile(PbData):
         self.read(iframe)
 
         # Update information about the current frame:
-        self.attrs['iframe'] = self.attrs['nframe'] + iframe if iframe < 0 else iframe
+        self.attrs['iframe'] = self.attrs['nframe'] \
+            + iframe if iframe < 0 else iframe
         self.attrs['iter'] = self.attrs['iters'][iframe]
         self.attrs['runtime'] = self.attrs['runtimes'][iframe]
         self.attrs['time'] = self.attrs['times'][iframe]
@@ -1449,7 +1467,8 @@ class LogFile(PbData):
         # Parse the header.
         self.attrs['descrip'] = raw.pop(0)
         raw_names = raw.pop(0)
-        if not keep_case: raw_names = raw_names.lower()
+        if not keep_case:
+            raw_names = raw_names.lower()
         names = raw_names.split()
         loc = {}
         # Keep track of in which column each data vector lies.
@@ -1467,11 +1486,12 @@ class LogFile(PbData):
         # Pop time/date/iteration names off of Namevar.
         for key in ['year', 'mo', 'dy', 'hr', 'mn', 'sc', 'msc',
                     't', 'it', 'yy', 'mm', 'dd', 'hh', 'ss', 'ms']:
-            if key in loc: names.pop(names.index(key))
+            if key in loc:
+                names.pop(names.index(key))
 
         # Create containers for data:
         time = dmarray(np.zeros(npts, dtype=object))
-        runtime = dmarray(np.zeros(npts), attrs={'units':'s'})
+        runtime = dmarray(np.zeros(npts), attrs={'units': 's'})
         self['iter'] = dmarray(np.zeros(npts))
         for name in names:
             self[name] = dmarray(np.zeros(npts))
@@ -1490,7 +1510,7 @@ class LogFile(PbData):
                                 int(vals[loc['hr']]),  # Hour
                                 int(vals[loc['mn']]),  # Minute
                                 int(vals[loc['sc']]),  # Second
-                                int(vals[loc['msc']]) * 1000  #microsec
+                                int(vals[loc['msc']]) * 1000  # microsec
                                 ))
                 elif 'yy' in loc:
                     # RIM date format
@@ -1944,7 +1964,7 @@ class ImfInput(PbData):
         # Number of variables check:
         if len(var) > len(key):
             print('Not enough variables in IMF object:')
-            print('\t%i listed, %i actual.\n' % (len(var),len(key)))
+            print('\t%i listed, %i actual.\n' % (len(var), len(key)))
             return False
 
         # Each variable corresponds to only one in the dict
@@ -2039,7 +2059,8 @@ class ImfInput(PbData):
 
         # Check that the var attribute agrees with the data dictionary.
         if not self.varcheck():
-            raise Exception('Number of variables does not match variable order.')
+            raise Exception('Number of variables does ' +
+                            'not match variable order.')
 
         if not outfile:
             if self.attrs['file'] is not None:
@@ -2053,7 +2074,8 @@ class ImfInput(PbData):
             var = self.attrs['var']
 
             # Write the header:
-            out.write('File created on {}\n'.format(dt.datetime.now().isoformat())
+            writetime = dt.datetime.now().isoformat()
+            out.write('File created on {}\n'.format(writetime)
                       .encode())
             for head in self.attrs['header']:
                 out.write(head.encode())
