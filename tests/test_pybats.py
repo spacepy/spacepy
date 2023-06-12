@@ -64,6 +64,64 @@ class TestParseFileTime(unittest.TestCase):
             self.assertEqual(parse_filename_time(f), (i, t, d))
 
 
+class TestQTree(unittest.TestCase):
+    '''
+    Test building of quad tree for a reasonably complex distribution of points.
+    '''
+    blocksize = 4
+    dx1, dx2, dx3 = 1, 0.5, 0.25
+
+    nleafs, nbranch, npoints = 19, 25, 1024
+
+    def setUp(self):
+        '''
+        Create grid based on real-world BATS-R-US result representing a
+        previous failure case.
+        '''
+
+        def make_region(xstart, ystart, nblockx, nblocky, dx):
+            '''
+            Create a region of points starting at "start".
+            '''
+
+            xstart += dx/2
+            ystart += dx/2
+
+            x = np.arange(xstart, xstart + nblockx*self.blocksize*dx, dx)
+            y = np.arange(ystart, ystart + nblocky*self.blocksize*dx, dx)
+            return np.meshgrid(x, y)
+
+        # Build grid by region; convert to 2xNpts array.
+        regions = []
+        regions.append(make_region(0, 0, 2, 8, self.dx2))
+        regions.append(make_region(4, 12, 3, 1, self.dx1))
+        regions.append(make_region(4, 8, 2, 1, self.dx1))
+        regions.append(make_region(4, 0, 1, 2, self.dx1))
+        regions.append(make_region(8, 0, 2, 4, self.dx2))
+        regions.append(make_region(12, 8, 2, 2, self.dx2))
+        regions.append(make_region(12, 6, 1, 1, self.dx2))
+        regions.append(make_region(14, 6, 2, 2, self.dx3))
+        regions.append(make_region(12, 0, 4, 6, self.dx3))
+
+        xall, yall = np.zeros(0), np.zeros(0)
+        for x, y in regions:
+            xall = np.append(xall, x.flatten())
+            yall = np.append(yall, y.flatten())
+
+        self.points = np.array([xall, yall])
+
+    def testBuildTree(self):
+        from spacepy.pybats import qotree
+        tree = qotree.QTree(self.points, blocksize=4)
+
+        self.assertEqual(tree.blocksize, self.blocksize)
+        self.assertEqual(tree.nleafs, self.nleafs)
+        self.assertEqual(tree.nbranch, self.nbranch)
+        self.assertEqual(tree.npoints, self.npoints)
+        self.assertEqual(tree.dx_min, self.dx3)
+        self.assertEqual(tree.dx_max, self.dx1)
+
+
 class TestCalcNdens(unittest.TestCase):
     '''Test the pybats.bats _calc_ndens function'''
     # Recognized species:
@@ -303,7 +361,7 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
         for v in range(len(self.knownMhdX_unsorted)):
             self.assertEqual(self.knownMhdX_unsorted[v], (mhd['x'])[v])
-        
+
     def testReadOuts(self):
         # Start with y=0 slice MHD outs file:
         mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir, 'pybats_test',
