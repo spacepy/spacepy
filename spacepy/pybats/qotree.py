@@ -76,7 +76,7 @@ class QTree(object):
         '''
         Internal recursive method for populating tree.
         '''
-        from numpy import sqrt, log2, arange, meshgrid, mod
+        from numpy import sqrt, log2, meshgrid, mod, linspace
 
         # Start by limiting locations to within block limits:
         self[i].locs = self.locs[(grid[0, :][self.locs] > self[i].lim[0]) &
@@ -140,8 +140,8 @@ class QTree(object):
                 if dx < self.dx_min:
                     self.dx_min = dx
                 self[i].cells = meshgrid(
-                    arange(self[i].lim[0], self[i].lim[1]+dx, dx),
-                    arange(self[i].lim[2], self[i].lim[3]+dx, dx))
+                    linspace(self[i].lim[0], self[i].lim[1], blksize+1),
+                    linspace(self[i].lim[2], self[i].lim[3], blksize+1))
                 self.nleafs += 1
                 return
         elif (self[i].npts < self.blocksize**2):
@@ -176,8 +176,8 @@ class QTree(object):
             if dx < self.dx_min:
                 self.dx_min = dx
             self[i].cells = meshgrid(
-                arange(self[i].lim[0], self[i].lim[1]+dx, dx),
-                arange(self[i].lim[2], self[i].lim[3]+dx, dx))
+                    linspace(self[i].lim[0], self[i].lim[1], blksize+1),
+                    linspace(self[i].lim[2], self[i].lim[3], blksize+1))
             self.nleafs += 1
             return
 
