@@ -463,7 +463,7 @@ class build_ext(_build_ext):
         outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit',
                    'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind', 'xfoot', 'bfoot', 'bfootmag',
                    'leI0', 'Bposit', 'Nposit', 'hmin', 'hmin_lon',
-                   'SolDose', 'ProtDose', 'ElecDose', 'BremDose', 'TotDose']
+                   'soldose', 'protdose', 'elecdose', 'bremdose', 'totdose']
 
         inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin', 'kext', 'options',
                   'sysaxes', 'UT', 'xIN1', 'xIN2', 'xIN3', 'stop_alt', 'hemi_flag', 'maginput',

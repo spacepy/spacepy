@@ -296,6 +296,39 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         expected = 99492.059080021136
         actual = ib.get_AEP8(E, c)
         numpy.testing.assert_almost_equal(expected, actual)
+
+    def test_shieldose2(self):
+        """test shieldose2"""
+        idet = 3
+        inuc = 1
+        imax = 1
+        iunt = 1
+        EMINS, EMAXS = 1.0, 100.0
+        EMINP, EMAXP = 1, 2
+        NPTSP = 10
+        EMINE, EMAXE = 0.1, 5
+        NPTSE = 20
+        JSMAX = 10
+        JPMAX = 10
+        JEMAX = 20
+        EUNIT = 1
+        DURATN = 86400
+        Zin = np.zeros(71, order='F')
+        Zin[0] = 10
+        ESin = np.zeros(301); ESin[:JSMAX] = np.linspace(EMINS, EMAXS, JSMAX)
+        SFLUXin = np.zeros(301, order='F'); SFLUXin[:JSMAX] = np.linspace(1e4, 10, JSMAX)
+        EFLUXin = np.zeros(301, order='F'); EFLUXin[:JEMAX] = np.linspace(1e7, 1e2, JEMAX)
+        EPin = np.zeros(301, order='F'); EPin[:JPMAX] = np.linspace(EMINP, EMAXP, JPMAX)
+        PFLUXin = np.zeros(301, order='F'); PFLUXin[:JPMAX] = np.linspace(100, 0.1, JPMAX)
+        EEin = np.zeros(301, order='F'); EEin[:JEMAX] = np.linspace(EMINE, EMAXE, JEMAX)
+        EFLUXin = np.zeros(301, order='F'); EFLUXin[:JEMAX] = np.linspace(1e7, 1e2, JEMAX)
+        dose_tup = ib.oplib.shieldose2(idet, inuc, imax, iunt, Zin,
+                                       EMINS, EMAXS, EMINP, EMAXP, NPTSP,
+                                       EMINE, EMAXE, NPTSE,
+                                       JSMAX, JPMAX, JEMAX,
+                                       EUNIT, DURATN,
+                                       ESin, SFLUXin, EPin, PFLUXin, EEin, EFLUXin)
+        # soldose, protdose, elecdose, bremdose, totdose
 # -----------------------------------------------------------------------
 
 
