@@ -143,6 +143,13 @@ history. The oldest version supported according to this policy is in
      - 56.1.0 (2021/5/4)
      - 67.5.0 (2023/3/5)
      - tested with 44.1.1
+   * - `wheel <https://wheel.readthedocs.io/en/stable/news.html>`_
+     - 0.40.0 (2023/3/14)
+     - **0.34.2** (2020/01/30)
+     - 0.37.1 (2021/12/22)
+     - 0.38.0 (2022/10/21)
+     - 0.38.0 (2022/10/21)
+     - tested with 0.34.2
    * - `sphinx <https://www.sphinx-doc.org/en/master/changes.html>`_
        (only needed for developers to build documentation)
      - 5.1.1 (2022/7/26)
