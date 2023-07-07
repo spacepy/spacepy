@@ -63,11 +63,6 @@ with temperature and density naming.
 perpendicular velocities with new `~.pybats.bats.Bats2d.calc_uperp`
 and `~.pybats.bats.Bats2d.calc_upar` methods.
 
-`~.pybats.IdlFile` supports reading binary files without sorting
-unstructured data (and adds support for sorting in reading ASCII
-files). Unsorted is now the default for all except `~.pybats.bats.Bats2d`.
-Thanks Lutz Rastaetter.
-
 Deprecations and removals
 *************************
 Since plot styles are no longer applied on import, importing
@@ -80,6 +75,9 @@ been fixed.
 
 Other changes
 *************
+`~.pybats.IdlFile` no longer sorts unstructured data from binary files; see
+that documentation for details. Thanks Lutz Rastaetter.
+
 :func:`~.datamodel.toCDF` now only accepts valid keyword arguments.
 
 Plot styles are not automatically applied on import of :mod:`.plot`. Use
