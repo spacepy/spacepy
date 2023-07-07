@@ -753,16 +753,19 @@ class Bats2d(IdlFile):
     see how to handle multi-frame files (*.outs) and for a list of critical
     attributes.
 
+    .. versionchanged:: 0.5.0
+
+       Unstructured data are now presented as in the files. See
+       `~pybats.IdlFile` for details.
     '''
     # Init by calling IdlFile init and then building qotree, etc.
-    def __init__(self, filename, *args, sort_unstructured=True, **kwargs):
+    def __init__(self, filename, *args, **kwargs):
 
         # Create quad tree object attribute:
         self._qtree = None
 
         # Read file.
         IdlFile.__init__(self, filename, keep_case=False, *args,
-                         sort_unstructured=sort_unstructured,
                          **kwargs)
 
         # Behavior of output files changed Jan. 2017:
