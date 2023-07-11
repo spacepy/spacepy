@@ -151,6 +151,8 @@ jobs:
         PIPLIST: ${{ matrix.piplist }}
         CFLAGS: ${{ matrix.cflags }}
         CDF_VER: ${{ matrix.cdf-munged-version }}
+        PYVER: ${{ matrix.python-version }}
+        DEPSTRAT: ${{ matrix.dep-strategy }}
       run: |
         sudo apt-get update -qq
         # Needed for scipy versions without binary wheels
@@ -161,7 +163,12 @@ jobs:
         # ALLOW build isolation here so it can grab cython if necessary
         pip install --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
-        pip install "numpy${NUMPY_VERSION}" ${PIPLIST}
+        if [ "$DEPSTRAT" = "old" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
+            # scipy < 1.5 doesn't build on gcc 10+ without this argument
+            FOPT="-fallow-argument-mismatch" pip install --no-build-isolation --log=install_log.txt ${NUMPY} ${PIPLIST}
+        else
+            pip install --no-build-isolation ${NUMPY} ${PIPLIST}
+        fi
         pip freeze --all
         if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd cdf${CDF_VER}-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
@@ -250,6 +257,8 @@ jobs:
         PIPLIST: ${{ matrix.piplist }}
         CFLAGS: ${{ matrix.cflags }}
         CDF_VER: ${{ matrix.cdf-munged-version }}
+        PYVER: ${{ matrix.python-version }}
+        DEPSTRAT: ${{ matrix.dep-strategy }}
       run: |
         sudo apt-get update -qq
         # Needed for scipy versions without binary wheels
@@ -257,9 +266,15 @@ jobs:
         python -m pip install --no-build-isolation ${BUILD_DEPS}
         # This allows pip to build (and thus cache) binary wheels
         pip install wheel
+        # ALLOW build isolation here so it can grab cython if necessary
         pip install --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
-        pip install "numpy${NUMPY_VERSION}" ${PIPLIST}
+        if [ "$DEPSTRAT" = "old" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
+            # scipy < 1.5 doesn't build on gcc 10+ without this argument
+            FOPT="-fallow-argument-mismatch" pip install --no-build-isolation ${NUMPY} ${PIPLIST}
+        else
+            pip install --no-build-isolation ${NUMPY} ${PIPLIST}
+        fi
         pip freeze --all
         if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd cdf${CDF_VER}-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
