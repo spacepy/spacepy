@@ -41,6 +41,8 @@ except ImportError:
     from distutils.errors import DistutilsOptionError as OptionError
 import importlib.machinery
 
+import numpy
+
 
 #Patch out bad options in Python's view of mingw
 if sys.platform == 'win32':
@@ -86,18 +88,30 @@ def default_f2py():
             suffixes.extend([suffix, '-' + suffix])
         vers = "{0.major:01d}.{0.minor:01d}".format(sys.version_info)
         suffixes.extend([vers, '-'+vers])
-        candidates = ['f2py' + s for s in suffixes]
-        for candidate in candidates:
-            for c in [candidate, candidate + '.py']:
-                for d in os.environ['PATH'].split(os.pathsep):
-                    if os.path.isfile(os.path.join(d, c)):
-                        return c
-                if os.path.isfile(os.path.join(interpdir, c)):
-                    return os.path.join(interpdir, c) #need full path
-    if sys.platform == 'win32':
-        return 'f2py.py'
-    else:
-        return 'f2py'
+        f2py_names = ['f2py{}{}'.format(s, ext)
+                      for s in suffixes for ext in ('', '.py')]
+        candidates = []
+        for n in f2py_names:
+            candidates.extend([
+                n for d in os.environ['PATH'].split(os.pathsep)
+                if os.path.isfile(os.path.join(d, n))])
+            if os.path.isfile(os.path.join(interpdir, n)):
+                candidates.append(os.path.join(interpdir, n))  # need full path
+        for c in candidates:
+            # If not executable on Windows, the current interpreter is used
+            if sys.platform == 'win32' and not is_win_exec(c):
+                return c
+            # If f2py isn't using the same numpy as the interpreter,
+            # probably found the wrong f2py
+            p = subprocess.Popen([c], stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            output, errors = p.communicate()
+            np_vers = [l.split()[2] for l in output.split(b'\n')
+                       if l.startswith(b'numpy Version: ')]
+            if len(np_vers) == 1\
+               and np_vers[0] == numpy.__version__.encode('ascii'):
+                return c
+    return 'f2py.py' if sys.platform == 'win32' else 'f2py'
 
 
 def f2py_options(fcompiler):
@@ -519,10 +533,11 @@ class build(_build):
             # Explicitly include path for -lSystem
             if os.path.isdir(sdklibs):
                 f2py_flags.append('-L{}'.format(sdklibs))
+        cmd = self.f2py + ['-c', 'irbempylib.pyf', 'source/onera_desp_lib.f',
+                           '-Lsource', '-lBL2'] + f2py_flags
+        print(f'Calling f2py: {cmd}')
         try:
-            subprocess.check_call(
-                self.f2py + ['-c', 'irbempylib.pyf', 'source/onera_desp_lib.f',
-                 '-Lsource', '-lBL2'] + f2py_flags, env=f2py_env)
+            subprocess.check_call(cmd, env=f2py_env)
         except:
             warnings.warn(
                 'irbemlib module failed. '
