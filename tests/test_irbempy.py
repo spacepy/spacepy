@@ -297,8 +297,8 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         actual = ib.get_AEP8(E, c)
         numpy.testing.assert_almost_equal(expected, actual)
 
-    def test_shieldose2(self):
-        """test shieldose2"""
+    def test_shieldose2_direct(self):
+        """test shieldose2 by direct call to oplib"""
         idet = 3
         inuc = 1
         imax = 1
