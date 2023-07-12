@@ -14,6 +14,7 @@ Josef Koller, Steve Morley
 Copyright 2010 Los Alamos National Security, LLC.
 """
 
+import io
 import numbers
 try:
     from collections.abc import Iterable
@@ -1259,110 +1260,170 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     return flux[0, 0]
 
 
-def get_dose(**kwargs):
-    """Calculate dose (given shielding/incident flux) with SHIELDOSE2
+class Shieldose2(dm.SpaceData):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)  # Init as SpaceData.
+        self['settings'] = dm.SpaceData()
+        self.set_shielding()
+        self._config_set = False
+        self._fluxes_set = False
+        je_default = lambda E: np.exp(-E/0.1)  # E in MeV
+        en_e_default = tb.logspace(0.04, 10, 30)
+        jp_default = lambda E: 1e-9*np.exp(-E/20)  # E in MeV
+        en_p_default = tb.logspace(0.1, 2000, 299)
+        self.set_flux(je_default(en_e_default), en_e_default, 'e')
+        self.set_flux(jp_default(en_p_default), en_p_default, 'p_tr')
+        self.set_flux(1e-6*jp_default(en_p_default), en_p_default, 'p_un')
 
-    Example
-    -------
-    Example calculation of dose-depth curve, compare to figure 3 in
-    https://www.vdl.afrl.af.mil/programs/ae9ap9/files/techreports/20160513_Aerospace_OBrien_ATR-2016-01756_effects_kernels.pdf
+    def __repr__(self):
+        settings = ''
+        return 'Shieldose2({})'.format(settings)
 
-    >>> import spacepy.irbempy as ib
-    >>> import spacepy.toolbox as tb
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>> import spacepy.plot as splot
-    >>> splot.style('default')
-    >>> res = ib.get_dose(depths=tb.logspace(4, 5000, 30), tau=1)
-    >>> plt.loglog(tb.logspace(4, 5000, 30), res['dose_electron']+res['dose_bremsstrahlung'])
-    >>> plt.xlim([1, 1e4])
-    >>> plt.ylim([1e-20, 1e-8])
-    >>> plt.loglog(tb.logspace(4, 5000, 30), res['dose_proton_trapped'])
-    >>> plt.show()
+    def __str__(self):
+        '''
+        Display contents of container.
+        '''
+        obstr = io.StringIO()
+        sys_stdout_save = sys.stdout
+        sys.stdout = obstr
+        print(type(self))
+        self.tree(attrs=True, verbose=True)
+        sys.stdout = sys_stdout_save
+        obstr.seek(0)
+        return ''.join(obstr.readlines())
+
+    def set_shielding(self, depths=tb.logspace(4, 5000, 30),
+                      units='Mil'):
+        """
+        Parameters
+        ----------
+        depths : array-like
+            Array of layer depths (not thicknesses) in given units.
+            Must be monotonically increasing.
+        units : str
+            Options are "mil" (thousandths of a inch; default),
+            "g/cm2" (density), or "mm" (millimeters). The shielding
+            is assumed to be aluminium-equivalent.
+        """
+        valid_units = {'mil': 1,
+                       'g/cm2': 2,
+                       'mm': 3}
+        if units.lower() not in valid_units:
+            ulist = ', '.join([un for un in valid_units.keys()])
+            raise ValueError(f'Units must be one of {ulist}, not {units}')
+        self['settings']['depths'] = np.atleast_1d(depths)
+        self['settings']['depthunit'] = valid_units[units.lower()]
+
+    def set_flux(self, flux, energy, species, tau=1, mult=1):
+        """
+        Parameters
+        ----------
+        flux
+        energy
+        species : str
+            Code for supplied species. Options are: 'e' (electrons);
+            'p_tr' (trapped protons); 'p_un' (untrapped protons/solar
+            energetic protons)
+        tau : int
+            Simulation interval in seconds. If flux input is given
+            and assumed constant over the interval, tau should be set
+            to the desired duration. If fluence input is given, this
+            should be set to 1 (default).
+        mult : int
+            Multiplier to convert from [1/energy] to [1/MeV], if energies
+            are in keV and flux is [1/keV] then mult=1000. Default is 1.
+        """
+        self['settings'][f'energy_{species}'] = np.atleast_1d(energy)
+        self['settings'][f'flux_{species}'] = np.atleast_1d(flux)
+        self['settings']['tau'] = tau
+        self['settings']['unit_en'] = mult
+
+    def get_dose(self, detector=3, nucmeth=1):
+        """Calculate dose (given shielding/incident flux) with SHIELDOSE2
+
+        Example
+        -------
+        Example calculation of dose-depth curve, compare to figure 3 in
+        https://www.vdl.afrl.af.mil/programs/ae9ap9/files/techreports/20160513_Aerospace_OBrien_ATR-2016-01756_effects_kernels.pdf
+
+        >>> import spacepy.irbempy as ib
+        >>> import spacepy.toolbox as tb
+        >>> import numpy as np
+        >>> import matplotlib.pyplot as plt
+        >>> import spacepy.plot as splot
+        >>> splot.style('default')
+        >>> res = ib.get_dose()
+        >>> plt.loglog(tb.logspace(4, 5000, 30), res['dose_electron']+res['dose_bremsstrahlung'])
+        >>> plt.xlim([1, 1e4])
+        >>> plt.ylim([1e-20, 1e-8])
+        >>> plt.loglog(tb.logspace(4, 5000, 30), res['dose_proton_trapped'])
+        >>> plt.show()
 
 
-    Notes
-    -----
+        Notes
+        -----
+        Detector material options:
+        1 - Aluminium; 2 - Graphite; 3 - Silicon
+        4 - Air; 5 - Bone; 6 - Calcium Fluoride
+        7 - Gallium Arsenide; 8 - Lithium Fluoride
+        9 - Silicon Dioxide; 10 - Tissue; 11 - Water
+        """
+        self['settings']['detector'] = detector
+        self['settings']['nucmeth'] = nucmeth
 
-    Detector material options:
-    1 - Aluminium; 2 - Graphite; 3 - Silicon
-    4 - Air; 5 - Bone; 6 - Calcium Fluoride
-    7 - Gallium Arsenide; 8 - Lithium Fluoride
-    9 - Silicon Dioxide; 10 - Tissue; 11 - Water
-    """
-    je_default = lambda E: np.exp(-E/0.1)  # E in MeV
-    jp_default = lambda E: 1e-9*np.exp(-E/20)  # E in MeV
-    default = {'detector': 3,  # Silicon detector
-               'nucmeth': 1,  # no attenuation/secondaries
-               'depthunit': 1,  # shielding depth unit; Mils
-               'depths': np.array([50], order='F'),
-               'energy_e': tb.logspace(0.04, 10, 30),
-               'energy_p': tb.logspace(0.1, 2000, 299),
-               'tau': 86400,  # one day [s]
-               'unit_en': 1  # conversion factor to get MeV
-               }
-    default['flux_p_tr'] = jp_default(default['energy_p'])
-    default['flux_p_un'] = np.zeros(len(default['energy_p']))
-    default['flux_e_tr'] = je_default(default['energy_e'])
-
-    def expand_dict(argdict):
-        if 'energy_e' in argdict:
+        def expand_dict(argdict):
             argdict['len_e'] = len(argdict['energy_e'])
             argdict['jemax'] = len(argdict['energy_e'])
             argdict['emine'] = argdict['energy_e'].min()
             argdict['emaxe'] = argdict['energy_e'].max()
-        if 'energy_p' in argdict:
-            argdict['len_p'] = len(argdict['energy_p'])
-            argdict['jpmax'] = len(argdict['energy_p'])
-            argdict['jsmax'] = len(argdict['energy_p'])
-            argdict['eminpun'] = argdict['energy_p'].min()
-            argdict['emaxpun'] = argdict['energy_p'].max()
-            argdict['eminptr'] = argdict['energy_p'].min()
-            argdict['emaxptr'] = argdict['energy_p'].max()
-        if 'depths' in argdict:
+            argdict['len_p'] = len(argdict['energy_p_un'])
+            argdict['jpmax'] = len(argdict['energy_p_un'])
+            argdict['jsmax'] = len(argdict['energy_p_un'])
+            argdict['eminpun'] = argdict['energy_p_un'].min()
+            argdict['emaxpun'] = argdict['energy_p_un'].max()
+            argdict['eminptr'] = argdict['energy_p_tr'].min()
+            argdict['emaxptr'] = argdict['energy_p_tr'].max()
             argdict['ndepth'] = len(argdict['depths'])
-        return argdict
+            return argdict
 
-    kwargs = expand_dict(kwargs)
-    default = expand_dict(default)
+        settings = expand_dict(self['settings'])
 
-    callorder = ['detector', 'nucmeth', 'ndepth', 'depthunit',
-                 'depths', 'eminpun', 'emaxpun', 'eminptr', 'emaxptr',
-                 'len_p', 'emine', 'emaxe', 'len_e', 'jsmax',
-                 'jpmax', 'jemax', 'unit_en', 'tau']
-    # Add items in order required for IRBEMlib call
-    call = OrderedDict()
-    for value in callorder:
-        call[value] = kwargs.get(value, default[value])
-    # fix array inputs
-    dpad = 71 - len(call['depths'])
-    call['depths'] = np.pad(call['depths'], (0, dpad), mode='constant')
-    esin = kwargs.get('energy_p', default['energy_p'])
-    epin = kwargs.get('energy_p', default['energy_p'])
-    eein = kwargs.get('energy_e', default['energy_e'])
-    ppad = 301 - len(epin)
-    epad = 301 - len(eein)
-    call['energy_s'] = np.pad(esin, (0, ppad), mode='constant')
-    call['flux_p_un'] = kwargs.get('flux_p_tr', default['flux_p_tr'])
-    call['flux_p_un'] = np.pad(call['flux_p_un'], (0, ppad), mode='constant')
-    call['energy_p'] = np.pad(epin, (0, ppad), mode='constant')
-    call['flux_p_tr'] = kwargs.get('flux_p_tr', default['flux_p_tr'])
-    call['flux_p_tr'] = np.pad(call['flux_p_tr'], (0, ppad), mode='constant')
-    call['energy_e'] = np.pad(eein, (0, epad), mode='constant')
-    call['flux_e_tr'] = kwargs.get('flux_e_tr', default['flux_e_tr'])
-    call['flux_e_tr'] = np.pad(call['flux_e_tr'], (0, epad), mode='constant')
-    dose_tup = oplib.shieldose2(*call.values())
+        callorder = ['detector', 'nucmeth', 'ndepth', 'depthunit',
+                     'depths', 'eminpun', 'emaxpun', 'eminptr', 'emaxptr',
+                     'len_p', 'emine', 'emaxe', 'len_e', 'jsmax',
+                     'jpmax', 'jemax', 'unit_en', 'tau']
+        # Add items in order required for IRBEMlib call
+        call = OrderedDict()
+        for value in callorder:
+            call[value] = settings.get(value, None)
+        # fix array inputs
+        dpad = 71 - len(call['depths'])
+        call['depths'] = np.pad(call['depths'], (0, dpad), mode='constant')
+        esin = settings.get('energy_p_un', None)
+        epin = settings.get('energy_p_tr', None)
+        eein = settings.get('energy_e', None)
+        ppad = 301 - len(epin)
+        epad = 301 - len(eein)
+        call['energy_s'] = np.pad(esin, (0, ppad), mode='constant')
+        call['flux_p_un'] = settings.get('flux_p_tr', None)
+        call['flux_p_un'] = np.pad(call['flux_p_un'], (0, ppad), mode='constant')
+        call['energy_p'] = np.pad(epin, (0, ppad), mode='constant')
+        call['flux_p_tr'] = settings.get('flux_p_tr', None)
+        call['flux_p_tr'] = np.pad(call['flux_p_tr'], (0, ppad), mode='constant')
+        call['energy_e'] = np.pad(eein, (0, epad), mode='constant')
+        call['flux_e'] = settings.get('flux_e', None)
+        call['flux_e'] = np.pad(call['flux_e'], (0, epad), mode='constant')
+        dose_tup = oplib.shieldose2(*call.values())
 
-    outdict = dm.SpaceData()
-    nd = call['ndepth']
-    outdict['dose_proton_untrapped'] = dose_tup[0][:nd, :]
-    outdict['dose_proton_trapped'] = dose_tup[1][:nd, :]
-    outdict['dose_electron'] = dose_tup[2][:nd, :]
-    outdict['dose_bremsstrahlung'] = dose_tup[3][:nd, :]
-    outdict['dose_total'] = dose_tup[4][:nd, :]
-    outdict['settings'] = dm.dmcopy(call)
+        outdict = dm.SpaceData()
+        nd = call['ndepth']
+        outdict['dose_proton_untrapped'] = dose_tup[0][:nd, :]
+        outdict['dose_proton_trapped'] = dose_tup[1][:nd, :]
+        outdict['dose_electron'] = dose_tup[2][:nd, :]
+        outdict['dose_bremsstrahlung'] = dose_tup[3][:nd, :]
+        outdict['dose_total'] = dose_tup[4][:nd, :]
 
-    return outdict
+        self['results'] = outdict
 
 
 # -----------------------------------------------
