@@ -1277,12 +1277,12 @@ class Shieldose2(dm.SpaceData):
         >>> dosemod.get_dose(detector=10, nucmeth=3)
         >>> import spacepy.plot as splot
         >>> splot.style('spacepy')
-        >>> dosemod.plot_dose()
+        >>> dosemod.plot_dose(sources=['e'])
         """
         super().__init__(*args, **kwargs)  # Init as SpaceData.
         self['settings'] = dm.SpaceData()
+        self['settings']['calc_flag'] = False
         self.set_shielding()
-        self._calculated = False
 
         def j_def(E, e_or_p='e'):
             if e_or_p == 'e':
@@ -1290,6 +1290,7 @@ class Shieldose2(dm.SpaceData):
             else:
                 j = 1e-9*np.exp(-E/20)
             return j
+
         en_e_default = tb.logspace(0.04, 10, 30)
         en_p_default = tb.logspace(0.1, 2000, 299)
         self.set_flux(j_def(en_e_default, 'e'), en_e_default, 'e')
@@ -1297,7 +1298,9 @@ class Shieldose2(dm.SpaceData):
         self.set_flux(1e-6*j_def(en_p_default, 'p'), en_p_default, 'p_un')
 
     def __repr__(self):
-        settings = ''
+        ndepths = len(self['settings']['depths'])
+        calc = ' ' if self['settings']['calc_flag'] else ' not '
+        settings = f'Depths = {ndepths}; Dose{calc}calculated'
         return 'Shieldose2({})'.format(settings)
 
     def __str__(self):
@@ -1335,15 +1338,20 @@ class Shieldose2(dm.SpaceData):
         self['settings']['depths'] = dm.dmarray(np.atleast_1d(depths))
         self['settings']['depths'].attrs['UNITS'] = units
         self['settings']['depthunit'] = valid_units[units.lower()]
-        if self._calculated and 'results' in self:
+        if self['settings']['calc_flag'] and 'results' in self:
             del self['results']
+            self['settings']['calc_flag'] = False
 
     def set_flux(self, flux, energy, species, tau=1, mult=1):
         """
+        Set the flux/fluence spectrum for a given incident species
+
         Parameters
-        ----------
-        flux
-        energy
+        ==========
+        flux : array-like
+            A 1D array of differential number fluxes
+        energy : array-like
+            A 1D array of energies (same length as flux)
         species : str
             Code for supplied species. Options are: 'e' (electrons);
             'p_tr' (trapped protons); 'p_un' (untrapped protons/solar
@@ -1359,13 +1367,16 @@ class Shieldose2(dm.SpaceData):
         """
         self['settings'][f'energy_{species}'] = np.atleast_1d(energy)
         self['settings'][f'flux_{species}'] = np.atleast_1d(flux)
+        if len(energy) != len(flux):
+            raise ValueError('Flux and energy arrays must have same length.')
         self['settings']['tau'] = tau
         self['settings']['unit_en'] = mult
-        if self._calculated and 'results' in self:
+        if self['settings']['calc_flag'] and 'results' in self:
             del self['results']
+            self['settings']['calc_flag'] = False
 
     def get_dose(self, detector=3, nucmeth=1):
-        """Calculate dose (given shielding/incident flux) with SHIELDOSE2
+        """Calculate dose (given shielding/incident flux)
 
         Parameters
         ==========
@@ -1385,21 +1396,16 @@ class Shieldose2(dm.SpaceData):
         https://www.vdl.afrl.af.mil/programs/ae9ap9/files/techreports/20160513_Aerospace_OBrien_ATR-2016-01756_effects_kernels.pdf
 
         >>> import spacepy.irbempy as ib
-        >>> import spacepy.toolbox as tb
-        >>> import numpy as np
         >>> import matplotlib.pyplot as plt
         >>> import spacepy.plot as splot
         >>> splot.style('default')
-        >>> res = ib.get_dose()
-        >>> plt.loglog(tb.logspace(4, 5000, 30), res['dose_electron']+res['dose_bremsstrahlung'])
-        >>> plt.xlim([1, 1e4])
-        >>> plt.ylim([1e-20, 1e-8])
-        >>> plt.loglog(tb.logspace(4, 5000, 30), res['dose_proton_trapped'])
+        >>> dosemod = ib.Shieldose2()
+        >>> dosemod.get_dose()
+        >>> dosemod.plot_dose(source=['e', 'brems', 'p_un'])
         >>> plt.show()
 
-
         Notes
-        -----
+        =====
         Detector material options:
         1 - Aluminium; 2 - Graphite; 3 - Silicon
         4 - Air; 5 - Bone; 6 - Calcium Fluoride
@@ -1468,48 +1474,84 @@ class Shieldose2(dm.SpaceData):
         call['flux_e'] = np.pad(call['flux_e'], (0, epad), mode='constant')
         dose_tup = oplib.shieldose2(*call.values())
         # Now flag results as generated
-        self._calculated = True
+        self['settings']['calc_flag'] = True
 
         outdict = dm.SpaceData()
         nd = call['ndepth']
-        outdict['dose_proton_untrapped'] = dose_tup[0][:nd, :]
-        outdict['dose_proton_trapped'] = dose_tup[1][:nd, :]
-        outdict['dose_electron'] = dose_tup[2][:nd, :]
-        outdict['dose_bremsstrahlung'] = dose_tup[3][:nd, :]
-        outdict['dose_total'] = dose_tup[4][:nd, :]
-        outdict['depths'] = dm.dmarray(call['depths'])
+        outdict['dose_proton_untrapped'] = dm.dmarray(dose_tup[0][:nd, :])
+        outdict['dose_proton_trapped'] = dm.dmarray(dose_tup[1][:nd, :])
+        outdict['dose_electron'] = dm.dmarray(dose_tup[2][:nd, :])
+        outdict['dose_bremsstrahlung'] = dm.dmarray(dose_tup[3][:nd, :])
+        outdict['dose_total'] = dm.dmarray(dose_tup[4][:nd, :])
+        outdict['depths'] = dm.dmarray(self['settings']['depths'])
         self['results'] = outdict
 
     def plot_dose(self, source=['e', 'brems', 'p_tr', 'p_un'],
                   target=None, loc=111, add_legend=True, **kwargs):
         """
+        Make plot of dose versus depth for contributing sources
+
+        Parameters
+        ==========
+        source : list of strings
+            List of dose contributions to plot. Supported options are:
+            e (electrons); brems (Bremsstrahlung); p_tr (trapped protons);
+            p_un (untrapped protons); tot (total dose). If both 'e' and 'brems'
+            are present in the list they will be summed and plotted.
+        target : None or object
+            The target object (matplotlib figure or axes types/subclasses) for plotting.
+            If target = None, a new figure will be created.
+        loc : int
+            The subplot triple that specifies the location of the axes object.
+            Defaults to matplotlib default (111).
+        add_legend : bool
+            If True (default) add a legend to the figure.
         """
         from spacepy.plot.utils import set_target
         fig, ax = set_target(target, figsize=(10, 6), loc=loc)
         linesets = []
+        res = self['results']
+        geometries = ['Semi-Inf Slab', 'Finite Slab', 'Spherical']
+        pls = ['solid', 'dashdot', 'dashed']
         if 'e' in source:
-            plotvar = dm.dmcopy(self['results']['dose_electron'])
+            plotvar = dm.dmcopy(res['dose_electron'])
             plab = 'Electrons'
             if 'brems' in source:
-                plotvar = plotvar + self['results']['dose_bremsstrahlung']
+                plotvar = plotvar + res['dose_bremsstrahlung']
                 plab = plab + ' (incl. Bremsstrahlung)'
-            linesets.append(ax.loglog(self['settings']['depths'], plotvar,
-                            label=plab, **kwargs))
+            for gidx, geometry in enumerate(geometries):
+                ulab = plab + '\n{}'.format(geometry)
+                linesets.append(ax.loglog(res['depths'], plotvar[:, gidx],
+                                ls=pls[gidx], label=ulab, **kwargs))
         elif 'brems' in source:
             # in case brems is given, but not 'e'
-            plotvar = plotvar + self['results']['dose_bremsstrahlung']
+            plotvar = plotvar + res['dose_bremsstrahlung']
             plab = 'Bremsstrahlung'
-            linesets.append(ax.loglog(self['settings']['depths'], plotvar,
-                            label=plab, **kwargs))
+            for gidx, geometry in enumerate(geometries):
+                ulab = plab + '\n{}'.format(geometry)
+                linesets.append(ax.loglog(res['depths'], plotvar[:, gidx],
+                                ls=pls[gidx], label=ulab, **kwargs))
         if 'p_tr' in source:
-            plotvar = self['results']['dose_proton_trapped']
+            plotvar = dm.dmcopy(res['dose_proton_trapped'])
             plab = 'Protons (trapped)'
-            linesets.append(ax.loglog(self['settings']['depths'], plotvar,
-                            label=plab, **kwargs))
+            for gidx, geometry in enumerate(geometries):
+                ulab = plab + '\n{}'.format(geometry)
+                linesets.append(ax.loglog(res['depths'], plotvar[:, gidx],
+                                ls=pls[gidx], label=ulab, **kwargs))
         if 'p_un' in source:
-            plotvar = self['results']['dose_proton_untrapped']
-            linesets.append(ax.loglog(self['settings']['depths'], plotvar,
-                            label=plab, **kwargs))
+            plotvar = dm.dmcopy(res['dose_proton_untrapped'])
+            plab = 'Protons (untrapped)'
+            for gidx, geometry in enumerate(geometries):
+                ulab = plab + '\n{}'.format(geometries[gidx])
+                linesets.append(ax.loglog(res['depths'], plotvar[:, gidx],
+                                ls=pls[gidx], label=ulab, **kwargs))
+        if 'tot' in source:
+            plotvar = dm.dmcopy(res['dose_total'])
+            plab = 'Total'
+            for gidx, geometry in enumerate(geometries):
+                ulab = plab + '\n{}'.format(geometries[gidx])
+                linesets.append(ax.loglog(res['depths'], plotvar[:, gidx],
+                                ls=pls[gidx], label=ulab, **kwargs))
         if add_legend:
             ax.legend()
 
