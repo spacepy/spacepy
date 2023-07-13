@@ -1262,18 +1262,39 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
 
 class Shieldose2(dm.SpaceData):
     def __init__(self, *args, **kwargs):
+        """
+
+        Examples
+        ========
+        >>> import spacepy.irbempy as ib
+        >>> import spacepy.toolbox as tb
+        >>> import numpy as np
+        >>> dosemod = ib.Shieldose2()
+        >>> dosemod.set_shielding(depths=tb.logspace(0.1, 15, 45), units='mm')
+        >>> e_spec = lambda E: 2*np.exp(-E/0.3)
+        >>> e_grid = tb.logspace(0.01, 10, 50)
+        >>> dosemod.set_flux(e_spec(e_grid), e_grid, species='e')
+        >>> dosemod.get_dose(detector=10, nucmeth=3)
+        >>> import spacepy.plot as splot
+        >>> splot.style('spacepy')
+        >>> dosemod.plot_dose()
+        """
         super().__init__(*args, **kwargs)  # Init as SpaceData.
         self['settings'] = dm.SpaceData()
         self.set_shielding()
-        self._config_set = False
-        self._fluxes_set = False
-        je_default = lambda E: np.exp(-E/0.1)  # E in MeV
+        self._calculated = False
+
+        def j_def(E, e_or_p='e'):
+            if e_or_p == 'e':
+                j = np.exp(-E/0.1)  # E in MeV
+            else:
+                j = 1e-9*np.exp(-E/20)
+            return j
         en_e_default = tb.logspace(0.04, 10, 30)
-        jp_default = lambda E: 1e-9*np.exp(-E/20)  # E in MeV
         en_p_default = tb.logspace(0.1, 2000, 299)
-        self.set_flux(je_default(en_e_default), en_e_default, 'e')
-        self.set_flux(jp_default(en_p_default), en_p_default, 'p_tr')
-        self.set_flux(1e-6*jp_default(en_p_default), en_p_default, 'p_un')
+        self.set_flux(j_def(en_e_default, 'e'), en_e_default, 'e')
+        self.set_flux(j_def(en_p_default, 'p'), en_p_default, 'p_tr')
+        self.set_flux(1e-6*j_def(en_p_default, 'p'), en_p_default, 'p_un')
 
     def __repr__(self):
         settings = ''
@@ -1311,8 +1332,11 @@ class Shieldose2(dm.SpaceData):
         if units.lower() not in valid_units:
             ulist = ', '.join([un for un in valid_units.keys()])
             raise ValueError(f'Units must be one of {ulist}, not {units}')
-        self['settings']['depths'] = np.atleast_1d(depths)
+        self['settings']['depths'] = dm.dmarray(np.atleast_1d(depths))
+        self['settings']['depths'].attrs['UNITS'] = units
         self['settings']['depthunit'] = valid_units[units.lower()]
+        if self._calculated and 'results' in self:
+            del self['results']
 
     def set_flux(self, flux, energy, species, tau=1, mult=1):
         """
@@ -1337,12 +1361,26 @@ class Shieldose2(dm.SpaceData):
         self['settings'][f'flux_{species}'] = np.atleast_1d(flux)
         self['settings']['tau'] = tau
         self['settings']['unit_en'] = mult
+        if self._calculated and 'results' in self:
+            del self['results']
 
     def get_dose(self, detector=3, nucmeth=1):
         """Calculate dose (given shielding/incident flux) with SHIELDOSE2
 
-        Example
-        -------
+        Parameters
+        ==========
+        detector : int
+            Detector type, default is Silicon (type 3). List of detector
+            materials available given below.
+
+        nucmeth : int
+            Nuclear interactions settings. Option 1 (default), no nuclear
+            attenuation for protons in Al. 2. Nuclear attenuation, local
+            charged secondary energy deposition. 3. As 2. but with approx.
+            exponential distribution of neutron dose.
+
+        Examples
+        ========
         Example calculation of dose-depth curve, compare to figure 3 in
         https://www.vdl.afrl.af.mil/programs/ae9ap9/files/techreports/20160513_Aerospace_OBrien_ATR-2016-01756_effects_kernels.pdf
 
@@ -1370,6 +1408,21 @@ class Shieldose2(dm.SpaceData):
         """
         self['settings']['detector'] = detector
         self['settings']['nucmeth'] = nucmeth
+
+        detmat = {1: 'Aluminium', 2: 'Graphite',
+                  3: 'Silicon', 4: 'Air', 5: 'Bone',
+                  6: 'Calcium Fluoride',
+                  7: 'Gallium Arsenide',
+                  8: 'Lithium Fluoride',
+                  9: 'Silicon Dioxide',
+                  10: 'Tissue', 11: 'Water'}
+        if detector in detmat:
+            self['settings']['detector_material'] = detmat[detector]
+        else:
+            opts = [f'{k}: {v}' for k, v in detmat.items()]
+            optstr = '; '.join(opts)
+            raise ValueError(f'Invalid detector option ({detector}).' +
+                             f'Valid options are {optstr}')
 
         def expand_dict(argdict):
             argdict['len_e'] = len(argdict['energy_e'])
@@ -1414,6 +1467,8 @@ class Shieldose2(dm.SpaceData):
         call['flux_e'] = settings.get('flux_e', None)
         call['flux_e'] = np.pad(call['flux_e'], (0, epad), mode='constant')
         dose_tup = oplib.shieldose2(*call.values())
+        # Now flag results as generated
+        self._calculated = True
 
         outdict = dm.SpaceData()
         nd = call['ndepth']
@@ -1422,8 +1477,46 @@ class Shieldose2(dm.SpaceData):
         outdict['dose_electron'] = dose_tup[2][:nd, :]
         outdict['dose_bremsstrahlung'] = dose_tup[3][:nd, :]
         outdict['dose_total'] = dose_tup[4][:nd, :]
-
+        outdict['depths'] = dm.dmarray(call['depths'])
         self['results'] = outdict
+
+    def plot_dose(self, source=['e', 'brems', 'p_tr', 'p_un'],
+                  target=None, loc=111, add_legend=True, **kwargs):
+        """
+        """
+        from spacepy.plot.utils import set_target
+        fig, ax = set_target(target, figsize=(10, 6), loc=loc)
+        linesets = []
+        if 'e' in source:
+            plotvar = dm.dmcopy(self['results']['dose_electron'])
+            plab = 'Electrons'
+            if 'brems' in source:
+                plotvar = plotvar + self['results']['dose_bremsstrahlung']
+                plab = plab + ' (incl. Bremsstrahlung)'
+            linesets.append(ax.loglog(self['settings']['depths'], plotvar,
+                            label=plab, **kwargs))
+        elif 'brems' in source:
+            # in case brems is given, but not 'e'
+            plotvar = plotvar + self['results']['dose_bremsstrahlung']
+            plab = 'Bremsstrahlung'
+            linesets.append(ax.loglog(self['settings']['depths'], plotvar,
+                            label=plab, **kwargs))
+        if 'p_tr' in source:
+            plotvar = self['results']['dose_proton_trapped']
+            plab = 'Protons (trapped)'
+            linesets.append(ax.loglog(self['settings']['depths'], plotvar,
+                            label=plab, **kwargs))
+        if 'p_un' in source:
+            plotvar = self['results']['dose_proton_untrapped']
+            linesets.append(ax.loglog(self['settings']['depths'], plotvar,
+                            label=plab, **kwargs))
+        if add_legend:
+            ax.legend()
+
+        ax.set_xlabel('Depth [{}]'.format(self['settings']['depths'].attrs['UNITS']))
+        ax.set_ylabel('Dose [{}]'.format(self['settings']['detector_material']))
+
+        return fig, ax, linesets
 
 
 # -----------------------------------------------
