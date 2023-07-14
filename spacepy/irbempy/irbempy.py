@@ -1261,24 +1261,25 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
 
 
 class Shieldose2(dm.SpaceData):
-    def __init__(self, *args, **kwargs):
-        """
+    """
+    A class for performing dose calculations using Shieldose2
 
-        Examples
-        ========
-        >>> import spacepy.irbempy as ib
-        >>> import spacepy.toolbox as tb
-        >>> import numpy as np
-        >>> dosemod = ib.Shieldose2()
-        >>> dosemod.set_shielding(depths=tb.logspace(0.1, 15, 45), units='mm')
-        >>> e_spec = lambda E: 2*np.exp(-E/0.3)
-        >>> e_grid = tb.logspace(0.01, 10, 50)
-        >>> dosemod.set_flux(e_spec(e_grid), e_grid, species='e')
-        >>> dosemod.get_dose(detector=10, nucmeth=3)
-        >>> import spacepy.plot as splot
-        >>> splot.style('spacepy')
-        >>> dosemod.plot_dose(sources=['e'])
-        """
+    Examples
+    ========
+    >>> import spacepy.irbempy as ib
+    >>> import spacepy.toolbox as tb
+    >>> import numpy as np
+    >>> dosemod = ib.Shieldose2()
+    >>> dosemod.set_shielding(depths=tb.logspace(0.1, 15, 45), units='mm')
+    >>> e_spec = lambda E: 2*np.exp(-E/0.3)
+    >>> e_grid = tb.logspace(0.01, 10, 50)
+    >>> dosemod.set_flux(e_spec(e_grid), e_grid, species='e')
+    >>> dosemod.get_dose(detector=10, nucmeth=3)
+    >>> import spacepy.plot as splot
+    >>> splot.style('spacepy')
+    >>> dosemod.plot_dose(sources=['e'])
+    """
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)  # Init as SpaceData.
         self['settings'] = dm.SpaceData()
         self['settings']['calc_flag'] = False
@@ -1335,7 +1336,8 @@ class Shieldose2(dm.SpaceData):
         if units.lower() not in valid_units:
             ulist = ', '.join([un for un in valid_units.keys()])
             raise ValueError(f'Units must be one of {ulist}, not {units}')
-        self['settings']['depths'] = dm.dmarray(np.atleast_1d(depths))
+        usedepth = dm.dmcopy(depths)
+        self['settings']['depths'] = dm.dmarray(np.atleast_1d(usedepth))
         self['settings']['depths'].attrs['UNITS'] = units
         self['settings']['depthunit'] = valid_units[units.lower()]
         if self['settings']['calc_flag'] and 'results' in self:

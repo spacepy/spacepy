@@ -21,7 +21,7 @@ import numpy as np
 import numpy.testing
 from numpy import array
 
-__all__ = ['IRBEMBigTests', 'IRBEMTestsWithoutOMNI']
+__all__ = ['IRBEMBigTests', 'IRBEMTestsWithoutOMNI', 'IRBEMShieldoseTests']
 
 
 class IRBEMBigTests(unittest.TestCase):
@@ -297,8 +297,20 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         actual = ib.get_AEP8(E, c)
         numpy.testing.assert_almost_equal(expected, actual)
 
+
+class IRBEMShieldoseTests(unittest.TestCase):
+
+    def setUp(self):
+        super(IRBEMShieldoseTests, self).setUp()
+        self.depths_mil = np.logspace(np.log10(4), np.log10(5000), 30)
+        self.depths_mm = self.depths_mil * 0.0254
+        self.sd_default = ib.Shieldose2()
+
+    def tearDown(self):
+        super(IRBEMShieldoseTests, self).tearDown()
+
     def test_shieldose2_direct(self):
-        """test shieldose2 by direct call to oplib"""
+        """test shieldose2 is callable by direct call to oplib"""
         idet = 3
         inuc = 1
         imax = 1
@@ -315,24 +327,78 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         DURATN = 86400
         Zin = np.zeros(71, order='F')
         Zin[0] = 10
-        ESin = np.zeros(301); ESin[:JSMAX] = np.linspace(EMINS, EMAXS, JSMAX)
-        SFLUXin = np.zeros(301, order='F'); SFLUXin[:JSMAX] = np.linspace(1e4, 10, JSMAX)
-        EFLUXin = np.zeros(301, order='F'); EFLUXin[:JEMAX] = np.linspace(1e7, 1e2, JEMAX)
-        EPin = np.zeros(301, order='F'); EPin[:JPMAX] = np.linspace(EMINP, EMAXP, JPMAX)
-        PFLUXin = np.zeros(301, order='F'); PFLUXin[:JPMAX] = np.linspace(100, 0.1, JPMAX)
-        EEin = np.zeros(301, order='F'); EEin[:JEMAX] = np.linspace(EMINE, EMAXE, JEMAX)
-        EFLUXin = np.zeros(301, order='F'); EFLUXin[:JEMAX] = np.linspace(1e7, 1e2, JEMAX)
+        ESin = np.zeros(301)
+        ESin[:JSMAX] = np.linspace(EMINS, EMAXS, JSMAX)
+        SFLUXin = np.zeros(301, order='F')
+        SFLUXin[:JSMAX] = np.linspace(1e4, 10, JSMAX)
+        EFLUXin = np.zeros(301, order='F')
+        EFLUXin[:JEMAX] = np.linspace(1e7, 1e2, JEMAX)
+        EPin = np.zeros(301, order='F')
+        EPin[:JPMAX] = np.linspace(EMINP, EMAXP, JPMAX)
+        PFLUXin = np.zeros(301, order='F')
+        PFLUXin[:JPMAX] = np.linspace(100, 0.1, JPMAX)
+        EEin = np.zeros(301, order='F')
+        EEin[:JEMAX] = np.linspace(EMINE, EMAXE, JEMAX)
+        EFLUXin = np.zeros(301, order='F')
+        EFLUXin[:JEMAX] = np.linspace(1e7, 1e2, JEMAX)
         dose_tup = ib.oplib.shieldose2(idet, inuc, imax, iunt, Zin,
                                        EMINS, EMAXS, EMINP, EMAXP, NPTSP,
                                        EMINE, EMAXE, NPTSE,
                                        JSMAX, JPMAX, JEMAX,
                                        EUNIT, DURATN,
                                        ESin, SFLUXin, EPin, PFLUXin, EEin, EFLUXin)
-        # soldose, protdose, elecdose, bremdose, totdose
+
+    def test_shieldose2_setshielding(self):
+        """Setting shielding should appropriately update settings
+        """
+        sdd = self.sd_default
+        tunit = 'mm'
+        target = np.logspace(0, 3, 50)
+        tcopy = target.copy()
+        sdd.set_shielding(depths=target, units=tunit)
+        target *= 2  # make sure we're not modifying arrays
+        curr_dep = np.asarray(sdd['settings']['depths'].copy())
+        numpy.testing.assert_array_almost_equal(tcopy, curr_dep)
+        numpy.testing.assert_string_equal(sdd['settings']['depths'].attrs['UNITS'], tunit)
+
+    def test_shieldose2_mil_mm(self):
+        """Should get same results for different depth units
+        """
+        sd1 = self.sd_default
+        sd1.set_shielding(depths=self.depths_mil, units='Mil')
+        sd1.get_dose()
+        sd2 = ib.Shieldose2()
+        sd2.set_shielding(depths=self.depths_mm, units='mm')
+        sd2.get_dose()
+        de1 = np.asarray(sd1['results']['dose_electron'])
+        de2 = np.asarray(sd2['results']['dose_electron'])
+        numpy.testing.assert_array_almost_equal(de1, de2)
+
+    def test_shieldose2_changed(self):
+        """Results should be removed if settings are changed
+        """
+        self.assertFalse('results' in self.sd_default)
+        self.sd_default.get_dose()
+        self.assertTrue('results' in self.sd_default)
+        self.sd_default.set_shielding(depths=self.depths_mm, units='mm')
+        self.assertFalse('results' in self.sd_default)
+
+    def test_shieldose_invalid_det(self):
+        """Asking for invalid detector material raises ValueError
+        """
+        self.assertRaises(ValueError, self.sd_default.get_dose, detector=99)
+
+    def test_shieldose_e_j_mismatch(self):
+        """Mismatched flux energy array sizes raises ValueError
+        """
+        jarr = np.logspace(0, 4, 35)[::-1]
+        earr = np.logspace(1, 10, 40)
+        self.assertRaises(ValueError, self.sd_default.set_flux,
+                          jarr, earr, 'e')
 # -----------------------------------------------------------------------
 
 
-if	__name__	==	"__main__":
+if __name__ == "__main__":
     ##	suite	=	unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
     ##	unittest.TextTestRunner(verbosity=2).run(suite)
 
