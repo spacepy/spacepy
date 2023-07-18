@@ -290,9 +290,9 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
     def test_get_AEP8(self):
         """test get_AEP8"""
-        c=self.loci
+        c = self.loci
         c.ticks = self.ticks
-        E = 2.0 # energy in MeV
+        E = 2.0  # energy in MeV
         expected = 99492.059080021136
         actual = ib.get_AEP8(E, c)
         numpy.testing.assert_almost_equal(expected, actual)
@@ -309,46 +309,7 @@ class IRBEMShieldoseTests(unittest.TestCase):
     def tearDown(self):
         super(IRBEMShieldoseTests, self).tearDown()
 
-    def test_shieldose2_direct(self):
-        """test shieldose2 is callable by direct call to oplib"""
-        idet = 3
-        inuc = 1
-        imax = 1
-        iunt = 1
-        EMINS, EMAXS = 1.0, 100.0
-        EMINP, EMAXP = 1, 2
-        NPTSP = 10
-        EMINE, EMAXE = 0.1, 5
-        NPTSE = 20
-        JSMAX = 10
-        JPMAX = 10
-        JEMAX = 20
-        EUNIT = 1
-        DURATN = 86400
-        Zin = np.zeros(71, order='F')
-        Zin[0] = 10
-        ESin = np.zeros(301)
-        ESin[:JSMAX] = np.linspace(EMINS, EMAXS, JSMAX)
-        SFLUXin = np.zeros(301, order='F')
-        SFLUXin[:JSMAX] = np.linspace(1e4, 10, JSMAX)
-        EFLUXin = np.zeros(301, order='F')
-        EFLUXin[:JEMAX] = np.linspace(1e7, 1e2, JEMAX)
-        EPin = np.zeros(301, order='F')
-        EPin[:JPMAX] = np.linspace(EMINP, EMAXP, JPMAX)
-        PFLUXin = np.zeros(301, order='F')
-        PFLUXin[:JPMAX] = np.linspace(100, 0.1, JPMAX)
-        EEin = np.zeros(301, order='F')
-        EEin[:JEMAX] = np.linspace(EMINE, EMAXE, JEMAX)
-        EFLUXin = np.zeros(301, order='F')
-        EFLUXin[:JEMAX] = np.linspace(1e7, 1e2, JEMAX)
-        dose_tup = ib.oplib.shieldose2(idet, inuc, imax, iunt, Zin,
-                                       EMINS, EMAXS, EMINP, EMAXP, NPTSP,
-                                       EMINE, EMAXE, NPTSE,
-                                       JSMAX, JPMAX, JEMAX,
-                                       EUNIT, DURATN,
-                                       ESin, SFLUXin, EPin, PFLUXin, EEin, EFLUXin)
-
-    def test_shieldose2_setshielding(self):
+    def test_setshielding(self):
         """Setting shielding should appropriately update settings
         """
         sdd = self.sd_default
@@ -361,7 +322,7 @@ class IRBEMShieldoseTests(unittest.TestCase):
         numpy.testing.assert_array_almost_equal(tcopy, curr_dep)
         numpy.testing.assert_string_equal(sdd['settings']['depths'].attrs['UNITS'], tunit)
 
-    def test_shieldose2_mil_mm(self):
+    def test_mil_mm(self):
         """Should get same results for different depth units
         """
         sd1 = self.sd_default
@@ -383,31 +344,78 @@ class IRBEMShieldoseTests(unittest.TestCase):
         self.sd_default.set_shielding(depths=self.depths_mm, units='mm')
         self.assertFalse('results' in self.sd_default)
 
-    def test_shieldose_invalid_det(self):
+    def test_invalid_det(self):
         """Asking for invalid detector material raises ValueError
         """
         self.assertRaises(ValueError, self.sd_default.get_dose, detector=99)
 
-    def test_shieldose_e_j_mismatch(self):
+    def test_invalid_fluence(self):
+        """Asking for invalid fluence model issues UserWarning
+        """
+        self.assertWarns(UserWarning,
+                         self.sd_default.get_dose,
+                         fluence='notamodel')
+
+    def test_e_j_mismatch(self):
         """Mismatched flux energy array sizes raises ValueError
         """
         jarr = np.logspace(0, 4, 35)[::-1]
         earr = np.logspace(1, 10, 40)
         self.assertRaises(ValueError, self.sd_default.set_flux,
                           jarr, earr, 'e')
+
+    def test_plot_e(self):
+        """Check for expected outputs in electron dose plot"""
+        self.sd_default.get_dose()
+        res = self.sd_default['results']
+        f1, a1, l1 = self.sd_default.plot_dose(source=['e'])
+        f2, a2, l2 = self.sd_default.plot_dose(source=['e', 'brems'])
+        self.assertEqual(3, len(l1))
+        self.assertEqual(3, len(l2))
+        np.testing.assert_array_equal(l1[0][0].get_xdata(),
+                                      res['depths'])
+        np.testing.assert_array_equal(l1[0][0].get_ydata(),
+                                      res['dose_electron'][:, 0])
+        np.testing.assert_array_equal(l2[0][0].get_ydata(),
+                                      res['dose_electron'][:, 0] +
+                                      res['dose_bremsstrahlung'][:, 0])
+        self.assertEqual('Dose [Silicon]', a1.get_ylabel())
+        self.assertEqual('Depth [Mil]', a1.get_xlabel())
+
+    def test_plot_p_noleg(self):
+        """Check for expected outputs in proton dose plot"""
+        self.sd_default.get_dose()
+        res = self.sd_default['results']
+        f1, a1, l1 = self.sd_default.plot_dose(source=['p_tr'],
+                                               add_legend=False)
+        self.assertEqual(3, len(l1))
+        np.testing.assert_array_equal(l1[0][0].get_xdata(),
+                                      res['depths'])
+        np.testing.assert_array_equal(l1[0][0].get_ydata(),
+                                      res['dose_proton_trapped'][:, 0])
+        self.assertEqual('Dose [Silicon]', a1.get_ylabel())
+        self.assertEqual('Depth [Mil]', a1.get_xlabel())
+        self.assertIs(None, a1.get_legend())
+
+    def test_regression_si(self):
+        """Check for expected numerical result"""
+        expect_tot_500 = np.array([2.174920520699405e-15,
+                                   1.7185079165053166e-15,
+                                   4.750370701125187e-15])
+        self.sd_default.set_shielding(depths=[100, 500, 1000], units='Mil')
+        self.sd_default.get_dose(detector=3)
+        dtot = np.asarray(self.sd_default['results']['dose_total'])
+        np.testing.assert_array_almost_equal(dtot[1, :], expect_tot_500,
+                                             decimal=15)
+
 # -----------------------------------------------------------------------
 
 
 if __name__ == "__main__":
-    ##	suite	=	unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
-    ##	unittest.TextTestRunner(verbosity=2).run(suite)
+    # suite	=	unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
+    # unittest.TextTestRunner(verbosity=2).run(suite)
 
-    ##	suite	=	unittest.TestLoader().loadTestsFromTestCase(tFunctionTests)
-    ##	unittest.TextTestRunner(verbosity=2).run(suite)
+    # suite	=	unittest.TestLoader().loadTestsFromTestCase(tFunctionTests)
+    # unittest.TextTestRunner(verbosity=2).run(suite)
 
     unittest.main()
-
-
-
-
-
