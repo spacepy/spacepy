@@ -1264,8 +1264,12 @@ class Shieldose2(dm.SpaceData):
     """
     A class for performing dose calculations using Shieldose2
 
+    Notes
+    -----
+    .. versionadded:: 0.5.0
+
     Examples
-    ========
+    --------
     >>> import spacepy.irbempy as ib
     >>> import spacepy.toolbox as tb
     >>> import numpy as np
@@ -1278,6 +1282,7 @@ class Shieldose2(dm.SpaceData):
     >>> import spacepy.plot as splot
     >>> splot.style('spacepy')
     >>> dosemod.plot_dose(sources=['e'])
+
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)  # Init as SpaceData.
@@ -1325,7 +1330,8 @@ class Shieldose2(dm.SpaceData):
         depths : array-like
             Array of layer depths (not thicknesses) in given units.
             Must be monotonically increasing.
-        units : str
+
+        units : `str`
             Options are "mil" (thousandths of a inch; default),
             "g/cm2" (density), or "mm" (millimeters). The shielding
             is assumed to be aluminium-equivalent.
@@ -1349,21 +1355,25 @@ class Shieldose2(dm.SpaceData):
         Set the flux/fluence spectrum for a given incident species
 
         Parameters
-        ==========
+        ----------
         flux : array-like
             A 1D array of differential number fluxes
+
         energy : array-like
             A 1D array of energies (same length as flux)
-        species : str
+
+        species : `str`, optional
             Code for supplied species. Options are: 'e' (electrons);
             'p_tr' (trapped protons); 'p_un' (untrapped protons/solar
             energetic protons)
-        tau : int
+
+        tau : `int`, optional
             Simulation interval in seconds. If flux input is given
             and assumed constant over the interval, tau should be set
             to the desired duration. If fluence input is given, this
             should be set to 1 (default).
-        mult : int
+
+        mult : `int`, optional
             Multiplier to convert from [1/energy] to [1/MeV], if energies
             are in keV and flux is [1/keV] then mult=1000. Default is 1.
         """
@@ -1377,23 +1387,39 @@ class Shieldose2(dm.SpaceData):
             del self['results']
             self['settings']['calc_flag'] = False
 
-    def get_dose(self, detector=3, nucmeth=1):
+    def get_dose(self, detector=3, nucmeth=1, fluence='NASA'):
         """Calculate dose (given shielding/incident flux)
 
-        Parameters
-        ==========
-        detector : int
-            Detector type, default is Silicon (type 3). List of detector
-            materials available given below.
+        Shielding calculation results are stored under the
+        'results' key of this container. The expected results keys
+        are: 'dose_proton_untrapped', 'dose_proton_trapped',
+        'dose_electron', 'dose_bremsstrahlung', 'dose_total',
+        'depths', 'fluence_electron'.
 
-        nucmeth : int
+        Parameters
+        ----------
+        detector : `int`, optional
+            Detector type, default is Silicon (type 3). Detector
+            materials options are: 1-Aluminium; 2-Graphite; 3-Silicon;
+            4-Air; 5-Bone; 6-Calcium Fluoride; 7-Gallium Arsenide;
+            8-Lithium Fluoride; 9-Silicon Dioxide; 10-Tissue; 11-Water
+
+        nucmeth : `int`, optional
             Nuclear interactions settings. Option 1 (default), no nuclear
             attenuation for protons in Al. 2. Nuclear attenuation, local
             charged secondary energy deposition. 3. As 2. but with approx.
             exponential distribution of neutron dose.
 
+        fluence : `str`, optional
+            If the detector type is Silicon, the results contain an
+            estimate of the integral fluence at each depth of shielding.
+            This is calculated from the Silicon dose with an empirical
+            conversion factor. The default is 'nasa' (aka 'wenaas').
+            The other options are 'coakley' and 'dictat'. See appendix
+            C.4.1 of NASA-HDBK-4002 for details.
+
         Examples
-        ========
+        --------
         Example calculation of dose-depth curve, compare to figure 3 in
         https://www.vdl.afrl.af.mil/programs/ae9ap9/files/techreports/20160513_Aerospace_OBrien_ATR-2016-01756_effects_kernels.pdf
 
@@ -1403,16 +1429,10 @@ class Shieldose2(dm.SpaceData):
         >>> splot.style('default')
         >>> dosemod = ib.Shieldose2()
         >>> dosemod.get_dose()
+        >>> dosemod['results'].tree()
         >>> dosemod.plot_dose(source=['e', 'brems', 'p_un'])
         >>> plt.show()
 
-        Notes
-        =====
-        Detector material options:
-        1 - Aluminium; 2 - Graphite; 3 - Silicon
-        4 - Air; 5 - Bone; 6 - Calcium Fluoride
-        7 - Gallium Arsenide; 8 - Lithium Fluoride
-        9 - Silicon Dioxide; 10 - Tissue; 11 - Water
         """
         self['settings']['detector'] = detector
         self['settings']['nucmeth'] = nucmeth
@@ -1478,6 +1498,13 @@ class Shieldose2(dm.SpaceData):
         # Now flag results as generated
         self['settings']['calc_flag'] = True
 
+        # calculate shielded integral fluence from Dose-Si
+        # see appendix C.4.1 of NASA-HDBK-4002
+        fl_convert = {'nasa': 2.4e7,
+                      'coakley': 5e7,
+                      'dictat': 3.3e7}
+        fl_convert['wenaas'] = fl_convert['nasa']
+
         outdict = dm.SpaceData()
         nd = call['ndepth']
         outdict['dose_proton_untrapped'] = dm.dmarray(dose_tup[0][:nd, :])
@@ -1486,6 +1513,15 @@ class Shieldose2(dm.SpaceData):
         outdict['dose_bremsstrahlung'] = dm.dmarray(dose_tup[3][:nd, :])
         outdict['dose_total'] = dm.dmarray(dose_tup[4][:nd, :])
         outdict['depths'] = dm.dmarray(self['settings']['depths'])
+        if detector == 3:
+            cfac = fl_convert.get(fluence.lower(), fl_convert['nasa'])
+            if fluence.lower() not in fl_convert:
+                wstr = f'{fluence} not a supported fluence model. Defaulting to NASA.'
+                warnings.warn(wstr)
+            outdict['fluence_electron'] = dm.dmarray(outdict['dose_electron']
+                                                     * cfac)
+            ftext = f'Fluence calculated from Dose-Si using {fluence} model'
+            outdict['fluence_electron'].attrs['NOTES'] = ftext
         self['results'] = outdict
 
     def plot_dose(self, source=['e', 'brems', 'p_tr', 'p_un'],
@@ -1494,19 +1530,26 @@ class Shieldose2(dm.SpaceData):
         Make plot of dose versus depth for contributing sources
 
         Parameters
-        ==========
-        source : list of strings
+        ----------
+        source : `list` of `str`
             List of dose contributions to plot. Supported options are:
-            e (electrons); brems (Bremsstrahlung); p_tr (trapped protons);
-            p_un (untrapped protons); tot (total dose). If both 'e' and 'brems'
-            are present in the list they will be summed and plotted.
-        target : None or object
-            The target object (matplotlib figure or axes types/subclasses) for plotting.
-            If target = None, a new figure will be created.
-        loc : int
+            e (electrons); brems (Bremsstrahlung); p_tr (trapped
+            protons); p_un (untrapped protons); tot (total dose). If
+            both 'e' and 'brems' are present in the list they will be
+            summed and plotted.
+
+        target : `matplotlib.axes.Axes` or `matplotlib.figure.Figure`, optional
+            The target object for plotting. Default is to create a new
+            figure with a single subplot. If ``Axes``, will draw into
+            that subplot (and will not draw a legend or figure title);
+            if ``Figure``, will make a single subplot (and not set
+            figure title). Handled by `~.plot.utils.set_target`.
+
+        loc : `int`, optional
             The subplot triple that specifies the location of the axes object.
             Defaults to matplotlib default (111).
-        add_legend : bool
+
+        add_legend : `bool`
             If True (default) add a legend to the figure.
         """
         from spacepy.plot.utils import set_target
