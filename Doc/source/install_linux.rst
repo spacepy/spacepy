@@ -50,6 +50,10 @@ SpacePy usually works with the system Python on Linux. To install dependencies v
 For other distributions, check :doc:`dependencies` and install by hand
 or via your package manager. 
 
+To get the dependencies for building documentation::
+
+  sudo apt-get install python3-sphinx python3-numpydoc
+
 .. _linux_CDF:
 
 CDF
@@ -58,7 +62,6 @@ CDF
 It is recommended to install the ncurses library; on Ubuntu and Debian::
 
     sudo apt-get install ncurses-dev
-
 
 Download the latest `CDF library <http://cdf.gsfc.nasa.gov/>`_. Choose
 the file ending in ``-dist-all.tar.gz`` from the ``linux``
@@ -78,64 +81,16 @@ SpacePy can find it. If you choose to install elsewhere, see the CDF documentati
 particularly the notes on the ``CDF_BASE`` and ``CDF_LIB`` environment variables. 
 SpacePy uses these variables to find the library.
 
-Compiling
-=========
-
-With the dependencies installed, SpacePy can be built from source.
-This uses standard Python distutils.
-You can always get the latest source code for SpacePy from our `github
-repository <https://github.com/spacepy/spacepy>`_ and the latest
-release from `PyPI <https://pypi.org/project/SpacePy/#files>`_
-
-Build::
-
-     python setup.py build
-
-If this fails, specify a Fortran compiler::
-
-    python setup.py build --fcompiler=gnu95
-
-``python setup.py build --help-fcompiler`` will list options for
-Fortran compilers. The supported compiler is ``gnu95`` (the GNU gfortran
-compiler); ``none`` can be specified as a "compiler" to skip all Fortran.
-
-Install for one user::
-
-    python setup.py install --user
-
-If you're using conda, installation as user isn't recommended::
-
-    python setup.py install
-
-Or install for all users on the system::
-
-    sudo python setup.py install
-
-If you want to build the documentation yourself (rather than using the
-documentation shipped with SpacePy), install sphinx and numpydoc. The
-easiest way is via pip::
-
-  pip install sphinx numpydoc
-
-They are also available via conda::
-
-  conda install sphinx numpydoc
-
-Or the package manager::
-
-  sudo apt-get install python3-sphinx python3-numpydoc
-
 Raspberry Pi
 ============
 SpacePy works on Raspberry Pi, using Raspberry Pi OS in 32-bit or
 64-bit flavors. A few tips:
 
    * It is highly recommended to install all dependencies (numpy,
-     etc.)  via the system package manager ``apt-get`` rather than
+     etc.) via the system package manager ``apt-get`` rather than
      pip, as prebuilt wheels are not generally available and compiling
      dependencies on the Pi can take a very long time::
 
       sudo apt-get install gfortran python3-numpy python3-dateutil python3-scipy python3-h5py python3-matplotlib
 
-   * Similarly, if installing SpacePy via pip, use the
-     ``--no-build-isolation`` flag to use the system numpy.
+   * Similarly, use the ``--no-build-isolation`` flag to use the system numpy.

@@ -1,4 +1,4 @@
-Building spacepy for distribution (20220426)
+Building spacepy for distribution (20230725)
 ============================================
 Since this has to happen on multiple platforms, a single script doesn't work.
 
@@ -37,6 +37,7 @@ source ${HOME}/cdf/bin/definitions.B
 Make a clean isolated environment just for SpacePy build:
 ~/miniconda/bin/conda create -y -n spacepy_build python=3
 source ~/miniconda/bin/activate spacepy_build
+conda install -y pip python-build wheel
 conda install -y numpy
 conda install -y scipy matplotlib h5py astropy sphinx numpydoc
 
@@ -56,18 +57,26 @@ Clear out old builds:
 Be sure that LD_LIBRARY_PATH and similar aren't set so that the conda
 environment isn't pulling in anything from the host environment.
 
-Build so getting the latest inputs for the autodocs:
-    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py build
+    PYTHONNOUSERSITE=1 PYTHONPATH= python-build -s -n -x
+
+(We are only building the source distribution, do not want an isolated
+build environment because already installed the dependencies, and are
+similarly skipping the dependency check...particularly because the
+dependencies for the source build and binary build are different but
+build doesn't support that.)
+
+The resulting .tar.gz is in the dists directory.
+
+Install so getting the latest inputs for the autodocs:
+    PYTHONNOUSERSITE=1 PYTHONPATH= pip install --no-build-isolation --no-deps .
+(This is subject to future review to support installing in a temporary
+location.)
 
 Build the docs:
     cd Doc
     PYTHONNOUSERSITE=1 PYTHONPATH= make html
     PYTHONNOUSERSITE=1 PYTHONPATH= make latexpdf
 Newer sphinx uses latexmk (apt-get install latexmk) not pdflatex...
-
-Then:
-    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py sdist --formats=gztar,zip
-Tarball and zip are in the dist directory.
 
 Note: Building the source distribution will not build the docs, this
 needs to be done manually so they can be uploaded separately later.
@@ -196,10 +205,10 @@ directory. Use the spacepy_build conda environment and install twine:
 
 and then do the upload:
 
-  PYTHONNOUSERSITE=1 PYTHONPATH= twine upload -r testpypi spacepy-*.zip spacepy-*.whl
+  PYTHONNOUSERSITE=1 PYTHONPATH= twine upload -r testpypi spacepy-*-doc.zip spacepy-*.whl spacepy-*.tar.gz
 
 PyPI does not support Windows standalone installers, and can only take
-one source distribution (zip or tar.gz, so we use zip.)
+one source distribution (zip or tar.gz); build seems to prefer the tarball.
 
 Test installing with:
 
@@ -215,9 +224,10 @@ Release to PyPI
 
 https://python-packaging-tutorial.readthedocs.io/en/latest/uploading_pypi.html
 
-  twine upload spacepy-*.zip spacepy-*.whl
+  twine upload spacepy-*-doc.zip spacepy-*.whl spacepy-*.tar.gz
 
-Do not upload the .tar.gz since can only upload one source package per release.
+Do not make or upload a .zip sdist since can only upload one source
+package per release.
 
 There's no longer any capability to edit information on PyPI, it's
 straight from the setup.py metadata. This may cause problems with the
@@ -236,9 +246,8 @@ necessarily the best) is to use just "x.y.z" as the title with nothing
 the "describe."
 
 Click in the "upload binaries" area and upload all the files: source
-distribution, Windows installers, wheels. Also upload the
-documentation PDF (spacepy-x.y.z-doc.pdf) and a zip
-(spacepy-x.y.z-doc.zip).
+distribution, wheels, documentation PDF (spacepy-x.y.z-doc.pdf) and a
+zip (spacepy-x.y.z-doc.zip).
 
 Documentation update
 --------------------
