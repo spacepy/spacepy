@@ -24,6 +24,11 @@ Not all dependencies are required for all functionality; see
 :doc:`dependencies` for full details, including what functionality is
 lost if a dependency is not installed.
 
+The ``setup.py`` based install process is no longer supported; as such,
+``pip`` and ``setuptools`` are now required. ``wheel`` is required if
+building from source. The vast majority of modern Python distributions
+already have these requirements.
+
 The minimum supported version of all dependencies was updated in
 SpacePy 0.5.0. Minimum versions are:
 

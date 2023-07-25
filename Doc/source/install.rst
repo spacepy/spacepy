@@ -10,8 +10,7 @@ The simplest way from zero (no Python) to a working SpacePy setup is:
 
 If you already have a working Python setup, install SpacePy by:
 
-  1. ``pip install --upgrade numpy``
-  2. ``pip install --upgrade spacepy``
+  1. ``pip install --upgrade spacepy``
 
 This will install a binary build of SpacePy if available (currently
 only on Windows), otherwise it will attempt to compile. It will also
@@ -66,15 +65,15 @@ For source releases, after downloading and
 unpacking, run (a virtual environment, such as a conda environment, is
 recommended)::
 
-    python setup.py install
+    pip install .
 
 or, to install for all users (not in a virtual environment)::
 
-    sudo python setup.py install
+    sudo pip install .
 
 or, to install for a single user (not in a virtual environment)::
 
-    python setup.py install --user
+    pip install . --user
 
 If you do not have administrative privileges, or you will be
 developing for SpacePy, we strongly recommend using virtual
@@ -82,9 +81,57 @@ environments.
 
 To install in custom location, e.g.::
 
-    python setup.py install --home=/n/packages/lib/python
+    pip install . --prefix /n/packages/lib/python
 
-Installs using ``setup.py`` do not require setuptools.
+(See :ref:`\\\\\\-\\\\\\-prefix <install_--prefix>` documentation
+and the related :option:`--target`, :option:`--root`).
+
+The closest analogy to the old ``setup.py`` handling (no dependency
+handling, no isolated build) is::
+
+    pip install . --no-build-isolation --no-deps
+
+This is recommended if dependencies are managed by the OS or manually.
+
+If installing into the system Python version on Linux (and potentially
+some other cases), you will need to pass the flag
+:option:`--break-system-packages`. Despite the frightening name this is
+usually safe, although in this case is recommended to use
+:option:`--no-build-isolation` :option:`--no-deps` and manage the
+dependencies using the system package manager or conda.
+
+Documentation
+=============
+If you want to build the documentation yourself (rather than using the
+online documentation), install sphinx and numpydoc. The easiest way is
+via pip::
+
+  pip install sphinx numpydoc
+
+They are also available via conda::
+
+  conda install sphinx numpydoc
+
+Compiling
+=========
+With the dependencies installed, SpacePy can be built from source.
+You can always get the latest source code for SpacePy from our `github
+repository <https://github.com/spacepy/spacepy>`_ and the latest
+release from `PyPI <https://pypi.org/project/SpacePy/#files>`__
+
+Following the instructions above will compile before the installation,
+if installing from source or a binary installer is not available. If
+this fails, specify a Fortran compiler::
+
+    pip install . --config-setting="--build-option=--fcompiler=gnu95"
+
+The supported compiler is ``gnu95`` (the GNU gfortran compiler); ``none``
+can be specified as a "compiler" to skip all Fortran. You can also specify
+the full path to the Fortran 77 compiler with ``--f77exec`` and to the
+Fortran 90 compiler with ``--f90exec``::
+
+    pip install . --config-setting="--build-option=--fcompiler=gnu95" --config-setting="--build-option=--f77exec=/usr/bin/gfortran" --config-setting="--build-option=--f90exec=/usr/bin/gfortran"
+
 
 Troubleshooting
 ===============
@@ -102,8 +149,8 @@ build environment::
   pip install spacepy --no-build-isolation
 
 Manually installing all dependencies (via ``pip``, ``conda``, or other
-means) and then installing the source release via ``setup.py`` is also
-an option.
+means) and then installing the source release with
+``--no-build-isolation --no-deps``
 
 ``pip`` suppresses detailed output from the build process. To
 troubleshoot a failure to install, it is useful to write this detailed
