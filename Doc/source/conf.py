@@ -291,7 +291,7 @@ epub_copyright = u'2011, The SpacePy Team'
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
-    'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
     'matplotlib': ('https://matplotlib.org/', None),
     'astropy': ('https://docs.astropy.org/en/stable/', None),
     'pip': ('https://pip.pypa.io/en/stable/', None),
