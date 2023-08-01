@@ -14,8 +14,7 @@ Copyright 2010 - 2014 Los Alamos National Security, LLC.
 import sys
 
 import setuptools
-if 'bdist_wheel' in sys.argv:
-    import wheel
+import wheel
 
 import copy
 import os, shutil, getopt, glob, re
@@ -28,9 +27,20 @@ import distutils.ccompiler
 from setuptools import setup
 from distutils.command.build import build as _build
 from setuptools.command.install import install as _install
+from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+has_editable_wheel = False
+try:
+    from setuptools.command.editable_wheel import editable_wheel as _editable_wheel
+    has_editable_wheel = True
+except ModuleNotFoundError:  # Only in very new setuptools
+    pass
+has_develop = False
+try:
+    from setuptools.command.develop import develop as _develop
+    has_develop = True
+except ModuleNotFoundError:  # Used in older setuptools
+    pass
 
-if 'bdist_wheel' in sys.argv:
-    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 import setuptools.dep_util
 
 import distutils.sysconfig
@@ -58,7 +68,6 @@ if sys.platform == 'win32':
                     del exe[exe.index('-mno-cygwin')]
                     setattr(self, executable, exe)
     distutils.cygwinccompiler.Mingw32CCompiler = Mingw32CCompiler
-
 
 def subst(pattern, replacement, filestr,
           pattern_matching_modifiers=None):
@@ -243,6 +252,8 @@ def finalize_compiler_options(cmd):
         cmd.compiler = 'mingw32'
     #Add interpreter to f2py if it needs it (usually on Windows)
     #If it's a list, it's already been patched up
+    if isinstance(cmd.f2py, list):
+        return
     if sys.platform == 'win32' and isinstance(cmd.f2py, str) \
        and not is_win_exec(cmd.f2py):
         if egginfo_only: #Punt, we're not going to call it
@@ -614,6 +625,27 @@ class build(_build):
             copy_dlls(os.path.join(self.build_lib, 'spacepy', 'mingw'))
         _build.run(self) #need subcommands BEFORE building irbem
         self.compile_irbempy()
+        build_py = self.distribution.get_command_obj('build_py')
+        if not (getattr(build_py, 'editable_mode', False)
+                or getattr(build_py, 'inplace', False)):
+            return
+        # Copy compiled outputs into the source
+        build_py = self.distribution.get_command_obj('build_py')
+        package_dir = build_py.get_package_dir('spacepy')
+        comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
+        if hasattr(distutils.ccompiler, 'customize_compiler'):
+            distutils.ccompiler.customize_compiler(comp)
+        else:
+            distutils.sysconfig.customize_compiler(comp)
+        libspacepy = os.path.join(
+            self.build_lib, 'spacepy',
+            comp.library_filename('spacepy', lib_type='shared'))
+        if os.path.exists(libspacepy):
+            shutil.copy2(libspacepy, package_dir)
+        for f in get_irbem_libfiles():
+            p = os.path.join(self.build_lib, 'spacepy', 'irbempy', f)
+            if os.path.exists(p):
+                shutil.copy2(p, os.path.join(package_dir, 'irbempy'))
 
 
 class install(_install):
@@ -683,25 +715,69 @@ def copy_dlls(outdir):
         shutil.copy(os.path.join(libdir, f), outdir)
 
 
-if 'bdist_wheel' in sys.argv:
-    class bdist_wheel(_bdist_wheel):
-        """Handle compiler options for wheel build on Windows"""
+class bdist_wheel(_bdist_wheel):
+    """Handle compiler options for wheel build on Windows"""
 
-        user_options = _bdist_wheel.user_options + compiler_options
+    user_options = _bdist_wheel.user_options + compiler_options
+
+    def initialize_options(self):
+        initialize_compiler_options(self)
+        _bdist_wheel.initialize_options(self)
+
+    def finalize_options(self):
+        _bdist_wheel.finalize_options(self)
+        finalize_compiler_options(self)
+        #Force platform-specific build (wheel finalize does this based
+        #on explicitly declaring extension modules, and we handle them
+        #by hand)
+        #TODO: Complains config variable Py_DEBUG and WITH_PYMALLOC are
+        #unset; python ABI tag may be incorrect
+        #https://github.com/pypa/pip/issues/3383
+        self.root_is_pure = False
+
+
+if has_editable_wheel:
+    class editable_wheel(_editable_wheel):
+        """Handle compiler options for wheel build"""
+
+        user_options = _editable_wheel.user_options + compiler_options
+
+        def _run_build_subcommands(self):
+            """Run full build to ensure irbempy, libspacepy are built"""
+            self.run_command('build')
 
         def initialize_options(self):
             initialize_compiler_options(self)
-            _bdist_wheel.initialize_options(self)
+            _editable_wheel.initialize_options(self)
 
         def finalize_options(self):
-            _bdist_wheel.finalize_options(self)
+            _editable_wheel.finalize_options(self)
             finalize_compiler_options(self)
-            #Force platform-specific build (wheel finalize does this based
-            #on explicitly declaring extension modules, and we handle them
-            #by hand)
-            #TODO: Complains config variable Py_DEBUG and WITH_PYMALLOC are
-            #unset; python ABI tag may be incorrect
-            #https://github.com/pypa/pip/issues/3383
+            #Force platform-specific build
+            self.root_is_pure = False
+
+
+if has_develop:
+    class develop(_develop):
+        """Make sure old-style editable install has compiled code"""
+
+        user_options = _develop.user_options + compiler_options
+
+        def install_for_development(self):
+            """Run full build to ensure irbempy, libspacepy are built"""
+            # Probably not required if compiled stuff is pushed into build_ext
+            self.reinitialize_command('build_py', inplace=1)
+            self.run_command('build')
+            _develop.install_for_development(self)
+
+        def initialize_options(self):
+            initialize_compiler_options(self)
+            _develop.initialize_options(self)
+
+        def finalize_options(self):
+            _develop.finalize_options(self)
+            finalize_compiler_options(self)
+            #Force platform-specific build
             self.root_is_pure = False
 
 
@@ -760,12 +836,15 @@ setup_kwargs = {
     'python_requires': '>=3.6',
     'cmdclass': {'build': build,
                  'install': install,
+                 'bdist_wheel': bdist_wheel,
           },
     'zip_safe': False,
 }
 
-if 'bdist_wheel' in sys.argv:
-    setup_kwargs['cmdclass']['bdist_wheel'] = bdist_wheel
+if has_editable_wheel:
+    setup_kwargs['cmdclass']['editable_wheel'] = editable_wheel
+if has_develop:
+    setup_kwargs['cmdclass']['develop'] = develop
 
 # run setup from distutil
 with warnings.catch_warnings(record=True) as warnlist:
