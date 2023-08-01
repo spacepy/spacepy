@@ -31,7 +31,7 @@ jobs:
         include:
           - python-version: "3.6"
             os: ubuntu-20.04
-            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2"
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython"
             numpy-version: "~=1.15.1"
             piplist: "python-dateutil~=2.1.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1"
             cflags: "-Wno-error=format-security"
@@ -40,7 +40,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.6"
             os: ubuntu-20.04
-            build-deps: "pip setuptools wheel"
+            build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.19.0,<1.20.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -49,7 +49,7 @@ jobs:
             dep-strategy: "newest"
           - python-version: "3.7"
             os: ubuntu-20.04
-            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2"
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython"
             numpy-version: ">=1.15.1,<1.16.0"
             piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
             cflags: "-Wno-error=format-security"
@@ -58,7 +58,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.7"
             os: ubuntu-20.04
-            build-deps: "pip setuptools wheel"
+            build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -67,7 +67,7 @@ jobs:
             dep-strategy: "newest"
           - python-version: "3.8"
             os: ubuntu-20.04
-            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2"
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython"
             numpy-version: ">=1.17.0,<1.18.0"
             piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
             cflags: "-Wno-error=format-security"
@@ -76,7 +76,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.8"
             os: ubuntu-20.04
-            build-deps: "pip setuptools wheel"
+            build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -85,7 +85,7 @@ jobs:
             dep-strategy: "newest"
           - python-version: "3.9"
             os: ubuntu-20.04
-            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2"
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0"
             numpy-version: ">=1.18.0,<1.19.0"
             piplist: "python-dateutil~=2.1.0 scipy>=1.5.0,<1.6.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
             cflags: "-Wno-error=format-security"
@@ -94,7 +94,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.9"
             os: ubuntu-20.04
-            build-deps: "pip setuptools wheel"
+            build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -103,7 +103,7 @@ jobs:
             dep-strategy: "newest"
           - python-version: "3.10"
             os: ubuntu-20.04
-            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2"
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython"
             numpy-version: ">=1.21.0,<1.22.0"
             piplist: "python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib~=3.1.0 h5py>=3.6,<3.7 astropy>=4.0,<4.1"
             cflags: "-Wno-error=format-security"
@@ -112,7 +112,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.10"
             os: ubuntu-20.04
-            build-deps: "pip setuptools wheel"
+            build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
@@ -158,10 +158,7 @@ jobs:
         # Needed for scipy versions without binary wheels
         sudo apt-get install libhdf5-serial-dev gcc gfortran xvfb libblas-dev liblapack-dev
         python -m pip install --no-build-isolation ${BUILD_DEPS}
-        # This allows pip to build (and thus cache) binary wheels
-        pip install wheel
-        # ALLOW build isolation here so it can grab cython if necessary
-        pip install --force-reinstall "numpy${NUMPY_VERSION}"
+        pip install --no-build-isolation --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
         if [ "$DEPSTRAT" = "old" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
             # scipy < 1.5 doesn't build on gcc 10+ without this argument
@@ -206,7 +203,7 @@ jobs:
         include:
           - python-version: "3.6"
             os: ubuntu-20.04
-            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2"
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython"
             numpy-version: "~=1.15.1"
             piplist: "python-dateutil~=2.1.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1 sphinx~=1.8.0 numpydoc"
             cflags: "-Wno-error=format-security"
@@ -215,7 +212,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.10"
             os: ubuntu-20.04
-            build-deps: "pip setuptools wheel"
+            build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
             cflags: ""
@@ -264,10 +261,7 @@ jobs:
         # Needed for scipy versions without binary wheels
         sudo apt-get install libhdf5-serial-dev gcc gfortran xvfb libblas-dev liblapack-dev
         python -m pip install --no-build-isolation ${BUILD_DEPS}
-        # This allows pip to build (and thus cache) binary wheels
-        pip install wheel
-        # ALLOW build isolation here so it can grab cython if necessary
-        pip install --force-reinstall "numpy${NUMPY_VERSION}"
+        pip install --no-build-isolation --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
         if [ "$DEPSTRAT" = "old" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
             # scipy < 1.5 doesn't build on gcc 10+ without this argument
