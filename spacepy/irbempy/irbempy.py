@@ -1270,18 +1270,18 @@ class Shieldose2(dm.SpaceData):
 
     Examples
     --------
-    >>> import spacepy.irbempy as ib
-    >>> import spacepy.toolbox as tb
+    >>> import spacepy.irbempy
+    >>> import spacepy.toolbox
     >>> import numpy as np
-    >>> dosemod = ib.Shieldose2()
-    >>> dosemod.set_shielding(depths=tb.logspace(0.1, 15, 45), units='mm')
+    >>> dosemod = spacepy.irbempy.Shieldose2()
+    >>> dosemod.set_shielding(depths=spacepy.toolbox.logspace(0.1, 15, 45), units='mm')
     >>> e_spec = lambda E: 2*np.exp(-E/0.3)
-    >>> e_grid = tb.logspace(0.01, 10, 50)
+    >>> e_grid = spacepy.toolbox.logspace(0.01, 10, 50)
     >>> dosemod.set_flux(e_spec(e_grid), e_grid, species='e')
     >>> dosemod.get_dose(detector=10, nucmeth=3)
-    >>> import spacepy.plot as splot
-    >>> splot.style('spacepy')
-    >>> dosemod.plot_dose(sources=['e'])
+    >>> import spacepy.plot
+    >>> spacepy.plot.style('spacepy')
+    >>> dosemod.plot_dose(source=['e'])
 
     """
     def __init__(self, *args, **kwargs):
@@ -1307,7 +1307,7 @@ class Shieldose2(dm.SpaceData):
         ndepths = len(self['settings']['depths'])
         calc = ' ' if self['settings']['calc_flag'] else ' not '
         settings = f'Depths = {ndepths}; Dose{calc}calculated'
-        return 'Shieldose2({})'.format(settings)
+        return '<Shieldose2({})>'.format(settings)
 
     def __str__(self):
         '''
@@ -1316,7 +1316,8 @@ class Shieldose2(dm.SpaceData):
         obstr = io.StringIO()
         sys_stdout_save = sys.stdout
         sys.stdout = obstr
-        print(type(self))
+        typestr = str(type(self)).split("'")[1]
+        print(typestr)
         self.tree(attrs=True, verbose=True)
         sys.stdout = sys_stdout_save
         obstr.seek(0)
@@ -1423,11 +1424,11 @@ class Shieldose2(dm.SpaceData):
         Example calculation of dose-depth curve, compare to figure 3 in
         https://www.vdl.afrl.af.mil/programs/ae9ap9/files/techreports/20160513_Aerospace_OBrien_ATR-2016-01756_effects_kernels.pdf
 
-        >>> import spacepy.irbempy as ib
+        >>> import spacepy.irbempy
         >>> import matplotlib.pyplot as plt
-        >>> import spacepy.plot as splot
-        >>> splot.style('default')
-        >>> dosemod = ib.Shieldose2()
+        >>> import spacepy.plot
+        >>> spacepy.plot.style('default')
+        >>> dosemod = spacepy.irbempy.Shieldose2()
         >>> dosemod.get_dose()
         >>> dosemod['results'].tree()
         >>> dosemod.plot_dose(source=['e', 'brems', 'p_un'])

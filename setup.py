@@ -457,7 +457,7 @@ class build_ext(_build_ext):
         # call f2py
         cmd = self.f2py + ['--overwrite-signature', '-m', 'irbempylib', '-h',
                'irbempylib.pyf'] + F90files + ['only:'] + functions + [':']
-        print(f'*****{cmd}')
+        print(f'Generating signatures with f2py: {cmd}')
         subprocess.check_call(cmd)
         # intent(out) substitute list
         outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit',
