@@ -56,6 +56,10 @@ ISTP-compliant metadata; see `~.datamodel.dmarray` and
 `~.datamodel.SpaceData` for details. In particular note the plotting
 support with `~.datamodel.ISTPContainer.plot`.
 
+`~.irbempy` now provides an interface to the SHIELDOSE-2 shielding
+radiation dose model. This is implemented through the
+`~.irbempy.Shieldose2` class.
+
 `~.plot.spectrogram.simpleSpectrogram()` supports treating zeros as
 valid data on log plots.
 
