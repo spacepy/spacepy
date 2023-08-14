@@ -688,6 +688,24 @@ class SimpleFunctionTests(unittest.TestCase):
 """
         self.assertEqual(expected, result)
 
+    def test_dictree_np(self):
+        """dictree with numpy array"""
+        a = {'a': 1, 'b': 2,
+             'c': array([[1, 2, 3], [4, 5, 6]])}
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        self.assertIs(tb.dictree(a, verbose=True, levels=2), None)
+        sys.stdout = realstdout
+        result = output.getvalue()
+        output.close()
+        expected = """+
+|____a (int)
+|____b (int)
+|____c (numpy.ndarray (2, 3))
+"""
+        self.assertEqual(expected, result)
+
     def test_geomspace(self):
         """geomspace should give known output"""
         ans = [1, 10, 100, 1000]
