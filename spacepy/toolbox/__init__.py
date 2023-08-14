@@ -600,7 +600,8 @@ def human_sort( l ):
     return l
 
 
-def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwargs):
+def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False,
+            print_out=True, **kwargs):
     """
     pretty print a dictionary tree
 
@@ -608,14 +609,19 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     ----------
     in_dict : dict
         a complex dictionary (with substructures)
-    verbose : boolean (optional)
+    verbose : bool, default False
         print more info
-    spaces : string (optional)
+    spaces : str (optional)
         string will added for every line
-    levels : integer (optional)
-        number of levels to recurse through (True means all)
-    attrs : boolean (optional)
+    levels : int (optional)
+        number of levels to recurse through (True, the default,  means all)
+    attrs : bool, default False
         display information for attributes
+    print_out : bool, default True
+
+            .. versionadded:: 0.5.0
+
+        Print output (original behavior); if ``False``, return the output.
 
     Raises
     ------
@@ -653,14 +659,16 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     """
     if not (hasattr(in_dict, 'keys') or hasattr(in_dict, 'attrs')):
         raise TypeError('dictree: Input must be dictionary-like')
+    res = ''
     if not spaces:
         spaces = ''
-        print('+')
+        res += '+\n'
     toplev = kwargs.get('toplev', True)
     try:
         if toplev and attrs:
-            dictree(in_dict.attrs, spaces=':', verbose=verbose, levels=levels,
-                    attrs=attrs, toplev=True)
+            res += dictree(
+                in_dict.attrs, spaces=':', verbose=verbose, levels=levels,
+                attrs=attrs, toplev=True, print_out=False)
             toplev = False
     except:
         pass
@@ -684,17 +692,23 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
                         dimstr = ' [{}]'.format(len(val))
                     except TypeError:
                         dimstr = ''
-                print(f'{spaces}{bar} ({typestr}{dimstr})')
+                res += f'{spaces}{bar} ({typestr}{dimstr})\n'
             else:
-                print(f'{spaces}{bar}')
+                res += f'{spaces}{bar}\n'
             if hasattr(val, 'attrs') and attrs:
-                dictree(val.attrs, spaces=f'{spaces}    :', verbose=verbose, levels=levels,
-                        attrs=attrs, toplev=False)
+                res += dictree(
+                    val.attrs, spaces=f'{spaces}    :', verbose=verbose,
+                    levels=levels, attrs=attrs, toplev=False, print_out=False)
             if hasattr(val, 'keys') and levels:
-                dictree(val, spaces=f'{spaces}     ', verbose=verbose, levels=levels,
-                        attrs=attrs, toplev=False)
+                res += dictree(
+                    val, spaces=f'{spaces}     ', verbose=verbose,
+                    levels=levels, attrs=attrs, toplev=False, print_out=False)
     except:
         pass
+    if print_out:
+        print(res, end='')
+    else:
+        return res
 
 
 def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True,

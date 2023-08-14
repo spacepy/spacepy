@@ -76,6 +76,8 @@ and `~.pybats.bats.Bats2d.calc_upar` methods.
 (`~.pybats.qotree.QTree`) now accepts a keyword argument to set the size
 of each block: `blocksize`. Default value is 8.
 
+`~.toolbox.dictree` now supports returning the output instead of printing it.
+
 Deprecations and removals
 *************************
 Since plot styles are no longer applied on import, importing

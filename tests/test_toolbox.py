@@ -687,6 +687,8 @@ class SimpleFunctionTests(unittest.TestCase):
      |____cc (dict [2])
 """
         self.assertEqual(expected, result)
+        result = tb.dictree(a, verbose=True, levels=2, print_out=False)
+        self.assertEqual(expected, result)
 
     def test_dictree_dmarray(self):
         """dictree with dmarray"""
