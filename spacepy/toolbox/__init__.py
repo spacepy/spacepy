@@ -651,63 +651,50 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     Attributes of, e.g., a CDF or a datamodel type object (obj.attrs)
     are denoted by a colon.
     """
-    try:
-        assert hasattr(in_dict, 'keys')
-    except AssertionError:
-        try:
-            assert hasattr(in_dict, 'attrs')
-        except:
-            raise TypeError('dictree: Input must be dictionary-like')
-
+    if not (hasattr(in_dict, 'keys') or hasattr(in_dict, 'attrs')):
+        raise TypeError('dictree: Input must be dictionary-like')
     if not spaces:
         spaces = ''
         print('+')
-
-    if 'toplev' in kwargs:
-        toplev = kwargs['toplev']
-    else:
-        toplev = True
+    toplev = kwargs.get('toplev', True)
     try:
         if toplev and attrs:
-            dictree(in_dict.attrs, spaces = ':', verbose = verbose, levels = levels, attrs=attrs, toplev=True)
+            dictree(in_dict.attrs, spaces=':', verbose=verbose, levels=levels,
+                    attrs=attrs, toplev=True)
             toplev = False
     except:
         pass
 
-    # TODO, if levels is True why check again?
-    if levels:
-        try:
-            assert levels is True
-        except AssertionError:
-            levels -= 1
-            if levels == 0:
-                levels = None
+    if levels and levels is not True:  # numerical level count given
+        levels -= 1
+        if levels == 0:
+            levels = None
 
     try:
         for key in sorted(in_dict.keys()):
+            val = in_dict[key]
             bar = '|____' + str(key)
             if verbose:
-                typestr = str(type(in_dict[key])).split("'")[1]
+                typestr = str(type(val)).split("'")[1]
                 #check entry for dict-like OR .attrs dict
                 try:
-                    dimstr = in_dict[key].shape
-                    dimstr = ' ' + str(dimstr)
+                    dimstr = ' {}'.format(val.shape)
                 except AttributeError:
                     try:
-                        dimstr = len(in_dict[key])
-                        dimstr = ' [' + str(dimstr) + ']'
-                    except:
+                        dimstr = ' [{}]'.format(len(val))
+                    except TypeError:
                         dimstr = ''
-                print(spaces + bar + ' ('+ typestr + dimstr + ')')
+                print(f'{spaces}{bar} ({typestr}{dimstr})')
             else:
-                print(spaces + bar)
-            if hasattr(in_dict[key], 'attrs') and attrs:
-                dictree(in_dict[key].attrs, spaces = spaces + '    :', verbose = verbose, levels = levels, attrs=attrs, toplev=False)
-            if hasattr(in_dict[key], 'keys') and levels:
-                dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels, attrs=attrs, toplev=False)
+                print(f'{spaces}{bar}')
+            if hasattr(val, 'attrs') and attrs:
+                dictree(val.attrs, spaces=f'{spaces}    :', verbose=verbose, levels=levels,
+                        attrs=attrs, toplev=False)
+            if hasattr(val, 'keys') and levels:
+                dictree(val, spaces=f'{spaces}     ', verbose=verbose, levels=levels,
+                        attrs=attrs, toplev=False)
     except:
         pass
-    return None
 
 
 def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True,
