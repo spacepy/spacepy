@@ -688,21 +688,23 @@ class SimpleFunctionTests(unittest.TestCase):
 """
         self.assertEqual(expected, result)
 
-    def test_dictree_np(self):
-        """dictree with numpy array"""
+    def test_dictree_dmarray(self):
+        """dictree with dmarray"""
         a = {'a': 1, 'b': 2,
-             'c': array([[1, 2, 3], [4, 5, 6]])}
+             'c': spacepy.dmarray([[1, 2, 3], [4, 5, 6]],
+                                  attrs={'foo': 'bar'})}
         realstdout = sys.stdout
         output = StringIO.StringIO()
         sys.stdout = output
-        self.assertIs(tb.dictree(a, verbose=True, levels=2), None)
+        self.assertIs(tb.dictree(a, verbose=True, attrs=True), None)
         sys.stdout = realstdout
         result = output.getvalue()
         output.close()
         expected = """+
 |____a (int)
 |____b (int)
-|____c (numpy.ndarray (2, 3))
+|____c (spacepy.datamodel.dmarray (2, 3))
+    :|____foo (str [3])
 """
         self.assertEqual(expected, result)
 
