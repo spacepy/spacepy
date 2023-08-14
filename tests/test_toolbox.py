@@ -690,9 +690,11 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_dictree_dmarray(self):
         """dictree with dmarray"""
-        a = {'a': 1, 'b': 2,
+        a = spacepy.SpaceData(
+            {'a': 1, 'b': 2,
              'c': spacepy.dmarray([[1, 2, 3], [4, 5, 6]],
-                                  attrs={'foo': 'bar'})}
+                                  attrs={'foo': 'bar'})},
+            attrs={'test': 99})
         realstdout = sys.stdout
         output = StringIO.StringIO()
         sys.stdout = output
@@ -701,6 +703,7 @@ class SimpleFunctionTests(unittest.TestCase):
         result = output.getvalue()
         output.close()
         expected = """+
+:|____test (int)
 |____a (int)
 |____b (int)
 |____c (spacepy.datamodel.dmarray (2, 3))
