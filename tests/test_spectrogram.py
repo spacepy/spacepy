@@ -236,7 +236,6 @@ class SimpleSpectrogramTests(spacepy_testing.TestPlot):
 
     def testFillAndLow(self):
         """Distinguish between fill and below range cutoff"""
-        self.save_plots = True
         z = np.tile(np.arange(1., 6), (10, 1))
         z[0, :2] = .5
         z[1, :2] = .1
