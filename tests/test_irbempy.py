@@ -338,11 +338,11 @@ class IRBEMShieldoseTests(unittest.TestCase):
     def test_shieldose2_changed(self):
         """Results should be removed if settings are changed
         """
-        self.assertFalse(hasattr(self.sd_default, 'results'))
+        self.assertFalse(self.sd_default.results)
         self.sd_default.get_dose()
-        self.assertTrue(hasattr(self.sd_default, 'results'))
+        self.assertTrue(self.sd_default.results)
         self.sd_default.set_shielding(depths=self.depths_mm, units='mm')
-        self.assertFalse(hasattr(self.sd_default, 'results'))
+        self.assertFalse(self.sd_default.results)
 
     def test_invalid_det(self):
         """Asking for invalid detector material raises ValueError

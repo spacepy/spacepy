@@ -1287,6 +1287,16 @@ class Shieldose2:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.settings = dm.SpaceData()
+        """Settings for the dose calculation (`~spacepy.datamodel.SpaceData`).
+           Updated by `set_flux`, `set_shielding`, and `get_dose`."""
+        self.results = dm.SpaceData()
+        """Results of dose calculation from `get_dose`
+        (`~spacepy.datamodel.SpaceData`).
+
+        Keys are ``dose_proton_untrapped``,  ``dose_proton_trapped``,
+        ``dose_electron``, ``dose_bremsstrahlung``, ``dose_total``,
+        ``depths``, ``fluence_electron``.
+        """
         self.settings['calc_flag'] = False
         self.set_shielding()
 
@@ -1320,7 +1330,7 @@ class Shieldose2:
         print(typestr)
         print('|____settings')
         self.settings.tree(attrs=True, verbose=True, spaces='     ')
-        if hasattr(self, 'results'):
+        if self.results:
             print('|____results')
             self.results.tree(attrs=True, verbose=True, spaces='     ')
         sys.stdout = sys_stdout_save
@@ -1351,8 +1361,8 @@ class Shieldose2:
         self.settings['depths'] = dm.dmarray(np.atleast_1d(usedepth))
         self.settings['depths'].attrs['UNITS'] = units
         self.settings['depthunit'] = valid_units[units.lower()]
-        if self.settings['calc_flag'] and hasattr(self, 'results'):
-            del self.results
+        if self.settings['calc_flag'] and self.results:
+            self.results.clear()
             self.settings['calc_flag'] = False
 
     def set_flux(self, flux, energy, species, tau=1, mult=1):
@@ -1388,18 +1398,14 @@ class Shieldose2:
             raise ValueError('Flux and energy arrays must have same length.')
         self.settings['tau'] = tau
         self.settings['unit_en'] = mult
-        if self.settings['calc_flag'] and hasattr(self, 'results'):
-            del self.results
+        if self.settings['calc_flag'] and self.results:
+            self.results.clear()
             self.settings['calc_flag'] = False
 
     def get_dose(self, detector=3, nucmeth=1, fluence='NASA'):
         """Calculate dose (given shielding/incident flux)
 
-        Shielding calculation results are stored under the
-        'results' attribute of this container. The expected results keys
-        are: 'dose_proton_untrapped', 'dose_proton_trapped',
-        'dose_electron', 'dose_bremsstrahlung', 'dose_total',
-        'depths', 'fluence_electron'.
+        Shielding calculation results are stored in `results`.
 
         Parameters
         ----------
@@ -1510,7 +1516,8 @@ class Shieldose2:
                       'dictat': 3.3e7}
         fl_convert['wenaas'] = fl_convert['nasa']
 
-        outdict = dm.SpaceData()
+        self.results.clear()
+        outdict = self.results
         nd = call['ndepth']
         outdict['dose_proton_untrapped'] = dm.dmarray(dose_tup[0][:nd, :])
         outdict['dose_proton_trapped'] = dm.dmarray(dose_tup[1][:nd, :])
@@ -1527,7 +1534,6 @@ class Shieldose2:
                                                      * cfac)
             ftext = f'Fluence calculated from Dose-Si using {fluence} model'
             outdict['fluence_electron'].attrs['NOTES'] = ftext
-        self.results = outdict
 
     def plot_dose(self, source=['e', 'brems', 'p_tr', 'p_un'],
                   target=None, loc=111, add_legend=True, **kwargs):

@@ -30,3 +30,4 @@ Copyright 2010 Los Alamos National Security, LLC.
     coord_trans
     get_dtype
     prep_irbem
+    Shieldose2
