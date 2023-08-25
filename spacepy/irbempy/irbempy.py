@@ -1260,7 +1260,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     return flux[0, 0]
 
 
-class Shieldose2(dm.SpaceData):
+class Shieldose2:
     """
     A class for performing dose calculations using Shieldose2
 
@@ -1285,9 +1285,9 @@ class Shieldose2(dm.SpaceData):
 
     """
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)  # Init as SpaceData.
-        self['settings'] = dm.SpaceData()
-        self['settings']['calc_flag'] = False
+        super().__init__(*args, **kwargs)
+        self.settings = dm.SpaceData()
+        self.settings['calc_flag'] = False
         self.set_shielding()
 
         def j_def(E, e_or_p='e'):
@@ -1304,8 +1304,8 @@ class Shieldose2(dm.SpaceData):
         self.set_flux(1e-6*j_def(en_p_default, 'p'), en_p_default, 'p_un')
 
     def __repr__(self):
-        ndepths = len(self['settings']['depths'])
-        calc = ' ' if self['settings']['calc_flag'] else ' not '
+        ndepths = len(self.settings['depths'])
+        calc = ' ' if self.settings['calc_flag'] else ' not '
         settings = f'Depths = {ndepths}; Dose{calc}calculated'
         return '<Shieldose2({})>'.format(settings)
 
@@ -1318,7 +1318,11 @@ class Shieldose2(dm.SpaceData):
         sys.stdout = obstr
         typestr = str(type(self)).split("'")[1]
         print(typestr)
-        self.tree(attrs=True, verbose=True)
+        print('|____settings')
+        self.settings.tree(attrs=True, verbose=True, spaces='     ')
+        if hasattr(self, 'results'):
+            print('|____results')
+            self.results.tree(attrs=True, verbose=True, spaces='     ')
         sys.stdout = sys_stdout_save
         obstr.seek(0)
         return ''.join(obstr.readlines())
@@ -1344,12 +1348,12 @@ class Shieldose2(dm.SpaceData):
             ulist = ', '.join([un for un in valid_units.keys()])
             raise ValueError(f'Units must be one of {ulist}, not {units}')
         usedepth = dm.dmcopy(depths)
-        self['settings']['depths'] = dm.dmarray(np.atleast_1d(usedepth))
-        self['settings']['depths'].attrs['UNITS'] = units
-        self['settings']['depthunit'] = valid_units[units.lower()]
-        if self['settings']['calc_flag'] and 'results' in self:
-            del self['results']
-            self['settings']['calc_flag'] = False
+        self.settings['depths'] = dm.dmarray(np.atleast_1d(usedepth))
+        self.settings['depths'].attrs['UNITS'] = units
+        self.settings['depthunit'] = valid_units[units.lower()]
+        if self.settings['calc_flag'] and hasattr(self, 'results'):
+            del self.results
+            self.settings['calc_flag'] = False
 
     def set_flux(self, flux, energy, species, tau=1, mult=1):
         """
@@ -1378,21 +1382,21 @@ class Shieldose2(dm.SpaceData):
             Multiplier to convert from [1/energy] to [1/MeV], if energies
             are in keV and flux is [1/keV] then mult=1000. Default is 1.
         """
-        self['settings'][f'energy_{species}'] = np.atleast_1d(energy)
-        self['settings'][f'flux_{species}'] = np.atleast_1d(flux)
+        self.settings[f'energy_{species}'] = np.atleast_1d(energy)
+        self.settings[f'flux_{species}'] = np.atleast_1d(flux)
         if len(energy) != len(flux):
             raise ValueError('Flux and energy arrays must have same length.')
-        self['settings']['tau'] = tau
-        self['settings']['unit_en'] = mult
-        if self['settings']['calc_flag'] and 'results' in self:
-            del self['results']
-            self['settings']['calc_flag'] = False
+        self.settings['tau'] = tau
+        self.settings['unit_en'] = mult
+        if self.settings['calc_flag'] and hasattr(self, 'results'):
+            del self.results
+            self.settings['calc_flag'] = False
 
     def get_dose(self, detector=3, nucmeth=1, fluence='NASA'):
         """Calculate dose (given shielding/incident flux)
 
         Shielding calculation results are stored under the
-        'results' key of this container. The expected results keys
+        'results' attribute of this container. The expected results keys
         are: 'dose_proton_untrapped', 'dose_proton_trapped',
         'dose_electron', 'dose_bremsstrahlung', 'dose_total',
         'depths', 'fluence_electron'.
@@ -1430,13 +1434,13 @@ class Shieldose2(dm.SpaceData):
         >>> spacepy.plot.style('default')
         >>> dosemod = spacepy.irbempy.Shieldose2()
         >>> dosemod.get_dose()
-        >>> dosemod['results'].tree()
+        >>> dosemod.results.tree()
         >>> dosemod.plot_dose(source=['e', 'brems', 'p_un'])
         >>> plt.show()
 
         """
-        self['settings']['detector'] = detector
-        self['settings']['nucmeth'] = nucmeth
+        self.settings['detector'] = detector
+        self.settings['nucmeth'] = nucmeth
 
         detmat = {1: 'Aluminium', 2: 'Graphite',
                   3: 'Silicon', 4: 'Air', 5: 'Bone',
@@ -1446,7 +1450,7 @@ class Shieldose2(dm.SpaceData):
                   9: 'Silicon Dioxide',
                   10: 'Tissue', 11: 'Water'}
         if detector in detmat:
-            self['settings']['detector_material'] = detmat[detector]
+            self.settings['detector_material'] = detmat[detector]
         else:
             opts = [f'{k}: {v}' for k, v in detmat.items()]
             optstr = '; '.join(opts)
@@ -1468,7 +1472,7 @@ class Shieldose2(dm.SpaceData):
             argdict['ndepth'] = len(argdict['depths'])
             return argdict
 
-        settings = expand_dict(self['settings'])
+        settings = expand_dict(self.settings)
 
         callorder = ['detector', 'nucmeth', 'ndepth', 'depthunit',
                      'depths', 'eminpun', 'emaxpun', 'eminptr', 'emaxptr',
@@ -1497,7 +1501,7 @@ class Shieldose2(dm.SpaceData):
         call['flux_e'] = np.pad(call['flux_e'], (0, epad), mode='constant')
         dose_tup = oplib.shieldose2(*call.values())
         # Now flag results as generated
-        self['settings']['calc_flag'] = True
+        self.settings['calc_flag'] = True
 
         # calculate shielded integral fluence from Dose-Si
         # see appendix C.4.1 of NASA-HDBK-4002
@@ -1513,7 +1517,7 @@ class Shieldose2(dm.SpaceData):
         outdict['dose_electron'] = dm.dmarray(dose_tup[2][:nd, :])
         outdict['dose_bremsstrahlung'] = dm.dmarray(dose_tup[3][:nd, :])
         outdict['dose_total'] = dm.dmarray(dose_tup[4][:nd, :])
-        outdict['depths'] = dm.dmarray(self['settings']['depths'])
+        outdict['depths'] = dm.dmarray(self.settings['depths'])
         if detector == 3:
             cfac = fl_convert.get(fluence.lower(), fl_convert['nasa'])
             if fluence.lower() not in fl_convert:
@@ -1523,7 +1527,7 @@ class Shieldose2(dm.SpaceData):
                                                      * cfac)
             ftext = f'Fluence calculated from Dose-Si using {fluence} model'
             outdict['fluence_electron'].attrs['NOTES'] = ftext
-        self['results'] = outdict
+        self.results = outdict
 
     def plot_dose(self, source=['e', 'brems', 'p_tr', 'p_un'],
                   target=None, loc=111, add_legend=True, **kwargs):
@@ -1556,7 +1560,7 @@ class Shieldose2(dm.SpaceData):
         from spacepy.plot.utils import set_target
         fig, ax = set_target(target, figsize=(10, 6), loc=loc)
         linesets = []
-        res = self['results']
+        res = self.results
         geometries = ['Semi-Inf Slab', 'Finite Slab', 'Spherical']
         pls = ['solid', 'dashdot', 'dashed']
         if 'e' in source:
@@ -1601,8 +1605,8 @@ class Shieldose2(dm.SpaceData):
         if add_legend:
             ax.legend()
 
-        ax.set_xlabel('Depth [{}]'.format(self['settings']['depths'].attrs['UNITS']))
-        ax.set_ylabel('Dose [{}]'.format(self['settings']['detector_material']))
+        ax.set_xlabel('Depth [{}]'.format(self.settings['depths'].attrs['UNITS']))
+        ax.set_ylabel('Dose [{}]'.format(self.settings['detector_material']))
 
         return fig, ax, linesets
 

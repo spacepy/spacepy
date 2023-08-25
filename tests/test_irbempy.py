@@ -318,9 +318,9 @@ class IRBEMShieldoseTests(unittest.TestCase):
         tcopy = target.copy()
         sdd.set_shielding(depths=target, units=tunit)
         target *= 2  # make sure we're not modifying arrays
-        curr_dep = np.asarray(sdd['settings']['depths'].copy())
+        curr_dep = np.asarray(sdd.settings['depths'].copy())
         numpy.testing.assert_array_almost_equal(tcopy, curr_dep)
-        numpy.testing.assert_string_equal(sdd['settings']['depths'].attrs['UNITS'], tunit)
+        numpy.testing.assert_string_equal(sdd.settings['depths'].attrs['UNITS'], tunit)
 
     def test_mil_mm(self):
         """Should get same results for different depth units
@@ -331,18 +331,18 @@ class IRBEMShieldoseTests(unittest.TestCase):
         sd2 = ib.Shieldose2()
         sd2.set_shielding(depths=self.depths_mm, units='mm')
         sd2.get_dose()
-        de1 = np.asarray(sd1['results']['dose_electron'])
-        de2 = np.asarray(sd2['results']['dose_electron'])
+        de1 = np.asarray(sd1.results['dose_electron'])
+        de2 = np.asarray(sd2.results['dose_electron'])
         numpy.testing.assert_array_almost_equal(de1, de2)
 
     def test_shieldose2_changed(self):
         """Results should be removed if settings are changed
         """
-        self.assertFalse('results' in self.sd_default)
+        self.assertFalse(hasattr(self.sd_default, 'results'))
         self.sd_default.get_dose()
-        self.assertTrue('results' in self.sd_default)
+        self.assertTrue(hasattr(self.sd_default, 'results'))
         self.sd_default.set_shielding(depths=self.depths_mm, units='mm')
-        self.assertFalse('results' in self.sd_default)
+        self.assertFalse(hasattr(self.sd_default, 'results'))
 
     def test_invalid_det(self):
         """Asking for invalid detector material raises ValueError
@@ -367,7 +367,7 @@ class IRBEMShieldoseTests(unittest.TestCase):
     def test_plot_e(self):
         """Check for expected outputs in electron dose plot"""
         self.sd_default.get_dose()
-        res = self.sd_default['results']
+        res = self.sd_default.results
         f1, a1, l1 = self.sd_default.plot_dose(source=['e'])
         f2, a2, l2 = self.sd_default.plot_dose(source=['e', 'brems'])
         self.assertEqual(3, len(l1))
@@ -385,7 +385,7 @@ class IRBEMShieldoseTests(unittest.TestCase):
     def test_plot_p_noleg(self):
         """Check for expected outputs in proton dose plot"""
         self.sd_default.get_dose()
-        res = self.sd_default['results']
+        res = self.sd_default.results
         f1, a1, l1 = self.sd_default.plot_dose(source=['p_tr'],
                                                add_legend=False)
         self.assertEqual(3, len(l1))
@@ -404,7 +404,7 @@ class IRBEMShieldoseTests(unittest.TestCase):
                                    4.750370701125187e-15])
         self.sd_default.set_shielding(depths=[100, 500, 1000], units='Mil')
         self.sd_default.get_dose(detector=3)
-        dtot = np.asarray(self.sd_default['results']['dose_total'])
+        dtot = np.asarray(self.sd_default.results['dose_total'])
         np.testing.assert_array_almost_equal(dtot[1, :], expect_tot_500,
                                              decimal=15)
 
