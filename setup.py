@@ -27,6 +27,7 @@ import distutils.ccompiler
 from setuptools import setup
 from distutils.command.build import build as _build
 from setuptools.command.install import install as _install
+from setuptools.command.build_ext import build_ext as _build_ext
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 has_editable_wheel = False
 try:
@@ -42,6 +43,7 @@ except ModuleNotFoundError:  # Used in older setuptools
     pass
 
 import setuptools.dep_util
+import setuptools.extension
 
 import distutils.sysconfig
 # setuptools goes back and forth on having setuptools.errors
@@ -340,7 +342,7 @@ def get_irbem_libfiles():
 
 
 class build(_build):
-    """Extends base distutils build to make pybats, libspacepy, irbem"""
+    """Support Fortran compiler options on build"""
 
     user_options = _build.user_options + compiler_options
 
@@ -350,6 +352,20 @@ class build(_build):
 
     def finalize_options(self):
         _build.finalize_options(self)
+        finalize_compiler_options(self)
+
+
+class build_ext(_build_ext):
+    """Extends base distutils build_ext to make libspacepy, irbem"""
+
+    user_options = _build_ext.user_options + compiler_options
+
+    def initialize_options(self):
+        _build_ext.initialize_options(self)
+        initialize_compiler_options(self)
+
+    def finalize_options(self):
+        _build_ext.finalize_options(self)
         finalize_compiler_options(self)
 
     def compile_irbempy(self):
@@ -402,9 +418,9 @@ class build(_build):
         if existing_libfiles:
             sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                       glob.glob(os.path.join(srcdir, '*.inc'))
-            if not setuptools.dep_util.newer_group(
-                sources, os.path.join(outdir, existing_libfiles[0])):
-                return
+            irbempy = os.path.join(outdir, existing_libfiles[0])
+            if not setuptools.dep_util.newer_group(sources, irbempy):
+                return irbempy
 
         if not sys.platform in ('darwin', 'linux2', 'linux', 'win32'):
             warnings.warn(
@@ -625,18 +641,18 @@ class build(_build):
             print(v)
 
     def run(self):
-        """Actually perform the build"""
+        """Actually perform the extension build"""
         libspacepy = self.compile_libspacepy()
+        irbempy = self.compile_irbempy()
+        self._outputs = [l for l in (libspacepy, irbempy) if l is not None]
         if sys.platform == 'win32':
             #Copy mingw32 DLLs. This keeps them around if ming is uninstalled,
             #but more important puts them where bdist_wheel
             #will include them in binary installers
-            copy_dlls(os.path.join(self.build_lib, 'spacepy', 'mingw'))
-        _build.run(self) #need subcommands BEFORE building irbem
-        irbempy = self.compile_irbempy()
-        build_py = self.distribution.get_command_obj('build_py')
-        if not (getattr(build_py, 'editable_mode', False)
-                or getattr(build_py, 'inplace', False)):
+            dlls = copy_dlls(os.path.join(self.build_lib, 'spacepy', 'mingw'))
+            self._outputs.extend(dlls)
+        if not (getattr(self, 'editable_mode', False)
+                or getattr(self, 'inplace', False)):
             return
         # Copy compiled outputs into the source
         build_py = self.distribution.get_command_obj('build_py')
@@ -646,9 +662,12 @@ class build(_build):
         if irbempy is not None and os.path.exists(irbempy):
             shutil.copy2(irbempy, os.path.join(package_dir, 'irbempy'))
 
+    def get_outputs(self):
+        return self._outputs
+
 
 class install(_install):
-    """Extends base distutils install to fix compiler options"""
+    """Support Fortran compiler options on install"""
 
     user_options = _install.user_options + compiler_options
 
@@ -657,34 +676,8 @@ class install(_install):
         _install.initialize_options(self)
 
     def finalize_options(self):
-        #Because we are building extension modules ourselves, distutils
-        #can't tell this is non-pure and we need to use platlib.
-        if self.install_lib is None:
-            self.install_lib = self.install_platlib
         _install.finalize_options(self)
         finalize_compiler_options(self)
-
-    def get_outputs(self):
-        """Tell distutils about files we put in build by hand"""
-        outputs = _install.get_outputs(self)
-        #This is just so we know what a shared library is called
-        comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
-        if hasattr(distutils.ccompiler, 'customize_compiler'):
-            distutils.ccompiler.customize_compiler(comp)
-        else:
-            distutils.sysconfig.customize_compiler(comp)
-        libspacepy = os.path.join(
-            'spacepy', comp.library_filename('spacepy', lib_type='shared'))
-        if os.path.exists(os.path.join(self.build_lib, libspacepy)):
-            spacepylibs = [os.path.join(self.install_libbase, libspacepy)]
-        else:
-            spacepylibs = []
-        irbemlibfiles = [os.path.join('spacepy', 'irbempy', f)
-                         for f in get_irbem_libfiles()]
-        irbemlibs = [
-            os.path.join(self.install_libbase, f) for f in irbemlibfiles
-            if os.path.exists(os.path.join(self.build_lib, f))]
-        return outputs + spacepylibs + irbemlibs
 
 
 def copy_dlls(outdir):
@@ -712,10 +705,11 @@ def copy_dlls(outdir):
         os.makedirs(outdir)
     for f in libnames:
         shutil.copy(os.path.join(libdir, f), outdir)
+    return [os.path.join(outdir, f) for f in libnames]
 
 
 class bdist_wheel(_bdist_wheel):
-    """Handle compiler options for wheel build on Windows"""
+    """Handle Fortran compiler options for wheel build"""
 
     user_options = _bdist_wheel.user_options + compiler_options
 
@@ -726,24 +720,13 @@ class bdist_wheel(_bdist_wheel):
     def finalize_options(self):
         _bdist_wheel.finalize_options(self)
         finalize_compiler_options(self)
-        #Force platform-specific build (wheel finalize does this based
-        #on explicitly declaring extension modules, and we handle them
-        #by hand)
-        #TODO: Complains config variable Py_DEBUG and WITH_PYMALLOC are
-        #unset; python ABI tag may be incorrect
-        #https://github.com/pypa/pip/issues/3383
-        self.root_is_pure = False
 
 
 if has_editable_wheel:
     class editable_wheel(_editable_wheel):
-        """Handle compiler options for wheel build"""
+        """Handle Fortran compiler options for editable wheel build"""
 
         user_options = _editable_wheel.user_options + compiler_options
-
-        def _run_build_subcommands(self):
-            """Run full build to ensure irbempy, libspacepy are built"""
-            self.run_command('build')
 
         def initialize_options(self):
             initialize_compiler_options(self)
@@ -752,22 +735,13 @@ if has_editable_wheel:
         def finalize_options(self):
             _editable_wheel.finalize_options(self)
             finalize_compiler_options(self)
-            #Force platform-specific build
-            self.root_is_pure = False
 
 
 if has_develop:
     class develop(_develop):
-        """Make sure old-style editable install has compiled code"""
+        """Make sure old-style editable install has Fortran compiler options"""
 
         user_options = _develop.user_options + compiler_options
-
-        def install_for_development(self):
-            """Run full build to ensure irbempy, libspacepy are built"""
-            # Probably not required if compiled stuff is pushed into build_ext
-            self.reinitialize_command('build_py', inplace=1)
-            self.run_command('build')
-            _develop.install_for_development(self)
 
         def initialize_options(self):
             initialize_compiler_options(self)
@@ -776,8 +750,6 @@ if has_develop:
         def finalize_options(self):
             _develop.finalize_options(self)
             finalize_compiler_options(self)
-            #Force platform-specific build
-            self.root_is_pure = False
 
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
@@ -785,9 +757,11 @@ packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
             'spacepy.ctrans', ]
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'data/LANLstar/*', 'data/TS07D/TAIL_PAR/*']
+# Built with custom code that handles the source files
+ext_modules = [setuptools.extension.Extension('spacepy.irbempy.irbempylib', [])]
 
 # Duplicated between here and pyproject.toml because pyproject.toml support
-# requires setuptools 61.0.0
+# requires setuptools 61.0.0, and doesn't support extensions
 setup_kwargs = {
     'name': 'spacepy',
     'version': '0.5.0a0',
@@ -800,6 +774,7 @@ setup_kwargs = {
     'url': 'https://github.com/spacepy/spacepy',
     'packages': packages,
     'package_data': {'spacepy': package_data},
+    'ext_modules': ext_modules,
     'classifiers': [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
@@ -834,6 +809,7 @@ setup_kwargs = {
     ],
     'python_requires': '>=3.6',
     'cmdclass': {'build': build,
+                 'build_ext': build_ext,
                  'install': install,
                  'bdist_wheel': bdist_wheel,
           },
