@@ -258,9 +258,6 @@ def finalize_compiler_options(cmd):
         return
     if sys.platform == 'win32' and isinstance(cmd.f2py, str) \
        and not is_win_exec(cmd.f2py):
-        if egginfo_only: #Punt, we're not going to call it
-            cmd.f2py = [cmd.f2py]
-            return
         f2py = cmd.f2py
         if not os.path.isfile(f2py): #Not a file, and didn't exec
             f2pydir = next((d for d in os.environ['PATH'].split(os.pathsep)
