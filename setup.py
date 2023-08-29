@@ -353,6 +353,10 @@ class build(_build):
         finalize_compiler_options(self)
 
     def compile_irbempy(self):
+        """Compile the irbempy extension
+
+        Returns path to compiled extension if successful.
+        """
         fcompiler = self.fcompiler
         if fcompiler in ['none', 'None']:
             warnings.warn(
@@ -558,13 +562,14 @@ class build(_build):
 
         #All matching outputs
         created_libfiles = [f for f in libfiles if os.path.exists(f)]
+        irbempy = None
         if len(created_libfiles) == 0: #no matches
             warnings.warn(
                 'irbemlib build produced no recognizable module. '
                 'Try a different Fortran compiler? (--fcompiler)')
         elif len(created_libfiles) == 1: #only one, no ambiguity
-            shutil.move(created_libfiles[0],
-                        os.path.join(outdir, created_libfiles[0]))
+            irbempy = os.path.join(outdir, created_libfiles[0])
+            shutil.move(created_libfiles[0], irbempy)
         elif len(created_libfiles) == 2 and \
                 len(existing_libfiles) == 1: #two, so one is old and one new
             for f in created_libfiles:
@@ -578,10 +583,13 @@ class build(_build):
                 'irbem build failed: multiple build outputs ({0}).'.format(
                      ', '.join(created_libfiles)))
         os.chdir(olddir)
-        return
+        return irbempy
 
     def compile_libspacepy(self):
-        """Compile the C library, libspacepy. JTN 20110224"""
+        """Compile the C library, libspacepy
+
+        Returns path to the library if successful
+        """
         srcdir = os.path.join('spacepy', 'libspacepy')
         outdir = os.path.join(self.build_lib, 'spacepy')
         try:
@@ -608,6 +616,7 @@ class build(_build):
             if setuptools.dep_util.newer_group(objects, libpath):
                 comp.link_shared_lib(objects, 'spacepy', libraries=['m'],
                                      output_dir=outdir)
+            return libpath
         except:
             warnings.warn(
                 'libspacepy compile failed; some operations may be slow.')
@@ -617,14 +626,14 @@ class build(_build):
 
     def run(self):
         """Actually perform the build"""
-        self.compile_libspacepy()
+        libspacepy = self.compile_libspacepy()
         if sys.platform == 'win32':
             #Copy mingw32 DLLs. This keeps them around if ming is uninstalled,
             #but more important puts them where bdist_wheel
             #will include them in binary installers
             copy_dlls(os.path.join(self.build_lib, 'spacepy', 'mingw'))
         _build.run(self) #need subcommands BEFORE building irbem
-        self.compile_irbempy()
+        irbempy = self.compile_irbempy()
         build_py = self.distribution.get_command_obj('build_py')
         if not (getattr(build_py, 'editable_mode', False)
                 or getattr(build_py, 'inplace', False)):
@@ -632,20 +641,10 @@ class build(_build):
         # Copy compiled outputs into the source
         build_py = self.distribution.get_command_obj('build_py')
         package_dir = build_py.get_package_dir('spacepy')
-        comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
-        if hasattr(distutils.ccompiler, 'customize_compiler'):
-            distutils.ccompiler.customize_compiler(comp)
-        else:
-            distutils.sysconfig.customize_compiler(comp)
-        libspacepy = os.path.join(
-            self.build_lib, 'spacepy',
-            comp.library_filename('spacepy', lib_type='shared'))
-        if os.path.exists(libspacepy):
+        if libspacepy is not None and os.path.exists(libspacepy):
             shutil.copy2(libspacepy, package_dir)
-        for f in get_irbem_libfiles():
-            p = os.path.join(self.build_lib, 'spacepy', 'irbempy', f)
-            if os.path.exists(p):
-                shutil.copy2(p, os.path.join(package_dir, 'irbempy'))
+        if irbempy is not None and os.path.exists(irbempy):
+            shutil.copy2(irbempy, os.path.join(package_dir, 'irbempy'))
 
 
 class install(_install):
