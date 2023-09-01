@@ -47,36 +47,27 @@ IF "%ACTION%"=="BUILD" (
     set NUMPY="numpy"
     :: Build with the minimum version for each Python version
     IF "%2"=="310" (
-        set NUMPY="numpy>=1.21.0,<1.22.0"
+        set NUMPY="numpy~=1.21.0"
     )
     IF "%2"=="39" (
     :: 1.18 works on 3.9, but there's no Windows binary wheel.
     :: 1.19.4 has Win10 2004 bug on 64-bit, but
     :: we'll avoid it on 32-bit as well, no point getting picky...
-        set NUMPY="numpy>=1.19.5,<1.20.0"
+        set NUMPY="numpy~=1.19.5"
     )
     IF "%2"=="38" (
-        set NUMPY="numpy>=1.17.0,<1.19.0"
+        set NUMPY="numpy~=1.17.0"
     )
     IF "%2"=="37" (
-        set NUMPY="numpy>=1.15.1,<1.16.0"
+        set NUMPY="numpy~=1.15.1"
     )
     IF "%2"=="36" (
-    :: 1.12 works on 3.6, but f2py fails on Windows
-        set NUMPY="numpy>=1.13.0,<1.14.0"
+        set NUMPY="numpy~=1.15.1"
     )
-    IF "%2"=="35" (
-        set NUMPY="numpy>=1.10.0,<1.11.0"
-    )
-    CALL pip install !NUMPY!
+    CALL pip install !NUMPY! build wheel
 ) ELSE (
     :: Testing. Get the latest of everything
-    IF "%2"=="310" (
-        CALL pip install numpy
-        CALL pip install numpy scipy matplotlib h5py astropy
-    ) ELSE (
-        CALL conda install -y numpy scipy matplotlib h5py astropy
-    )
+    CALL conda install -y numpy scipy matplotlib h5py astropy
 )
 CALL conda deactivate
 ::This turns off echo!

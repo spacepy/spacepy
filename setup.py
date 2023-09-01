@@ -20,7 +20,11 @@ import copy
 import os, shutil, getopt, glob, re
 import platform
 import subprocess
-import sysconfig
+if sys.platform == 'win32' and sys.version_info < (3, 8):
+    # https://github.com/python/cpython/issues/84006
+    from distutils import sysconfig
+else:
+    import sysconfig
 import warnings
 
 import distutils.ccompiler
