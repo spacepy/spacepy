@@ -81,6 +81,11 @@ Deprecations and removals
 Since plot styles are no longer applied on import, importing
 ``spacepy.plot.apionly`` has no effect and is deprecated.
 
+The new pip-based install method does not support a separate ``build``
+step so `~spacepy_testing.add_build_to_path` is deprecated. Alternatives
+include using an :ref:`editable install <install_--editable>` or installing
+in a custom location using :ref:`\\\\\\-\\\\\\-prefix <install_--prefix>` and manually editing :envvar:`PYTHONPATH`.
+
 Major bugfixes
 **************
 :func:`~.datamodel.toCDF` handling of time types other than TT2000 has

@@ -6,6 +6,19 @@ Unit tests
 .. contents::
    :local:
 
+Unit tests are in the ``tests`` directory. Individual scripts can be
+run from this directory, or ``test_all.py`` will run all tests in all
+scripts.
+
+spacepy must be installed before running the tests. To avoid affecting an
+installed version while testing, use a separate :mod:`venv` or conda
+environment, or install in a custom location using
+:ref:`\\\\\\-\\\\\\-prefix <install_--prefix>` and manually edit
+:envvar:`PYTHONPATH`.
+
+Using an :ref:`editable install <install_--editable>` may be useful to save
+time with repeated installs while editing.
+
 The spacepy_testing module
 ==========================
 
@@ -14,20 +27,7 @@ The spacepy_testing module
 The ``spacepy_testing`` module contains utilities for assistance with
 testing SpacePy. It is not installed as part of SpacePy and is thus
 only importable from the unit test scripts themselves (which are in the
-same directory). All unit test scripts import this module, and should
-do so before importing any spacepy modules to ensure pathing is correct.
-
-On import, :func:`~spacepy_testing.add_build_to_path` is run so that
-the ``build`` directory is added to the Python search path. This means
-the tests run against the latest build, not the installed version. Remove
-the build directory to run against the installed version instead. The build
-directory does not completely separate out Python versions, so removing
-the build directory (and rebuilding) is recommended when switching Python
-versions.
-
-Build the package before running the tests::
-
-  python setup.py build
+same directory). All unit test scripts import this module.
 
 .. contents::
    :local:
