@@ -28,8 +28,13 @@ def add_build_to_path():
     module search path, so the unit tests can be run against the built
     instead of installed version.
 
-    This is run on import of this module.
+    .. deprecated:: 0.5.0
+        The new pip-based installation method does not support a separate
+        "build" step, so this function is no longer useful. When developing,
+        either install to a custom location and manually set the path, or
+        use an editable install.
     """
+    warnings.warn('add_build_to_path deprecated in 0.5.0', DeprecationWarning)
     # Prioritize version-specific path; py2 tends to be version-specific
     # and py3 tends to use just "lib". But only use first-matching.
     for pth in ('lib',  # Prepending, so add low-priority paths first.
@@ -202,6 +207,3 @@ class TestPlot(unittest.TestCase):
             matplotlib.pyplot.savefig(fname)
             matplotlib.pyplot.close()
         matplotlib.use(self.old_backend)
-
-
-add_build_to_path()
