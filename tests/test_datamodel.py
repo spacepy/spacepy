@@ -192,6 +192,8 @@ class SpaceDataTests(unittest.TestCase):
         output.close()
         expected = "+\n|____foo\n"
         self.assertEqual(result, expected)
+        result = a.tree(print_out=False)
+        self.assertEqual(result, expected)
 
     def test_fromRecArrayNames(self):
         '''given a known rec array, should get known keys in SpaceData'''
