@@ -892,14 +892,19 @@ class SpaceData(dict, MetaMixin, ISTPContainer):
 
         Other Parameters
         ----------------
-        verbose : boolean (optional)
+        verbose : bool, default False
             print more info
-        spaces : string (optional)
+        spaces : str (optional)
             string will added for every line
-        levels : integer (optional)
-            number of levels to recurse through (True means all)
-        attrs : boolean (optional)
+        levels : int (optional)
+            number of levels to recurse through (True, the default,  means all)
+        attrs : bool, default False
             display information for attributes
+        print_out : bool, default True
+
+                .. versionadded:: 0.5.0
+
+            Print output (original behavior); if ``False``, return the output.
 
         Examples
         --------
@@ -922,7 +927,7 @@ class SpaceData(dict, MetaMixin, ISTPContainer):
         toolbox.dictree
         '''
         from . import toolbox
-        toolbox.dictree(self, **kwargs)
+        return toolbox.dictree(self, **kwargs)
 
     def flatten(self):
         '''
