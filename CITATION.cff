@@ -8,6 +8,7 @@ message: >-
   and other relevant papers as described in the documentation
   of the features used.
 type: software
+url: https://spacepy.github.io
 authors:
   - given-names: Steven K.
     family-names: Morley
@@ -50,9 +51,50 @@ authors:
     family-names: Koller
   - given-names: Asher
     family-names: Merrill
+  - given-names: Lutz
+    family-names: Rastatter
   - given-names: Ashton
     family-names: Reimer
   - given-names: Albert Y.
     family-names: Shih
   - given-names: Amanda
     family-names: Stricklan
+references:
+, Austin, TX, June 28 - July 3 2010. 
+  - type: conference-paper
+    scope: Cite this paper for as a general reference for the package and its history.
+    year: 2011
+    title: "Spacepy - a python-based library of tools for the space sciences"
+    collection-title: "Proceedings of the 9th Python in science conference (SciPy 2010)"
+    authors:
+      - family-names: Morley
+        given-names: Steven K.
+      - family-names: Koller
+        given-names: Josef
+      - family-names: Welling
+        given-names: Daniel T.
+      - family-names: Larsen
+        given-names: Brian A.
+      - family-names: Henderson
+        given-names: Michael G.
+      - family-names: Niehof
+        given-names: Jonathan T.
+    start: 67
+    end: 72
+    doi: 10.25080/Majora-92bf1922-012
+  - type: article
+    scope: Cite this paper as a general reference, for package scop and specific details of datamodel and coordinates.
+    authors:
+      - family-names: Niehof
+        given-names: Jonathan T.
+      - family-names: Morley
+        given-names: Steven K.
+      - family-names: Welling
+        given-names: Daniel T.
+      - family-names: Larsen
+        given-names: Brian A.
+    title: "The SpacePy space science package at 12 years"
+    year: 2022
+    journal: Frontiers in Astronomy and Space Sciences
+    volume: 9
+    doi: 10.3389/fspas.2022.1023612
