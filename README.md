@@ -59,7 +59,21 @@ If you wish to use CDF files, download and install the NASA CDF library. The def
 
 When publishing research which used SpacePy, please provide appropriate credit to the SpacePy team via citation or acknowledgement.
 
-To cite SpacePy in publications, use (BibTeX code):
+To cite SpacePy in publications, please cite both the code (DOI: 10.5281/zenodo.3252523) and the papers describing the package (BibTeX code):
+
+```
+@article{niehof2022spacepy,
+  title={The SpacePy space science package at 12 years},
+  author={Niehof, Jonathan T and Morley, Steven K and Welling, Daniel T and Larsen, Brian A},
+  journal={Frontiers in Astronomy and Space Sciences},
+  volume={9},
+  year={2022},
+  doi={10.3389/fspas.2022.1023612},
+  publisher={Frontiers}
+}
+```
+
+and/or
 
 ```
 @INPROCEEDINGS{spacepy11,
@@ -71,6 +85,7 @@ address = {Austin, TX}
 }
 ```
 
+For additional information, see the [CITATION.cff](https://github.com/spacepy/spacepy/blob/main/CITATION.cff) file.
 Certain modules may provide additional citations in the ```__citation__``` attribute. Contact a module's author before publication or public presentation of analysis performed by that module. This allows the author to validate the analysis and receive appropriate credit for his or her work.
 
 For acknowledging SpacePy, please provide the URL to our github repository. [github.com/spacepy/spacepy](https://github.com/spacepy/spacepy)

@@ -31,6 +31,18 @@ When publishing research which used SpacePy, please provide appropriate
 credit to the SpacePy team via citation or acknowledgment.
 
 To cite SpacePy in publications, use (BibTeX code):
+    @article{niehof2022spacepy,
+    title={The SpacePy space science package at 12 years},
+    author={Niehof, Jonathan T and Morley, Steven K and Welling, Daniel T and Larsen, Brian A},
+    journal={Frontiers in Astronomy and Space Sciences},
+    volume={9},
+    year={2022},
+    doi={10.3389/fspas.2022.1023612},
+    publisher={Frontiers}
+    }
+
+and
+
     @INPROCEEDINGS{spacepy11,
     author = {{Morley}, S.~K. and {Koller}, J. and {Welling}, D.~T. and {Larsen}, B.~A. and {Henderson}, M.~G. and {Niehof}, J.~T.},
     title = "{Spacepy - A Python-based library of tools for the space sciences}",
@@ -39,15 +51,23 @@ To cite SpacePy in publications, use (BibTeX code):
     address = {Austin, TX}
     }
 
-Or to cite the code itself:
-    @software{SpacePy,
-    author       = {{Larsen}, B.~A. and {Morley}, S.~K. and {Niehof}, J.~T. and {Welling}, D.~T.},
+To cite the code itself:
+    @software{spacepy_code,
+    author       = {Morley, Steven K. and Niehof, Jonathan T. and
+                    Welling, Daniel T. and Larsen, Brian A. and
+                    Brunet, Antoine and Engel, Miles A. and
+                    Gieseler, Jan and Haiducek, John and
+                    Henderson, Michael and Hendry, Aaron and
+                    Hirsch, Michael and Killick, Peter and
+                    Koller, Josef and Merrill, Asher and
+                    Rastatter, Lutz and Reimer, Ashton and
+                    Shih, Albert Y. and Stricklan, Amanda},
     title        = {SpacePy},
     publisher    = {Zenodo},
     doi          = {10.5281/zenodo.3252523},
     url          = {https://doi.org/10.5281/zenodo.3252523}
     }
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                    }
 Certain modules may provide additional citations in the ``__citation__``
 attribute. Contact a module's author (details in the ``__citation__`` attribute) 
 before publication or public presentation of analysis performed by that 
