@@ -4,7 +4,7 @@ message: >-
   If you use this software, please cite it using the
   metadata from this file. Please also cite the papers
   by Morley et al. (2011; https://conference.scipy.org/proceedings/scipy2010/morley.html)
-  and Burrell et al. (2018;  doi:10.1029/2018JA025877)
+  and Niehof et al. (2022; https://doi.org/10.3389/fspas.2022.1023612)
   and other relevant papers as described in the documentation
   of the features used.
 type: software
