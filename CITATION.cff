@@ -60,9 +60,9 @@ authors:
   - given-names: Amanda
     family-names: Stricklan
 references:
-, Austin, TX, June 28 - July 3 2010. 
+, Austin, TX, June 28 - July 3 2010.
   - type: conference-paper
-    scope: Cite this paper for as a general reference for the package and its history.
+    scope: Cite this paper as a general reference for the package and its history.
     year: 2011
     title: "Spacepy - a python-based library of tools for the space sciences"
     collection-title: "Proceedings of the 9th Python in science conference (SciPy 2010)"
