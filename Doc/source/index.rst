@@ -41,37 +41,28 @@ To cite SpacePy in publications, use (BibTeX code):
     publisher={Frontiers}
     }
 
-and
-
-    @INPROCEEDINGS{spacepy11,
-    author = {{Morley}, S.~K. and {Koller}, J. and {Welling}, D.~T. and {Larsen}, B.~A. and {Henderson}, M.~G. and {Niehof}, J.~T.},
-    title = "{Spacepy - A Python-based library of tools for the space sciences}",
-    booktitle = "{Proceedings of the 9th Python in science conference (SciPy 2010)}",
-    year = 2011,
-    address = {Austin, TX}
-    }
-
 To cite the code itself:
     @software{spacepy_code,
     author       = {Morley, Steven K. and Niehof, Jonathan T. and
-                    Welling, Daniel T. and Larsen, Brian A. and
-                    Brunet, Antoine and Engel, Miles A. and
-                    Gieseler, Jan and Haiducek, John and
-                    Henderson, Michael and Hendry, Aaron and
-                    Hirsch, Michael and Killick, Peter and
-                    Koller, Josef and Merrill, Asher and
-                    Rastatter, Lutz and Reimer, Ashton and
-                    Shih, Albert Y. and Stricklan, Amanda},
+    Welling, Daniel T. and Larsen, Brian A. and
+    Brunet, Antoine and Engel, Miles A. and
+    Gieseler, Jan and Haiducek, John and
+    Henderson, Michael and Hendry, Aaron and
+    Hirsch, Michael and Killick, Peter and
+    Koller, Josef and Merrill, Asher and
+    Rastatter, Lutz and Reimer, Ashton and
+    Shih, Albert Y. and Stricklan, Amanda},
     title        = {SpacePy},
     publisher    = {Zenodo},
     doi          = {10.5281/zenodo.3252523},
     url          = {https://doi.org/10.5281/zenodo.3252523}
     }
-                                                                                                                                                                                                                                                                                                                                                                                                                                    }
+
+
 Certain modules may provide additional citations in the ``__citation__``
-attribute. Contact a module's author (details in the ``__citation__`` attribute) 
-before publication or public presentation of analysis performed by that 
-module, or in case of questions about the module. This allows the author to 
+attribute. Contact a module's author (details in the ``__citation__`` attribute)
+before publication or public presentation of analysis performed by that
+module, or in case of questions about the module. This allows the author to
 validate the analysis and receive appropriate credit for his or her
 work.
 
