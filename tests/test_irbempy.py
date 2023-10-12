@@ -300,6 +300,8 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
 class IRBEMShieldoseTests(unittest.TestCase):
 
+    maxDiff = None
+
     def setUp(self):
         super(IRBEMShieldoseTests, self).setUp()
         self.depths_mil = np.logspace(np.log10(4), np.log10(5000), 30)
@@ -407,6 +409,81 @@ class IRBEMShieldoseTests(unittest.TestCase):
         dtot = np.asarray(self.sd_default.results['dose_total'])
         np.testing.assert_array_almost_equal(dtot[1, :], expect_tot_500,
                                              decimal=15)
+
+    def test_str(self):
+        """Check string representation"""
+        self.sd_default.set_shielding(depths=self.depths_mil, units='Mil')
+        res = str(self.sd_default)
+        expected = """spacepy.irbempy.irbempy.Shieldose2
+|____settings
+     |____calc_flag (bool)
+     |____depths (spacepy.datamodel.dmarray (30,))
+         :|____UNITS (str [3])
+     |____depthunit (int)
+     |____energy_e (numpy.ndarray (30,))
+     |____energy_p_tr (numpy.ndarray (299,))
+     |____energy_p_un (numpy.ndarray (299,))
+     |____flux_e (numpy.ndarray (30,))
+     |____flux_p_tr (numpy.ndarray (299,))
+     |____flux_p_un (numpy.ndarray (299,))
+     |____tau (int)
+     |____unit_en (int)
+"""
+        self.assertEqual(expected, res)
+        self.sd_default.get_dose()
+        res = str(self.sd_default)
+        expected = """spacepy.irbempy.irbempy.Shieldose2
+|____settings
+     |____calc_flag (bool)
+     |____depths (spacepy.datamodel.dmarray (30,))
+         :|____UNITS (str [3])
+     |____depthunit (int)
+     |____detector (int)
+     |____detector_material (str [7])
+     |____emaxe (numpy.float64 ())
+     |____emaxptr (numpy.float64 ())
+     |____emaxpun (numpy.float64 ())
+     |____emine (numpy.float64 ())
+     |____eminptr (numpy.float64 ())
+     |____eminpun (numpy.float64 ())
+     |____energy_e (numpy.ndarray (30,))
+     |____energy_p_tr (numpy.ndarray (299,))
+     |____energy_p_un (numpy.ndarray (299,))
+     |____flux_e (numpy.ndarray (30,))
+     |____flux_p_tr (numpy.ndarray (299,))
+     |____flux_p_un (numpy.ndarray (299,))
+     |____jemax (int)
+     |____jpmax (int)
+     |____jsmax (int)
+     |____len_e (int)
+     |____len_p (int)
+     |____ndepth (int)
+     |____nucmeth (int)
+     |____tau (int)
+     |____unit_en (int)
+|____results
+     |____depths (spacepy.datamodel.dmarray (30,))
+     |____dose_bremsstrahlung (spacepy.datamodel.dmarray (30, 3))
+     |____dose_electron (spacepy.datamodel.dmarray (30, 3))
+     |____dose_proton_trapped (spacepy.datamodel.dmarray (30, 3))
+     |____dose_proton_untrapped (spacepy.datamodel.dmarray (30, 3))
+     |____dose_total (spacepy.datamodel.dmarray (30, 3))
+     |____fluence_electron (spacepy.datamodel.dmarray (30, 3))
+         :|____NOTES (str [48])
+"""
+        self.assertEqual(expected, res)
+
+    def test_repr(self):
+        """Check representation"""
+        self.sd_default.set_shielding(depths=self.depths_mil, units='Mil')
+        res = repr(self.sd_default)
+        expected = "<Shieldose2(Depths = 30; Dose not calculated)>"
+        self.assertEqual(expected, res)
+        self.sd_default.get_dose()
+        res = repr(self.sd_default)
+        expected = "<Shieldose2(Depths = 30; Dose calculated)>"
+        self.assertEqual(expected, res)
+
 
 # -----------------------------------------------------------------------
 
