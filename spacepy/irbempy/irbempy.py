@@ -1574,7 +1574,7 @@ class Shieldose2:
                                 ls=pls[gidx], label=ulab, **kwargs))
         elif 'brems' in source:
             # in case brems is given, but not 'e'
-            plotvar = plotvar + res['dose_bremsstrahlung']
+            plotvar = res['dose_bremsstrahlung']
             plab = 'Bremsstrahlung'
             for gidx, geometry in enumerate(geometries):
                 ulab = plab + '\n{}'.format(geometry)

@@ -298,7 +298,7 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         numpy.testing.assert_almost_equal(expected, actual)
 
 
-class IRBEMShieldoseTests(unittest.TestCase):
+class IRBEMShieldoseTests(spacepy_testing.TestPlot):
 
     maxDiff = None
 
@@ -395,6 +395,46 @@ class IRBEMShieldoseTests(unittest.TestCase):
         self.assertEqual('Dose [Silicon]', a1.get_ylabel())
         self.assertEqual('Depth [Mil]', a1.get_xlabel())
         self.assertIs(None, a1.get_legend())
+
+    def test_plot_brems(self):
+        """Check for expected outputs in bremsstrahlung-only dose plot"""
+        self.sd_default.get_dose()
+        res = self.sd_default.results
+        f, a, l = self.sd_default.plot_dose(source=['brems'])
+        self.assertEqual(3, len(l))
+        np.testing.assert_array_equal(l[0][0].get_xdata(),
+                                      res['depths'])
+        np.testing.assert_array_equal(l[0][0].get_ydata(),
+                                      res['dose_bremsstrahlung'][:, 0])
+        self.assertEqual('Dose [Silicon]', a.get_ylabel())
+        self.assertEqual('Depth [Mil]', a.get_xlabel())
+
+    def test_plot_p_un(self):
+        """Check for expected outputs in untrapped proton dose plot"""
+        self.sd_default.get_dose()
+        res = self.sd_default.results
+        f, a, l = self.sd_default.plot_dose(source=['p_un'])
+        self.assertEqual(3, len(l))
+        np.testing.assert_array_equal(l[0][0].get_xdata(),
+                                      res['depths'])
+        np.testing.assert_array_equal(l[0][0].get_ydata(),
+                                      res['dose_proton_untrapped'][:, 0])
+        leg = a.get_legend()
+        self.assertEqual(
+            [f"Protons (untrapped)\n{g}" for g in
+             ['Semi-Inf Slab', 'Finite Slab', 'Spherical']],
+            [t.get_text() for t in leg.texts])
+
+    def test_plot_tot(self):
+        """Check for expected outputs in total dose plot"""
+        self.sd_default.get_dose()
+        res = self.sd_default.results
+        f, a, l = self.sd_default.plot_dose(source=['tot'])
+        self.assertEqual(3, len(l))
+        np.testing.assert_array_equal(l[0][0].get_xdata(),
+                                      res['depths'])
+        np.testing.assert_array_equal(l[0][0].get_ydata(),
+                                      res['dose_total'][:, 0])
 
     def test_regression_si(self):
         """Check for expected numerical result"""
