@@ -484,6 +484,27 @@ class IRBEMShieldoseTests(unittest.TestCase):
         expected = "<Shieldose2(Depths = 30; Dose calculated)>"
         self.assertEqual(expected, res)
 
+    def test_bad_units(self):
+        """Pass invalid units"""
+        with self.assertRaises(ValueError) as cm:
+            self.sd_default.set_shielding(depths=self.depths_mil, units='junk')
+        expected = "Units must be one of mil, g/cm2, mm, not junk"
+        self.assertEqual(expected, str(cm.exception))
+
+    def test_reset_flux(self):
+        """Check representation"""
+        self.sd_default.set_shielding(depths=self.depths_mil, units='Mil')
+        self.assertFalse(self.sd_default.results)
+        self.assertFalse(self.sd_default.settings['calc_flag'])
+        self.sd_default.get_dose()
+        self.assertTrue(self.sd_default.results)
+        self.assertTrue(self.sd_default.settings['calc_flag'])
+        en_e = np.arange(10)
+        # Nonsense, but it's different nonsense
+        self.sd_default.set_flux(en_e ** 2, en_e, 'e')
+        self.assertFalse(self.sd_default.results)
+        self.assertFalse(self.sd_default.settings['calc_flag'])
+
 
 # -----------------------------------------------------------------------
 
