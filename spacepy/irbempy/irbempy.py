@@ -14,7 +14,6 @@ Josef Koller, Steve Morley
 Copyright 2010 Los Alamos National Security, LLC.
 """
 
-import io
 import numbers
 try:
     from collections.abc import Iterable
@@ -1323,19 +1322,13 @@ class Shieldose2:
         '''
         Display contents of container.
         '''
-        obstr = io.StringIO()
-        sys_stdout_save = sys.stdout
-        sys.stdout = obstr
+        kwargs = {'attrs': True, 'verbose': True,
+                  'spaces': '     ', 'print_out': False}
         typestr = str(type(self)).split("'")[1]
-        print(typestr)
-        print('|____settings')
-        self.settings.tree(attrs=True, verbose=True, spaces='     ')
-        if self.results:
-            print('|____results')
-            self.results.tree(attrs=True, verbose=True, spaces='     ')
-        sys.stdout = sys_stdout_save
-        obstr.seek(0)
-        return ''.join(obstr.readlines())
+        settings = "|____settings\n" + self.settings.tree(**kwargs)
+        results = "|____results\n"\
+            + self.results.tree(**kwargs) if self.results else ""
+        return f"""{typestr}\n{settings}{results}"""
 
     def set_shielding(self, depths=tb.logspace(4, 5000, 30),
                       units='Mil'):
