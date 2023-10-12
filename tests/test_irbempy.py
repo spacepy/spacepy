@@ -308,9 +308,6 @@ class IRBEMShieldoseTests(unittest.TestCase):
         self.depths_mm = self.depths_mil * 0.0254
         self.sd_default = ib.Shieldose2()
 
-    def tearDown(self):
-        super(IRBEMShieldoseTests, self).tearDown()
-
     def test_setshielding(self):
         """Setting shielding should appropriately update settings
         """
