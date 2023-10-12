@@ -48,7 +48,7 @@ jobs:
             cdf-munged-version: "38_1"
             dep-strategy: "newest"
           - python-version: "3.7"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython"
             numpy-version: ">=1.15.1,<1.16.0"
             piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
@@ -57,7 +57,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.7"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
@@ -66,7 +66,7 @@ jobs:
             cdf-munged-version: "38_1"
             dep-strategy: "newest"
           - python-version: "3.8"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython"
             numpy-version: ">=1.17.0,<1.18.0"
             piplist: "python-dateutil~=2.1.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
@@ -75,7 +75,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.8"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
@@ -84,7 +84,7 @@ jobs:
             cdf-munged-version: "38_1"
             dep-strategy: "newest"
           - python-version: "3.9"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0"
             numpy-version: ">=1.18.0,<1.19.0"
             piplist: "python-dateutil~=2.1.0 scipy>=1.5.0,<1.6.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1"
@@ -93,7 +93,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.9"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
@@ -102,7 +102,7 @@ jobs:
             cdf-munged-version: "38_1"
             dep-strategy: "newest"
           - python-version: "3.10"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython"
             numpy-version: ">=1.21.0,<1.22.0"
             piplist: "python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib~=3.1.0 h5py>=3.6,<3.7 astropy>=4.0,<4.1"
@@ -111,7 +111,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.10"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
@@ -160,7 +160,7 @@ jobs:
         python -m pip install --no-build-isolation ${BUILD_DEPS}
         pip install --no-build-isolation --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
-        if [ "$DEPSTRAT" = "old" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
+        if [ "$DEPSTRAT" = "oldest" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
             # scipy < 1.5 doesn't build on gcc 10+ without this argument
             FOPT="-fallow-argument-mismatch" pip install --no-build-isolation --log=install_log.txt ${NUMPY} ${PIPLIST}
         else
@@ -185,7 +185,7 @@ jobs:
 
   irbem-unicode:
     name: Check for Unicode in IRBEM source
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -211,7 +211,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.10"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
@@ -263,7 +263,7 @@ jobs:
         python -m pip install --no-build-isolation ${BUILD_DEPS}
         pip install --no-build-isolation --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
-        if [ "$DEPSTRAT" = "old" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
+        if [ "$DEPSTRAT" = "oldest" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
             # scipy < 1.5 doesn't build on gcc 10+ without this argument
             FOPT="-fallow-argument-mismatch" pip install --no-build-isolation ${NUMPY} ${PIPLIST}
         else
@@ -289,7 +289,7 @@ jobs:
   all-tests:
     name: All tests
     if: ${{ always() }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [test, irbem-unicode, docs]
     steps:
       - name: Check test matrix status
