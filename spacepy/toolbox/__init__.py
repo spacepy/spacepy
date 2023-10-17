@@ -197,7 +197,7 @@ def hypot(*args):
             # make sure everything is C-ready
             ans = lib.hypot_tb(
                 np.require(args[0], dtype=np.double, requirements='C'),
-                np.product(args[0].shape))
+                np.prod(args[0].shape))
             return ans
     ans = 0.0
     for arg in args:
