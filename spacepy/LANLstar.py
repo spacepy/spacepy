@@ -119,8 +119,8 @@ def _LANLcommon(indict, extmag, lmax=False):
                 hidden = 1.0/(1+np.exp(-(net['hhbias'].T + (hidden[:, np.newaxis]*net['hhweights']).sum(axis=0))))
             output = 1.0/(1+np.exp(-(net['hobias'] + (hidden*net['howeights'].T).sum())))
     
-            # apply linear output function to get L*
-            ls[modname][idx] = net['outweight']*output + net['outbias']
+            # apply linear output function to get L*, ls[modname] is known 1D
+            ls[modname][idx] = (net['outweight']*output + net['outbias']).item()
 
     return ls
 
