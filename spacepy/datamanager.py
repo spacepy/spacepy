@@ -666,17 +666,17 @@ def flatten_idx(idx, axis=-1):
         idx = idx.astype(int)
     preshape = idx.shape[:axis]
     postshape = idx.shape[axis:]
-    stride = int(numpy.product(postshape[1:])) #1 if applied to empty
+    stride = int(numpy.prod(postshape[1:])) #1 if applied to empty
     #The index on this axis moves stride elements in flat
     outidx = idx.flatten() * stride #makes a copy
     #First add the offsets to get us to [..., idx @ axis = 0, 0...)
     outidx += numpy.repeat(
-        numpy.arange(0, len(outidx), int(numpy.product(postshape)),
+        numpy.arange(0, len(outidx), int(numpy.prod(postshape)),
                      dtype=idx.dtype),
-        numpy.product(postshape))
+        numpy.prod(postshape))
     #Now offsets for non-zero on the trailing axes [0, 0, ... 0@axis, ...]
     outidx += numpy.tile(numpy.arange(0, stride, dtype=idx.dtype),
-                           int(numpy.product(preshape)) * idx.shape[axis])
+                           int(numpy.prod(preshape)) * idx.shape[axis])
     return outidx
 
 
