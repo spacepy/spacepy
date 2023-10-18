@@ -372,7 +372,7 @@ class coordsTest(unittest.TestCase):
         got = cc_km.convert('GEO', 'sph')
         expected_rad = (ctrans.WGS84['A'] + test_alt)/ctrans.WGS84['A']
         # same valued output in Re regardless of units of input
-        np.testing.assert_approx_equal(expected_rad, got.radi, significant=6)
+        np.testing.assert_approx_equal(expected_rad, got.radi[0], significant=6)
         self.assertEqual(got.units[0], 'Re')
 
     def test_GDZ_from_GEO_multi(self):
