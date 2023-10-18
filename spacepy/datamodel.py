@@ -530,7 +530,11 @@ class ISTPContainer(collections.abc.Mapping):
             zlabel = '{}{}({})'.format(
                 zlabel, ' ' if zlabel else '', v.attrs['UNITS'])
         zlabel = zlabel if zlabel else None
-        cmap = copy.copy(matplotlib.cm.get_cmap())
+        try:  # mpl >=3.7
+            cmap = matplotlib.colormaps.get_cmap(None)
+        except AttributeError:
+            cmap = matplotlib.cm.get_cmap()
+        cmap = copy.copy(cmap)
         if cmap(-1.)[:3] == cmap(0.)[:3]:  # Underflow to black if not specified
             cmap.set_under('k')
         # Fill to grey or white
