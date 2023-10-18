@@ -21,7 +21,9 @@ except ImportError:
     from collections import Iterable
 from collections import OrderedDict
 import os
+import pathlib
 import sys
+import tempfile
 import warnings
 
 import numpy as np
@@ -34,9 +36,33 @@ import spacepy.toolbox as tb
 
 # check whether TS07_DATA_PATH is set, if not then set to spacepy's installed data directory
 if 'TS07_DATA_PATH' not in os.environ:
-    import pkg_resources
-    dataTS07D = os.path.join('data', 'TS07D')
-    spdatapath = pkg_resources.resource_filename('spacepy', dataTS07D)
+    try:
+        import importlib.resources
+        newstyle = hasattr(importlib.resources, 'files')  # < 3.9
+    except ImportError:  # < 3.7
+        newstyle = False
+    if newstyle:
+        spdatapath = importlib.resources.files(spacepy).joinpath(
+            'data', 'TS07D')
+        if isinstance(spdatapath, pathlib.Path) and spdatapath.exists():
+            spdatapath = str(spdatapath)
+        else:
+            # as_file only works on 3.12
+            # https://discuss.python.org/t/importlib-resources-access-whole-directories-as-resources/15618/5
+            td = tempfile.mkdtemp()
+            warnings.warn(
+                f"Writing TS07 data to {td}; will not automatically clean.")
+            td = os.path.join(td, 'TAIL_PAR')
+            os.mkdir(td)
+            files = list(spdatapath.joinpath('TAIL_PAR').iterdir())
+            for f in files:
+                with open(os.path.join(td, f.name), 'wb') as o:
+                    o.write(f.read_bytes())
+            spdatapath = td
+    else:
+        import pkg_resources
+        dataTS07D = os.path.join('data', 'TS07D')
+        spdatapath = pkg_resources.resource_filename('spacepy', dataTS07D)
     os.environ['TS07_DATA_PATH'] = spdatapath  # set environment variable here
 
 
