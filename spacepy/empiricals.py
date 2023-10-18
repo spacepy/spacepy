@@ -563,11 +563,11 @@ def vampolaPA(omniflux, **kwargs):
         sinfunc_o = partial(sinfunc, order=tmporder+1)
         normfac[idx] = omniflux[idx]/(2*np.pi*integ.quad(sinfunc_o, 0, np.pi)[0])
     #now make the differential number flux
-    dnflux = np.zeros((len(kwargs['alpha']), len(omniflux))).squeeze()
+    dnflux = np.zeros((len(kwargs['alpha']), len(omniflux)))
     for i, a_val in enumerate(np.deg2rad(kwargs['alpha'])):
         dnflux[i] = normfac * sinfunc(a_val)
 
-    return dnflux, kwargs['alpha']
+    return dnflux.squeeze(), kwargs['alpha']
 
 
 def getVampolaOrder(L):
