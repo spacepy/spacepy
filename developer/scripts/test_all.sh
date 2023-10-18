@@ -27,6 +27,8 @@ TESTS=(
        "3.9|pip setuptools wheel|numpy>=1.21.0 cython|python-dateutil scipy matplotlib h5py astropy|new"
        "3.10|pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython|numpy>=1.21.0,<1.22.0|python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib~=3.1.0 h5py>=3.6,<3.7 astropy>=4.0,<4.1|old"
        "3.10|pip setuptools wheel cython|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy|new"
+       "3.11|pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0|numpy~=1.22.0|python-dateutil~=2.7.0 scipy==1.9.0 matplotlib~=3.1.0 h5py~=3.6.0 astropy~=5.0.0|old"
+       "3.11|pip setuptools wheel cython|numpy>=1.26.0|python-dateutil scipy matplotlib h5py astropy|new"
       )
 for thisTest in "${TESTS[@]}"
 do

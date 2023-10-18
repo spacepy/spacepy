@@ -34,7 +34,12 @@ principles:
        subminor releases (x.y.z for the same x.y). Where x.y.0 is supported,
        so is x.y.z for all z.
     #. All versions of all dependencies and all combinations thereof will
-       *not* necessarily be tested in continuous integration.
+       *not* necessarily be tested in continuous integration. In particular,
+       CI will only be run against versions of dependencies other than numpy
+       which have binary wheels available. Numpy may be tested with earlier
+       versions that do not conflict with other dependencies. For this reason,
+       the CI configuration is not a reasonable guide of the minimum supported
+       versoin.
 
  #. No support will be provided for conflicting versions of
     dependencies. E.g. SciPy 1.9 requires NumPy 1.18. Although SpacePy
