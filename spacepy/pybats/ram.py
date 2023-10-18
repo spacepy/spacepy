@@ -1392,7 +1392,10 @@ class PressureFile(PbData):
 
         '''
         from matplotlib.colors import LogNorm
-        from matplotlib.cm import get_cmap
+        try:
+            from matplotlib.colors import get_cmap
+        except ImportError:
+            from matplotlib.cm import get_cmap
         from matplotlib.pyplot import colorbar
         from matplotlib.ticker import LogLocator, LogFormatterMathtext
 
