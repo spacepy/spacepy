@@ -213,7 +213,7 @@ class Ae9Data(dm.SpaceData):
             ax3 = splot.plt.subplot2grid((2, 2), (0, 0), colspan=2)
             if not spec:
                 l3 = ax3.semilogy(t_use, f_use)
-                ylab = '{0} ['.format(self.attrs['varname']) + re.sub('(\^[\d|-]*)+', _grp2mathmode,
+                ylab = '{0} ['.format(self.attrs['varname']) + re.sub(r'(\^[\d|-]*)+', _grp2mathmode,
                                                                       self[self.attrs['varname']].attrs['UNITS']) + ']'
                 ax3.set_ylabel(ylab)
                 for ll, nn in zip(l3, self['Energy']):
@@ -324,7 +324,7 @@ class Ae9Data(dm.SpaceData):
             kwargs['zlim'] = [zmin, zmax]
         if 'colorbar_label' not in kwargs:
             flux_units = self[varname].attrs['UNITS']
-            kwargs['colorbar_label'] = '{0} ['.format(varname) + re.sub('(\^[\d|-]*)+', _grp2mathmode, flux_units) + ']'
+            kwargs['colorbar_label'] = '{0} ['.format(varname) + re.sub(r'(\^[\d|-]*)+', _grp2mathmode, flux_units) + ']'
         if 'ylabel' not in kwargs:
             kwargs['ylabel'] = 'L$_M$' + ' ' + '[{0}]'.format(self['Lm'].attrs['MODEL'])
         if 'title' not in kwargs:

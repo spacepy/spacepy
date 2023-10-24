@@ -101,7 +101,7 @@ class GitmBin(PbData):
             nTotal=self.attrs['nLon']*self.attrs['nLat']*self.attrs['nAlt']
             for val in var:
                 # Trim variable names.
-                v=sub('\[|\]', '', val).strip()
+                v=sub(r'\[|\]', '', val).strip()
                 self[v] = readarray(infile,floattype,inttype)
                 # Reshape arrays, note that ordering in file is Fortran-like.
                 self[v]=self[v].reshape( 

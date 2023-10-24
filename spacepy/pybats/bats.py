@@ -207,7 +207,7 @@ class BatsLog(LogFile):
         Create a quick-look plot of Dst (if variable present in file)
         and compare against observations.
 
-        Like all *add_\* * methods in Pybats, the *target* kwarg determines
+        Like all *add_\\* * methods in Pybats, the *target* kwarg determines
         where to place the plot.
         If kwarg *target* is **None** (default), a new figure is
         generated from scratch.  If *target* is a matplotlib Figure
@@ -900,7 +900,7 @@ class Bats2d(IdlFile):
     def calc_uperp(self):
         '''
         Calculate the magnitude of the velocity perpendicular to the
-        magnetic field: $\vec{U} \times \hat{b}$.  Result maintains units
+        magnetic field: $\\vec{U} \\times \\hat{b}$.  Result maintains units
         of velocity.
 
         Values are calculated for each fluid and stored as self['u_perp']
@@ -934,7 +934,7 @@ class Bats2d(IdlFile):
     @calc_wrapper
     def calc_upar(self):
         '''
-        Calculate $\vec{U} \cdot \vec{B}$ and store as 'upar' in *self*.
+        Calculate $\\vec{U} \\cdot \\vec{B}$ and store as 'upar' in *self*.
         Result maintains units of velocity.  Values are calculated for each
         fluid.
 
@@ -1092,7 +1092,7 @@ class Bats2d(IdlFile):
     def _calc_divmomen(self):
         '''
         Calculate the divergence of momentum, i.e.
-        $\rho(u \dot \nabla)u$.
+        $\\rho(u \\dot \\nabla)u$.
         This is currently exploratory.
         '''
 
@@ -1800,7 +1800,7 @@ class Bats2d(IdlFile):
         for both day- and night-sides.  This is done using a bisection
         approach to precisely locate the transition between open and closed
         geometries.  The method stops once this transition is found within
-        a latitudinal tolerance of *tol*, which defaults to $\pi/360.$, or
+        a latitudinal tolerance of *tol*, which defaults to $\\pi/360.$, or
         one-half degree.  The tracing *method* can be set via keyword and
         defaults to 'rk4' (4th order Runge Kutta, see
         :class:`~spacepy.pybats.bats.Stream` for more information).
@@ -2975,7 +2975,7 @@ class Mag(PbData):
 
     def _recalc(self):
         '''
-        Calculate total :math:`\Delta B` from GM and IE; store under object
+        Calculate total :math:`\\Delta B` from GM and IE; store under object
         keys *totaln*, *totale*, and *totald* (one for each component of the
         HEZ coordinate system).
 
@@ -3020,7 +3020,7 @@ class Mag(PbData):
         sum of the two horizontal components (north-south and east-west
         components):
 
-        $\Delta B_H = \sqrt{\Delta B_N^2 + \Delta B_E^2}$
+        $\\Delta B_H = \\sqrt{\\Delta B_N^2 + \\Delta B_E^2}$
         '''
 
         allvars = list(self.keys())
@@ -3040,7 +3040,7 @@ class Mag(PbData):
 
         |dB/dt|_h is also calculated following the convention of
         Pulkkinen et al, 2013:
-        $|dB/dt|_H = \sqrt{(\dB_N/dt)^2 + (dB_E/dt)^2}$
+        $|dB/dt|_H = \\sqrt{(\\dB_N/dt)^2 + (dB_E/dt)^2}$
 
         A 2nd-order accurate centeral difference method is used to
         calculate the time derivative.  For the first and last points,
@@ -3104,12 +3104,12 @@ class Mag(PbData):
         newly created line object.  These can be used to further customize
         the figure, axis, and line as necessary.
 
-        Example: Plot total :math:`\Delta B_N` onto an existing axis with line
+        Example: Plot total :math:`\\Delta B_N` onto an existing axis with line
         color blue, line style dashed, and line label "Wow!":
 
         >>> self.plot('dBn', target='ax', label='Wow!', lc='b', ls='--')
 
-        Example: Plot total :math:`\Delta B_N` on a new figure, save returned
+        Example: Plot total :math:`\\Delta B_N` on a new figure, save returned
         values and overplot additional values on the returned axis.  Default
         labels and line styles are used in this example.
 
@@ -3221,14 +3221,14 @@ class MagFile(PbData):
     operations.  :class:`~spacepy.pybats.bats.MagFile` objects open, parse,
     and visualize such output.
 
-    The $\delta B$ calculated by the SWMF requires two components: GM (BATSRUS)
+    The $\\delta B$ calculated by the SWMF requires two components: GM (BATSRUS)
     and IE (Ridley_serial).  The data is spread across two files: GM_mag*.dat
-    and IE_mag*.dat.  The former contains $\delta B$ caused by gap-region
+    and IE_mag*.dat.  The former contains $\\delta B$ caused by gap-region
     (i.e., inside the inner boundary) FACs and the changing global field.
-    The latter contains the $\delta B$ caused by Pederson and Hall
+    The latter contains the $\\delta B$ caused by Pederson and Hall
     currents in the ionosphere.  :class:`~spacepy.pybats.bats.MagFile` objects
     can open one or both of these files at a time; when both are opened, the
-    total $\delta B$ is calculated and made available to the user.
+    total $\\delta B$ is calculated and made available to the user.
 
     Usage:
 
@@ -3391,7 +3391,7 @@ class MagFile(PbData):
         Old magnetometer files had different variable names and did not
         contain the total perturbation.  This function updates variable names
         and sums all contributions from all models/regions to get total
-        :math:`\Delta B`.
+        :math:`\\Delta B`.
 
         This function is only required for legacy results.  New versions of
         the SWMF include both GM, IE, and total perturbations in a single
@@ -3406,7 +3406,7 @@ class MagFile(PbData):
         the perturbations using the pythagorean sum of the two horizontal
         components (north-south and east-west components):
 
-        $\Delta B_H = \sqrt{\Delta B_N^2 + \Delta B_E^2}$
+        $\\Delta B_H = \\sqrt{\\Delta B_N^2 + \\Delta B_E^2}$
         '''
         for k in self:
             if k == 'time' or k == 'iter':
@@ -3420,7 +3420,7 @@ class MagFile(PbData):
 
         |dB/dt|_h is also calculated following the convention of
         Pulkkinen et al, 2013:
-        $|dB/dt|_H = \sqrt{(\dB_N/dt)^2 + (dB_E/dt)^2}$
+        $|dB/dt|_H = \\sqrt{(\\dB_N/dt)^2 + (dB_E/dt)^2}$
         '''
         for k in self:
             if k == 'time' or k == 'iter':
@@ -3733,7 +3733,7 @@ class GeoIndexFile(LogFile):
         if not label:
             label = 'fa$K$e$_{P}$'
             if ('lat' in self.attrs) and ('k9' in self.attrs):
-                label += ' (Lat=%04.1f$^{\circ}$, K9=%03i)' % \
+                label += ' (Lat=%04.1f$^{\\circ}$, K9=%03i)' % \
                     (self.attrs['lat'], self.attrs['k9'])
 
         # Sometimes, the "Kp" varname is caps, sometimes not.
@@ -3905,7 +3905,7 @@ class VirtSat(LogFile):
     def calc_bmag(self):
         '''
         Calculates total magnetic field magnitude via:
-        $|B|=\sqrt{B_X^2+B_Y^2+B_Z^2}$.  Results stored as variable name *b*.
+        $|B|=\\sqrt{B_X^2+B_Y^2+B_Z^2}$.  Results stored as variable name *b*.
         '''
 
         if 'b' not in self:
@@ -3918,7 +3918,7 @@ class VirtSat(LogFile):
     def calc_magincl(self, units='deg'):
         '''
         Magnetic inclination angle (a.k.a. inclination angle) is defined:
-        $\Theta = sin^{-1}(B_Z/B)$.  It is a crucial value when examining
+        $\\Theta = sin^{-1}(B_Z/B)$.  It is a crucial value when examining
         magnetic dynamics about geosychronous orbit, the tail, and other
         locations.
 

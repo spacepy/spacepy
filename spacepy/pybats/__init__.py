@@ -206,9 +206,9 @@ def parse_filename_time(filename):
 
     # Look for date/time:
     if '_e' in filename:
-        subname = re.search('_e((\d{8}\-\d{6}(\-\d{3})?\_?)+)',
+        subname = re.search(r'_e((\d{8}\-\d{6}(\-\d{3})?\_?)+)',
                             filename).groups()[0]
-        t_string = re.findall('(\d{8}\-\d{6})', subname)
+        t_string = re.findall(r'(\d{8}\-\d{6})', subname)
         time = [parse(x) for x in t_string]
         if len(time) == 1:
             time = time[0]  # Reduce to scalar if necessary.
@@ -217,11 +217,11 @@ def parse_filename_time(filename):
 
     # Look for run time (can be time from start OR datetime):
     if '_t' in filename:
-        subname = re.search('_t((\d+\_?)+)', filename).groups()[0]
+        subname = re.search(r'_t((\d+\_?)+)', filename).groups()[0]
         # Need to check if we're "old style" timestamps which is time (s) from
         # start of simultion or new style which are date/time strings.  Look
         # at number of digits to tell difference.
-        groups = re.findall('\d+', subname)
+        groups = re.findall(r'\d+', subname)
         if len(groups[0]) == 14:
             time = [parse(x) for x in groups]
             if len(time) == 1:
@@ -237,8 +237,8 @@ def parse_filename_time(filename):
 
     # Look for file iteration:
     if '_n' in filename:
-        subname = re.search('_n((\d+\_?)+)', filename).groups()[0]
-        i_iter = [int(x) for x in re.findall('\d+', subname)]
+        subname = re.search(r'_n((\d+\_?)+)', filename).groups()[0]
+        i_iter = [int(x) for x in re.findall(r'\d+', subname)]
         # Reduce to scalar if necessary.
         if len(i_iter) == 1:
             i_iter = i_iter[0]
@@ -296,11 +296,11 @@ def parse_tecvars(line):
         raise ValueError('Input line is not a TecPlot VARIABLES line.')
 
     # Strip out "VARIABLES = "
-    line = re.sub('(^\s*VARIABLES\s*\=\s*)|(")', '', line)
+    line = re.sub(r'(^\s*VARIABLES\s*\=\s*)|(")', '', line)
 
     # break into individual vars using commas.
     for s in line.split(','):
-        m = re.match('\s*(\w+)\s*(\[(.*)\])*\s*', s)
+        m = re.match(r'\s*(\w+)\s*(\[(.*)\])*\s*', s)
         ret.append((m.group(1).lower(), m.group(3)))
 
     return ret
@@ -1714,7 +1714,7 @@ class ImfInput(PbData):
     '''
     A class to read, write, manipulate, and visualize solar wind upstream
     input files for SWMF simulations.  More about such files can be found
-    in the SWMF/BATS-R-US documentation for the \#SOLARWINDFILE command.
+    in the SWMF/BATS-R-US documentation for the \\#SOLARWINDFILE command.
 
     Creating an :class:`ImfInput` object is simple:
 

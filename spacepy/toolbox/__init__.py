@@ -484,7 +484,7 @@ def savepickle(fln, dict, compress=None):
 def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
     """
     assembles all pickled files matching fln_pattern into single file and
-    save as outfln. Pattern may contain simple shell-style wildcards \*? a la fnmatch
+    save as outfln. Pattern may contain simple shell-style wildcards \\*? a la fnmatch
     file will be assembled along time axis given by Ticktock (key: 'ticks') in dictionary
     If sortkey = None, then nothing will be sorted
 

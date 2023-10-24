@@ -682,7 +682,7 @@ class RamSat(PbData):
 
         # Build format string.
         fmtstring = \
-            '%02d:%02d UT\n%02d:%02d MLT\n%5.1f$^{\circ}$ MLat\nR=%4.2f $R_{E}$'\
+            '%02d:%02d UT\n%02d:%02d MLT\n%5.1f$^{\\circ}$ MLat\nR=%4.2f $R_{E}$'\
             % (nowtime.hour, nowtime.minute, locHr, locMn, Mlat, R)
 
         return (fmtstring)
@@ -1053,7 +1053,7 @@ class BoundaryGroup(PbData):
         self['nAll'] = dm.dmarray(self['RhoH'] + self[namevar[2]] + self['RhoO'],
                                   attrs={'units': 'cm-3'})
         self['ratO'] = dm.dmarray(100.0*self['RhoO']/self['nAll'],
-                                  attrs={'units': '\%'})
+                                  attrs={'units': r'\%'})
 
         if rotate:
             for val in list(self.keys()):
@@ -1451,7 +1451,7 @@ class BoundaryFluxFile(object):
         self.rtime = float(parts[-1])
 
         # Try to get run time, species from filename.
-        match = search('ds(\w{2})\_d(\d{4})(\d{2})(\d{2})\_t(\d{2})(\d{2})(\d{2})',
+        match = search(r'ds(\w{2})\_d(\d{4})(\d{2})(\d{2})\_t(\d{2})(\d{2})(\d{2})',
                        self.filename)
         if match:
             # New filename format! Huzzah!
