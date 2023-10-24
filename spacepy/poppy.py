@@ -420,7 +420,7 @@ class PPro(object):
                 plt.ylabel(
                     'Normalized Association Number n(u, h={0}) / n({1}, h={0})'.format(
                     self.winhalf,
-                    '$\mathrm{u\rightarrow\infty}$'
+                    r'$\mathrm{u\rightarrow\infty}$'
                     if plt.rcParams['text.usetex'] else 'u->Inf'))
             else:
                 plt.ylabel('Association Number n(u, h={0})'.format(

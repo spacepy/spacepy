@@ -70,10 +70,10 @@ and outside these limits invalid (NaN) values will be returned.
     - OPDYN   : Olson & Pfitzer dynamic [1988] (uses 5.<=dens<=50., 300.<=velo<=500.,
         -100.<=Dst<=20. - Valid for rGEO<=60. Re)
     - T96	 : Tsyganenko [1996] (uses -100.<=Dst (nT)<=20., 0.5<=Pdyn (nPa)<10.,
-        \|ByIMF\| (nT)<=10., \|BzIMF\| (nT)<=10. - Valid for rGEO<=40. Re)
+        \\|ByIMF\\| (nT)<=10., \\|BzIMF\\| (nT)<=10. - Valid for rGEO<=40. Re)
     - OSTA	: Ostapenko & Maltsev [1997] (uses dst,Pdyn,BzIMF, Kp)
         T01QUIET: Tsyganenko [2002a,b] (uses -50.<Dst (nT)<20., 0.5<Pdyn (nPa)<=5.,
-        \|ByIMF\| (nT)<=5., \|BzIMF\| (nT)<=5., 0.<=G1<=10., 0.<=G2<=10. - Valid for xGSM>=-15. Re)
+        \\|ByIMF\\| (nT)<=5., \\|BzIMF\\| (nT)<=5., 0.<=G1<=10., 0.<=G2<=10. - Valid for xGSM>=-15. Re)
     - T01STORM: Tsyganenko, Singer & Kasper [2003] storm  (uses Dst, Pdyn, ByIMF, BzIMF, G2, G3 -
         there is no upper or lower limit for those inputs - Valid for xGSM>=-15. Re)
     - T05	 : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF,

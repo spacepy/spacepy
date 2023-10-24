@@ -735,7 +735,7 @@ def getSolarProtonSpectra(norm=3.20e7, gamma=-0.96, E0=15.0, Emin=.1, Emax=600, 
 
     The formulation follows that of:
     Ellison and Ramaty ApJ 298: 400-408, 1985
-    dJ/dE = K^{-\gamma}exp(-E/E0)
+    dJ/dE = K^{-\\gamma}exp(-E/E0)
     
     and the defualt values are the 10/16/2003 SEP event of:
     Mewaldt, R. A., et al. (2005), J. Geophys. Res., 110, A09S18, doi:10.1029/2005JA011038.

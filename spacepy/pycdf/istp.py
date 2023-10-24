@@ -860,7 +860,7 @@ class FileChecks(object):
         fname = os.path.basename(f.pathname)
         if not bytes is str:
             fname = fname.decode('ascii')
-        m = re.search('\d{8}', fname)
+        m = re.search(r'\d{8}', fname)
         if not m:
             return ['Cannot parse date from filename {}'.format(fname)]
         datestr = m.group(0)

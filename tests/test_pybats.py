@@ -1081,7 +1081,7 @@ class RamTests(unittest.TestCase):
         data = ram.RamSat(self.testfile)
         tst_time = matplotlib.dates.date2num(dt.datetime(2012, 10, 29, 0, 2))
         fmtstr = data._orbit_formatter(tst_time, None)
-        expected = '00:02 UT\n04:35 MLT\n-13.4$^{\circ}$ MLat\nR=5.05 $R_{E}$'
+        expected = '00:02 UT\n04:35 MLT\n-13.4$^{\\circ}$ MLat\nR=5.05 $R_{E}$'
         self.assertEqual(expected, fmtstr)
 
     def test_PressureFile_load(self):

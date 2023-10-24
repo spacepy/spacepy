@@ -1318,7 +1318,7 @@ def download_library():
     url.close()
     p = LinkParser()
     p.feed(listing)
-    cdfdist = [l for l in p.links_found if re.match('^cdf3\d_\d(?:_\d)?/$', l)]
+    cdfdist = [l for l in p.links_found if re.match(r'^cdf3\d_\d(?:_\d)?/$', l)]
     if not cdfdist:
         raise RuntimeError(
             "Couldn't find CDF distribution directory to download")
