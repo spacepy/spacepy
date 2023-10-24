@@ -1791,7 +1791,10 @@ class Ticktock(MutableSequence):
         """
         warnings.warn('now() returns UTC time as of 0.2.2.',
                       DeprecationWarning)
-        dt = datetime.datetime.utcnow()
+        try:
+            dt = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+        except AttributeError:
+            dt = datetime.datetime.utcnow()
         return Ticktock(dt, 'UTC')
 
     # -----------------------------------------------
@@ -1820,7 +1823,10 @@ class Ticktock(MutableSequence):
         """
         warnings.warn('today() returns UTC day as of 0.2.2.',
                       DeprecationWarning)
-        dt = datetime.datetime.utcnow()
+        try:
+            dt = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+        except AttributeError:
+            dt = datetime.datetime.utcnow()
         dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
         return Ticktock(dt, 'UTC')
 
@@ -2360,9 +2366,13 @@ def _read_leaps(oldstyle=False):
     # Check for out of date. The leap second bulletin comes every
     # six months, and that contains information through the following
     # leap second (end of June/Dec)
+    try:
+        utcnow = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+    except AttributeError:
+        utcnow = datetime.datetime.utcnow()
     if mtime is not None and spacepy.config['enable_old_data_warning'] \
        and not _leapsgood(
-           datetime.datetime.utcnow(), mtime,
+           utcnow, mtime,
            datetime.datetime(int(year[-1]), int(mon[-1]), int(day[-1]))):
             warnings.warn('Leapseconds may be out of date.'
                           ' Use spacepy.toolbox.update(leapsecs=True)')
