@@ -17,6 +17,7 @@ start /wait "" "%USERPROFILE%\Downloads\Miniconda3-latest-Windows-x86_64.exe" /I
 :: base environment needs to be activated
 CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate"
 CALL conda update -y conda
+CALL conda create -y -n py312_64 python=3.12
 CALL conda create -y -n py311_64 python=3.11
 CALL conda create -y -n py310_64 python=3.10
 CALL conda create -y -n py39_64 python=3.9
@@ -47,6 +48,9 @@ IF "%ACTION%"=="BUILD" (
     CALL conda install -y m2w64-gcc-fortran libpython
     set NUMPY="numpy"
     :: Build with the minimum version for each Python version
+    IF "%2"=="312" (
+        set NUMPY="numpy~=1.24.0"
+    )
     IF "%2"=="311" (
         set NUMPY="numpy~=1.22.0"
     )
