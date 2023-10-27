@@ -137,6 +137,24 @@ jobs:
             cdf-version: "3.8.1"
             cdf-munged-version: "38_1"
             dep-strategy: "newest"
+          - python-version: "3.12"
+            os: ubuntu-22.04
+            build-deps: "pip~=23.1.0 setuptools~=66.1.0 wheel~=0.34.2 cython<3.0"
+            numpy-version: "~=1.24.0"
+            piplist: "python-dateutil~=2.7.0 scipy~=1.11.0 matplotlib~=3.5.0 h5py~=3.10.0 astropy~=5.3.0"
+            cflags: "-Wno-error=format-security"
+            cdf-version: "3.5.1"
+            cdf-munged-version: "35_1"
+            dep-strategy: "oldest"
+          - python-version: "3.12"
+            os: ubuntu-22.04
+            build-deps: "pip setuptools wheel cython"
+            numpy-version: "<1.26.0"
+            piplist: "python-dateutil scipy matplotlib h5py astropy"
+            cflags: ""
+            cdf-version: "3.8.1"
+            cdf-munged-version: "38_1"
+            dep-strategy: "newest"
     steps:
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -180,9 +198,9 @@ jobs:
         # Make sure new packages don't override numpy version
         if [ "$DEPSTRAT" = "oldest" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
             # scipy < 1.5 doesn't build on gcc 10+ without this argument
-            FOPT="-fallow-argument-mismatch" pip install --no-build-isolation --log=install_log.txt ${NUMPY} ${PIPLIST}
+            FOPT="-fallow-argument-mismatch" pip install --no-build-isolation --log=install_log.txt numpy${NUMPY_VERSION} ${PIPLIST}
         else
-            pip install --no-build-isolation ${NUMPY} ${PIPLIST}
+            pip install --no-build-isolation numpy${NUMPY_VERSION} ${PIPLIST}
         fi
         pip freeze --all
         if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd cdf${CDF_VER}-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
@@ -228,10 +246,10 @@ jobs:
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
-          - python-version: "3.11"
+          - python-version: "3.12"
             os: ubuntu-22.04
             build-deps: "pip setuptools wheel cython"
-            numpy-version: ">=1.26.0"
+            numpy-version: "<1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
             cflags: ""
             cdf-version: "3.8.1"
@@ -283,9 +301,9 @@ jobs:
         # Make sure new packages don't override numpy version
         if [ "$DEPSTRAT" = "oldest" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
             # scipy < 1.5 doesn't build on gcc 10+ without this argument
-            FOPT="-fallow-argument-mismatch" pip install --no-build-isolation ${NUMPY} ${PIPLIST}
+            FOPT="-fallow-argument-mismatch" pip install --no-build-isolation numpy${NUMPY_VERSION} ${PIPLIST}
         else
-            pip install --no-build-isolation ${NUMPY} ${PIPLIST}
+            pip install --no-build-isolation numpy${NUMPY_VERSION} ${PIPLIST}
         fi
         pip freeze --all
         if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd cdf${CDF_VER}-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi

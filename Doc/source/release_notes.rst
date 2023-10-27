@@ -16,6 +16,15 @@ This release marks the end of all support for Python 2. SpacePy now
 requires Python 3.6 or later. Minimum supported versions for other
 dependencies were also increased; see :ref:`release_0_5_0_deps` for details.
 
+Due to changes in f2py, SpacePy 0.5.0 will not build on Python 3.12
+with numpy 1.26 or later. It will, however, run fine. The SpacePy team
+provides binary wheels for Mac and Windows. Linux users who wish to
+use Python 3.12 should first install numpy (which will likely be built
+from source)::
+
+  pip install --no-build-isolation "numpy<1.26"
+  pip install --no-build-isolation spacepy
+
 .. _release_0_5_0_deps:
 
 Dependency requirements
