@@ -873,7 +873,7 @@ class Ticktock(MutableSequence):
                 raise (ValueError('Not a valid option: Use {0}'.format(list(Ticktock._isoformatstr.keys()))))
 
     # -----------------------------------------------
-    def update_items(self, attrib, cls=None):
+    def update_items(self, attrib):
         """
         a.update_items(attrib)
 
@@ -886,14 +886,6 @@ class Ticktock(MutableSequence):
         attrib : str
             attribute that was updated; update others from this
 
-        Other Parameters
-        ================
-        cls : type
-            .. deprecated:: 0.2.2
-                Class is now taken from the ``self`` of the bound instance.
-
-            Class to use for finding possible attributes; now ignored.
-
         See Also
         ========
         spacepy.Ticktock.__setitem__
@@ -901,15 +893,6 @@ class Ticktock(MutableSequence):
         spacepy.Ticktock.__sub__
         """
         keylist = dir(self)
-        # Formerly took arguments (cls, attrib) but there's nothing from
-        # the class we can't get from the instance, so removed cls.
-        # If we got two position arguments, though, that indicates the cls
-        if cls is not None:
-            attrib = cls
-            warnings.warn(
-                'cls argument of update_items was deprecated in 0.2.2'
-                ' and will be ignored.',
-                DeprecationWarning)
         keylist.remove('data')
         if attrib != 'data':
             keylist.remove(attrib)
@@ -1789,8 +1772,6 @@ class Ticktock(MutableSequence):
         datetime.datetime.now, datetime.datetime.utcnow
 
         """
-        warnings.warn('now() returns UTC time as of 0.2.2.',
-                      DeprecationWarning)
         try:
             dt = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
         except AttributeError:
