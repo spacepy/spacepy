@@ -109,6 +109,11 @@ In `~spacepy.time`, the ``cls`` argument of
 `~spacepy.time.Ticktock.update_items` has been removed (deprecated in 0.2.2).
 The end-user normally does not call this function.
 
+In `~spacepy.pybats.bats`, removed ``add_b_magsphere_legacy`` and
+``add_b_magsphere_new``, which were deprecated in 0.2.0. Use
+:meth:`~spacepy.pybats.bats.Bats2d.add_b_magsphere` (which is the same as
+``add_b_magsphere_new``).
+
 Major bugfixes
 **************
 :func:`~.datamodel.toCDF` handling of time types other than TT2000 has
