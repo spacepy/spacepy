@@ -1316,7 +1316,7 @@ class VarBundleCDFInCDFOut(VarBundleChecksBase):
         sigma[sigma < 0] = numpy.nan
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                'ignore', r'invalid value encountered in (?:true_)divide$',
+                'ignore', r'^invalid value encountered in (true_)?divide$',
                 RuntimeWarning)
             expected = numpy.sqrt(numpy.nansum(sigma ** 2, axis=2)) \
                         / (~numpy.isnan(sigma)).sum(axis=2)
