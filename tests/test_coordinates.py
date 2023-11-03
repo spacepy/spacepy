@@ -3,7 +3,6 @@ import copy
 import glob
 import os
 import unittest
-import warnings
 from numpy import array
 import numpy as np
 from spacepy import ctrans
@@ -483,11 +482,7 @@ class coordsTestIrbem(unittest.TestCase):
                                           unit='Mm', frame='itrs',
                                           obstime=['2001-02-03T04:00:00', '2005-06-07T08:00:00'])
 
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'No coordinate backend',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            coords = spc.Coords.from_skycoord(sc)
+        coords = spc.Coords.from_skycoord(sc)
 
         # Check that the data was loaded correctly
         sc_data = sc.cartesian.xyz.to('m').value.T
@@ -503,11 +498,7 @@ class coordsTestIrbem(unittest.TestCase):
                                           obstime=['2001-02-03T04:00:00', '2005-06-07T08:00:00'])
 
         # Convert to a frame other than GEO before calling from_skycoord()
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'No coordinate backend',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            coords = spc.Coords.from_skycoord(sc.gcrs)
+        coords = spc.Coords.from_skycoord(sc.gcrs)
 
         # Check that the data was loaded correctly
         sc_data = sc.cartesian.xyz.to('m').value.T

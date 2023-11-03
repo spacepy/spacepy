@@ -338,11 +338,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
         results['Bmirr'][i] = bmirr
         results['loci'][i] = GEOcoord
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                category=DeprecationWarning,
-                                module=r'spacepy.coordinates$')
-        results['loci'] = spc.Coords(results['loci'], 'GEO', 'car', use_irbem=True)
+    results['loci'] = spc.Coords(results['loci'], 'GEO', 'car', use_irbem=True)
 
     return results
 
@@ -413,11 +409,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omn
         results['Bmin'][i] = bmin
         results['loci'][i] = GEOcoord
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                category=DeprecationWarning,
-                                module=r'spacepy.coordinates$')
-        results['loci'] = spc.Coords(results['loci'], 'GEO', 'car', use_irbem=True)
+    results['loci'] = spc.Coords(results['loci'], 'GEO', 'car', use_irbem=True)
 
     return results
 
@@ -943,11 +935,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
         pa0 = 90  # start with equatorially mirroring
         # Now get K for initial alpha at this location...
         if np.isfinite(GEOcoord[0]):
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                        category=DeprecationWarning,
-                                        module=r'spacepy.coordinates$')
-                pos1 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
+            pos1 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
             LS1 = get_Lstar(ticks[i], pos1, pa0, extMag=extMag, options=options, omnivals=omnivals)
             if np.isnan(LS1['Xj']).any():
                 return np.NaN
@@ -1079,11 +1067,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
         results['Bfootvec'][i] = bfoot
 
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                category=DeprecationWarning,
-                                module=r'spacepy.coordinates$')
-        results['loci'] = spc.Coords(results['loci'], 'GDZ', 'sph', use_irbem=True)
+    results['loci'] = spc.Coords(results['loci'], 'GDZ', 'sph', use_irbem=True)
     results.attrs
     return results
 
@@ -2157,11 +2141,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
         # Convert car -> sph or vice versa as required
         newcarsph = [key for (key, val) in spc.SYSAXES_TYPES[loci.dtype].items()
                      if val is not None][0]
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            posi = loci.convert(loci.dtype, newcarsph)
+        posi = loci.convert(loci.dtype, newcarsph)
     else:
         posi = loci
     d['sysaxes'] = posi.sysaxes

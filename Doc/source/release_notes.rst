@@ -101,6 +101,10 @@ step so `~spacepy_testing.add_build_to_path` is deprecated. Alternatives
 include using an :ref:`editable install <install_--editable>` or installing
 in a custom location using :ref:`\\\\\\-\\\\\\-prefix <install_--prefix>` and manually editing :envvar:`PYTHONPATH`.
 
+:mod:`~spacepy.coordinates` no longer warns if a backend (irbem or
+SpacePy) is not specified. The default backend is SpacePy, as it has
+been since 0.4.0.
+
 Major bugfixes
 **************
 :func:`~.datamodel.toCDF` handling of time types other than TT2000 has

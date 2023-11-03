@@ -8,7 +8,6 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 
 import unittest
 import spacepy_testing
-import warnings
 import spacepy
 import spacepy.omni
 import spacepy.time
@@ -28,11 +27,7 @@ class IRBEMBigTests(unittest.TestCase):
 
     def setUp(self):
         self.ticks = spacepy.time.Ticktock(['2001-02-02T12:00:00', '2001-02-02T12:10:00'], 'ISO')
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
+        self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
         self.omnivals = spacepy.omni.get_omni(self.ticks, dbase='Test')
 
     def test_prep_irbem(self):
@@ -210,27 +205,19 @@ class IRBEMBigTests(unittest.TestCase):
     def test_AlphaOfK(self):
         '''test calculation of eq. pitch angle from K (regression)'''
         t = spacepy.time.Ticktock(['2001-09-01T04:00:00'], 'ISO')
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            loci = spacepy.coordinates.Coords([-4,0,0], 'GSM', 'car', use_irbem=True)
+        loci = spacepy.coordinates.Coords([-4,0,0], 'GSM', 'car', use_irbem=True)
         ans = spacepy.irbempy.AlphaOfK(t, loci, 0.11, extMag='T89', omnivals=self.omnivals)
         numpy.testing.assert_almost_equal(ans, 50.625, decimal=5)
 
     def test_find_footpoint(self):
         '''test computation of field line footpoint location/magnitude (regression)'''
         expected = {'Bfoot': numpy.array([ 47626.93407,  47625.97051])}
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            expected['loci'] = spacepy.coordinates.Coords([[ 99.28759,  56.14644, -10.29427],
+        expected['loci'] = spacepy.coordinates.Coords([[ 99.28759,  56.14644, -10.29427],
                                                            [ 99.33375,  56.14603, -10.29737]],
                                                            dtype='GDZ', carsph='sph',
                                                            units=['km', 'deg', 'deg'],
                                                            use_irbem=True)
-            y = spacepy.coordinates.Coords([[3,0,0],[3,0,0]], 'GEO', 'car', use_irbem=True)
+        y = spacepy.coordinates.Coords([[3,0,0],[3,0,0]], 'GEO', 'car', use_irbem=True)
         ans = spacepy.irbempy.find_footpoint(self.ticks, y, omnivals=self.omnivals)
         numpy.testing.assert_almost_equal(expected['Bfoot'], ans['Bfoot'], decimal=5)
         numpy.testing.assert_almost_equal(expected['loci'].data, ans['loci'].data, decimal=5)
@@ -240,11 +227,7 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
     def setUp(self):
         self.ticks = spacepy.time.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
+        self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
 
     def test_get_dtype(self):
         sysaxes = 3
@@ -253,20 +236,12 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
     def test_prep_irbem_sysaxesnone(self):
         """prep_irbem should handle 'car' and 'sph' version of systems identically"""
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            locc = spacepy.coordinates.Coords([[3, 0, 0], [2, 0, 0]],
-                                              'GSM', 'car', use_irbem=True)
+        locc = spacepy.coordinates.Coords([[3, 0, 0], [2, 0, 0]],
+                                          'GSM', 'car', use_irbem=True)
         out1 = ib.prep_irbem(ticks=self.ticks, loci=locc,
                              extMag='0', options=[1, 0, 0, 0, 1])
         pos = spacepy.coordinates.car2sph(locc.data)
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            locs = spacepy.coordinates.Coords(pos, 'GSM', 'sph', use_irbem=True)
+        locs = spacepy.coordinates.Coords(pos, 'GSM', 'sph', use_irbem=True)
         out2 = ib.prep_irbem(ticks=self.ticks, loci=locs,
                              extMag='0', options=[1, 0, 0, 0, 1])
         self.assertEqual(out1['sysaxes'], out2['sysaxes'])
