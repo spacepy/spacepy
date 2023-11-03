@@ -152,19 +152,11 @@ Contact: smorley@lanl.gov,
 Copyright 2010 Los Alamos National Security, LLC.
 
 """
-from __future__ import absolute_import
 
 import bisect
-try:
-    from collections.abc import Callable, MutableSequence
-except ImportError:
-    from collections import Callable, MutableSequence
+from collections.abc import Callable, MutableSequence
 import datetime
 
-try:
-    from itertools import izip as zip
-except ImportError:
-    pass  # just use system zip. In python3 itertools.izip is just python zip
 import os.path
 import re
 import time
@@ -377,8 +369,6 @@ class Ticktock(MutableSequence):
 
             if not isinstance(dtype, Callable):
                 if isinstance(self.data[0], (str, bytes)):
-                    dtype = 'ISO'
-                elif str is bytes and isinstance(self.data[0], unicode): #Py2k
                     dtype = 'ISO'
                 elif isinstance(self.data[0], datetime.datetime):
                     dtype = 'UTC'
@@ -1970,8 +1960,7 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
     """
     indtstr = dtstr
     # Will be editing this, so force it to own its data (but keep copy!)
-    dtstr = np.require(indtstr, dtype='S' if str is bytes else 'U',
-                       requirements='O')
+    dtstr = np.require(indtstr, dtype='U', requirements='O')
     dtstr = dtstr.copy() if dtstr is indtstr else dtstr
     # Replace leapsecond with a valid "59"
     # Indices of every place that might be leap second
@@ -2019,13 +2008,7 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
             continue
     else:
         UTC = np.frompyfunc(dup.parse, 1, 1)(dtstr)
-    otypes = ['S' if str is bytes else 'U']
-    try:
-        isostr = np.vectorize(lambda x: x.strftime(fmt), otypes=otypes)(UTC)
-    except ValueError: # Python before 3.3 fails on strftime before 1900.
-        isostr = np.vectorize(
-            lambda x: x.replace(year=1900).strftime(fmt.replace(
-                '%Y', str(x.year))), otypes=otypes)(UTC)
+    isostr = np.vectorize(lambda x: x.strftime(fmt), otypes=['U'])(UTC)
     # Check that leap seconds are actually valid
     if len(leapidx):
         # Day that ends in leap second *entry* (may not be leap second)

@@ -71,10 +71,7 @@ several submodules listed below
     utils
 
 """
-try:
-    from collections.abc import Mapping
-except ImportError:
-    from collections import Mapping
+from collections.abc import Mapping
 import os
 import warnings
 import numpy as np

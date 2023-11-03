@@ -7,23 +7,17 @@ Test suite for toolbox
 Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
+import builtins
 import time, datetime
 import glob, os, sys
+import io
 import shutil
 import random
 import re
 import tempfile
-try:
-    import StringIO
-except:
-    import io as StringIO
 import unittest
 import warnings
 from contextlib import contextmanager
-try:
-    import __builtin__ as builtins #python 2.x
-except ImportError:
-    import builtins #python 3.x
 
 import numpy
 from numpy import array
@@ -35,28 +29,15 @@ import spacepy
 import spacepy.toolbox as tb
 import spacepy.lib
 
-#Py3k compatibility renamings
-try:
-    xrange
-except NameError:
-    xrange = range
-
 __all__ = ['PickleAssembleTests', 'SimpleFunctionTests', 'TBTimeFunctionTests',
            'ArrayBinTests']
 
 @contextmanager
-def mockRawInput3(mock):
+def mockRawInput(mock):
     original_raw_input = builtins.input
     builtins.input = lambda: mock
     yield
     builtins.input = original_raw_input
-
-@contextmanager
-def mockRawInput2(mock):
-    original_raw_input = builtins.raw_input
-    builtins.raw_input = lambda: mock
-    yield
-    builtins.raw_input = original_raw_input
 
 class PickleAssembleTests(unittest.TestCase):
 
@@ -138,14 +119,14 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_indsFromXrange(self):
         """indsFromXrange should have known result"""
-        foo = xrange(23, 39)
+        foo = range(23, 39)
         self.assertEqual([23, 39], tb.indsFromXrange(foo))
-        foo = xrange(5)
+        foo = range(5)
         self.assertEqual([0, 5], tb.indsFromXrange(foo))
 
     def test_indsFromXrange_zerolen(self):
         """indsFromXrange with zero length range"""
-        foo = xrange(20, 20)  # empty
+        foo = range(20, 20)  # empty
         self.assertEqual([20, 20], tb.indsFromXrange(foo))
 
     def test_interweave(self):
@@ -184,7 +165,7 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_progressbar(self):
         """progressbar shouldhave a known output"""
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         self.assertEqual(tb.progressbar(0, 1, 100), None)
         self.assertEqual(tb.progressbar(100, 1, 100), None)
@@ -197,7 +178,7 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_progressbar_bigblock(self):
         """progressbar should not go over 100% with big blocks"""
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         try:
             for i in range(4):
@@ -218,18 +199,13 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_query_yes_no(self):
         '''query_yes_no should return known strings for known input'''
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
-        majorVersion = sys.version_info[0]
-        if  majorVersion>2:
-            mockRaw = mockRawInput3
-        else:
-            mockRaw = mockRawInput2
-        with mockRaw('y'):
+        with mockRawInput('y'):
             self.assertEqual(tb.query_yes_no('yes?'), 'yes')
-        with mockRaw('n'):
+        with mockRawInput('n'):
             self.assertEqual(tb.query_yes_no('no?'), 'no')
-        with mockRaw(''):
+        with mockRawInput(''):
             self.assertEqual(tb.query_yes_no('no?', default='no'), 'no')
         output.close()
         sys.stdout = realstdout
@@ -349,7 +325,7 @@ class SimpleFunctionTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(tb.binHisto([100]*10), (3.3333333333333335, 3.0))
         numpy.testing.assert_almost_equal(tb.binHisto([100]), (1.0, 1.0))
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         numpy.testing.assert_almost_equal(tb.binHisto([100], verbose=True), (1.0, 1.0))
         result = output.getvalue()
@@ -357,7 +333,7 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertEqual(result, "Used sqrt rule\n")
         sys.stdout = realstdout
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         numpy.testing.assert_almost_equal(tb.binHisto([90, 100]*10, verbose=True), (7.3680629972807736, 1.0))
         result = output.getvalue()
@@ -637,7 +613,7 @@ class SimpleFunctionTests(unittest.TestCase):
         """dictree has known output (None)"""
         a = {'a':1, 'b':2, 'c':{'aa':11, 'bb':22}}
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         self.assertEqual(tb.dictree(a), None)
         self.assertEqual(tb.dictree(a, attrs=True), None)
@@ -672,7 +648,7 @@ class SimpleFunctionTests(unittest.TestCase):
         a = {'a': 1, 'b': 2,
              'c':{'aa': 11, 'bb': 22, 'cc': { 'aaa': 111, 'bbb': 222}}}
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         self.assertIs(tb.dictree(a, verbose=True, levels=2), None)
         sys.stdout = realstdout
@@ -698,7 +674,7 @@ class SimpleFunctionTests(unittest.TestCase):
                                   attrs={'foo': 'bar'})},
             attrs={'test': 99})
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         self.assertIs(tb.dictree(a, verbose=True, attrs=True), None)
         sys.stdout = realstdout
@@ -969,7 +945,7 @@ class TBTimeFunctionTests(unittest.TestCase):
     def test_eventTimer(self):
         """eventTimer should behave in a known way"""
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         t1 = time.time()
         time.sleep(0.25)

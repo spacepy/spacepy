@@ -19,10 +19,7 @@ Copyright 2010-2014 Los Alamos National Security, LLC.
 import ctypes
 import os.path
 import sys
-try:
-    import sysconfig
-except ImportError:
-    sysconfig = None
+import sysconfig
 
 import numpy
 
@@ -103,13 +100,12 @@ def load_lib():
         'darwin':  ['libspacepy.dylib', 'libspacepy.so',
                     'spacepy.dylib', 'spacepy.so'],
         }.get(sys.platform, ['libspacepy.so'])
-    if sysconfig:
-        ext = sysconfig.get_config_var('EXT_SUFFIX')
-        if ext is None:
-            ext = sysconfig.get_config_var('SO')
-        if ext:
-            libnames.append('libspacepy' + ext)
-            libnames.append('spacepy' + ext)
+    ext = sysconfig.get_config_var('EXT_SUFFIX')
+    if ext is None:
+        ext = sysconfig.get_config_var('SO')
+    if ext:
+        libnames.append('libspacepy' + ext)
+        libnames.append('spacepy' + ext)
     libpaths = [os.path.join(libdir, n) for n in libnames]
     libpaths = [p for p in libpaths if os.path.exists(p)]
     for p in libpaths:

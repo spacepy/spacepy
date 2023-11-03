@@ -51,10 +51,7 @@ help available:
 Copyright 2010-2016 Los Alamos National Security, LLC.
 """
 
-try:
-    import ConfigParser
-except ImportError:
-    import configparser as ConfigParser
+import configparser
 import errno
 import functools
 import multiprocessing
@@ -329,37 +326,19 @@ def _read_config(rcfile):
               'support_notice': str2bool,
               'enable_old_data_warning': str2bool,
               }
-    #SafeConfigParser deprecated in 3.2. And this is hideous, but...
-    if hasattr(ConfigParser, 'SafeConfigParser'):
-        cp_class = ConfigParser.SafeConfigParser
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings(
-                'always', 'The SafeConfigParser class has been renamed.*',
-                DeprecationWarning,
-                '^spacepy$') #configparser lies about source of warnings
-            ConfigParser.SafeConfigParser()
-        for this_w in w:
-            if isinstance(this_w.message, DeprecationWarning):
-                cp_class = ConfigParser.ConfigParser
-            else:
-                warnings.showwarning(this_w.message, this_w.category,
-                                     this_w.filename, this_w.lineno,
-                                     this_w.file, this_w.line)
-    else:
-        cp_class = ConfigParser.ConfigParser
-    cp = cp_class(defaults)
+    cp = configparser.ConfigParser(defaults)
     try:
         successful = cp.read([rcfile])
-    except ConfigParser.Error:
+    except configparser.Error:
         successful = []
     if successful:  # New file structure
         try:
             config = dict(cp.items('spacepy'))
-        except ConfigParser.NoSectionError:
+        except configparser.NoSectionError:
             successful = []
             config = {}
     if not successful:  # Old or bad file structure, wipe it out
-        cp = cp_class()
+        cp = configparser.ConfigParser()
         cp.add_section('spacepy')
         with open(rcfile, 'w') as cf:
             cp.write(cf)

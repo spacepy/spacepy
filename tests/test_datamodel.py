@@ -7,22 +7,17 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 
-from __future__ import division
-
 import copy
 import datetime
 import gzip
+import io
 import marshal
 import os
 import os.path
+import pickle
 import shutil
 import tempfile
 import unittest
-
-try:
-    import StringIO
-except ImportError:
-    import io as StringIO
 import sys
 import warnings
 
@@ -33,17 +28,6 @@ import spacepy.pycdf.const
 import spacepy.time as spt
 import numpy as np
 
-try:
-    import cPickle as pickle
-except:
-    import pickle
-
-# python2 python3 string wrangling
-try:
-    str_classes = (str, bytes, unicode)
-except NameError:
-    str_classes = (str, bytes)
-    unicode = str
 
 __all__ = ['SpaceDataTests', 'dmarrayTests', 'converterTests', 'JSONTests', 'converterTestsCDF',
            'VariableTests', 'ISTPPlotTests']
@@ -184,7 +168,7 @@ class SpaceDataTests(unittest.TestCase):
         a = dm.SpaceData()
         a['foo'] = dm.dmarray([1,2,3])
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         self.assertEqual(a.tree(), None)
         sys.stdout = realstdout
@@ -888,8 +872,6 @@ class JSONTests(unittest.TestCase):
                      'Pfs_geod_Height', 'Rgeo', 'InvLat_eq', 'M_used',
                      'Loss_Cone_Alpha_s', 'Bfn_gsm', 'Pfn_ED_MLON', 'Pfn_geo',
                      'InvLat', 'Pfs_ED_MLON']
-        if str is bytes:  # py3 check (3: False, 2: True)
-            self.keys = [unicode(k) for k in self.keys]
 
     def tearDown(self):
         super(JSONTests, self).tearDown()
@@ -1015,10 +997,7 @@ class JSONTests(unittest.TestCase):
         t_file.close()
         dat = dm.readJSONheadedASCII(self.filename)
         dm.toHTML(t_file.name, dat, attrs=['DESCRIPTION', 'UNITS', 'ELEMENT_LABELS'], varLinks=True)
-        if sys.platform == 'win32': #Different line endings
-            expected = 12916 if str is bytes else 12892
-        else:
-            expected = 12834 if str is bytes else 12810 #no u on unicode strings
+        expected = 12892 if sys.platform == 'win32' else 12810  # line endings
         self.assertEqual(expected, os.path.getsize(t_file.name)) # not the best test but I am lazy
         os.remove(t_file.name)
 

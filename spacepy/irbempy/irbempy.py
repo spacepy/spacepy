@@ -15,10 +15,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import numbers
-try:
-    from collections.abc import Iterable
-except ImportError:
-    from collections import Iterable
+from collections.abc import Iterable
 from collections import OrderedDict
 import os
 import pathlib
@@ -90,10 +87,7 @@ def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
     import tarfile
     import spacepy.time as spt
     dt = spt.datetime
-    if sys.version_info[0] < 3:
-        import urllib as u
-    else:
-        import urllib.request as u
+    import urllib.request as u
 
     if 'user_agent' in spacepy.config and spacepy.config['user_agent']:
         class AppURLopener(u.FancyURLopener):

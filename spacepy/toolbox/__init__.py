@@ -14,31 +14,17 @@ Copyright 2010 Los Alamos National Security, LLC.
 #If you add functions here, be sure to:
 #1) add to the __all__ list
 #2) add to functions in Doc/source/toolbox.rst so it goes in the docs
-from __future__ import absolute_import
-from __future__ import division
 
 import calendar
 import datetime
 import glob
-try:
-    import html.parser
-except ImportError: #python2
-    import HTMLParser as html
-    html.parser = html
-try:
-    import http.client
-except ImportError: # Python2
-    import httplib as http
-    http.client = http
+import html.parser
+import http.client
 import numbers
 import os
 import os.path
 import re
-try:
-    import urllib.request
-except ImportError: #python2
-    import urllib2 as urllib
-    urllib.request = urllib
+import urllib.request
 import select
 import shutil
 import socket
@@ -49,10 +35,7 @@ import time
 import warnings
 import zipfile
 
-try:
-    import cPickle as pickle
-except:
-    import pickle
+import pickle
 
 import numpy as np
 
@@ -73,11 +56,6 @@ from spacepy import lib
 if lib.have_libspacepy:
     import ctypes
 
-#Py3k compatibility renamings
-try:
-    xrange
-except NameError:
-    xrange = range
 
 __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
            'human_sort', 'dictree', 'update', 'progressbar',
@@ -290,7 +268,7 @@ def tOverlapHalf(ts1, ts2, presort=False):
     if presort:
         import bisect
         t_lower, t_upper = ts1[0], ts1[-1]
-        return xrange(bisect.bisect_left(ts2, t_lower),
+        return range(bisect.bisect_left(ts2, t_lower),
                      bisect.bisect_right(ts2, t_upper))
     else:
         t_lower, t_upper = min(ts1), max(ts1)
@@ -411,10 +389,7 @@ def loadpickle(fln):
     else:
         try:
             with open(fln, 'rb') as fh:
-                try: #Py3k
-                    return pickle.load(fh, encoding='latin1')
-                except TypeError:
-                    return pickle.load(fh)
+                return pickle.load(fh, encoding='latin1')
         except pickle.UnpicklingError: #maybe it's a gzip?
             gzip = True
         else:
@@ -424,18 +399,12 @@ def loadpickle(fln):
             import zlib
             with open(fln, 'rb') as fh:
                 stream = zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS) 
-                try: #Py3k
-                    return pickle.loads(stream, encoding='latin1')
-                except TypeError:
-                    return pickle.loads(stream)
+                return pickle.loads(stream, encoding='latin1')
         except MemoryError:
             import gzip
             with open(fln) as fh:
                 gzh = gzip.GzipFile(fileobj=fh)
-                try: #Py3k
-                    contents = pickle.load(gzh, encoding='latin1')
-                except TypeError:
-                    contents = pickle.load(gzh)
+                contents = pickle.load(gzh, encoding='latin1')
                 gzh.close()
             return contents
 
@@ -1042,10 +1011,7 @@ class LinkExtracter(html.parser.HTMLParser):
     """
 
     def reset(self, *args, **kwargs):
-        if isinstance(LinkExtracter, type):
-            super(LinkExtracter, self).reset(*args, **kwargs)
-        else: #py2k, old-style class
-            html.parser.HTMLParser.reset(self, *args, **kwargs)
+        super(LinkExtracter, self).reset(*args, **kwargs)
         self.links = []
         """List of link targets found in the page"""
 
@@ -1433,33 +1399,33 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
     return datadir
 
 def indsFromXrange(inxrange):
-    '''return the start and end indices implied by an xrange, useful when xrange is zero-length
+    '''return the start and end indices implied by a range, useful when range is zero-length
 
     Parameters
     ----------
-    inxrange : xrange
-        input xrange object to parse
+    inxrange : range
+        input range object to parse
 
     Returns
     -------
     list of int
-       List of start, stop indices in the xrange. The return value is not
+       List of start, stop indices in the range. The return value is not
        defined if a stride is specified or if stop is before start (but
        will work when stop equals start).
 
     Examples
     --------
     >>> import spacepy.toolbox as tb
-    >>> foo = xrange(23, 39)
+    >>> foo = range(23, 39)
     >>> foo[0]
     23
     >>> tb.indsFromXrange(foo)
     [23, 39]
-    >>> foo1 = xrange(23, 23)
+    >>> foo1 = range(23, 23)
     >>> tb.indsFromXrange(foo) #indexing won't work in this case
     [23, 23]
     '''
-    if not isinstance(inxrange, xrange): return None
+    if not isinstance(inxrange, range): return None
     valstr = inxrange.__str__()
     if ',' not in valstr:
         res = re.search(r'(\d+)', valstr)

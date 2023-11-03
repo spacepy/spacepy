@@ -7,16 +7,8 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 import datetime
+import io
 import itertools
-
-try:
-    import StringIO
-except:
-    import io as StringIO
-try:
-    from itertools import izip as zip
-except ImportError:
-    pass  # just use system zip. In python3 itertools.izip is just python zip
 import unittest
 import pickle
 import time
@@ -1024,7 +1016,7 @@ class TimeClassTests(unittest.TestCase):
         """gives a message with nothing specified in isoformat"""
         t1 = t.Ticktock(['2002-01-01T12', '2002-01-02T23', '2001-12-12T13'])
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         self.assertTrue(t1.isoformat() is None)
         result = output.getvalue()

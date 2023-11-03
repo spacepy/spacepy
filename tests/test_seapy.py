@@ -15,10 +15,7 @@ import numpy as np
 import numpy.testing as ntest
 
 import spacepy_testing
-try:
-    import seapy
-except ImportError:
-    from spacepy import seapy
+from spacepy import seapy
 
 __all__ = ['SEATestsUniform', 'SEATests2dUniform', 'SEATestsUniWithBad', 'SeaClassExceptions']
 
