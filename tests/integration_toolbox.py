@@ -47,7 +47,7 @@ class WebGettingIntegration(unittest.TestCase):
         else:
             raise RuntimeError('Unable to find a free port for http server.')
         self.server_thread = threading.Thread(target=self.server.serve_forever)
-        self.server_thread.setDaemon(True)
+        self.server_thread.daemon = True
         self.server_thread.start()
 
     def tearDown(self):
