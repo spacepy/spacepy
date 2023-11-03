@@ -15,7 +15,6 @@ Classes
 
 
 # std. lib.
-from __future__ import division
 import os
 import datetime as dt
 import warnings

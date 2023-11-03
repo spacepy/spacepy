@@ -5,13 +5,8 @@
 Copyright 2019 SpacePy contributors
 """
 
-try:
-    import http.server
-    requesthandlerclass = http.server.SimpleHTTPRequestHandler
-except ImportError: #py2k
-    import SimpleHTTPServer
-    requesthandlerclass = SimpleHTTPServer.SimpleHTTPRequestHandler
-    import SocketServer
+import http.server
+requesthandlerclass = http.server.SimpleHTTPRequestHandler
 import os
 import shutil
 import socket
@@ -40,14 +35,10 @@ class WebGettingIntegration(unittest.TestCase):
         self.oldwd = os.getcwd()
         """Working directory before running this test"""
         #The server handles requests from the current directory
-        try: #py3k
-            serverclass = http.server.HTTPServer
-        except NameError: #Py2k
-            serverclass = SocketServer.TCPServer
         os.chdir(self.td)
         for port in range(8080, 8089):
             try:
-                self.server = serverclass(
+                self.server = http.server.HTTPServer(
                     ('localhost', port), SilentLoggingHTTPRequestHandler)
             except (OSError, socket.error): #Port in use, try another
                 continue

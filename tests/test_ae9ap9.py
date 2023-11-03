@@ -8,13 +8,9 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 import glob
 import gzip
+import io
 import os
 import sys
-
-try:
-    import StringIO
-except ImportError:
-    import io as StringIO
 import shutil
 import tempfile
 import unittest
@@ -44,10 +40,7 @@ class ae9ap9Tests(unittest.TestCase):
     def test_setUnits_error(self):
         """Invalid units raise the correct error and message"""
         ans = ae9ap9.readFile(self.datafiles[0])
-        if hasattr(self, 'assertRaisesRegex'):
-            self.assertRaisesRegex(ValueError, '^(Units of FeV)', ans.setUnits, 'FeV')
-        else: #Py2k
-            self.assertRaisesRegexp(ValueError, '^(Units of FeV)', ans.setUnits, 'FeV')
+        self.assertRaisesRegex(ValueError, '^(Units of FeV)', ans.setUnits, 'FeV')
 
     def test_setUnits_convert(self):
         """Conversion correctly changes flux/fluence values, energy values and units"""
@@ -95,7 +88,7 @@ class ae9ap9Tests(unittest.TestCase):
     def test_combinePercentiles(self):
         """Can read and combine percentile files"""
         realstdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         sys.stdout = output
         ans = ae9ap9.combinePercentiles(self.datafiles)
         output.close()

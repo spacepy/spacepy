@@ -7,13 +7,8 @@ Test suite for plot.utils
 Copyright 2010-2015 Los Alamos National Security, LLC.
 """
 
-try:
-    import cStringIO as StringIO
-    sio = StringIO.StringIO
-except ImportError:
-    import io
-    sio = io.BytesIO
 import datetime
+import io
 import unittest
 import warnings
 
@@ -39,7 +34,7 @@ class PlotUtilFunctionTests(unittest.TestCase):
         ax = fig.add_subplot(111)
         line = ax.plot(ticks.UTC, y)
         spacepy.plot.utils.applySmartTimeTicks(ax, ticks.UTC)
-        fp = sio()
+        fp = io.BytesIO()
         fig.savefig(fp, format='png')
         fp.close()
         # should not have moved the ticks
@@ -47,10 +42,7 @@ class PlotUtilFunctionTests(unittest.TestCase):
             datetime.datetime(2002, 2, i) for i in range (1, 8)])
         numpy.testing.assert_almost_equal(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
-        try:
-            real_ans = ['{0:02d} Feb'.format(i+1).decode() for i in range(7)]
-        except AttributeError: #Py3k
-            real_ans = ['{0:02d} Feb'.format(i+1) for i in range(7)]
+        real_ans = ['{0:02d} Feb'.format(i+1) for i in range(7)]
         ans = [t.get_text()
                for t in ax.xaxis.get_majorticklabels()]
         numpy.testing.assert_array_equal(real_ans, ans)

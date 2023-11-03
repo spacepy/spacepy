@@ -7,20 +7,14 @@ Unit test suite for pycdf
 Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
-try:
-    from collections.abc import Callable
-except ImportError:
-    from collections import Callable
+from collections.abc import Callable
 import ctypes
 import datetime
 import gc
 import hashlib
 import operator
 import os, os.path
-try:
-    import cPickle as pickle
-except:
-    import pickle
+import pickle
 import re
 import shutil
 import sys
@@ -1059,10 +1053,7 @@ class OpenCDF(CDFTests):
 
     def testopenUnicode(self):
         """Opens a CDF providing a Unicode name"""
-        try:
-            cdffile = cdf.CDF(unicode(self.testfile))
-        except NameError: #Py3k, all strings are unicode
-            cdffile = cdf.CDF(self.testfile)
+        cdffile = cdf.CDF(self.testfile)
         cdffile.close()
         del cdffile
 
@@ -1485,10 +1476,6 @@ class ReadCDF(CDFTests):
 
     def testGetVarUnicode(self):
         name = 'ATC'
-        try:
-            name = unicode(name)
-        except NameError: #Py3k, all strings are unicode
-            pass
         self.assertEqual(cdf.Var(self.cdf, name).name(), 'ATC')
 
     def testGetAllData(self):
@@ -2111,17 +2098,14 @@ class ReadCDF(CDFTests):
     def testReadCharConverted(self):
         """Read a string, not raw mode"""
         #verify getting unicode on py3k
-        self.assertEqual('U' if str != bytes else 'S',
+        self.assertEqual('U',
                          self.cdf['RateScalerNames'][...].dtype.char)
 
     def testDtypeChar(self):
         """Check dtype of a char"""
-        if str is bytes: #py2k
-            self.assertEqual('|S6', str(self.cdf['StringUnpadded'].dtype))
-        else: #py3k
-            self.assertEqual('|S6',
-                             str(self.cdf.raw_var('StringUnpadded').dtype))
-            self.assertEqual('U6', str(self.cdf['StringUnpadded'].dtype)[1:])
+        self.assertEqual('|S6',
+                         str(self.cdf.raw_var('StringUnpadded').dtype))
+        self.assertEqual('U6', str(self.cdf['StringUnpadded'].dtype)[1:])
 
     def testReadCharUnpadded(self):
         """Read a string NOT padded out to full length"""
@@ -3057,10 +3041,7 @@ class ChangeCDF(ChangeCDFBase):
 
     def testUnicodeString(self):
         """Write Unicode to a string variable"""
-        if str != bytes: #py3k:
-            data = [ 'hi', 'there']
-        else:
-            data = ['hi'.decode(), 'there'.decode()]
+        data = [ 'hi', 'there']
         self.cdf['teststr'] = data
         expected = data
         out = self.cdf['teststr'][0:2]

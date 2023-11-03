@@ -1,9 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-try:
-    from future import __division__
-except:
-    pass    
 from spacepy import help
 from spacepy.toolbox import dictree
 import numpy as np

@@ -788,8 +788,7 @@ class FileChecks(object):
         if errs:
             return errs
         fname = os.path.basename(f.pathname)
-        if not bytes is str:
-            fname = fname.decode('ascii')
+        fname = fname.decode('ascii')
         if not fname.startswith(f.attrs['Logical_source'][0]):
             errs.append("Logical_source {} doesn't match filename {}.".format(
                 f.attrs['Logical_source'][0], fname))
@@ -858,8 +857,7 @@ class FileChecks(object):
         """
         errs = []
         fname = os.path.basename(f.pathname)
-        if not bytes is str:
-            fname = fname.decode('ascii')
+        fname = fname.decode('ascii')
         m = re.search(r'\d{8}', fname)
         if not m:
             return ['Cannot parse date from filename {}'.format(fname)]
@@ -1919,7 +1917,7 @@ class VarBundle(object):
             #Handle a suffixed DELTA if necessary
             if a.startswith('DELTA_'):
                 olddelta = invar.attrs[a]
-                if str is not bytes and isinstance(olddelta, bytes):
+                if isinstance(olddelta, bytes):
                     olddelta = olddelta.decode('ascii')
                 newvar.attrs[a] = namemap.get(olddelta, olddelta)
                 continue
@@ -1932,14 +1930,14 @@ class VarBundle(object):
                 old_a = '{}_{}'.format('_'.join(a.split('_')[:-1]),
                                        olddim)
                 oldval = invar.attrs.get(old_a, None)
-                if str is not bytes and isinstance(oldval, bytes):
+                if isinstance(oldval, bytes):
                     oldval = oldval.decode('ascii')
             if oldval is not None:
                 #Check for variable renaming from the input to output
                 newval = namemap.get(oldval, oldval)
                 if preexist:
                     existingval = newvar.attrs[a]
-                    if str is not bytes and isinstance(existingval, bytes):
+                    if isinstance(existingval, bytes):
                         existingval = existingval.decode('ascii')
                     if existingval != newval:
                         raise RuntimeError(

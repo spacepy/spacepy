@@ -29,10 +29,7 @@ badf asdfasdf asdf
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 import datetime
-try:
-    import urllib2 as u
-except ImportError:
-    import urllib.request as u
+import urllib.request as u
 
 import spacepy.datamodel as dm
 import dateutil.parser as dup

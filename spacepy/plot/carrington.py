@@ -17,7 +17,6 @@ Copyright 2011-2015 Los Alamos National Security, LLC.
 
     solarRotationPlot
 """
-from __future__ import division
 import datetime as dt
 import numpy as np
 import matplotlib

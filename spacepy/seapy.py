@@ -42,8 +42,6 @@ Los Alamos National Laboratory
 
 Copyright 2010 Los Alamos National Security, LLC.
 """
-from __future__ import division
-
 import warnings
 
 import numpy as np

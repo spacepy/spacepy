@@ -46,10 +46,7 @@ Copyright 2010-2015 Los Alamos National Security, LLC.
 
 __contact__ = 'Jon Niehof, Jonathan.Niehof@unh.edu'
 
-try:
-    from collections.abc import MutableMapping, MutableSequence
-except ImportError:
-    from collections import MutableMapping, MutableSequence
+from collections.abc import MutableMapping, MutableSequence
 import ctypes
 import ctypes.util
 import datetime
@@ -77,10 +74,7 @@ except ImportError:
 #Import const AFTER library loaded, so failed load doesn't leave half-imported
 #from . import const
 
-try:
-    str_classes = (str, bytes, unicode)
-except NameError:
-    str_classes = (str, bytes)
+str_classes = (str, bytes)
 
 
 def _cast_ll(x):
@@ -1936,7 +1930,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         @return: True if L{key} is the name of a variable in CDF, else False
         @rtype: Boolean
         """
-        if str is not bytes and isinstance(key, str):
+        if isinstance(key, str):
             key = key.encode('ascii')
         key = key.rstrip()
         if key in self._var_nums:
@@ -3878,7 +3872,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         """
         cdftype = self.type()
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
-           str is not bytes and not self._raw:
+           not self._raw:
             return numpy.dtype('U' + str(self.nelems()))
         if cdftype in (const.CDF_EPOCH.value, const.CDF_EPOCH16.value,
                        const.CDF_TIME_TT2000.value) and not self._raw:
@@ -4292,8 +4286,7 @@ class _Hyperslice(object):
         #Convert to derived types
         cdftype = self.zvar.type()
         if not self.zvar._raw:
-            if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
-                    str != bytes:
+            if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
                 dt = numpy.dtype('U{0}'.format(result.dtype.itemsize))
                 result = numpy.require(
                     numpy.char.array(result).decode(
@@ -5264,9 +5257,9 @@ class Attr(MutableSequence):
 
         #decode
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
-            if str == bytes or self._raw: #Py2k, leave as bytes
+            if self._raw:
                 result = bytes(buff)
-            else: #Py3k, make unicode
+            else:  # Make unicode
                 result = str(numpy.char.array(buff).decode(
                     encoding=self._cdf_file.encoding, errors='replace'))
         else:
@@ -5605,10 +5598,7 @@ class AttrList(MutableMapping):
             if candidate.global_scope() == self.global_scope:
                 if self.special_entry is None or \
                         candidate.has_entry(self.special_entry()):
-                    if str == bytes:
-                        value = yield(candidate._name)
-                    else:
-                        value = yield(candidate._name.decode())
+                    value = yield(candidate._name.decode())
                     if value != None:
                         current = self[value].number()
             current += 1

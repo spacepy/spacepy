@@ -9,10 +9,6 @@ Copyright 2010-2014 Los Alamos National Security, LLC.
 
 import ctypes
 import math
-try:
-    import StringIO
-except ImportError:
-    import io as StringIO
 import sys
 import unittest
 
