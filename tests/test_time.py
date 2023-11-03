@@ -1083,11 +1083,7 @@ class TimeClassTests(unittest.TestCase):
         t0 = 1663236947
         range_ex = list(numpy.linspace(t0, t0 + 4000, 4))
         # make a TAI that is a leapsecond time
-        with spacepy_testing.assertWarns(
-                self, 'always',
-                r'now\(\) returns UTC time as of 0\.2\.2\.$',
-                DeprecationWarning, r'spacepy\.time$'):
-            tt2 = t.Ticktock.now()
+        tt2 = t.Ticktock.now()
         tt2tai = tt2.TAI
         taileaps = tt2.TAIleaps
         # Get the TAI at the 2015 and 2012 leap seconds
@@ -1426,17 +1422,9 @@ class TimeClassTests(unittest.TestCase):
 
     def test_now(self):
         """now() is at least deterministic"""
-        with spacepy_testing.assertWarns(
-                self, 'always',
-                r'now\(\) returns UTC time as of 0\.2\.2\.$',
-                DeprecationWarning, r'spacepy\.time$'):
-            v1 = t.Ticktock.now()
+        v1 = t.Ticktock.now()
         time.sleep(0.1)
-        with spacepy_testing.assertWarns(
-                self, 'always',
-                r'now\(\) returns UTC time as of 0\.2\.2\.$',
-                DeprecationWarning, r'spacepy\.time$'):
-            v2 = t.Ticktock.now()
+        v2 = t.Ticktock.now()
         self.assertTrue(v1 < v2)
 
     def test_today(self):
@@ -1696,23 +1684,6 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual('UTC', tt.data.attrs['dtype'])
         # Nothing new calculated
         self.assertEqual(preattrs, postattrs)
-
-    def testUpdateItemsGiveCls(self):
-        """Change data and call update with a class"""
-        tt = t.Ticktock(['2001-01-01'])
-        self.assertEqual(
-            datetime.datetime(2001, 1, 1),
-            tt.UTC[0])
-        tt.data[0] = '2002-01-01'
-        with spacepy_testing.assertWarns(
-                self, 'always',
-                r'cls argument of update_items was deprecated in 0\.2\.2'
-                r' and will be ignored\.$',
-                DeprecationWarning, r'spacepy\.time$'):
-            tt.update_items(type(tt), 'data')
-        self.assertEqual(
-            datetime.datetime(2002, 1, 1),
-            tt.UTC[0])
 
     def testDataPersistsTAI(self):
         """Verify that the input data is returned for TAI input"""

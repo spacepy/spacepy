@@ -105,6 +105,10 @@ in a custom location using :ref:`\\\\\\-\\\\\\-prefix <install_--prefix>` and ma
 SpacePy) is not specified. The default backend is SpacePy, as it has
 been since 0.4.0.
 
+In `~spacepy.time`, the ``cls`` argument of
+`~spacepy.time.Ticktock.update_items` has been removed (deprecated in 0.2.2).
+The end-user normally does not call this function.
+
 Major bugfixes
 **************
 :func:`~.datamodel.toCDF` handling of time types other than TT2000 has
