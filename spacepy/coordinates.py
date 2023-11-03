@@ -99,7 +99,6 @@ Copyright 2010-2016 Los Alamos National Security, LLC.
 
 from collections import namedtuple
 import numbers
-import warnings
 import numpy as np
 from spacepy import help
 import spacepy
@@ -142,7 +141,7 @@ class __Defaults(object):
         b1 = full.index('(')
         return 'DEFAULTS{}'.format(full[b1:])
 
-    def set_values(self, use_irbem=None, ellipsoid=ctrans.WGS84, itol=30):
+    def set_values(self, use_irbem=False, ellipsoid=ctrans.WGS84, itol=30):
         '''Set options for coordinate transforms
 
         Parameters
@@ -243,11 +242,6 @@ class Coords(object):
     def __init__(self, data, dtype, carsph, units=None, ticks=None, use_irbem=None):
         if use_irbem is None:
             use_irbem = DEFAULTS.values.use_irbem
-        if use_irbem is None:
-            use_irbem = False
-            warnings.warn('No coordinate backend specified; using SpacePy.'
-                          ' This default changed from IRBEM in version 0.4.0',
-                          DeprecationWarning)
         if use_irbem:
             from . import irbempy as op
         self.use_irbem = use_irbem
@@ -587,11 +581,7 @@ class Coords(object):
         data = list(self.data)
         otherdata = other.convert(self.dtype, self.carsph)
         data.extend(list(otherdata.data))
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', message=r'Use of IRBEM to perform',
-                                    category=DeprecationWarning,
-                                    module=r'spacepy.coordinates$')
-            newobj = Coords(data, dtype=self.dtype, carsph=self.carsph, use_irbem=self.use_irbem)
+        newobj = Coords(data, dtype=self.dtype, carsph=self.carsph, use_irbem=self.use_irbem)
         return newobj
 
     # -----------------------------------------------
