@@ -44,8 +44,8 @@ jobs:
             numpy-version: ">=1.19.0,<1.20.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
-            cdf-version: "3.8.1"
-            cdf-munged-version: "38_1"
+            cdf-version: "3.9.1"
+            cdf-munged-version: "39_1"
             dep-strategy: "newest"
           - python-version: "3.7"
             os: ubuntu-22.04
@@ -62,8 +62,8 @@ jobs:
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
-            cdf-version: "3.8.1"
-            cdf-munged-version: "38_1"
+            cdf-version: "3.9.1"
+            cdf-munged-version: "39_1"
             dep-strategy: "newest"
           - python-version: "3.8"
             os: ubuntu-22.04
@@ -80,8 +80,8 @@ jobs:
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
-            cdf-version: "3.8.1"
-            cdf-munged-version: "38_1"
+            cdf-version: "3.9.1"
+            cdf-munged-version: "39_1"
             dep-strategy: "newest"
           - python-version: "3.9"
             os: ubuntu-22.04
@@ -98,8 +98,8 @@ jobs:
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
-            cdf-version: "3.8.1"
-            cdf-munged-version: "38_1"
+            cdf-version: "3.9.1"
+            cdf-munged-version: "39_1"
             dep-strategy: "newest"
           - python-version: "3.10"
             os: ubuntu-22.04
@@ -116,8 +116,8 @@ jobs:
             numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
-            cdf-version: "3.8.1"
-            cdf-munged-version: "38_1"
+            cdf-version: "3.9.1"
+            cdf-munged-version: "39_1"
             dep-strategy: "newest"
           - python-version: "3.11"
             os: ubuntu-22.04
@@ -134,8 +134,8 @@ jobs:
             numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
-            cdf-version: "3.8.1"
-            cdf-munged-version: "38_1"
+            cdf-version: "3.9.1"
+            cdf-munged-version: "39_1"
             dep-strategy: "newest"
           - python-version: "3.12"
             os: ubuntu-22.04
@@ -152,8 +152,8 @@ jobs:
             numpy-version: "<1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy"
             cflags: ""
-            cdf-version: "3.8.1"
-            cdf-munged-version: "38_1"
+            cdf-version: "3.9.1"
+            cdf-munged-version: "39_1"
             dep-strategy: "newest"
     steps:
     - name: Set up Python ${{ matrix.python-version }}
@@ -252,8 +252,8 @@ jobs:
             numpy-version: "<1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
             cflags: ""
-            cdf-version: "3.8.1"
-            cdf-munged-version: "38_1"
+            cdf-version: "3.9.1"
+            cdf-munged-version: "39_1"
             dep-strategy: "newest"
     steps:
     - name: Set up Python ${{ matrix.python-version }}
