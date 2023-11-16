@@ -762,9 +762,16 @@ if has_develop:
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
             'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox',
-            'spacepy.ctrans', ]
+            'spacepy.ctrans',
+            'spacepy.data', 'spacepy.data.LANLstar',
+            'spacepy.data.TS07D.TAIL_PAR',
+            ]
 #If adding to package_data, also put in MANIFEST.in
-package_data = ['data/*.*', 'data/LANLstar/*', 'data/TS07D/TAIL_PAR/*']
+package_data = {
+    'spacepy.data': ['*.*'],
+    'spacepy.data.LANLstar': ['*'],
+    'spacepy.data.TS07D.TAIL_PAR': ['*'],
+}
 # Built with custom code that handles the source files
 ext_modules = [setuptools.extension.Extension('spacepy.irbempy.irbempylib', [])]
 
@@ -781,7 +788,7 @@ setup_kwargs = {
     'maintainer_email': 'spacepy@lanl.gov',
     'url': 'https://github.com/spacepy/spacepy',
     'packages': packages,
-    'package_data': {'spacepy': package_data},
+    'package_data': package_data,
     'ext_modules': ext_modules,
     'classifiers': [
         'Development Status :: 4 - Beta',

@@ -59,8 +59,14 @@ dependencies = [
 [tool.setuptools]
 packages = ["spacepy", "spacepy.irbempy", "spacepy.pycdf",
   "spacepy.plot", "spacepy.pybats", "spacepy.toolbox", "spacepy.ctrans",
+  "spacepy.data", "spacepy.data.LANLstar", "spacepy.data.TS07D.TAIL_PAR",
+  # Not even a namespace package, but have to specify it here so it can
+  # be in MANIFEST.in
+  "spacepy.libspacepy",
 ]
 zip-safe = false
 
 [tool.setuptools.package-data]
-spacepy = ["data/*.*", "data/LANLstar/*", "data/TS07D/TAIL_PAR/*"]
+"spacepy.data" = ["*.*"]
+"spacepy.data.LANLstar" = ["*"]
+"spacepy.data.TS07D.TAIL_PAR" = ["*"]
