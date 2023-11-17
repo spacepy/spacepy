@@ -16,6 +16,10 @@ This will install a binary build of SpacePy if available (currently
 only on Windows), otherwise it will attempt to compile. It will also
 install most dependencies.
 
+Depending on your Python environment, you may need to explicitly
+specify Python 3 throughout these commands, e.g. ``pip3`` instead of
+``pip``.
+
 If you are familiar with installing Python packages, have particular
 preferences for managing an installation, or if the above doesn't
 work, refer to platform-specific instructions and the details
@@ -148,9 +152,11 @@ build environment::
   pip install numpy
   pip install spacepy --no-build-isolation
 
-Manually installing all dependencies (via ``pip``, ``conda``, or other
-means) and then installing the source release with
-``--no-build-isolation --no-deps``
+Another option is manually installing all dependencies (via ``pip``,
+``conda``, or other means) and then installing from an unpacked source
+release with::
+
+  pip install --no-build-isolation --no-deps .
 
 ``pip`` suppresses detailed output from the build process. To
 troubleshoot a failure to install, it is useful to write this detailed
