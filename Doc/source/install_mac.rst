@@ -6,12 +6,16 @@ Unless otherwise noted, the commands in these instructions are run
 from the MacOS terminal (command line).
 
 Installation requires a working Python environment and compilers. The
-two common ways to achieve this are via :ref:`conda <install_mac_conda>`
-or via :ref:`MacPorts <install_mac_macports>`. As a weak recommendation
-for choosing between them, conda may be better if your main focus is
-running Python and you need conda's easy support for multiple Python
-environments; MacPorts may be better if you want to use many of the other
-open source tools provided in MacPorts.
+two common ways to achieve this are via :ref:`conda
+<install_mac_conda>` or via :ref:`MacPorts <install_mac_macports>`. We
+generally recommend conda may if your main focus is running Python;
+MacPorts may be better if you want to use many of the other open
+source tools provided in MacPorts.
+
+:ref:`Homebrew <install_mac_homebrew>` is also a possibility.
+
+It is *not* recommended to mix environments, e.g. do not use Python
+from conda and gcc from Homebrew.
 
 Binary installers for SpacePy on Mac are in preparation for a future
 release.
@@ -94,13 +98,13 @@ perform the installation. (Note this modifies your ``.zprofile``
 environment file.)
 
 Install Python and the needed compilers. You need to specify a
-version; at this time, Python 3.9 and gcc 11 are reasonable choices::
+version; at this time, Python 3.11 and gcc 13 are reasonable choices::
 
-  sudo port install gcc11  # Includes gfortran
-  sudo port install python39
-  sudo port install py39-pip
+  sudo port install gcc13  # Includes gfortran
+  sudo port install python311
+  sudo port install py311-pip
   # Installing the following is optional; pip will automatically install
-  sudo port install py39-numpy py39-dateutil py39-scipy py39-h5py py39-matplotlib
+  sudo port install py311-numpy py311-dateutil py311-scipy py311-h5py py311-matplotlib
 
 If you have not already installed the Xcode command line tools, you
 will be prompted to do so. In that case, it is suggested to accept the
@@ -109,11 +113,11 @@ the tools are installed.
 
 To install via ``pip``, default versions of Python and gcc must be set::
 
-  sudo port select --set python python39
+  sudo port select --set python python311
   rehash #recalculate the pathing to not get system python
-  sudo port select --set python3 python39
-  sudo port select --set pip pip39
-  sudo port select --set gcc mp-gcc11
+  sudo port select --set python3 python311
+  sudo port select --set pip pip311
+  sudo port select --set gcc mp-gcc13
 
 Then you can install SpacePy::
 
@@ -128,7 +132,43 @@ You will also need the :ref:`NASA CDF library <install_mac_cdf>` to use
 If you are installing from a source distribution, you can specify the
 compiler at install time instead of using ``port select``::
 
-  python3.9 setup.py install --fcompiler=gnu95 --f90exec=/opt/local/bin/gfortran-mp-11
+  pip-3.11 install .  --config-setting="--build-option=--fcompiler=gnu95" --config-setting="--build-option=--f90exec=/opt/local/bin/gfortran-mp-13"
+
+.. _install_mac_homebrew:
+
+Homebrew installation
+=====================
+
+Installing with Homebrew is more prone to complications and it's not
+recommended unless you're using Homebrew for other reasons.
+:ref:`specifying extra arguments to pip <install_pip_failures>` is more
+likely to be required.
+
+Download the `Homebrew installer
+<https://github.com/Homebrew/brew/releases/latest>`_ and double-click
+the pkg to perform the installation. (See more details at the
+`Homebrew page <https://brew.sh/>`_.)
+
+Install Python and the needed compilers. You need to specify a
+version; at this time, Python 3.9 and gcc 11 are reasonable choices::
+
+  brew install gfortran
+  brew install python
+  rehash  # Important to find Homebrew's pip, etc. instead of the built-in
+
+Homebrew does not have most of the dependencies required for SpacePy
+(in particular their numpy does not include the required f2py) so
+leaving them to pip to install is recommended.
+
+You can install SpacePy (which will grab dependencies as well)::
+
+  pip3 install spacepy
+
+If you're installing as a single user (not in a virtual environment) then
+add the ``--user`` flag.
+
+You will also need the :ref:`NASA CDF library <install_mac_cdf>` to use
+:mod:`~spacepy.pycdf`.
 
 .. _install_mac_cdf:
 
