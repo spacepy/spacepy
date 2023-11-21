@@ -228,6 +228,24 @@ if sys.platform == 'win32':
     __license__ += \
         """
 Fortran library support provided by MinGW. The MinGW base runtime package has been placed in the public domain, and is not governed by copyright.
+
+CDF library support is provided by an unmodified library subject to the following license:
+Common Data Format (CDF)
+Space Physics Data Facility
+NASA/Goddard Space Flight Center
+
+This software may be copied or redistributed as long as it is not sold
+for profit, but it can be incorporated into any other substantive
+product with or without modifications for profit or non-profit.  If the
+software is modified, it must include the following notices:
+
+  - The software is not the original (for protection of the original
+    author's reputations from any problems introduced by others)
+
+  - Change history (e.g. date, functionality, etc.)
+
+This copyright notice must be reproduced on each copy made. This software is
+provided as is without any express or implied warranties whatsoever.
 """
 
 __citation__ = """When publishing research which used SpacePy, please provide appropriate

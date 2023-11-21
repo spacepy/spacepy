@@ -490,6 +490,12 @@ class Library(object):
                 for d in sorted(cand)[::-1]:
                     for p in search_dir(d):
                         yield p
+        # Check for a version shipped with SpacePy binary wheels
+        if isinstance(__file__, str):
+            spdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            if os.path.isdir(spdir):
+                for p in search_dir(spdir):
+                    yield p
 
     def check_status(self, status, ignore=()):
         """

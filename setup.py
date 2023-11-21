@@ -657,8 +657,8 @@ class build_ext(_build_ext):
             #Copy mingw32 DLLs. This keeps them around if ming is uninstalled,
             #but more important puts them where bdist_wheel
             #will include them in binary installers
-            dlls = copy_dlls(os.path.join(self.build_lib, 'spacepy', 'mingw'))
-            self._outputs.extend(dlls)
+            libs = copy_libs(os.path.join(self.build_lib, 'spacepy'))
+            self._outputs.extend(libs)
         if not (getattr(self, 'editable_mode', False)
                 or getattr(self, 'inplace', False)):
             return
@@ -688,11 +688,15 @@ class install(_install):
         finalize_compiler_options(self)
 
 
-def copy_dlls(outdir):
-    """Copy the mingw runtime libraries into a build
+def copy_libs(outdir):
+    """Copy pre-built (binary) libraries into a build
+
+    This includes the mingw runtime and CDF libraries
 
     :param str outdir: Final target directory of the DLLs in the build.
+    :returns list: List of copied libraries
     """
+    outputs = []
     libdir = None
     libnames = None
     libneeded = ('libgfortran', 'libgcc_s', 'libquadmath',)
@@ -709,11 +713,19 @@ def copy_dlls(outdir):
             break
     if libdir is None:
         raise RuntimeError("Can't locate runtime libraries.")
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    mingdir = os.path.join(outdir, 'mingw')
+    if not os.path.exists(mingdir):
+        os.makedirs(mingdir, exist_ok=True)
     for f in libnames:
-        shutil.copy(os.path.join(libdir, f), outdir)
-    return [os.path.join(outdir, f) for f in libnames]
+        shutil.copy(os.path.join(libdir, f), mingdir)
+    outputs.extend((os.path.join(mingdir, f) for f in libnames))
+    # Copy CDF library from root spacepy directory
+    if isinstance(__file__, str):
+        cdfdll = os.path.join(os.path.dirname(__file__), 'dllcdf.dll')
+        if os.path.isfile(cdfdll):
+            shutil.copy(cdfdll, outdir)
+            outputs.append(os.path.join(outdir, 'dllcdf.dll'))
+    return outputs
 
 
 class bdist_wheel(_bdist_wheel):

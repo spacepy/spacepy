@@ -90,6 +90,12 @@ are not included in the source distribution. They need to be put in
 developer/scripts in the unzipped source so they can find the rest of
 SpacePy. Yes this could be improved.
 
+Download the CDF library and extract the DLL. This is easiest done on
+the Unix side and then transferred over--it just needs to be in the
+top-level directory with setup.py.
+    wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_1/windows/cdf3.9.1_64bit_WinZip_Installer.zip
+    unzip -j cdf3.9.1_64bit_WinZip_Installer.zip bin/dllcdf.dll
+
 Download latest (currently 3.9) 64-bit Miniconda from
 https://docs.conda.io/en/latest/miniconda.html and put it in the
 system-default download directory (%USERPROFILE%\Downloads)
