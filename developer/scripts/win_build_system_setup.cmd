@@ -31,7 +31,7 @@ IF "%1"=="build" (
     set ACTION=TEST
 )
 
-FOR %%B in (64) DO (FOR %%P in (36 37 38 39 310) DO CALL :installs %%B %%P)
+FOR %%B in (64) DO (FOR %%P in (36 37 38 39 310 311 312) DO CALL :installs %%B %%P)
 
 GOTO :EOF
 
