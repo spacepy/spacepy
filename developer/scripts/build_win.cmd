@@ -20,7 +20,7 @@ set PYVER="%2"
 CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%2_%1
 pushd %~dp0\..\..\
 rmdir /s /q build 2> nul
-CALL pyproject-build -w -n -x
+CALL python-build -w -n -x
 popd
 ::This turns off echo!
 CALL conda deactivate

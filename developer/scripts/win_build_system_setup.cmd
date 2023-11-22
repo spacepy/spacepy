@@ -72,7 +72,17 @@ IF "%ACTION%"=="BUILD" (
     IF "%2"=="36" (
         set NUMPY="numpy~=1.15.1"
     )
-    CALL pip install !NUMPY! build wheel
+    IF "%2"=="312" (
+        :: Need to manually install MSVC from
+        :: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+        CALL conda install -y python-build wheel
+        CALL conda install -y "cython<3.0"
+        CALL pip install --no-build-isolation --no-deps !NUMPY!
+        CALL conda uninstall -y cython
+        :: Should manually uninstall MSVC after this
+    ) ELSE (
+        CALL conda install -y !NUMPY! python-build wheel
+    )
 ) ELSE (
     :: Testing. Get the latest of everything
     CALL conda install -y numpy scipy matplotlib h5py astropy

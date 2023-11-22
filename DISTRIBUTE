@@ -100,6 +100,17 @@ Download latest (currently 3.9) 64-bit Miniconda from
 https://docs.conda.io/en/latest/miniconda.html and put it in the
 system-default download directory (%USERPROFILE%\Downloads)
 
+MSVC needs to be installed from
+https://visualstudio.microsoft.com/visual-cpp-build-tools/ before
+making the Python 3.12 environment, and should be uninstalled
+after. This can be done before building the entire Windows build
+system (following) or by separating out the 3.12 work.
+
+Run the rest of the process in a command prompt with administrator
+access so that Miniconda can be installed to a reasonable location--if
+it is installed to the user's directory, there's often a space there,
+and that confuses f2py.
+
 Set up conda environments for the build by running
 "win_build_system_setup.cmd build". This will make conda environments
 and install the earliest supported version of numpy in each. Then run
