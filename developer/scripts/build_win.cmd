@@ -7,20 +7,21 @@ SETLOCAL EnableDelayedExpansion
 set PYTHONPATH=
 set PATH=
 
-FOR %%B in (64) DO (FOR %%P in (36 37 38 39 310 311 312) DO CALL :build %%B %%P)
+FOR %%P in (36 37 38 39 310 311 312) DO CALL :build %%P
 
 GOTO :EOF
 
 :build
-set CONDA_PKGS_DIRS=%SYSTEMDRIVE%\Miniconda3\PKGS64
-set CONDA_SUBDIR=win-64
-set CONDA_FORCE_32_BIT=
 
-set PYVER="%2"
-CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%2_%1
+CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%1
 pushd %~dp0\..\..\
 rmdir /s /q build 2> nul
-CALL python-build -w -n -x
+IF "%1"=="36" (
+    CALL pyproject-build -w -n -x
+)
+ELSE (
+    CALL python-build -w -n -x
+)
 popd
 ::This turns off echo!
 CALL conda deactivate
