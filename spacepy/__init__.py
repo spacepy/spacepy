@@ -79,16 +79,16 @@ __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni",
            "irbempy", "empiricals", "radbelt", "data_assimilation", "pycdf",
            "datamanager", "datamodel", "ae9ap9"]
 
-# Make sure the mingw runtime libs from our binary wheel are findable
-minglibs = os.path.join(os.path.dirname(__file__), 'mingw')
-if sys.platform == 'win32' and os.path.isdir(minglibs):
+# Make sure the Fortran and other runtime libs from binary wheel are findable
+libs = os.path.join(os.path.dirname(__file__), 'libs')
+if sys.platform == 'win32' and os.path.isdir(libs):
     if os.environ.get('PATH'):
-        if not minglibs in os.environ['PATH']:
-            os.environ['PATH'] += (';' + minglibs)
+        if not libs in os.environ['PATH']:
+            os.environ['PATH'] += (';' + libs)
     else:  # empty or nonexistent PATH
-        os.environ['PATH'] = minglibs
+        os.environ['PATH'] = libs
     try:
-        os.add_dll_directory(minglibs)
+        os.add_dll_directory(libs)
     except AttributeError:  # Python 3.8+ only
         pass
 
