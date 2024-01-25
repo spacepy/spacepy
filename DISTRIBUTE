@@ -139,6 +139,16 @@ over the developer/scripts/unix_wheels.sh script into that directory
 
 The binary wheels will be in the "dist" directory.
 
+conda only has gfortran 11.2 and 11.3, so that might be an issue. conda install gfortran~-11.2.0. looks like it installs libgfortran-5.0.0
+
+Do we want to hardcode SDKROOT if it isn't set? Only for "distribution" builds...
+maybe https://stackoverflow.com/questions/17910684/static-libgfortran-in-library-build is useful?
+handy: gfortran -print-file-name=libgfortran.so
+
+mac miniconda setup: download the "bash" (.sh), run through, intsall for me only, do not change install location
+sh ./Miniconda3-py311-23.11.0-2-MacOSX-x86_64.sh -b -p ~/opt/miniconda/
+conda install numpy gfortran python-build wheel
+
 Fixing wheel metadata version
 -----------------------------
 

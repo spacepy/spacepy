@@ -606,6 +606,14 @@ class build_ext(_build_ext):
              warnings.warn(
                 'irbem build failed: multiple build outputs ({0}).'.format(
                      ', '.join(created_libfiles)))
+        if sys.platform == 'darwin':
+            # Look for the library location that is shipped with the wheel
+            cmd = ['install_name_tool', '-add_rpath', '@loader_path/../libs/',
+                   irbempy]
+            try:
+                subprocess.call(cmd)
+            except FileNotFoundError:
+                pass
         os.chdir(olddir)
         return irbempy
 
@@ -657,7 +665,12 @@ class build_ext(_build_ext):
             #Copy mingw32 DLLs. This keeps them around if ming is uninstalled,
             #but more important puts them where bdist_wheel
             #will include them in binary installers
-            libs = copy_libs(os.path.join(self.build_lib, 'spacepy'))
+            libs = copy_win_libs(os.path.join(self.build_lib, 'spacepy'))
+            self._outputs.extend(libs)
+        if sys.platform == 'darwin' and irbempy:
+            # Copy gfortran dyanamic libraries
+            # Puts them where bdist_wheel will include them in binary installers
+            libs = copy_mac_libs(os.path.join(self.build_lib, 'spacepy'))
             self._outputs.extend(libs)
         if not (getattr(self, 'editable_mode', False)
                 or getattr(self, 'inplace', False)):
@@ -688,8 +701,8 @@ class install(_install):
         finalize_compiler_options(self)
 
 
-def copy_libs(outdir):
-    """Copy pre-built (binary) libraries into a build
+def copy_win_libs(outdir):
+    """Copy pre-built (binary) Windows libraries into a build
 
     This includes the mingw runtime and CDF libraries
 
@@ -713,7 +726,7 @@ def copy_libs(outdir):
             break
     if libdir is None:
         raise RuntimeError("Can't locate runtime libraries.")
-    mingdir = os.path.join(outdir, 'mingw')
+    mingdir = os.path.join(outdir, 'libs')
     if not os.path.exists(mingdir):
         os.makedirs(mingdir, exist_ok=True)
     for f in libnames:
@@ -725,6 +738,54 @@ def copy_libs(outdir):
         if os.path.isfile(cdfdll):
             shutil.copy(cdfdll, outdir)
             outputs.append(os.path.join(outdir, 'dllcdf.dll'))
+    return outputs
+
+
+def copy_mac_libs(outdir):
+    """Copy Mac fortran libraries into a build
+
+    :param str outdir: Final target directory of the libraries in the build.
+    :returns list: List of copied libraries
+    """
+    outputs = []
+    libneeded = ['libgfortran', 'libgcc_s.1.1', 'libquadmath']
+    if platform.uname()[4] == 'x86_64':
+        libneeded.append('libgcc_s.1')
+    outlibdir = os.path.join(outdir, 'libs')
+    if not os.path.exists(outlibdir):
+        os.makedirs(outlibdir, exist_ok=True)
+    for f in libneeded:
+        p = subprocess.Popen(['gfortran', f'--print-file-name={f}.dylib'],
+                         stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        if p.returncode:
+            raise RuntimeError(f"Failure searching for {f}.")
+        libfile = out.rstrip().decode('ascii')
+        if not os.path.isfile(libfile):
+            raise RuntimeError(f"{f} not found.")
+        libfile = os.path.realpath(libfile)
+        shutil.copy(libfile, outlibdir)
+        outputs.append(os.path.join(outlibdir, os.path.basename(libfile)))
+        if f != 'libgcc_s.1':
+            continue
+        libgcc_s = outputs[-1]
+        p = subprocess.Popen(['otool', '-L', libgcc_s],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if p.returncode:
+            raise RuntimeError("Failed to read library paths from libgcc_s")
+        # libgcc_s.1 refers to .1.1 with hardcoded path, fix that
+        hardcoded = [l.strip().split()[0]
+                     for l in out.decode('ascii').split('\n')
+                     if l.startswith('\t/') and 'libgcc_s.1.1' in l]
+        assert len(hardcoded) == 1
+        cmd = ['install_name_tool', '-change', hardcoded[0],
+               os.path.join('@loader_path', os.path.basename(hardcoded[0])),
+               libgcc_s]
+        try:
+            subprocess.call(cmd)
+        except FileNotFoundError:
+            pass
     return outputs
 
 
