@@ -21,7 +21,7 @@ from contextlib import contextmanager
 
 import numpy
 from numpy import array
-from scipy import inf
+from numpy import inf
 from scipy.stats import poisson
 
 import spacepy_testing
