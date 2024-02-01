@@ -2353,7 +2353,7 @@ def intsolve(func, value, start=None, stop=None, maxit=1000):
     **Note:** Assumes func is everywhere positive, otherwise solution may
            be multi-valued.
     """
-    from scipy import inf
+    from numpy import inf
     from scipy.integrate import quad
     from warnings import warn
     if start is None:
@@ -2432,7 +2432,7 @@ def dist_to_list(func, length, min=None, max=None):
     >>> p2 = matplotlib.pyplot.plot(x, [gauss(i) * 1000 for i in x], 'red')
     >>> matplotlib.pyplot.draw()
     """
-    from scipy import inf
+    from numpy import inf
     from scipy.integrate import quad
     if min is None:
         min = -inf
