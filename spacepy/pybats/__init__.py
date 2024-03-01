@@ -1948,6 +1948,53 @@ class ImfInput(PbData):
 
         return True
 
+    def calc_clock(self):
+        '''
+        Calculate and store IMF clock angle, defined as the angle of the
+        interplanetary magnetic field (IMF) in the GSM Y-Z plane. A clock
+        angle of zero represents purely northward IMF while 180 represents
+        purely southward configuration.
+
+        The resulting value is stored as `self['cloc']` in units of degrees.
+
+        '''
+
+        self['clock'] = dmarray(180/np.pi * np.arctan2(self['by'], self['bz']),
+                                attrs={'units': r'^{\circ}'})
+
+    def calc_epsilon(self):
+        '''
+        Calculate the epsilon parameter, an approximation of power input into
+        the magnetosphere. It is Poynting flux ($E \times B / \mu_0$) scaled
+        to the solar wind clock angle. Thus, it is an energy flux, or,
+        equivalently, power-per-unit area.
+
+        The resultant quantity is stored as `self['epsilon']` and has units
+        of $W/m^2$.
+
+        For full details, see Perreault and Akasofu(1978),
+        https://doi.org/10.1111/j.1365-246X.1978.tb05494.x.
+
+        '''
+
+        if 'b' not in self:
+            self.calc_b()
+        if 'u' not in self:
+            self.calc_u()
+        if 'clock' not in self:
+            self.calc_clock()
+
+        # Calculate mu-naught
+        mu_o = 4*np.pi*1E-7
+
+        # Calculate conversion factors:
+        conv = 1000. * 1E-9**2 / mu_o  # km/s->m/s; nT**2->T**2
+        clock = np.sin(np.pi/180 * self['clock']/2)**4
+
+        self['epsilon'] = dmarray(conv*self['u'] * self['b']**2 * clock,
+                                  attrs={'units': '$W/m^2$',
+                                         'label': r'$\epsilon$'})
+
     def varcheck(self):
         '''
         Ensure that the variable list, which gives the order of the
