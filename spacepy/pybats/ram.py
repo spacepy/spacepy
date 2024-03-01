@@ -1392,10 +1392,6 @@ class PressureFile(PbData):
 
         '''
         from matplotlib.colors import LogNorm
-        try:
-            from matplotlib.colors import get_cmap
-        except ImportError:
-            from matplotlib.cm import get_cmap
         from matplotlib.pyplot import colorbar
         from matplotlib.ticker import LogLocator, LogFormatterMathtext
 
@@ -1414,7 +1410,7 @@ class PressureFile(PbData):
         p = np.reshape(self[var], [self.attrs['nL'], self.attrs['nTheta']])
         ax.grid(False)  # as of mpl 3.5 grid must be turned off before calling pcolormesh
         pcol = ax.pcolormesh(T, R, p[:, :-1], norm=LogNorm(vmin=minz, vmax=maxz),
-                             cmap=get_cmap('inferno'))
+                             cmap='inferno')
         _adjust_dialplot(ax, R, title=title, labelsize=15)
         if add_cbar:
             cbar = colorbar(pcol, pad=0.1, ticks=LogLocator(), ax=ax,
