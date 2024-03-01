@@ -1960,7 +1960,8 @@ class ImfInput(PbData):
         '''
 
         self['clock'] = dmarray(180/np.pi * np.arctan2(self['by'], self['bz']),
-                                attrs={'units': r'^{\circ}'})
+                                attrs={'units': r'$^{\circ}$',
+                                       'label': 'Clock Angle'})
 
     def calc_epsilon(self):
         '''
