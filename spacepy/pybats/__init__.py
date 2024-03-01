@@ -1928,7 +1928,7 @@ class ImfInput(PbData):
         # Const: nT->T, m->km, mu_0, proton mass, cm-3->m-3.
         const = 1E-12/np.sqrt(4.*np.pi*10**-7*1.67E-27*100**3)
 
-        self['vAlf'] = dmarray(const*self['b']/np.sqrt(self['rho']),
+        self['vAlf'] = dmarray(const*self['b']/np.sqrt(self[self._denvar]),
                                {'units': '$km/s$', 'label': r'V$_{Alf}'})
 
         return True
