@@ -125,11 +125,11 @@ class TestQTree(unittest.TestCase):
 class TestCalcNdens(unittest.TestCase):
     '''Test the pybats.bats _calc_ndens function'''
     # Recognized species:
-    mass = {'hp':1.0, 'op':16.0, 'he':4.0,
-            'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0, '':1.0}
+    mass = {'hp': 1.0, 'op': 16.0, 'he': 4.0,
+            'sw': 1.0, 'o': 16.0, 'h': 1.0, 'iono': 1.0, '': 1.0}
 
-    case1 = {'rho':np.array([42.]), 'oprho':np.array([32.]),
-             'hprho':np.array([2.]), 'herho':np.array([8.])}
+    case1 = {'rho': np.array([42.]), 'oprho': np.array([32.]),
+             'hprho': np.array([2.]), 'herho': np.array([8.])}
 
     def testCalcNdens(self):
         pbs._calc_ndens(self.case1)
@@ -145,17 +145,19 @@ class TestParsers(unittest.TestCase):
     '''
 
     # For variable names to latex conversion (from a 3 fluid run.)
-    knownTex = {'grid':'grid', 'x':'x', 'y':'y',
-                'rho':'$\rho_{}$', 'ux':'$U_{x}$', 'uy':'$U_{y}$',
-                'uz':'$U_{z}$', 'bx':'$B_{x}$', 'by':'$B_{y}$', 'bz':'$B_{z}$',
-                'pe':'pe', 'p':'$P_{}$', 'swrho':'$\rho_{sw}$',
-                'swux':'$U_{x, sw}$', 'swuy':'$U_{y, sw}$',
-                'swuz':'$U_{z, sw}$', 'swp':'$P_{sw}$',
-                'hprho':'$\rho_{hp}$', 'hpux':'$U_{x, hp}$',
-                'hpuy':'$U_{y, hp}$', 'hpuz':'$U_{z, hp}$', 'hpp':'$P_{hp}$',
-                'oprho':'$\rho_{op}$', 'opux':'$U_{x, op}$',
-                'opuy':'$U_{y, op}$', 'opuz':'$U_{z, op}$', 'opp':'$P_{op}$',
-                'jx':'$J_{x}$', 'jy':'$J_{y}$', 'jz':'$J_{z}$'}
+    knownTex = {'grid': 'grid', 'x': 'x', 'y': 'y',
+                'rho': '$\rho_{}$', 'ux': '$U_{x}$', 'uy': '$U_{y}$',
+                'uz': '$U_{z}$', 'bx': '$B_{x}$', 'by': '$B_{y}$',
+                'bz': '$B_{z}$', 'pe': 'pe', 'p': '$P_{}$',
+                'swrho': '$\rho_{sw}$', 'swux': '$U_{x, sw}$',
+                'swuy': '$U_{y, sw}$', 'swuz': '$U_{z, sw}$',
+                'swp': '$P_{sw}$', 'hprho': '$\rho_{hp}$',
+                'hpux': '$U_{x, hp}$', 'hpuy': '$U_{y, hp}$',
+                'hpuz': '$U_{z, hp}$', 'hpp': '$P_{hp}$',
+                'oprho': '$\rho_{op}$', 'opux': '$U_{x, op}$',
+                'opuy': '$U_{y, op}$', 'opuz': '$U_{z, op}$',
+                'opp': '$P_{op}$', 'jx': '$J_{x}$', 'jy': '$J_{y}$',
+                'jz': '$J_{z}$'}
 
     # For parsing TecPlot variable names:
     tecText = 'VARIABLES ="X [R]", "Y [R]", "Z [R]", "Rho [amu/cm^3]", ' + \
@@ -301,7 +303,9 @@ class TestIdlFile(unittest.TestCase):
     knownMhdXmin = -220.0
     knownMhdZlim = 124.0
     knownMhdTime = dt.datetime(2014, 4, 10, 0, 0, 50)
-    knownMhdX_unsorted = [-220., -212., -204., -196., -188., -180., -172., -164.] # first 8 X positions in the y0_ascii.out file
+    # first 8 X positions in the y0_ascii.out file:
+    knownMhdX_unsorted = [-220., -212., -204., -196.,
+                          -188., -180., -172., -164.]
 
     # Known values for multi-frame *.outs files:
     # Time/iteration range covered by files:
@@ -351,7 +355,8 @@ class TestIdlFile(unittest.TestCase):
 
         # Test units are loaded correctly:
         for v in mhd:
-            if v not in self.varnames: continue
+            if v not in self.varnames:
+                continue
             self.assertEqual(self.knownMhdUnits[v], mhd[v].attrs['units'])
 
         # Test values inside of mhd:
@@ -452,8 +457,8 @@ class TestBatsLog(unittest.TestCase):
 
         # Fake some observed data:
         time = np.array([log['time'][0], log['time'][-1]])
-        log.obs_dst = {'time':time, 'dst':[-1, 1]}
-        log.obs_sym = {'time':time, 'sym-h':[1, -1]}
+        log.obs_dst = {'time': time, 'dst': [-1, 1]}
+        log.obs_sym = {'time': time, 'sym-h': [1, -1]}
 
         # Create plot with default style:
         fig, ax = log.add_dst_quicklook(plot_obs=True, plot_sym=True,
@@ -464,8 +469,8 @@ class TestBatsLog(unittest.TestCase):
         # Create plot with custom style:
         fig, ax = log.add_dst_quicklook(plot_obs=True, plot_sym=True,
                                         epoch=log['time'][5], dstvar='dst_sm',
-                                        obs_kwargs={'ls':'--', 'c':'k'},
-                                        sym_kwargs={'ls':':', 'c':'orange'},
+                                        obs_kwargs={'ls': '--', 'c': 'k'},
+                                        sym_kwargs={'ls': ':', 'c': 'orange'},
                                         lw=5)
         self.assertTrue(isinstance(fig, plt.Figure))
         self.assertTrue(isinstance(ax,  plt.Axes))
@@ -554,13 +559,13 @@ class TestBats2d(spacepy_testing.TestPlot):
     '''
     Test functionality of Bats2d objects.
     '''
-    knownMax1 = {'jx':1.4496836229227483e-05, 'jbz':7.309692051649108e-08,
-                 'wy':0.0, 'u':1285.6114501953125}
+    knownMax1 = {'jx': 1.4496836229227483e-05, 'jbz': 7.309692051649108e-08,
+                 'wy': 0.0, 'u': 1285.6114501953125}
     knownMax2 = {'jx': 1.680669083725661e-05, 'jbz': 8.276679608343329e-08,
                  'wy': 0.0, 'u': 1285.6114501953125}
     knownCalcSingle = [8.6176513671875, 9.724967e-11, 1.0006003, 400.0,
-                       0.0067278803, 0.009994, 0.99992746, 399.99097, -2.691152,
-                       0.4002311, 8.664787, 9.730319e-17, 9.760558]
+                       0.0067278803, 0.009994, 0.99992746, 399.99097,
+                       -2.691152, 0.4002311, 8.664787, 9.730319e-17, 9.760558]
     calcnames = ['t', 'j', 'b', 'u', 'bx_hat', 'by_hat', 'bz_hat',
                  'u_perp', 'u_par', 'E', 'beta', 'jb', 'alfven']
 
@@ -717,7 +722,8 @@ class TestMagGrid(unittest.TestCase):
         m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
                                           'pybats_test', 'mag_grid_ascii.out'))
         m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
-                                          'pybats_test', 'mag_grid_binary.out'))
+                                          'pybats_test',
+                                          'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -939,7 +945,8 @@ class TestImfInput(unittest.TestCase):
         f3 = self.sing.quicklook(plotvars=[['bx', 'by', 'bz'], 'n', 'v'],
                                  colors=[])
         # Custom vars, nested but incomplete colors:
-        f4 = self.mult.quicklook([['bx', 'by', 'bz'], ['SwRho', 'IonoRho'], 'v'],
+        f4 = self.mult.quicklook([['bx', 'by', 'bz'], ['SwRho', 'IonoRho'],
+                                  'v'],
                                  colors=[['r', 'g', 'b'], ['orange', 'cyan']])
         # Custom vars, custom colors/shape mismatch, blank axes:
         f5 = self.mult.quicklook([['bx', 'by', 'bz'], ['ux', 'uy'], 'blah'],
@@ -1083,15 +1090,18 @@ class RamTests(unittest.TestCase):
         rmkeys = [key for key in data if key.lower().startswith('omni')]
         for rmk in rmkeys:
             del data[rmk]
-        regrH = np.array([0.0000000e+00, 1.4857327e+07, 1.4904620e+07, 1.4523555e+07,
-                          1.3417377e+07, 1.1787100e+07, 9.8903560e+06, 8.0948140e+06,
-                          6.6876425e+06, 5.7112065e+06, 5.0520345e+06, 4.5785050e+06,
-                          4.2270450e+06, 3.9780850e+06, 3.8351362e+06, 3.7873392e+06,
-                          3.9363230e+06, 4.0524422e+06, 2.9526408e+06, 9.0399219e+05,
-                          5.2025672e+05, 2.4965306e+05, 9.1892180e+04, 3.0133383e+04,
-                          1.6105718e+04, 1.4831358e+04, 1.7809768e+04, 2.2456926e+04,
-                          2.5075262e+04, 2.3687787e+04, 1.8142951e+04, 1.0017233e+04,
-                          3.8184448e+03, 1.1123656e+03, 2.2883945e+02],
+        regrH = np.array([0.0000000e+00, 1.4857327e+07, 1.4904620e+07,
+                          1.4523555e+07, 1.3417377e+07, 1.1787100e+07,
+                          9.8903560e+06, 8.0948140e+06, 6.6876425e+06,
+                          5.7112065e+06, 5.0520345e+06, 4.5785050e+06,
+                          4.2270450e+06, 3.9780850e+06, 3.8351362e+06,
+                          3.7873392e+06, 3.9363230e+06, 4.0524422e+06,
+                          2.9526408e+06, 9.0399219e+05, 5.2025672e+05,
+                          2.4965306e+05, 9.1892180e+04, 3.0133383e+04,
+                          1.6105718e+04, 1.4831358e+04, 1.7809768e+04,
+                          2.2456926e+04, 2.5075262e+04, 2.3687787e+04,
+                          1.8142951e+04, 1.0017233e+04, 3.8184448e+03,
+                          1.1123656e+03, 2.2883945e+02],
                          dtype=np.float32)
         data.create_omniflux(check=False)
         testarr = np.array(data['omniH'][0].data)
