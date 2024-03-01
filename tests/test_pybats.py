@@ -866,6 +866,15 @@ class TestImfInput(unittest.TestCase):
     knownImfIono = [4.99, 0.01]
     knownSubMilli = dt.datetime(2017, 9, 6, 16, 42, 37, 0)
 
+    # Known calculated values
+    knownCalcB = [3., 10.]
+    knownCalcU = [406.201920231798, 703.5623639735]
+    knownCalcP = [1.340968, 12.3201435]
+    knownCalcAlf = [29.28687846, 56.36262388]
+    knownCalcMa = [13.86975811, 12.4827823]
+    knownCalcClock = [0.0, 180.0]
+    knownCalcEps = [0.0, 5.5987714e-05]
+
     def tearDown(self):
         # Remove temporary files.
         for f in glob.glob('*.tmp'):
@@ -933,6 +942,30 @@ class TestImfInput(unittest.TestCase):
         self.assertEqual(self.knownImfTemp[-1], self.mult['t'][-1])
         self.assertEqual(self.knownImfIono[0], self.mult['IonoRho'][0])
         self.assertEqual(self.knownImfIono[-1], self.mult['IonoRho'][-1])
+
+    def testCalcs(self):
+        '''Test calculations'''
+
+        # Perform calculations:
+        self.sing.calc_pram()     # Ram pressure.
+        self.sing.calc_alfmach()  # Alven mach number (includes calc_alf, _u)
+        self.sing.calc_epsilon()  # Epsilon/Poynting flux (includes _b, _clock)
+
+        # Check'em:
+        self.assertEqual(self.knownCalcB[0], self.sing['b'][0])
+        self.assertEqual(self.knownCalcB[1], self.sing['b'][-1])
+        self.assertAlmostEqual(self.knownCalcU[0], self.sing['u'][0])
+        self.assertAlmostEqual(self.knownCalcU[-1], self.sing['u'][-1])
+        self.assertAlmostEqual(self.knownCalcP[0], self.sing['pram'][0])
+        self.assertAlmostEqual(self.knownCalcP[-1], self.sing['pram'][-1])
+        self.assertAlmostEqual(self.knownCalcAlf[0], self.sing['vAlf'][0])
+        self.assertAlmostEqual(self.knownCalcAlf[-1], self.sing['vAlf'][-1])
+        self.assertAlmostEqual(self.knownCalcMa[0], self.sing['machA'][0])
+        self.assertAlmostEqual(self.knownCalcMa[-1], self.sing['machA'][-1])
+        self.assertAlmostEqual(self.knownCalcClock[0], self.sing['clock'][0])
+        self.assertAlmostEqual(self.knownCalcClock[-1], self.sing['clock'][-1])
+        self.assertAlmostEqual(self.knownCalcEps[0], self.sing['epsilon'][0])
+        self.assertAlmostEqual(self.knownCalcEps[-1], self.sing['epsilon'][-1])
 
     def testPlot(self):
         import matplotlib.pyplot as plt
