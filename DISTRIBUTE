@@ -124,37 +124,48 @@ Runtime to terminate it in an unusual way" with a popup "python.exe
 has stopped working." This doesn't seem to be a problem, just click
 "Close the program" in the popup.
 
-Making Linux and Mac binaries
+Making Mac binaries
 -----------------------------
-Skip this for now, will need investigation into Mac portability across
-OS versions, as well as Linux cross-distro compatibility. See
-https://www.python.org/dev/peps/pep-0513/.
-
-Assumes miniconda is in ~/miniconda.
-
-Unzip the source distribution made above into another directory. Copy
-over the developer/scripts/unix_wheels.sh script into that directory
-(top-level is fine, next to setup.py) Run:
-    bash ./unix_wheels.sh
-
-The binary wheels will be in the "dist" directory.
-
-conda only has gfortran 11.2 and 11.3, so that might be an issue. conda install gfortran~-11.2.0. looks like it installs libgfortran-5.0.0
-
-Do we want to hardcode SDKROOT if it isn't set? Only for "distribution" builds...
-maybe https://stackoverflow.com/questions/17910684/static-libgfortran-in-library-build is useful?
-handy: gfortran -print-file-name=libgfortran.so
-
-mac miniconda setup: download the "bash" (.sh), run through, intsall for me only, do not change install location
+Assumes miniconda is in ~/opt/miniconda. E.g. download the "bash" (.sh), run through, install for me only, do not change install location
 sh ./Miniconda3-py311-23.11.0-2-MacOSX-x86_64.sh -b -p ~/opt/miniconda/
-conda install numpy gfortran python-build wheel
+
+conda only has gfortran 11.2 and 11.3. looks like 11.2 installs libgfortran-5.0.0, so may have a limitation on what C library that gets compiled against. maybe https://stackoverflow.com/questions/17910684/static-libgfortran-in-library-build is useful?
+
+Download the CDF library; need to build from source since they compile against a new SDK. You can check this at https://stackoverflow.com/questions/17143373/determine-minimum-osx-version-a-binary-was-compiled-for
+Do this build WITHOUT having conda loaded (so we don't get the wrong ld)
+
+curl https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_1/macosx/src_distribution/cdf39_1-dist-cdf.tar.gz --output cdf39_1-dist-cdf.tar.gz
+tar -zxvf cdf39_1-dist-cdf.tar.gz
+cd cdf39_1-dist
+# So we can override this later
+sed -i '' 's/LDLIB=-L\$(XCODEDir)/LDLIB?=-L\$(XCODEDir)/' Makefile
+# if you need real xcodeversion, use this, but "10.2" gets the new codepath
+# pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
+# For Apple Silicon
+SDKROOT=/opt/MacOSX11.0.sdk make XCODEVERSION=10.2 LDLIB=-L/opt/MacOSX11.0.sdk/usr/lib OS=macosx ENV=arm64 SHARED=yes CURSES=no FORTRAN=no all
+# For Intel
+SDKROOT=/opt/MacOSX10.9.sdk make XCODEVERSION=10.2 LDLIB="-L/opt/MacOSX10.9.sdk/usr/lib -L/opt/MacOSX10.9.sdk/usr/lib/system" OS=macosx ENV=x86_64 SHARED=yes CURSES=no FORTRAN=no all
+
+Unzip the spacepy source distribution made above into another directory. Copy
+over the developer/scripts/mac_x86_wheels.sh script into that directory
+(top-level is fine, next to setup.py) and also copy in the final compiled CDF library (src/lib/libcdf.dylib) Run:
+    zsh ./mac_x86_wheels.sh
+
+The binary wheels will be in the "dist" directory. Do this whole process for both ARM and x86 (mac_arm_wheels.sh).
+
+Making Linux binaries
+-----------------------------
+Will need investigation into Linux cross-distro compatibility. See
+https://www.python.org/dev/peps/pep-0513/.
 
 Fixing wheel metadata version
 -----------------------------
 
-The wheels are compliant with metadata 2.0 but are labeled as 2.1, which makes for problems unless everybody has the very newest version of everything. For now, we should edit them. This should be done on ALL the wheels (so ideally collect together the wheels built on different systems into a single dist directory).
+The wheels are compliant with metadata 2.0 but are labeled as 2.1. The only difference is that the Requires and Requires-Dist versions need to be in parens for 2.0. Using 2.0 makes for problems unless everybody has the very newest version of everything. For now, we should edit them. This should be done on ALL the wheels (so ideally collect together the wheels built on different systems into a single dist directory).
 
-for i in *.whl; do unzip $i "spacepy-*.dist-info/METADATA"; sed -i -e "s/Metadata-Version: 2.1/Metadata-Version: 2.0/" spacepy-*.dist-info/METADATA; zip $i "spacepy-*.dist-info/METADATA"; rm -rf spacepy-*.dist-info; done
+for i in *.whl; do unzip $i "spacepy-*.dist-info/METADATA"; sed -i -e "s/Metadata-Version: 2.1/Metadata-Version: 2.0/" spacepy-*.dist-info/METADATA; sed -i -e "s/Requires-Dist: \([^ ]*\) \(.*\)/Requires-Dist: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; sed -i -e "s/Requirest: \([^ ]*\) \(.*\)/Requires: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; zip $i "spacepy-*.dist-info/METADATA"; rm -rf spacepy-*.dist-info; done
+
+Verify this compliance by looking at https://packaging.python.org/en/latest/specifications/core-metadata/
 
 General notes on binaries:
 

@@ -222,12 +222,6 @@ produce derivative works, such modified software should be clearly marked, so
 as not to confuse it with the version available from LANL. Full text of the 
 Python Software Foundation License can be found in the LICENSE.md file in the
 main development branch of the repository (https://github.com/spacepy/spacepy).
-"""
-
-if sys.platform == 'win32':
-    __license__ += \
-        """
-Fortran library support provided by MinGW. The MinGW base runtime package has been placed in the public domain, and is not governed by copyright.
 
 CDF library support is provided by an unmodified library subject to the following license:
 Common Data Format (CDF)
@@ -246,6 +240,12 @@ software is modified, it must include the following notices:
 
 This copyright notice must be reproduced on each copy made. This software is
 provided as is without any express or implied warranties whatsoever.
+"""
+
+if sys.platform == 'win32':
+    __license__ += \
+        """
+Fortran library support provided by MinGW. The MinGW base runtime package has been placed in the public domain, and is not governed by copyright.
 """
 
 __citation__ = """When publishing research which used SpacePy, please provide appropriate

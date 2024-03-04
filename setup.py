@@ -60,6 +60,9 @@ import importlib.machinery
 import numpy
 
 
+# building official release, fail fast instead of accepting "partly works"
+release_build = bool(os.environ.get("SPACEPY_RELEASE", False))
+
 #Patch out bad options in Python's view of mingw
 if sys.platform == 'win32':
     import distutils.cygwinccompiler
@@ -474,6 +477,8 @@ class build_ext(_build_ext):
                   'EEin', 'EFLUXin']
         fln = 'irbempylib.pyf'
         if not os.path.isfile(fln):
+            if release_build:
+                raise RuntimeError('f2py signature generation failed.')
             warnings.warn(
                 'f2py failed; '
                 'IRBEM will not be available.')
@@ -514,6 +519,8 @@ class build_ext(_build_ext):
             else:
                 warnings.warn('Compiler {0} failed, trying another'.format(fc))
         else:
+            if release_build:
+                raise RuntimeError('irbemlib compile failed.')
             warnings.warn('irbemlib compile failed. '
                           'Try a different Fortran compiler? (--fcompiler)')
             os.chdir(olddir)
@@ -546,6 +553,9 @@ class build_ext(_build_ext):
                 if ranlib:
                     subprocess.check_call([ranlib, 'libBL2.a'])
             except:
+                if release_build:
+                    raise RuntimeError(
+                        'irbemlib linking failed (falling back to default).')
                 warnings.warn(
                     'irbemlib linking failed. '
                     'Try a different Fortran compiler? (--fcompiler)')
@@ -578,6 +588,8 @@ class build_ext(_build_ext):
         try:
             subprocess.check_call(cmd, env=f2py_env)
         except:
+            if release_build:
+                raise RuntimeError('irbemlib module f2py failed.')
             warnings.warn(
                 'irbemlib module failed. '
                 'Try a different Fortran compiler? (--fcompiler)')
@@ -588,6 +600,8 @@ class build_ext(_build_ext):
         created_libfiles = [f for f in libfiles if os.path.exists(f)]
         irbempy = None
         if len(created_libfiles) == 0: #no matches
+            if release_build:
+                raise RuntimeError('No recognizable irbempylib module')
             warnings.warn(
                 'irbemlib build produced no recognizable module. '
                 'Try a different Fortran compiler? (--fcompiler)')
@@ -603,9 +617,11 @@ class build_ext(_build_ext):
                     shutil.move(f,
                                 os.path.join(outdir, f))
         else:
-             warnings.warn(
+            if release_build:
+                raise RuntimeError('Multiple irbempylib modules found.')
+            warnings.warn(
                 'irbem build failed: multiple build outputs ({0}).'.format(
-                     ', '.join(created_libfiles)))
+                    ', '.join(created_libfiles)))
         if sys.platform == 'darwin':
             # Look for the library location that is shipped with the wheel
             cmd = ['install_name_tool', '-add_rpath', '@loader_path/../libs/',
@@ -613,7 +629,8 @@ class build_ext(_build_ext):
             try:
                 subprocess.call(cmd)
             except FileNotFoundError:
-                pass
+                if release_build:
+                    raise
         os.chdir(olddir)
         return irbempy
 
@@ -650,6 +667,8 @@ class build_ext(_build_ext):
                                      output_dir=outdir)
             return libpath
         except:
+            if release_build:
+                raise
             warnings.warn(
                 'libspacepy compile failed; some operations may be slow.')
             print('libspacepy compile failed:')
@@ -725,7 +744,9 @@ def copy_win_libs(outdir):
             libdir = p
             break
     if libdir is None:
-        raise RuntimeError("Can't locate runtime libraries.")
+        if release_build:
+            raise RuntimeError("Can't locate runtime libraries.")
+        return []
     mingdir = os.path.join(outdir, 'libs')
     if not os.path.exists(mingdir):
         os.makedirs(mingdir, exist_ok=True)
@@ -738,19 +759,21 @@ def copy_win_libs(outdir):
         if os.path.isfile(cdfdll):
             shutil.copy(cdfdll, outdir)
             outputs.append(os.path.join(outdir, 'dllcdf.dll'))
+        elif release_build:
+            raise RuntimeError(f'{cdfdll} is not a file')
+    elif release_build:
+        raise RuntimeError('Unable to find SpacePy source to copy CDF library.')
     return outputs
 
 
 def copy_mac_libs(outdir):
-    """Copy Mac fortran libraries into a build
+    """Copy Mac fortran and CDF libraries into a build
 
     :param str outdir: Final target directory of the libraries in the build.
     :returns list: List of copied libraries
     """
     outputs = []
-    libneeded = ['libgfortran', 'libgcc_s.1.1', 'libquadmath']
-    if platform.uname()[4] == 'x86_64':
-        libneeded.append('libgcc_s.1')
+    libneeded = ['libgfortran', 'libgcc_s.1.1', 'libgcc_s.1', 'libquadmath']
     outlibdir = os.path.join(outdir, 'libs')
     if not os.path.exists(outlibdir):
         os.makedirs(outlibdir, exist_ok=True)
@@ -759,25 +782,36 @@ def copy_mac_libs(outdir):
                          stdout=subprocess.PIPE)
         out, err = p.communicate()
         if p.returncode:
-            raise RuntimeError(f"Failure searching for {f}.")
+            if release_build:
+                raise RuntimeError(f"Failure searching for {f}.")
+            return []
         libfile = out.rstrip().decode('ascii')
         if not os.path.isfile(libfile):
-            raise RuntimeError(f"{f} not found.")
+            if f.startswith('libgcc_s'):
+                continue  # Only need one of them
+            if release_build:
+                raise RuntimeError(f"{f} not found.")
+            return []
         libfile = os.path.realpath(libfile)
         shutil.copy(libfile, outlibdir)
         outputs.append(os.path.join(outlibdir, os.path.basename(libfile)))
         if f != 'libgcc_s.1':
             continue
+        # In some cases libgcc_s.1 has a hardcoded ref to 1.1 that needs fixing
         libgcc_s = outputs[-1]
         p = subprocess.Popen(['otool', '-L', libgcc_s],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         if p.returncode:
-            raise RuntimeError("Failed to read library paths from libgcc_s")
+            if release_build:
+                raise RuntimeError("Failed to read library paths from libgcc_s")
+            return []
         # libgcc_s.1 refers to .1.1 with hardcoded path, fix that
         hardcoded = [l.strip().split()[0]
                      for l in out.decode('ascii').split('\n')
                      if l.startswith('\t/') and 'libgcc_s.1.1' in l]
+        if not hardcoded:  # No reference, no worries
+            continue
         assert len(hardcoded) == 1
         cmd = ['install_name_tool', '-change', hardcoded[0],
                os.path.join('@loader_path', os.path.basename(hardcoded[0])),
@@ -785,7 +819,19 @@ def copy_mac_libs(outdir):
         try:
             subprocess.call(cmd)
         except FileNotFoundError:
-            pass
+            if release_build:
+                raise
+    if isinstance(__file__, str):
+        cdflib = os.path.join(os.path.dirname(__file__), 'libcdf.dylib')
+        if os.path.isfile(cdflib):
+            shutil.copy(cdflib, outdir)
+            outputs.append(os.path.join(outdir, 'libcdf.dylib'))
+        elif release_build:
+            raise RuntimeError(f'{cdflib} is not a file')
+    elif release_build:
+        raise RuntimeError('Unable to find SpacePy source to copy CDF library.')
+    if release_build and not [f for f in outputs if 'libgcc' in f]:
+        raise RuntimeError('No libgcc found.')
     return outputs
 
 
