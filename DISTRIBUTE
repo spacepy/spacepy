@@ -1,13 +1,13 @@
-Building spacepy for distribution (20230725)
+Building spacepy for distribution (20240306)
 ============================================
 Since this has to happen on multiple platforms, a single script doesn't work.
 
 Prepare the release commit
 --------------------------
 
-Note: it's probably best to get the latest up on test PyPI first to
-make sure it works! Also best to go through this process for a release
-candidate to test PyPI https://www.python.org/dev/peps/pep-0440/#pre-releases.
+Go through this process for a release candidate and upload to test
+PyPI first (https://www.python.org/dev/peps/pep-0440/#pre-releases)
+and, once final build is ready, also check it on test PyPI.
 
 Edit the release notes to include the release date.
 
@@ -17,6 +17,7 @@ Edit Doc/source/conf.py. Around line 128, remove (DRAFT) from the title.
     Change version around line 72 (two places!)
 Change version in setup.py, in setup_kwargs near bottom.
 Change __version__ around line 209 of __init__.py.
+Edit pyproject.toml around line 18 to change version.
 
 Commit these changes. Submit PR. (Tagging is done on github now.)
 
@@ -96,9 +97,9 @@ top-level directory with setup.py.
     wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_1/windows/cdf3.9.1_64bit_WinZip_Installer.zip
     unzip -j cdf3.9.1_64bit_WinZip_Installer.zip bin/dllcdf.dll
 
-Download latest (currently 3.9) 64-bit Miniconda from
+Download latest 64-bit Miniconda from
 https://docs.conda.io/en/latest/miniconda.html and put it in the
-system-default download directory (%USERPROFILE%\Downloads)
+user-default download directory (%USERPROFILE%\Downloads)
 
 MSVC needs to be installed from
 https://visualstudio.microsoft.com/visual-cpp-build-tools/ before
@@ -126,10 +127,10 @@ has stopped working." This doesn't seem to be a problem, just click
 
 Making Mac binaries
 -----------------------------
-Assumes miniconda is in ~/opt/miniconda. E.g. download the "bash" (.sh), run through, install for me only, do not change install location
+Assumes miniconda is in ~/opt/miniconda. E.g. download the "bash" (.sh), install for me only, do not change install location
 sh ./Miniconda3-py311-23.11.0-2-MacOSX-x86_64.sh -b -p ~/opt/miniconda/
 
-conda only has gfortran 11.2 and 11.3. looks like 11.2 installs libgfortran-5.0.0, so may have a limitation on what C library that gets compiled against. maybe https://stackoverflow.com/questions/17910684/static-libgfortran-in-library-build is useful?
+conda only has gfortran 11.2 and 11.3. 11.2 installs libgfortran-5.0.0, so may have a limitation on what C library that gets compiled against. In the future check https://stackoverflow.com/questions/17910684/static-libgfortran-in-library-build
 
 Download the CDF library; need to build from source since they compile against a new SDK. You can check this at https://stackoverflow.com/questions/17143373/determine-minimum-osx-version-a-binary-was-compiled-for
 Do this build WITHOUT having conda loaded (so we don't get the wrong ld)
@@ -151,23 +152,42 @@ over the developer/scripts/mac_x86_wheels.sh script into that directory
 (top-level is fine, next to setup.py) and also copy in the final compiled CDF library (src/lib/libcdf.dylib) Run:
     zsh ./mac_x86_wheels.sh
 
-The binary wheels will be in the "dist" directory. Do this whole process for both ARM and x86 (mac_arm_wheels.sh).
+The binary wheels will be in the "dist" directory. Do this whole process for both x86 and ARM (mac_arm_wheels.sh).
 
 Making Linux binaries
 -----------------------------
-Will need investigation into Linux cross-distro compatibility. See
-https://www.python.org/dev/peps/pep-0513/.
+Information on cross-distro compatibility is at:
+https://peps.python.org/pep-0513/
+https://peps.python.org/pep-0599/
+https://peps.python.org/pep-0600/
+https://github.com/pypa/manylinux
+https://github.com/pypa/auditwheel/tree/main
+https://quay.io/organization/pypa
+http://www.martin-rdz.de/index.php/2022/02/05/manually-building-manylinux-python-wheels/
+
+We build to manylinux2014_x86_64 since that's the oldest currently supported; that's roughly Ubuntu 20.04 and CentOS 7.
+
+sudo aptitude install docker.io
+sudo usermod -aG docker USERNAME
+docker run -i -t --rm -v `pwd`:/io quay.io/pypa/manylinux2014_x86_64 /bin/bash /io/developer/scripts/manylinux_wheels.sh
+
+Need to change owner of the wheels after they're copied out, in the future can try running docker with --user $(id -u):$(id -g) but then will need to work with write permissions for the pip installs inside the container.
 
 Fixing wheel metadata version
 -----------------------------
 
-The wheels are compliant with metadata 2.0 but are labeled as 2.1. The only difference is that the Requires and Requires-Dist versions need to be in parens for 2.0. Using 2.0 makes for problems unless everybody has the very newest version of everything. For now, we should edit them. This should be done on ALL the wheels (so ideally collect together the wheels built on different systems into a single dist directory).
+The wheels are compliant with metadata 2.0 but are labeled as 2.1. The only difference is that the Requires and Requires-Dist versions need to be in parens for 2.0. Using 2.1 makes for problems unless everybody has the very newest version of everything. For now, we should edit them. This should be done on ALL the wheels (so ideally collect together the wheels built on different systems into a single dist directory).
 
 for i in *.whl; do unzip $i "spacepy-*.dist-info/METADATA"; sed -i -e "s/Metadata-Version: 2.1/Metadata-Version: 2.0/" spacepy-*.dist-info/METADATA; sed -i -e "s/Requires-Dist: \([^ ]*\) \([^()]+\)/Requires-Dist: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; sed -i -e "s/Requires: \([^ \(\)]*\) \([^()]+\)/Requires: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; zip $i "spacepy-*.dist-info/METADATA"; rm -rf spacepy-*.dist-info; done
 
 Verify this compliance by looking at https://packaging.python.org/en/latest/specifications/core-metadata/
 
-General notes on binaries:
+Shortly should consider moving to 2.1, will need to check what minimum
+version of build, pip, setuptools, and wheel that implies, both for
+building the wheel and for the user to have for installation.
+
+General notes on binaries
+-------------------------
 
 It looks like the wheels are compatible across Windows versions,
 i.e. a wheel built on Windows 10 seems to install okay in Windows 7,
@@ -284,8 +304,8 @@ necessarily the best) is to use just "x.y.z" as the title with nothing
 the "describe."
 
 Click in the "upload binaries" area and upload all the files: source
-distribution, wheels, documentation PDF (spacepy-x.y.z-doc.pdf) and a
-zip (spacepy-x.y.z-doc.zip).
+distribution tar.gz, wheels, documentation PDF (spacepy-x.y.z-doc.pdf)
+and a zip (spacepy-x.y.z-doc.zip).
 
 Documentation update
 --------------------
