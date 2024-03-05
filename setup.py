@@ -691,6 +691,10 @@ class build_ext(_build_ext):
             # Puts them where bdist_wheel will include them in binary installers
             libs = copy_mac_libs(os.path.join(self.build_lib, 'spacepy'))
             self._outputs.extend(libs)
+        if sys.platform == 'linux':
+            # Copy CDF library where bdist_wheel will include it in binary
+            libs = copy_linux_libs(os.path.join(self.build_lib, 'spacepy'))
+            self._outputs.extend(libs)
         if not (getattr(self, 'editable_mode', False)
                 or getattr(self, 'inplace', False)):
             return
@@ -832,6 +836,25 @@ def copy_mac_libs(outdir):
         raise RuntimeError('Unable to find SpacePy source to copy CDF library.')
     if release_build and not [f for f in outputs if 'libgcc' in f]:
         raise RuntimeError('No libgcc found.')
+    return outputs
+
+
+def copy_linux_libs(outdir):
+    """Copy Linux CDF libraries into a build
+
+    :param str outdir: Final target directory of the libraries in the build.
+    :returns list: List of copied libraries
+    """
+    outputs = []
+    if isinstance(__file__, str):
+        cdflib = os.path.join(os.path.dirname(__file__), 'libcdf.so')
+        if os.path.isfile(cdflib):
+            shutil.copy(cdflib, outdir)
+            outputs.append(os.path.join(outdir, 'libcdf.so'))
+        elif release_build:
+            raise RuntimeError(f'{cdflib} is not a file')
+    elif release_build:
+        raise RuntimeError('Unable to find SpacePy source to copy CDF library.')
     return outputs
 
 
