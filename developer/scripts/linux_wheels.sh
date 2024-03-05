@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# ONLY for building local wheels, which are not tagged as manylinux compatible
 # Get miniconda if you need it
 #wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 #bash ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda
