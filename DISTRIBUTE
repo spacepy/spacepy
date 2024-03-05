@@ -163,7 +163,7 @@ Fixing wheel metadata version
 
 The wheels are compliant with metadata 2.0 but are labeled as 2.1. The only difference is that the Requires and Requires-Dist versions need to be in parens for 2.0. Using 2.0 makes for problems unless everybody has the very newest version of everything. For now, we should edit them. This should be done on ALL the wheels (so ideally collect together the wheels built on different systems into a single dist directory).
 
-for i in *.whl; do unzip $i "spacepy-*.dist-info/METADATA"; sed -i -e "s/Metadata-Version: 2.1/Metadata-Version: 2.0/" spacepy-*.dist-info/METADATA; sed -i -e "s/Requires-Dist: \([^ ]*\) \(.*\)/Requires-Dist: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; sed -i -e "s/Requirest: \([^ ]*\) \(.*\)/Requires: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; zip $i "spacepy-*.dist-info/METADATA"; rm -rf spacepy-*.dist-info; done
+for i in *.whl; do unzip $i "spacepy-*.dist-info/METADATA"; sed -i -e "s/Metadata-Version: 2.1/Metadata-Version: 2.0/" spacepy-*.dist-info/METADATA; sed -i -e "s/Requires-Dist: \([^ ]*\) \([^()]+\)/Requires-Dist: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; sed -i -e "s/Requires: \([^ \(\)]*\) \([^()]+\)/Requires: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; zip $i "spacepy-*.dist-info/METADATA"; rm -rf spacepy-*.dist-info; done
 
 Verify this compliance by looking at https://packaging.python.org/en/latest/specifications/core-metadata/
 
