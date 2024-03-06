@@ -18,8 +18,7 @@ pushd %~dp0\..\..\
 rmdir /s /q build 2> nul
 IF "%1"=="36" (
     CALL pyproject-build -w -n -x
-)
-ELSE (
+) ELSE (
     CALL python-build -w -n -x
 )
 popd
