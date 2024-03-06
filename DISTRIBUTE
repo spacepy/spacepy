@@ -128,7 +128,7 @@ has stopped working." This doesn't seem to be a problem, just click
 Making Mac binaries
 -----------------------------
 Assumes miniconda is in ~/opt/miniconda. E.g. download the "bash" (.sh), install for me only, do not change install location
-sh ./Miniconda3-py311-23.11.0-2-MacOSX-x86_64.sh -b -p ~/opt/miniconda/
+sh ./Miniconda3-latest-MacOSX-x86_64.sh -b -p ~/opt/miniconda/
 
 conda only has gfortran 11.2 and 11.3. 11.2 installs libgfortran-5.0.0, so may have a limitation on what C library that gets compiled against. In the future check https://stackoverflow.com/questions/17910684/static-libgfortran-in-library-build
 
