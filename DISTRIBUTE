@@ -176,15 +176,13 @@ Need to change owner of the wheels after they're copied out, in the future can t
 Fixing wheel metadata version
 -----------------------------
 
-The wheels are compliant with metadata 2.0 but are labeled as 2.1. The only difference is that the Requires and Requires-Dist versions need to be in parens for 2.0. Using 2.1 makes for problems unless everybody has the very newest version of everything. For now, we should edit them. This should be done on ALL the wheels (so ideally collect together the wheels built on different systems into a single dist directory).
-
-for i in *.whl; do unzip $i "spacepy-*.dist-info/METADATA"; sed -i -e "s/Metadata-Version: 2.1/Metadata-Version: 2.0/" spacepy-*.dist-info/METADATA; sed -i -e "s/Requires-Dist: \([^ ]*\) \([^()]+\)/Requires-Dist: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; sed -i -e "s/Requires: \([^ \(\)]*\) \([^()]+\)/Requires: \1 \\(\2\\)/g" spacepy-*.dist-info/METADATA; zip $i "spacepy-*.dist-info/METADATA"; rm -rf spacepy-*.dist-info; done
-
-Verify this compliance by looking at https://packaging.python.org/en/latest/specifications/core-metadata/
-
-Shortly should consider moving to 2.1, will need to check what minimum
-version of build, pip, setuptools, and wheel that implies, both for
-building the wheel and for the user to have for installation.
+Wheels are built with metadata 2.1. Support for this was included in
+setuptools 38.0 (SpacePy requires 44.1.1) and wheel 0.31.0
+(0.34.2). The pip changelog doesn't note when this support was added,
+but 10.0 came out about the same time as wheel 0.31.0, and we require
+20.0.2. build had no releases before 2020; wheel 0.31 was released and
+PEP 566 accepted in 2018. So we no longer need to roll back to
+metadata 2.0 and can use 2.1 directly.
 
 General notes on binaries
 -------------------------
@@ -262,8 +260,9 @@ directory. Use the spacepy_build conda environment and install twine:
   conda install twine
 
 and then do the upload:
+To do the upload, you need to authenticate with an API token, see https://test.pypi.org/help/#apitoken
 
-  PYTHONNOUSERSITE=1 PYTHONPATH= twine upload -r testpypi spacepy-*-doc.zip spacepy-*.whl spacepy-*.tar.gz
+  PYTHONNOUSERSITE=1 PYTHONPATH= twine upload -r testpypi spacepy-*.whl spacepy-*.tar.gz
 
 PyPI does not support Windows standalone installers, and can only take
 one source distribution (zip or tar.gz); build seems to prefer the tarball.
