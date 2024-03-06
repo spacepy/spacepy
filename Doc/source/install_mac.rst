@@ -2,23 +2,26 @@
 MacOS Installation
 ******************
 
+Installation requires a working Python environment. The two common
+ways to achieve this are via :ref:`conda <install_mac_conda>` or via
+:ref:`MacPorts <install_mac_macports>`. We generally recommend conda
+may if your main focus is running Python; MacPorts may be better if
+you want to use many of the other open source tools provided in
+MacPorts. :ref:`Homebrew <install_mac_homebrew>` is also a
+possibility.
+
+Binary wheels are provided for both x86_64 (Intel) and 64-bit ARM
+(Apple Silicon, e.g. M1/M2/M3). They will install in any of these
+environments; most of the details below are to compile from
+source. x86_64 binaries are built on MacOS 11 (Big Sur) on x86_64 and
+compiled to work on 10.9 (Mavericks). ARM binaries are built on MacOS
+12 (Monterey) on M2 and compiled to work on 11 (Big Sur).
+
+It is *not* recommended to mix environments if building from source,
+e.g. do not use Python from conda and gcc from Homebrew.
+
 Unless otherwise noted, the commands in these instructions are run
 from the MacOS terminal (command line).
-
-Installation requires a working Python environment and compilers. The
-two common ways to achieve this are via :ref:`conda
-<install_mac_conda>` or via :ref:`MacPorts <install_mac_macports>`. We
-generally recommend conda may if your main focus is running Python;
-MacPorts may be better if you want to use many of the other open
-source tools provided in MacPorts.
-
-:ref:`Homebrew <install_mac_homebrew>` is also a possibility.
-
-It is *not* recommended to mix environments, e.g. do not use Python
-from conda and gcc from Homebrew.
-
-Binary installers for SpacePy on Mac are in preparation for a future
-release.
 
 .. contents::
    :local:
@@ -141,7 +144,7 @@ Homebrew installation
 
 Installing with Homebrew is more prone to complications and it's not
 recommended unless you're using Homebrew for other reasons.
-:ref:`specifying extra arguments to pip <install_pip_failures>` is more
+:ref:`Specifying extra arguments to pip <install_pip_failures>` is more
 likely to be required.
 
 Download the `Homebrew installer
@@ -149,12 +152,14 @@ Download the `Homebrew installer
 the pkg to perform the installation. (See more details at the
 `Homebrew page <https://brew.sh/>`_.)
 
-Install Python and the needed compilers. You need to specify a
-version; at this time, Python 3.9 and gcc 11 are reasonable choices::
+Install Python::
 
-  brew install gfortran
   brew install python
   rehash  # Important to find Homebrew's pip, etc. instead of the built-in
+
+If building from source, install the needed compilers::
+
+  brew install gfortran
 
 Homebrew does not have most of the dependencies required for SpacePy
 (in particular their numpy does not include the required f2py) so
@@ -167,13 +172,12 @@ You can install SpacePy (which will grab dependencies as well)::
 If you're installing as a single user (not in a virtual environment) then
 add the ``--user`` flag.
 
-You will also need the :ref:`NASA CDF library <install_mac_cdf>` to use
-:mod:`~spacepy.pycdf`.
-
 .. _install_mac_cdf:
 
 CDF
 ===
+If building SpacePy from source, you need the NASA CDF library to use
+:mod:`~spacepy.pycdf`.
 
 NASA provides `Mac binaries
 <https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/latest-release/macosx/>`_

@@ -46,8 +46,9 @@ dateutil
 
 C compiler
 ----------
-If you are installing SpacePy from source, a working C compiler
-is required. (Not necessary for the Windows binary installer.)
+If you are installing SpacePy from source, a working C compiler is
+required. (Not necessary for binary wheels, provided on most
+platforms.)
 
 pip
 ---
@@ -115,20 +116,20 @@ CDF 3.5+
 NASA's `CDF <http://cdf.gsfc.nasa.gov/>`_ library provides access to
 Common Data Format files. It is required for :mod:`~spacepy.pycdf`,
 and thus for the CDF import/export capability of
-:mod:`~spacepy.datamodel`.
+:mod:`~spacepy.datamodel`. The library is included with SpacePy binary
+wheels.
 
 .. warning::
-    Unlike the Python-based dependencies, the CDF library must be
-    installed if pycdf support is needed; it will not be automatically
-    installed.
+    If building SpacePy from source, the CDF library must be installed
+    if pycdf support is needed. It can be installed after SpacePy.
 
 .. _dependencies_fortran:
 
 Fortran compiler
 ----------------
 If installing from source, :mod:`~spacepy.irbempy` requires a Fortran
-compiler. (This is not required for the Windows binary installer).
-The Supported compiler is the GNU compiler ``gfortran``.
+compiler. This is not required if using a binary wheel. The supported
+compiler is the GNU compiler ``gfortran``.
 
 If :mod:`~spacepy.irbempy` is to be used, the Fortran compiler (and
 f2py) must be installed before SpacePy.
@@ -147,6 +148,9 @@ Astropy :class:`~astropy.time.Time` is desired.
 
 :mod:`~spacepy.coordinates` requires Astropy if conversion to/from
 Astropy :class:`~astropy.coordinates.SkyCoord` is desired.
+
+Because Astropy is only required for these conversions, it is not
+automatically installed with SpacePy.
 
 Soft Dependency Summary
 =======================
@@ -169,7 +173,7 @@ unaffected by that dependency.
      - :ref:`AstroPy <dependencies_astropy>`
    * - :mod:`~spacepy.coordinates`
      -
-     - :class:`~spacepy.coordinates.Coords` IRBEM backend (except Windows binaries)
+     - :class:`~spacepy.coordinates.Coords` IRBEM backend (except binaries)
      -
      -
      - :mod:`Entire module <spacepy.coordinates>`
@@ -186,6 +190,7 @@ unaffected by that dependency.
      - * :meth:`~spacepy.datamodel.SpaceData.toCDF`
        * :func:`~spacepy.datamodel.fromCDF`
        * :func:`~spacepy.datamodel.toCDF`
+       * (except binaries)
      -
      - * :meth:`~spacepy.datamodel.SpaceData.toHDF5`
        * :func:`~spacepy.datamodel.fromHDF5`
@@ -203,7 +208,7 @@ unaffected by that dependency.
      -
    * - :mod:`~spacepy.irbempy`
      -
-     - :mod:`Entire module <spacepy.irbempy>` (except Windows binaries)
+     - :mod:`Entire module <spacepy.irbempy>` (except binaries)
      -
      -
      -
@@ -281,7 +286,7 @@ unaffected by that dependency.
      -
      -
    * - :mod:`~spacepy.pycdf`
-     - :mod:`Entire module <spacepy.pycdf>`
+     - :mod:`Entire module <spacepy.pycdf>` (except binaries)
      -
      -
      -
