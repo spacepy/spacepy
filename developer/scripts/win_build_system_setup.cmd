@@ -69,8 +69,7 @@ IF "%ACTION%"=="BUILD" (
         :: conda doesn't have build for py3.6
         CALL pip install build
 	CALL conda install -y wheel
-    )
-    ELSE (
+    ) ELSE (
         CALL conda install -y python-build wheel
     )
     IF "%1"=="312" (
@@ -78,8 +77,8 @@ IF "%ACTION%"=="BUILD" (
         :: https://visualstudio.microsoft.com/visual-cpp-build-tools/
         CALL conda install -y "cython<3.0"
         CALL pip install --no-build-isolation --no-deps !NUMPY!
-        CALL conda uninstall -y cython
         :: Should manually uninstall MSVC after this
+        CALL conda uninstall -y cython
     ) ELSE (
         CALL conda install -y !NUMPY!
     )
