@@ -4,17 +4,20 @@ Windows Installation
 
 The SpacePy team currently provides binary "wheels" via PyPI so it can
 be installed on Windows without a compiler. Binaries are provided for
-Python 3.6 through 3.10 in 64-bit variant only.
-``pip install spacepy`` should find and install these binaries.
+64-bit x86.  ``pip install spacepy`` should find and install these
+binaries. These include the necessary Fortran runtime and the NASA CDF
+library.
 
 Our recommended (but not required) Python distribution is `Anaconda
 <https://docs.anaconda.com/anaconda/>`_ running 64-bit
 Python 3. Anaconda includes much of the scientific Python
-stack. Another excellent distribution is `Canopy
-<https://www.enthought.com/product/canopy/>`_.
+stack.
 
 If you prefer to install the dependencies some way other than pip, see
 :ref:`win_dep_conda`.
+
+Wheels are built inside a VM running Windows 10 22H2 and should run on
+Windows 10 and 11.
 
 .. contents::
    :local:

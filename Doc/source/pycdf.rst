@@ -285,9 +285,11 @@ Troubleshooting
 ===============
 Cannot load CDF C library
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-pycdf requires the standard NASA CDF library 3.5 or later; it can be installed
-after SpacePy. See specific instructions for :ref:`Linux <linux_CDF>`,
-:ref:`Mac <install_mac_cdf>`, and :ref:`Windows <windows_CDF>`.
+pycdf requires the standard NASA CDF library 3.5 or later; it can be
+installed after SpacePy. Generally this is only necessary if
+installing SpacePy from source. See specific instructions for
+:ref:`Linux <linux_CDF>`, :ref:`Mac <install_mac_cdf>`, and
+:ref:`Windows <windows_CDF>`.
 
 The error ``Cannot load CDF C library`` indicates pycdf cannot find
 this library. pycdf searches in locations where the library is

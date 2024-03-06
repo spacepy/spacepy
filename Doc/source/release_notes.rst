@@ -16,11 +16,15 @@ This release marks the end of all support for Python 2. SpacePy now
 requires Python 3.6 or later. Minimum supported versions for other
 dependencies were also increased; see :ref:`release_0_5_0_deps` for details.
 
+The SpacePy team now delivers binary wheels for all supported Python
+versions (3.6-3.12) for 64-bit Windows, Linux, and Mac. Most users
+will not need to build SpacePy; see :doc:`install` for details.
+
 Due to changes in f2py, SpacePy 0.5.0 will not build on Python 3.12
 with numpy 1.26 or later. It will, however, run fine. The SpacePy team
-provides binary wheels for Mac and Windows. Linux users who wish to
-use Python 3.12 should first install numpy (which will likely be built
-from source)::
+provides binary wheels for Mac and Windows. Users who wish to build
+from source on Python 3.12 should first install numpy (which will
+likely be built from source)::
 
   pip install --no-build-isolation "numpy<1.26"
   pip install --no-build-isolation spacepy
@@ -37,6 +41,8 @@ The ``setup.py`` based install process is no longer supported; as such,
 ``pip`` and ``setuptools`` are now required. ``wheel`` is required if
 building from source. The vast majority of modern Python distributions
 already have these requirements.
+
+Installing from ``pip`` normally installs all necessary dependencies.
 
 The minimum supported version of all dependencies was updated in
 SpacePy 0.5.0. Minimum versions are:

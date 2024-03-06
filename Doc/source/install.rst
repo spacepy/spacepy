@@ -12,27 +12,27 @@ If you already have a working Python setup, install SpacePy by:
 
   1. ``pip install --upgrade spacepy``
 
-This will install a binary build of SpacePy if available (currently
-only on Windows), otherwise it will attempt to compile. It will also
-install most dependencies.
-
-Depending on your Python environment, you may need to explicitly
-specify Python 3 throughout these commands, e.g. ``pip3`` instead of
-``pip``.
+In most cases this will install a binary build of SpacePy which
+includes runtime dependencies. Otherwise it will attempt to compile
+from source.
 
 If you are familiar with installing Python packages, have particular
 preferences for managing an installation, or if the above doesn't
 work, refer to platform-specific instructions and the details
 below.
 
-For installing the NASA CDF library to support :mod:`~spacepy.pycdf`,
-see the platform-specific instructions linked below.
+Depending on your Python environment, you may need to explicitly
+specify Python 3 throughout these commands, e.g. ``pip3`` instead of
+``pip``.
 
 The first time a user imports SpacePy, it automatically creates the
 :doc:`configuration directory <configuration>`.
 
-If you need further assistance, you can `open an issue
-<https://github.com/spacepy/spacepy/issues>`_.
+If you need further assistance, you can `check our support discussions
+<https://github.com/spacepy/spacepy/discussions/categories/support-and-q-a>`_
+and `start a new discussion
+<https://github.com/spacepy/spacepy/discussions/new?category=support-and-q-a>`_
+if there are no discussions on your topic of interest.
 
 .. toctree::
     :maxdepth: 1
