@@ -27,33 +27,21 @@ pip install spacepy --user
 
 This will also automatically install most dependencies.
 
-The latest "bleeding-edge" source code is available from our github repository at [https://github.com/spacepy/spacepy](https://github.com/spacepy/spacepy) and can be installed using the standard
+The latest "bleeding-edge" source code is available from our github repository at [https://github.com/spacepy/spacepy](https://github.com/spacepy/spacepy).
 
-```
-python setup.py install --user
-```
-
-Further installation documentation can be found [here](https://spacepy.github.io/install.html) Mac-specific information can be found [here](https://spacepy.github.io/install_mac.html)
-Full documentation is at [https://spacepy.github.io](https://spacepy.github.io)
+Further installation documentation, including building from source and OS-specific information, can be found [here](https://spacepy.github.io/install.html). Full documentation is at [https://spacepy.github.io](https://spacepy.github.io).
 
 SpacePy supports Python 3.6 and later.
 
 ### Dependencies
 
-SpacePy has a number of well-maintained dependencies, most of which are automatically installed by ```pip```. These include:
+SpacePy has a number of well-maintained dependencies which are automatically installed by ```pip```. These include:
+
  - numpy (>=1.15.1)
  - dateutil (>=2.1)
  - scipy (>=1.0)
  - matplotlib (>=3.1)
  - h5py (>=2.10)
-
-Soft dependencies (that are required only for a very limited part of SpacePy's functionality) are:
- - NASA CDF
-
-For complete installation, excepting pre-built Windows binaries, SpacePy also requires C and Fortran compilers. We test with GCC compilers but try to maintain support for all major compilers.
-
-#### NASA CDF
-If you wish to use CDF files, download and install the NASA CDF library. The default installation directory is recommended to help SpacePy find the library. Get the package from [https://cdf.gsfc.nasa.gov/html/sw_and_docs.html](https://cdf.gsfc.nasa.gov/html/sw_and_docs.html)
 
 ## Attribution
 
@@ -88,7 +76,7 @@ address = {Austin, TX}
 For additional information, see the [CITATION.cff](https://github.com/spacepy/spacepy/blob/main/CITATION.cff) file.
 Certain modules may provide additional citations in the ```__citation__``` attribute. Contact a module's author before publication or public presentation of analysis performed by that module. This allows the author to validate the analysis and receive appropriate credit for his or her work.
 
-For acknowledging SpacePy, please provide the URL to our github repository. [github.com/spacepy/spacepy](https://github.com/spacepy/spacepy)
+For acknowledging SpacePy, please provide the URL to our github repository: [github.com/spacepy/spacepy](https://github.com/spacepy/spacepy).
 
 ## Changes
 Changes in the released version of SpacePy are provided in the [release notes](https://spacepy.github.io/release_notes.html). For changes since the latest release, see the [repository version](https://github.com/spacepy/spacepy/blob/main/Doc/source/release_notes.rst).
