@@ -10,7 +10,7 @@ This document presents user-visible changes in each release of SpacePy.
 
 0.5 Series
 ==========
-0.5.0 (2022-xx-xx)
+0.5.0 (2024-03-11)
 ------------------
 This release marks the end of all support for Python 2. SpacePy now
 requires Python 3.6 or later. Minimum supported versions for other
