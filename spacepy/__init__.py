@@ -247,6 +247,11 @@ if sys.platform == 'win32':
         """
 Fortran library support provided by MinGW. The MinGW base runtime package has been placed in the public domain, and is not governed by copyright.
 """
+else:
+    __license__ += \
+        """
+Fortran library support in binary wheels is distributed under the GCC Runtime Library exception.
+"""
 
 __citation__ = """When publishing research which used SpacePy, please provide appropriate
 credit to the SpacePy team via citation or acknowledgement.
