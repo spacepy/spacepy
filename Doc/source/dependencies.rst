@@ -117,7 +117,8 @@ NASA's `CDF <http://cdf.gsfc.nasa.gov/>`_ library provides access to
 Common Data Format files. It is required for :mod:`~spacepy.pycdf`,
 and thus for the CDF import/export capability of
 :mod:`~spacepy.datamodel`. The library is included with SpacePy binary
-wheels.
+wheels, but a locally-installed library will be used instead if it is
+found.
 
 .. warning::
     If building SpacePy from source, the CDF library must be installed

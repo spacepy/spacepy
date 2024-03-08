@@ -176,8 +176,9 @@ add the ``--user`` flag.
 
 CDF
 ===
-If building SpacePy from source, you need the NASA CDF library to use
-:mod:`~spacepy.pycdf`.
+The NASA CDF library is included if installing from a binary wheel. If
+building SpacePy from source or wish to use a different version of the
+CDF library, you will need to install it to use :mod:`~spacepy.pycdf`.
 
 NASA provides `Mac binaries
 <https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/latest-release/macosx/>`_
