@@ -65,7 +65,7 @@ To get the dependencies for building documentation::
 CDF
 ===
 The NASA CDF library is included if installing from a binary wheel. If
-building SpacePy from source or wish to use a different version of the
+you build SpacePy from source or wish to use a different version of the
 CDF library, you will need to install it.
 
 It is recommended to install the ncurses library; on Ubuntu and Debian::
