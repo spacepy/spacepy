@@ -1,40 +1,9 @@
-SpacePy Installation Instructions:
-======================+===========
+SpacePy Installation Instructions
+=================================
 
-For detailed, platform-specific installation information,
-see Doc/build/html/install.html
+"pip install spacepy" will install the latest version of SpacePy from
+PyPI, using pre-built binaries if available.
 
-Option 1) to install it in the standard loction (depending on your system)
-
->>> python setup.py install
-
-Option 2) to install in custom location
-
->>> python setup.py install --home=/n/packages/lib/python
-
-It is also possible to select a specific compiler for installing the IRBEM-LIB library. Currently the
-following flags are supported: gnu95, gnu, pg. You can invoke these by, e.g.
-
->>> python setup.py install --fcompiler=pg    (will use pgi compiler suite)
->>> python setup.py install --fcompiler=gnu   (will use g77)
->>> python setup.py install --fcompiler=gnu95 (default option for using gfortran)
-
-By default, the installer will copy pre-built documentation. If it cannot find
-the pre-built docs, it will attempt to build them (requires Sphinx and numpydoc,
-http://sphinx.pocoo.org/ and http://pypi.python.org/pypi/numpydoc). To force a
-fresh build of the documentation, use the --build-docs option to either the build
-or install commands.
-
-When first imported, SpacePy  will create a .spacepy directory in your $HOME
-directory. If you prefer a different location for this directory, set the
-environment variable $SPACEPY to a location of your choice. For example, with
-a csh, or tcsh you would
-
->>> setenv SPACEPY /a/different/dir
-
-for the bash shell you would
-
->>> export SPACEPY=/a/different/dir
-
-Make sure you add the environment variable $SPACEPY to your .cshrc, .tcshrc, or .bashrc script
-
+For detailed, platform-specific installation information, including
+building from source, see https://spacepy.github.io/install.html or
+Doc/source/install.rst in this distribution.
