@@ -959,10 +959,12 @@ setup_kwargs = {
         'scipy>=1.0',
         'matplotlib>=3.1',
         'h5py>=2.10',
-        'python_dateutil>=2.1',
+        'python_dateutil>=2.5',
         # AstroPy is only required to convert to/from AstroPy, so either
         # user has it or don't care.
         #'astropy>=1.0',
+        # Similar for pandas
+        #'pandas>=0.18',
     ],
     'python_requires': '>=3.6',
     'cmdclass': {'build': build,

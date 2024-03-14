@@ -53,7 +53,7 @@ dependencies = [
   "scipy>=1.0",
   "matplotlib>=3.1",
   "h5py>=2.10",
-  "python_dateutil>=2.1",
+  "python_dateutil>=2.5",
 ]
 
 [tool.setuptools]

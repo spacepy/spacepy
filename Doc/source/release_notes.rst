@@ -54,6 +54,7 @@ SpacePy 0.5.0. Minimum versions are:
   * h5py 2.10
   * matplotlib 3.1
   * numpy 1.15.1
+  * pandas 0.18.0
   * scipy 1.0
 
 The only supported compiler is the GNU gfortran compiler, aka

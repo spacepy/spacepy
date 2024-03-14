@@ -241,8 +241,10 @@ class ISTPArray:
     .. autosummary::
         ~ISTPArray.plot_as_line
         ~ISTPArray.replace_invalid
+        ~ISTPArray.units
     .. automethod:: plot_as_line
     .. automethod:: replace_invalid
+    .. automethod:: units
     """
     attrs: collections.abc.Mapping
 
@@ -306,6 +308,48 @@ class ISTPArray:
         # Reasonable dividing line is probably 4 stacked line plots
         return self.shape[-1] < 5
 
+    def units(self, fmt='minimal'):
+        """Finds units of array.
+
+        Looks up the unit attribute and performs minor cleanup (including
+        intepreting IDL codes).
+
+        Returns
+        -------
+        `str`
+            Physical units of this array. `None` if not present.
+
+        Parameters
+        ----------
+        fmt : {'minimal', 'latex', 'astropy', 'raw'}
+            How to format the units: ``minimal`` (default) is a
+            minimally-processed rendering, ``latex`` is in LaTeX,
+            ``astropy`` is meant to give good results when passed to
+            `astropy.units.Unit`, and ``raw`` has no processing. No
+            checks are done on processing for AstroPy or LaTeX, and it
+            should not be assumed they will parse.
+
+        Notes
+        -----
+        .. versionadded:: 0.6.0
+        """
+        u = self.attrs.get('UNITS', None)
+        if fmt == 'raw' or u is None:
+            return u
+        if fmt in ('minimal', 'astropy'):
+            u = re.sub(r'![EU]([^!]*)!N', r'^\1', u)  # IDL to exponent
+            u = re.sub(r'\^{([^!]*)}', r'^\1', u)  # LaTeX to exponent
+        if fmt == 'minimal':
+            u = re.sub(r'(?<=\d)(?=[\w^_])', r' ', u)  # Insert spaces
+        if fmt == 'astropy':
+            # Common substitutions
+            for orig, ap in (('ster', 'sr'),
+                             ):
+                u = re.sub(fr'(?<=[\W\d]){orig}(?=[\W\d])', ap, u)
+        if fmt == 'latex':
+            u = re.sub(r'![EU]([^!]*)!N', r'^{\1}', u)  # IDL to exponent
+        return u
+
 
 class ISTPContainer(collections.abc.Mapping):
     """Mixin class for containers using ISTP metadata.
@@ -322,10 +366,12 @@ class ISTPContainer(collections.abc.Mapping):
         ~ISTPContainer.main_vars
         ~ISTPContainer.plot
         ~ISTPContainer.spectrogram
+        ~ISTPContainer.toDataFrame
     .. automethod:: lineplot
     .. automethod:: main_vars
     .. automethod:: plot
     .. automethod:: spectrogram
+    .. automethod:: toDataFrame
     """
     attrs:  collections.abc.Mapping
 
@@ -380,9 +426,9 @@ class ISTPContainer(collections.abc.Mapping):
             else:
                 ax.plot(numpy.array(x), data[:, dim], **plot_kwargs)
         ylabel = v.attrs.get('LABLAXIS', '')
-        if v.attrs.get('UNITS'):
-            ylabel = '{}{}({})'.format(
-                ylabel, ' ' if ylabel else '', v.attrs['UNITS'])
+        u = v.units(fmt='latex')
+        if u:
+            ylabel = '{}{}(${}$)'.format(ylabel, ' ' if ylabel else '', u)
         if ylabel:
             ax.set_ylabel(ylabel)
         if x.attrs.get('LABLAXIS'):
@@ -526,9 +572,10 @@ class ISTPContainer(collections.abc.Mapping):
         x = self[v.attrs['DEPEND_0']]
         y = self[v.attrs['DEPEND_1']]
         zlabel = v.attrs.get('LABLAXIS', '')
-        if v.attrs.get('UNITS'):
-            zlabel = '{}{}({})'.format(
-                zlabel, ' ' if zlabel else '', v.attrs['UNITS'])
+        u = v.units(fmt='latex')
+        if u:
+            zlabel = '{}{}(${}$)'.format(
+                zlabel, ' ' if zlabel else '', u)
         zlabel = zlabel if zlabel else None
         try:  # mpl >=3.7
             cmap = matplotlib.colormaps.get_cmap(None)
@@ -544,9 +591,10 @@ class ISTPContainer(collections.abc.Mapping):
         ax = spacepy.plot.simpleSpectrogram(numpy.array(x), numpy.array(y), data, cbtitle=zlabel,
                                             ax=ax, zero_valid=True, cmap=cmap)
         ylabel = y.attrs.get('LABLAXIS', '')
-        if y.attrs.get('UNITS'):
-            ylabel = '{}{}({})'.format(
-                ylabel, ' ' if ylabel else '', y.attrs['UNITS'])
+        u = y.units(fmt='latex')
+        if u:
+            ylabel = '{}{}(${}$)'.format(
+                ylabel, ' ' if ylabel else '', u)
         if ylabel:
             ax.set_ylabel(ylabel)
         if x.attrs.get('LABLAXIS'):
@@ -592,6 +640,68 @@ class ISTPContainer(collections.abc.Mapping):
         if v.attrs['DELTA_PLUS_VAR'] == v.attrs['DELTA_MINUS_VAR']:
             return(dp,)
         return(self[v.attrs['DELTA_MINUS_VAR']].replace_invalid(), dp)
+
+    def toDataFrame(self, vname=None, copy=True):
+        """Convert to Pandas DataFrame
+
+        Converts one variable (and its dependencies) to a Pandas
+        `~pandas.DataFrame`. Invalid values are replaced with `~numpy.nan`.
+
+        Parameters
+        ----------
+        vname : `str`, optional
+            The key into this container of the value to convert
+            (i.e.,  the name of the variable). Strongly recommended;
+            if not specified, will try to find one using `main_vars`,
+            and raise `ValueError` if there is more than one candidate.
+
+        Returns
+        -------
+        `~pandas.DataFrame`
+            Data from the array named by ``vname`` and its dependencies.
+
+        Other Parameters
+        ----------------
+        copy : `bool`, default ``True``
+            Copy data to the DataFrame. If ``False``, changes to the
+            DataFrame may affect the source data. In some cases a copy
+            may be made even if ``False``.
+
+        Notes
+        -----
+        .. versionadded:: 0.6.0
+
+        Examples
+        --------
+        >>> import spacepy.datamodel
+        # https://rbsp-ect.newmexicoconsortium.org/data_pub/rbspa/ECT/level2/
+        >>> data = spacepy.datamodel.fromCDF(
+        ...     'rbspa_ect-elec-L2_20140115_v2.1.0.cdf')
+        >>> df = data.toDataFrame('Position')
+        >>> df.plot()
+        """
+        import pandas
+        if vname is None:
+            main_vars = self.main_vars()
+            if len(main_vars) != 1:
+                matches = ', '.join(main_vars) if main_vars else 'none'
+                raise ValueError(
+                    f'No variable specified; possible matches: {matches}.')
+            vname = main_vars[0]
+        a = self[vname].attrs
+        data = self[vname].replace_invalid()  # makes copy
+        if not numpy.isnan(data).any() and not copy:
+            data = self[vname][...]
+        if 'LABL_PTR_1' in a:
+            columns = self[a['LABL_PTR_1']][...]
+        else:
+            columns = [a.get('FIELDNAM', vname)]
+            if len(data.shape) > 1:
+                columns *= data.shape[-1]
+        df = pandas.DataFrame(
+            data=data, index=self[a['DEPEND_0']][...],
+            columns=columns, copy=False)
+        return df
 
 
 class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
@@ -1586,7 +1696,7 @@ def toHDF5(fname, SDobject, **kwargs):
                             dumval[i] = val.isoformat()
                         dumval = dumval.astype('|S35')
                     else:
-                        dumval = dumval.atsype('|S35')
+                        dumval = dumval.astype('|S35')
                     hfile[path].create_dataset(key, data=dumval, compression=comptype,
                                                compression_opts=compopts, dtype=dtype)
                     #else:
