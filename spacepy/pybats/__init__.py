@@ -1974,7 +1974,6 @@ class ImfInput(PbData):
 
         For full details, see Perreault and Akasofu(1978),
         https://doi.org/10.1111/j.1365-246X.1978.tb05494.x.
-
         '''
 
         if 'b' not in self:
