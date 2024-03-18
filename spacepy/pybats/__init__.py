@@ -1956,7 +1956,6 @@ class ImfInput(PbData):
         purely southward configuration.
 
         The resulting value is stored as `self['cloc']` in units of degrees.
-
         '''
 
         self['clock'] = dmarray(180/np.pi * np.arctan2(self['by'], self['bz']),
