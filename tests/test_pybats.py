@@ -550,11 +550,10 @@ class TestRim(unittest.TestCase):
         self.assertFalse(out[3])  # No color bar.
 
 
-class TestBats2d(unittest.TestCase):
+class TestBats2d(spacepy_testing.TestPlot):
     '''
     Test functionality of Bats2d objects.
     '''
-
     knownMax1 = {'jx':1.4496836229227483e-05, 'jbz':7.309692051649108e-08,
                  'wy':0.0, 'u':1285.6114501953125}
     knownMax2 = {'jx': 1.680669083725661e-05, 'jbz': 8.276679608343329e-08,
@@ -566,6 +565,7 @@ class TestBats2d(unittest.TestCase):
                  'u_perp', 'u_par', 'E', 'beta', 'jb', 'alfven']
 
     def setUp(self):
+        super().setUp()
         self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir,
                                            'pybats_test', 'y0_ascii.out'))
         self.outs = pbs.Bats2d(os.path.join(spacepy_testing.datadir,
@@ -662,6 +662,27 @@ class TestBats2d(unittest.TestCase):
         self.assertEqual(
             'Start value 150 out of range for variable z.',
             str(cm.exception))
+
+    def testPlotOuts(self):
+        '''
+        Create plot from binary outs
+
+        Make grid resolution and contour plot
+        '''
+        fig, ax = self.outs.add_grid_plot()
+        fig, ax, cont, cbar = self.outs.add_contour(
+            'x', 'z', 'p', 21, dolog=True, target=ax, filled=False)
+        self.assertTrue(isinstance(fig, plt.Figure))
+        children = ax.get_children()
+        import matplotlib.patches
+        polys = [c for c in children
+                 if isinstance(c, matplotlib.patches.Polygon)]
+        self.assertEqual(1, len(polys))
+        p = polys[0]
+        numpy.testing.assert_array_equal(
+            p.get_xy(),
+            [[-32, -32], [32, -32], [32, 32], [-32, 32], [-32, -32]]
+            )
 
 
 class TestMagGrid(unittest.TestCase):
