@@ -545,11 +545,13 @@ class Spectrogram(dm.SpaceData):
         timeFmt = self.plotSettings['DateFormatter']
         if xy == 'x':
             ticks = axis.get_xticks()
+            axis.set_xticks(ticks)  # Hardcode existing ticks to match labels
             axis.set_xticklabels(matplotlib.dates.num2date(ticks))
             axis.xaxis.set_major_formatter(timeFmt)
             axis.get_figure().autofmt_xdate()
         elif xy == 'y':
             ticks = axis.get_yticks()
+            axis.set_yticks(ticks)
             axis.set_yticklabels(matplotlib.dates.num2date(ticks))
             axis.yaxis.set_major_formatter(timeFmt)
             axis.get_figure().autofmt_ydate()

@@ -10,6 +10,7 @@ import unittest
 
 import numpy as np
 import datetime
+import matplotlib.axes
 import matplotlib.collections
 import matplotlib.dates as mdates
 import matplotlib.pyplot
@@ -108,7 +109,7 @@ class spectrogramTests(unittest.TestCase):
         np.testing.assert_almost_equal(a['spectrogram']['sum'], sm*2)
         np.testing.assert_almost_equal(a['spectrogram']['spectrogram'], spect)
 
-class spectrogramDateTests(unittest.TestCase):
+class spectrogramDateTests(spacepy_testing.TestPlot):
     def setUp(self):
         super(spectrogramDateTests, self).setUp()
         self.kwargs = {'variables': ['xval', 'yval', 'zval']}
@@ -117,9 +118,6 @@ class spectrogramDateTests(unittest.TestCase):
             xval=dm.dmarray([datetime.datetime(2000, 1, 1) + datetime.timedelta(days=nn) for nn in range(200)]),
             yval=dm.dmarray(np.random.random_sample(200)),
             zval=dm.dmarray(np.random.random_sample(200)))
-
-    def tearDown(self):
-        super(spectrogramDateTests, self).tearDown()
 
     def test_defaults(self):
         """run it and check that defaults were set correctly"""
@@ -140,6 +138,8 @@ class spectrogramDateTests(unittest.TestCase):
                     np.testing.assert_allclose(a.specSettings[key], ans[key], atol=1e-2, rtol=1e-3)
                 else:
                     np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
+        ax = a.plot()
+        self.assertTrue(isinstance(ax, matplotlib.axes.SubplotBase))
 
 
 class SimpleSpectrogramTests(spacepy_testing.TestPlot):
@@ -203,6 +203,31 @@ class SimpleSpectrogramTests(spacepy_testing.TestPlot):
         self.assertLess(xlim[0], x[1])
         self.assertGreater(xlim[1], x[-1])
         self.assertLess(xlim[1], 4)
+        self.assertGreater(ylim[0], .1)
+        self.assertLess(ylim[0], y[1])
+        self.assertGreater(ylim[1], y[-1])
+        self.assertLess(ylim[1], 250)
+
+    def testSimpleXYZDates(self):
+        """Simple, three inputs, x is time"""
+        x = np.linspace(0, np.pi, 12)
+        y = np.logspace(0, 2, 6)
+        # Power-law in energy, sin in time
+        z = 1e4 * np.sin(x)[:, None] * (y ** -2)[None, :] + 1
+        dt = np.vectorize(lambda d: datetime.datetime(2010, 1, 1)
+                          + datetime.timedelta(days=d))(x)
+        ax = simpleSpectrogram(dt, y, z)
+        mesh =  [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(mesh))
+        mesh = mesh[0]
+        np.testing.assert_array_almost_equal(
+            z, mesh.get_array().reshape(z.shape[::-1]).transpose())  # mesh swaps row/column
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        self.assertGreater(xlim[0], mdates.date2num(dt[0]) - .2)
+        self.assertLess(xlim[0], mdates.date2num(dt[1]))
+        self.assertGreater(xlim[1], mdates.date2num(dt[-1]))
+        self.assertLess(xlim[1], mdates.date2num(dt[-1]) + .2)
         self.assertGreater(ylim[0], .1)
         self.assertLess(ylim[0], y[1])
         self.assertGreater(ylim[1], y[-1])
