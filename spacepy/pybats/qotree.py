@@ -254,7 +254,11 @@ class QTree(object):
         from matplotlib.cm import ScalarMappable
 
         # Create a color map using either zlim as given or max/min resolution.
-        cNorm = LogNorm(vmin=self.dx_min, vmax=self.dx_max, clip=True)
+        vmin, vmax = self.dx_min, self.dx_max
+        if vmin == vmax:
+            vmin *= 0.9
+            vmax *= 1.1
+        cNorm = LogNorm(vmin=vmin, vmax=vmax, clip=True)
         cMap = ScalarMappable(cmap=get_cmap(cmap), norm=cNorm)
 
         dx_vals = {}
@@ -326,7 +330,7 @@ class Branch(object):
                 [l[0], l[2]], [l[1], l[2]],
                 [l[1], l[3]], [l[0], l[3]]])
         alpha = 1  # max(0, min(.8, -1/40.*l[2]))
-        poly = Polygon(verts, True, ec=None, fc=fc, fill=do_fill,
+        poly = Polygon(verts, closed=True, ec=None, fc=fc, fill=do_fill,
                        lw=0.0, alpha=alpha)
         if label:
             x = l[0]+(l[1]-l[0])/2.0
