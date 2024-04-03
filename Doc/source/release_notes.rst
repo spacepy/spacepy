@@ -8,6 +8,18 @@ This document presents user-visible changes in each release of SpacePy.
    :depth: 2
    :local:
 
+0.6 Series
+==========
+0.6.0 (2024-xx-xx)
+------------------
+
+New features
+************
+`.datamodel` supports output to Pandas
+(`~.datamodel.ISTPContainer.toDataFrame`) and input from Pandas
+(`~.datamodel.ISTPContainer.fromDataFrame`). This support requires
+pandas 0.18.0, which is not installed by default with SpacePy.
+
 0.5 Series
 ==========
 0.5.0 (2024-03-11)
