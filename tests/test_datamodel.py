@@ -1703,6 +1703,27 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         np.testing.assert_allclose(df.values, self.sd['B_mag'].reshape((-1, 1)))
         np.testing.assert_array_equal(df.columns, ['B_mag'])
 
+    def test_fromDataFrame(self):
+        import pandas
+        d = np.array(self.sd['B_vec'])
+        d[0, 0] = np.nan  # put in a fill value to test
+        df = pandas.DataFrame(
+            data=d,
+            index=self.sd['Epoch'],
+            columns=self.sd['B_labels'],
+            copy=True,
+            )
+        d[0, 0] = -1e31  # replace nan with fill
+        sdout = dm.SpaceData.fromDataFrame(df)
+        np.testing.assert_allclose(np.array(sdout['data']), d)
+        np.testing.assert_array_equal(sdout['Epoch'], self.sd['Epoch'])
+        self.assertAlmostEqual(-1e31, sdout['data'].attrs['FILLVAL'])
+        self.assertEqual('Epoch', sdout['data'].attrs['DEPEND_0'])
+        self.assertEqual('Labels', sdout['data'].attrs['LABL_PTR_1'])
+        np.testing.assert_array_equal(sdout['Labels'], self.sd['B_labels'])
+        self.assertEqual('U', sdout['Labels'].dtype.kind)
+        np.testing.assert_array_equal(sdout['ColumnNumbers'], [0, 1, 2])
+
 
 if __name__ == "__main__":
     unittest.main()

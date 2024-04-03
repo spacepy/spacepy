@@ -362,11 +362,13 @@ class ISTPContainer(collections.abc.Mapping):
     .. versionadded:: 0.5.0
 
     .. autosummary::
+        ~ISTPContainer.fromDataFrame
         ~ISTPContainer.lineplot
         ~ISTPContainer.main_vars
         ~ISTPContainer.plot
         ~ISTPContainer.spectrogram
         ~ISTPContainer.toDataFrame
+    .. automethod:: fromDataFrame
     .. automethod:: lineplot
     .. automethod:: main_vars
     .. automethod:: plot
@@ -702,6 +704,80 @@ class ISTPContainer(collections.abc.Mapping):
             data=data, index=self[a['DEPEND_0']][...],
             columns=columns, copy=False)
         return df
+
+    @classmethod
+    def fromDataFrame(cls, df, copy=True):
+        """Convert from Pandas DataFrame
+
+        Converts a Pandas `~pandas.DataFrame` to ISTP-compliant type.
+        `~numpy.nan` are replaced with fill.
+
+        Parameters
+        ----------
+        df : `~pandas.DataFrame`
+            Data frame to convert
+
+        Returns
+        -------
+        `ISTPContainer`
+            ISTP-compliant container representing the dataframe's data.
+            This may not be fully ISTP-compliant; the minimium attributes
+            required to represent the DataFrame are used.
+
+        Other Parameters
+        ----------------
+        copy : `bool`, default ``True``
+            Copy data from the DataFrame. If ``False``, changes to the
+            output may affect the DataFrame. In some cases a copy
+            may be made even if ``False``.
+
+        Notes
+        -----
+        .. versionadded:: 0.6.0
+        """
+        output = cls()
+        # assume can hold a dmarray, a CDF will convert it
+        fill = numpy.isnan(df.values)
+        if fill.any():
+            copy = True
+        data = df.values.copy() if copy else df.values
+        vartype = {
+            'f': 'float',
+            'i': 'int',
+            'U': 'char',
+        }.get(data.dtype.kind, 'float')
+        attrs = createISTPattrs('data', ndims=2, vartype=vartype)
+        attrs.update({
+            'DEPEND_1': 'ColumnNumbers',
+            'DISPLAY_TYPE': 'time_series',
+            'FIELDNAM': 'data',
+            'LABL_PTR_1': 'Labels',
+        })
+        for k in ('CATDESC', 'LABLAXIS', 'SI_CONVERSION', 'UNITS',
+                  'VALIDMIN', 'VALIDMAX'):
+            del attrs[k]
+        output['data'] = dmarray(data, attrs=attrs)
+        output['data'][fill] = -1e31
+        attrs = createISTPattrs('support_data', vartype='tt2000')
+        attrs.update({
+            'FIELDNAM': 'Epoch',
+        })
+        del attrs['CATDESC']
+        output['Epoch'] = dmarray(df.index.to_pydatetime(), attrs=attrs)
+        attrs = createISTPattrs('metadata', vartype='char', NRV=True)
+        attrs.update({
+            'FIELDNAM': 'Labels',
+        })
+        del attrs['CATDESC']
+        output['Labels'] = dmarray(df.columns.values, attrs=attrs, dtype='U')
+        attrs = createISTPattrs('support_data', vartype='int', NRV=True)
+        attrs.update({
+            'FIELDNAM': 'ColumnNumbers',
+        })
+        del attrs['CATDESC']
+        output['ColumnNumbers'] = dmarray(numpy.arange(len(df.columns)),
+                                          attrs=attrs)
+        return output
 
 
 class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
