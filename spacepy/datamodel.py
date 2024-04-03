@@ -1424,7 +1424,7 @@ def toCDF(fname, SDobject, skeleton='', flatten=False, overwrite=False,
                             print('{0} is being made NRV'.format(key))
                         v.attrs = dmcopy(val.attrs)
                     except ValueError:
-                        v = outdata.new(key, val.tolist, recVary=False)
+                        v = outdata.new(key, val.tolist(), recVary=False)
                         v.attrs = dmcopy(val.attrs)
                 if force_epoch and 'Epoch' in key:
                     outdata.new(key, val[...], type=pycdf.const.CDF_EPOCH)
