@@ -35,6 +35,7 @@ from test_irbempy import *
 from test_datamanager import *
 from test_datamodel import *
 from test_base import *
+from test_plot import *
 from test_plot_utils import *
 from test_rst import *
 from test_lib import *
