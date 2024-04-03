@@ -857,6 +857,15 @@ class converterTestsCDF(unittest.TestCase):
         self.assertEqual('Cannot use TT2000 in backward-compatible CDF.',
                          str(cm.exception))
 
+    def test_toCDF_objectNRV(self):
+        self.SDobj['Epoch'] = dm.dmarray([
+            datetime.datetime(2010, 1, i) for i in range(1, 11)])
+        self.SDobj['nrv'] = dm.dmarray([
+            'X', 'Y', 'Z'], dtype='O')
+        self.SDobj.toCDF(self.testfile)
+        with spacepy.pycdf.CDF(self.testfile) as f:
+            self.assertFalse(f['nrv'].rv())
+
 
 class JSONTests(unittest.TestCase):
     def setUp(self):
