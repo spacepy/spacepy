@@ -334,10 +334,6 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
         stepsyy = y1.repeat(2)
         y2 = np.zeros_like(stepsyy)
         ax.fill_between(stepsxx, stepsyy, y2, **kwargs)
-        if mpl.__version__<'1.5.0':
-            #pre-v1.5.0, need to manually add an artist for the legend
-            p = plt.Rectangle((0, 0), 0, 0, **kwargs)
-            ax.add_patch(p)
     
     #below threshold 1
     idx = 0
