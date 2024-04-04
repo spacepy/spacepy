@@ -338,6 +338,10 @@ class ISTPArray:
         u = self.attrs.get('UNITS', None)
         if fmt == 'raw' or u is None:
             return u
+        if fmt == 'astropy':
+            u = u.replace('#', '1')
+        elif fmt == 'latex':
+            u = u.replace('#', '\\#')
         if fmt in ('minimal', 'astropy'):
             u = re.sub(r'![EU]([^!]*)!N', r'^\1', u)  # IDL to exponent
             u = re.sub(r'\^{([^!]*)}', r'^\1', u)  # LaTeX to exponent
@@ -346,8 +350,9 @@ class ISTPArray:
         if fmt == 'astropy':
             # Common substitutions
             for orig, ap in (('ster', 'sr'),
+                             ('cc', 'cm^3'),
                              ):
-                u = re.sub(fr'(?<=[\W\d]){orig}(?=[\W\d])', ap, u)
+                u = re.sub(fr'((?<=[\W\d])|^){orig}(?=[\W\d]|$)', ap, u)
         if fmt == 'latex':
             u = re.sub(r'![EU]([^!]*)!N', r'^{\1}', u)  # IDL to exponent
         return u

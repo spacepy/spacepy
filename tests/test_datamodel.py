@@ -1655,6 +1655,11 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
             # HOPE
             ('s!E-1!Ncm!E-2!Nster!E-1!NkeV!E-1!N', 's^-1 cm^-2 ster^-1 keV^-1',
              's^{-1}cm^{-2}ster^{-1}keV^{-1}', 's^-1cm^-2sr^-1keV^-1',),
+            # ACE SWICS and similar ideas
+            ('1/cm^3', '1/cm^3', '1/cm^3', '1/cm^3'),
+            ('#/cm^3', '#/cm^3', '\\#/cm^3', '1/cm^3'),
+            ('#/cc', '#/cc', '\\#/cc', '1/cm^3'),
+            ('cc', 'cc', 'cc', 'cm^3'),
             ]
         formats = ['raw', 'minimal', 'latex', 'astropy']
         for c in cases:
