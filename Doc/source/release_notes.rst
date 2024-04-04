@@ -20,6 +20,10 @@ New features
 (`~.datamodel.ISTPContainer.fromDataFrame`). This support requires
 pandas 0.18.0, which is not installed by default with SpacePy.
 
+`~.datamodel.dmarray` supports output to Astropy Quantities
+(`~.datamodel.ISTPArray.toQuantity`). This support requires
+Astropy 1.0, which is not installed by default with SpacePy.
+
 0.5 Series
 ==========
 0.5.0 (2024-03-11)
