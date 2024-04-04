@@ -239,10 +239,12 @@ class ISTPArray:
     .. versionadded:: 0.5.0
 
     .. autosummary::
+        ~ISTPArray.fromQuantity
         ~ISTPArray.plot_as_line
         ~ISTPArray.replace_invalid
         ~ISTPArray.toQuantity
         ~ISTPArray.units
+    .. automethod:: fromQuantity
     .. automethod:: plot_as_line
     .. automethod:: replace_invalid
     .. automethod:: toQuantity
@@ -402,6 +404,56 @@ class ISTPArray:
             data = self[...]
         q = astropy.units.Quantity(data, self.units(fmt='astropy'), copy=False)
         return q
+
+    @classmethod
+    def fromQuantity(cls, q, copy=True):
+        """Convert from Astropy Quantity
+
+        Converts an Astropy `~astropy.units.Quantity` to an ISTP array.
+        `~numpy.nan` are replaced with fill.
+
+        Parameters
+        ----------
+        q : `~astropy.units.Quantity`
+            Quantity to convert
+
+        Returns
+        -------
+        `ISTPArray`
+            Array with attributes which can be inferred from input.
+            This may not be fully ISTP-compliant.
+
+        Other Parameters
+        ----------------
+        copy : `bool`, default ``True``
+            Copy data from the Quantity. If ``False``, changes to the
+            Quantity may affect this array. In some cases a copy
+            may be made even if ``False``.
+
+        Notes
+        -----
+        .. versionadded:: 0.6.0
+        """
+        import astropy.units
+        fill = numpy.isnan(q.value)
+        if fill.any():
+            copy = True
+        data = q.value.copy() if copy else q.value
+        data[fill] = -1e31  # Quantities are always float
+        s = q.unit.si
+        # Force scientific notation, remove superfluous signs and zeros
+        scale = re.sub(r'0*e\+?0*', 'e', f'{s.scale:#e}', count=1)
+        # Unscaled formatter is deprecated, so strip the scale the hard way
+        unscaled = (s / astropy.units.Unit(s.scale)).to_string()
+        # and remove extra spaces around operators
+        unscaled = re.sub(r'\s+([^\w])\s+', r'\1', unscaled)
+        attrs = {
+            'FILLVAL': -1e31,
+            'SI_Conversion': f'{scale}>{unscaled}',
+            'UNITS': q.unit.to_string(),
+        }
+        out = cls(data, attrs)
+        return out
 
 
 class ISTPContainer(collections.abc.Mapping):

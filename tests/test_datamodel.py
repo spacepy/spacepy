@@ -1747,6 +1747,28 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         np.testing.assert_allclose(q.value, self.sd['B_vec'])
         self.assertTrue(np.may_share_memory(q.value, self.sd['B_vec']))
 
+    def test_fromQuantityFill(self):
+        """Convert from AstroPy quantity with invalid values"""
+        import astropy.units
+        q = astropy.units.Quantity([1, 2, np.nan, 3], 'km/s')
+        d = dm.dmarray.fromQuantity(q, copy=False)
+        np.testing.assert_allclose(d, [1, 2, -1e31, 3])
+        self.assertEqual({
+            'FILLVAL': -1e31,
+            'SI_Conversion': '1.e3>m/s',
+            'UNITS': 'km / s',
+        }, d.attrs)
+        # replaced nan with fill, definite copy
+        self.assertFalse(np.may_share_memory(q.value, d))
+
+    def test_fromQuantityNoCopy(self):
+        """Convert from AstroPy quantity, do not copy data"""
+        import astropy.units
+        q = astropy.units.Quantity([1, 2, 3], 'km')
+        d = dm.dmarray.fromQuantity(q, copy=False)
+        np.testing.assert_allclose(d, [1, 2, 3])
+        self.assertTrue(np.may_share_memory(q.value, d))
+
 
 if __name__ == "__main__":
     unittest.main()
