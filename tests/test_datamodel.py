@@ -1724,6 +1724,24 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual('U', sdout['Labels'].dtype.kind)
         np.testing.assert_array_equal(sdout['ColumnNumbers'], [0, 1, 2])
 
+    def test_toQuantityFill(self):
+        """Convert to AstroPy quantity, use fill"""
+        self.sd['B_vec'][5, 0] = -1e31
+        q = self.sd['B_vec'].toQuantity(copy=False)
+        # test something more robust than just same unit string in/out
+        self.assertEqual('1e-09 T', q.unit.si.to_string())
+        self.assertTrue(np.isnan(q.value[5, 0]))
+        np.testing.assert_allclose(q.value[6:, :], self.sd['B_vec'][6:, :])
+        # replacing fill with nan means a copy was made
+        self.assertFalse(np.may_share_memory(q.value, self.sd['B_vec']))
+
+    def test_toQuantityNoCopy(self):
+        """Convert to AstroPy quantity, do not make copy"""
+        q = self.sd['B_vec'].toQuantity(copy=False)
+        self.assertEqual('1e-09 T', q.unit.si.to_string())
+        np.testing.assert_allclose(q.value, self.sd['B_vec'])
+        self.assertTrue(np.may_share_memory(q.value, self.sd['B_vec']))
+
 
 if __name__ == "__main__":
     unittest.main()

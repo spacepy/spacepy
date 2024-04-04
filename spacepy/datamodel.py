@@ -241,9 +241,11 @@ class ISTPArray:
     .. autosummary::
         ~ISTPArray.plot_as_line
         ~ISTPArray.replace_invalid
+        ~ISTPArray.toQuantity
         ~ISTPArray.units
     .. automethod:: plot_as_line
     .. automethod:: replace_invalid
+    .. automethod:: toQuantity
     .. automethod:: units
     """
     attrs: collections.abc.Mapping
@@ -349,6 +351,52 @@ class ISTPArray:
         if fmt == 'latex':
             u = re.sub(r'![EU]([^!]*)!N', r'^{\1}', u)  # IDL to exponent
         return u
+
+    def toQuantity(self, copy=True):
+        """Convert to Astropy Quantity
+
+        Converts this array to an Astropy `~astropy.units.Quantity`.
+        Invalid values are replaced with `~numpy.nan`.
+
+        Returns
+        -------
+        `~astropy.units.Quantity`
+            Data from this array interpreted according to its ``UNITS``
+            attribute.
+
+        Other Parameters
+        ----------------
+        copy : `bool`, default ``True``
+            Copy data to the Quantity. If ``False``, changes to the
+            Quantity may affect the source array. In some cases a copy
+            may be made even if ``False``.
+
+        Notes
+        -----
+        .. versionadded:: 0.6.0
+
+        Examples
+        --------
+        >>> import spacepy.datamodel
+        # https://rbsp-ect.newmexicoconsortium.org/data_pub/rbspa/ECT/level2/
+        >>> data = spacepy.datamodel.fromCDF(
+        ...     'rbspa_ect-elec-L2_20140115_v2.1.0.cdf')
+        >>> q = data['Position'].toQuantity()
+        >>> q.to('m')
+        <Quantity [[-32833200. , -15531762. ,  -6449212. ],
+                   [-32903586. , -15406271. ,  -6448704.5],
+                   [-32967848. , -15277711. ,  -6446542.5],
+                   ...,
+                   [-20966128. ,   6941849.5,  -2896334.2],
+                   [-21515586. ,   6858618. ,  -3026324. ],
+                   [-22047328. ,   6783260.5,  -3153003.5]] m>
+        """
+        import astropy.units
+        data = self.replace_invalid()  # makes copy
+        if not numpy.isnan(data).any() and not copy:
+            data = self[...]
+        q = astropy.units.Quantity(data, self.units(fmt='astropy'), copy=False)
+        return q
 
 
 class ISTPContainer(collections.abc.Mapping):
