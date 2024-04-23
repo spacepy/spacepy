@@ -25,6 +25,12 @@ pandas 0.18.0, which is not installed by default with SpacePy.
 (`~.datamodel.ISTPArray.fromQuantity`). This support requires Astropy
 1.0, which is not installed by default with SpacePy.
 
+`~.pybats.ImfInput` now has two new methods:
+:meth:`~.pybats.ImfInput.calc_clock` which, calculates and stores the IMF
+clock angle defined as the angle of the interplanetary magnetic field (IMF) in
+the GSM Y-Z plane; and :meth:`~.pybats.ImfInput.calc_epsilon`, which calculates
+the epsilon parameter, an approximation of power input into the magnetosphere.
+
 0.5 Series
 ==========
 0.5.0 (2024-03-11)

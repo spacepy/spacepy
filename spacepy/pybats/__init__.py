@@ -1955,7 +1955,11 @@ class ImfInput(PbData):
         angle of zero represents purely northward IMF while 180 represents
         purely southward configuration.
 
-        The resulting value is stored as `self['cloc']` in units of degrees.
+        The resulting value is stored as `self['clock']` in units of degrees.
+
+        Notes
+        -----
+        .. versionadded:: 0.6.0
         '''
 
         self['clock'] = dmarray(180/np.pi * np.arctan2(self['by'], self['bz']),
@@ -1974,6 +1978,10 @@ class ImfInput(PbData):
 
         For full details, see Perreault and Akasofu(1978),
         https://doi.org/10.1111/j.1365-246X.1978.tb05494.x.
+
+        Notes
+        -----
+        .. versionadded:: 0.6.0
         '''
 
         if 'b' not in self:
