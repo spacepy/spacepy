@@ -921,7 +921,7 @@ ext_modules = [setuptools.extension.Extension('spacepy.irbempy.irbempylib', [])]
 # requires setuptools 61.0.0, and doesn't support extensions
 setup_kwargs = {
     'name': 'spacepy',
-    'version': '0.6.0a0',
+    'version': '0.6.0',
     'description': 'SpacePy: Tools for Space Science Applications',
     'long_description': 'SpacePy: Tools for Space Science Applications',
     'author': 'SpacePy team',
