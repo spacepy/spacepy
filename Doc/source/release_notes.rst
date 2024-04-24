@@ -10,8 +10,10 @@ This document presents user-visible changes in each release of SpacePy.
 
 0.6 Series
 ==========
-0.6.0 (2024-xx-xx)
+0.6.0 (2024-04-25)
 ------------------
+There are no changes to dependencies, minimum versions, or
+installation process with this release.
 
 New features
 ************
