@@ -60,7 +60,6 @@ authors:
   - given-names: Amanda
     family-names: Stricklan
 references:
-, Austin, TX, June 28 - July 3 2010.
   - type: conference-paper
     scope: Cite this paper as a general reference for the package and its history.
     year: 2011
@@ -83,7 +82,7 @@ references:
     end: 72
     doi: 10.25080/Majora-92bf1922-012
   - type: article
-    scope: Cite this paper as a general reference, for package scop and specific details of datamodel and coordinates.
+    scope: Cite this paper as a general reference, for package scope and specific details of datamodel and coordinates.
     authors:
       - family-names: Niehof
         given-names: Jonathan T.
