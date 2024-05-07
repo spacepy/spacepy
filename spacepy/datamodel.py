@@ -534,7 +534,7 @@ class ISTPContainer(collections.abc.Mapping):
                 ax.plot(numpy.array(x), data[:, dim], **plot_kwargs)
         ylabel = v.attrs.get('LABLAXIS', '')
         u = v.units(fmt='latex')
-        if u:
+        if u.strip():
             ylabel = '{}{}(${}$)'.format(ylabel, ' ' if ylabel else '', u)
         if ylabel:
             ax.set_ylabel(ylabel)
@@ -680,7 +680,7 @@ class ISTPContainer(collections.abc.Mapping):
         y = self[v.attrs['DEPEND_1']]
         zlabel = v.attrs.get('LABLAXIS', '')
         u = v.units(fmt='latex')
-        if u:
+        if u.strip():
             zlabel = '{}{}(${}$)'.format(
                 zlabel, ' ' if zlabel else '', u)
         zlabel = zlabel if zlabel else None
@@ -699,7 +699,7 @@ class ISTPContainer(collections.abc.Mapping):
                                             ax=ax, zero_valid=True, cmap=cmap)
         ylabel = y.attrs.get('LABLAXIS', '')
         u = y.units(fmt='latex')
-        if u:
+        if u.strip():
             ylabel = '{}{}(${}$)'.format(
                 ylabel, ' ' if ylabel else '', u)
         if ylabel:
