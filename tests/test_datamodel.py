@@ -1445,6 +1445,18 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         self.assertEqual('UT', ax.get_xlabel())
         self.assertIs(None, ax.get_legend())
 
+    def test_lineplot_timeseries_1D_blank_units(self):
+        """Plot a timeseries with a single line, empty units"""
+        self.sd['B_mag'].attrs['UNITS'] = ' '
+        ax = self.sd.lineplot('B_mag')
+        lines = ax.get_lines()
+        self.assertEqual(1, len(lines))
+        np.testing.assert_array_equal(lines[0].get_xdata(), self.sd['Epoch'])
+        np.testing.assert_array_equal(lines[0].get_ydata(), self.sd['B_mag'])
+        self.assertEqual('B', ax.get_ylabel())
+        self.assertEqual('UT', ax.get_xlabel())
+        self.assertIs(None, ax.get_legend())
+
     def test_lineplot_timeseries_target_fig(self):
         """Plot a timeseries, specify a figure"""
         import matplotlib.pyplot
