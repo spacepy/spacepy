@@ -39,14 +39,8 @@ import pickle
 
 import numpy as np
 
-try:
-    from spacepy import help
-except ImportError:
-    pass
-except:
-    pass
-
 import spacepy
+from spacepy import help
 from spacepy import time as spt
 
 #Try to pull in the C version. Assumption is that if you import this module,
