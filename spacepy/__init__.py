@@ -79,6 +79,11 @@ def help(keyword=None):
     Notes
     -----
     Online help is always for the latest release of SpacePy.
+
+    Examples
+    --------
+    >>> import spacepy
+    >>> spacepy.help("coordinates")
     """
     print('Opening docs for latest release. Installed SpacePy is {}.'.format(
         __version__))
