@@ -8,6 +8,15 @@ This document presents user-visible changes in each release of SpacePy.
    :depth: 2
    :local:
 
+0.7 Series
+==========
+0.7.0 (2024-xx-xx)
+------------------
+
+New features
+************
+`.help` now supports searching the documentation.
+
 0.6 Series
 ==========
 0.6.0 (2024-04-25)
