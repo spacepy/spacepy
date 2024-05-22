@@ -213,7 +213,7 @@ jobs:
       run: |
         # Install (not in build)
         # pip install . does not cache wheel
-        pip install --no-build-isolation --no-deps --log=install_log.txt .
+        pip install --no-build-isolation --no-deps -v -v -v --log=install_log.txt .
         echo "pip log:" && cat install_log.txt && echo "End pip log"
         pushd tests; python -c "import spacepy; print(spacepy.__file__); import os.path; print(os.listdir(os.path.dirname(spacepy.__file__)))"; popd
         ls build/* || true
