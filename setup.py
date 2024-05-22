@@ -46,7 +46,11 @@ try:
 except ModuleNotFoundError:  # Used in older setuptools
     pass
 
-import setuptools.dep_util
+try:
+    import setuptools.modified  # added setuptools 69.0.0
+except ImportError:
+    import setuptools.dep_util  # removed setuptools 70.0.0
+    setuptools.modified = setuptools.dep_util
 import setuptools.extension
 
 import distutils.sysconfig
@@ -423,7 +427,7 @@ class build_ext(_build_ext):
             sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                       glob.glob(os.path.join(srcdir, '*.inc'))
             irbempy = os.path.join(outdir, existing_libfiles[0])
-            if not setuptools.dep_util.newer_group(sources, irbempy):
+            if not setuptools.modified.newer_group(sources, irbempy):
                 return irbempy
 
         if not sys.platform in ('darwin', 'linux2', 'linux', 'win32'):
@@ -657,12 +661,12 @@ class build_ext(_build_ext):
             #Assume every .o file associated with similarly-named .c file,
             #and EVERY header file
             outdated = [s for s, o in zip(sources, objects)
-                        if setuptools.dep_util.newer_group([s] + headers, o)]
+                        if setuptools.modified.newer_group([s] + headers, o)]
             if outdated:
                 comp.compile(outdated, output_dir=self.build_temp)
             libpath = os.path.join(
                 outdir, comp.library_filename('spacepy', lib_type='shared'))
-            if setuptools.dep_util.newer_group(objects, libpath):
+            if setuptools.modified.newer_group(objects, libpath):
                 comp.link_shared_lib(objects, 'spacepy', libraries=['m'],
                                      output_dir=outdir)
             return libpath
