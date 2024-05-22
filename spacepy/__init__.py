@@ -64,14 +64,27 @@ import warnings
 import webbrowser
 
 
-def help():
+def help(keyword=None):
     """Launches web browser with SpacePy documentation
 
+    Parameters
+    ----------
+    keyword : str, optional
+
+          .. versionadded:: 0.7.0
+
+      Search for this keyword. If not specified, opens the front page
+      of the documentation.
+
+    Notes
+    -----
     Online help is always for the latest release of SpacePy.
     """
     print('Opening docs for latest release. Installed SpacePy is {}.'.format(
         __version__))
-    webbrowser.open('https://spacepy.github.io/')
+    url = 'https://spacepy.github.io/' if keyword is None\
+        else f'https://spacepy.github.io/search.html?q={keyword}'
+    webbrowser.open(url)
 
 
 # put modules here that you want to be accessible through 'from spacepy import *'
