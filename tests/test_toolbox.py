@@ -100,6 +100,18 @@ class PickleAssembleTests(unittest.TestCase):
             result[key] = result[key].tolist()
         self.assertEqual(expected, result)
 
+    def test_assemble_sorted(self):
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_2.pkl'), self.D2)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_3.pkl'), self.D3)
+        # Manually sort expected by 'names'
+        expected = {'names': sorted(self.all['names']),
+                    'TAI': [val for _, val in sorted(zip(self.all['names'], self.all['TAI']))]}
+        result = tb.assemble(os.path.join(self.tempdir, 'test_pickle_[1-3].pkl'), os.path.join(self.tempdir, 'test_all.pkl'), sortkey="names", verbose=False)
+        for key in result:
+            result[key] = result[key].tolist()
+        self.assertEqual(expected, result)
+
 
 class SimpleFunctionTests(unittest.TestCase):
 
