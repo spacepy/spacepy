@@ -386,8 +386,6 @@ def loadpickle(fln):
                 return pickle.load(fh, encoding='latin1')
         except pickle.UnpicklingError: #maybe it's a gzip?
             gzip = True
-        else:
-            gzip = False
     if gzip:
         try:
             import zlib
