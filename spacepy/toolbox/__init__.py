@@ -520,9 +520,6 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
             ax = np.where(dim==TAIcount)[0]
             if len(ax) == 1: # then match with length of TAI
                 dcomb[key] = dcomb[key][idx] # resort
-    else:
-        # do nothing
-        pass
 
     if verbose: print('\n writing: ', outfln)
     savepickle(outfln, dcomb)
