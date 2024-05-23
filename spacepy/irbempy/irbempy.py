@@ -14,12 +14,14 @@ Josef Koller, Steve Morley
 Copyright 2010 Los Alamos National Security, LLC.
 """
 
+import ctypes
 import numbers
 from collections.abc import Iterable
 from collections import OrderedDict
 import os
 import pathlib
 import sys
+import sysconfig
 import tempfile
 import warnings
 
@@ -2176,3 +2178,40 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     d['degalpha'] = degalpha
 
     return d
+
+
+def _load_lib():
+    """Load the IRBEM shared library
+
+    Returns
+    -------
+    ctypes.CDLL
+        Opened shared library
+    """
+    libdir = os.path.dirname(os.path.abspath(__file__))
+    libnames = {
+        'win32': ['libirbem.dll.a', 'irbem.dll'],
+        'darwin':  ['libirbem.dylib', 'libirbem.so',
+                    'irbem.dylib', 'irbem.so'],
+        }.get(sys.platform, ['libirbem.so'])
+    ext = sysconfig.get_config_var('EXT_SUFFIX')
+    if ext is None:
+        ext = sysconfig.get_config_var('SO')
+    if ext:
+        libnames.append('libirbem' + ext)
+        libnames.append('irbem' + ext)
+    libpaths = [os.path.join(libdir, n) for n in libnames]
+    libpaths = [p for p in libpaths if os.path.exists(p)]
+    for p in libpaths:
+        try:
+            lib = ctypes.CDLL(p)
+            break
+        except OSError:
+            pass
+    else:
+        return None  # Fall through
+    return lib
+
+
+irbemlib = _load_lib()
+"""IRBEM shared library"""
