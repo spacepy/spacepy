@@ -386,7 +386,7 @@ class build_ext(_build_ext):
             warnings.warn(
                 'Fortran compiler specified was "none."\n'
                 'IRBEM will not be available.')
-            return
+            return None, None
         # 64 bit or 32 bit?
         bit = len('%x' % sys.maxsize)*4
         irbemdir = 'irbem-lib-20220829-dfb9d26'
@@ -428,13 +428,14 @@ class build_ext(_build_ext):
                       glob.glob(os.path.join(srcdir, '*.inc'))
             irbempy = os.path.join(outdir, existing_libfiles[0])
             if not setuptools.modified.newer_group(sources, irbempy):
-                return irbempy
+                # Doesn't check for the shared object!
+                return None, irbempy
 
         if not sys.platform in ('darwin', 'linux2', 'linux', 'win32'):
             warnings.warn(
                 '%s not supported at this time. ' % sys.platform +
                 'IRBEM will not be available')
-            return
+            return None, None
 
         if not os.path.exists(outdir):
             os.makedirs(outdir)
@@ -487,7 +488,7 @@ class build_ext(_build_ext):
                 'f2py failed; '
                 'IRBEM will not be available.')
             os.chdir(olddir)
-            return
+            return None, None
         print('Substituting fortran intent(in/out) statements')
         with open(fln, 'r') as f:
             filestr = f.read()
@@ -528,7 +529,17 @@ class build_ext(_build_ext):
             warnings.warn('irbemlib compile failed. '
                           'Try a different Fortran compiler? (--fcompiler)')
             os.chdir(olddir)
-            return
+            return None, None
+        # fc is known-good compiler, link shared object (C compiler gives name)
+        ccomp = distutils.ccompiler.new_compiler(compiler=self.compiler)
+        if hasattr(distutils.ccompiler, 'customize_compiler'):
+            distutils.ccompiler.customize_compiler(ccomp)
+        else:
+            distutils.sysconfig.customize_compiler(ccomp)
+        irbemshared = ccomp.library_filename('irbem', lib_type='shared')
+        subprocess.check_call([fc, '-shared'] + list(glob.glob('*.o'))
+                              + ['-o', irbemshared, '-fPIC'])
+        shutil.move(irbemshared, os.path.join(outdir, irbemshared))
         retval = -1
         if 'archiver' in fcompexec:
             retval = subprocess.check_call(fcompexec['archiver'] + ['libBL2.a']
@@ -564,7 +575,7 @@ class build_ext(_build_ext):
                     'irbemlib linking failed. '
                     'Try a different Fortran compiler? (--fcompiler)')
                 os.chdir(olddir)
-                return
+                return None, None
         os.chdir('..')
 
         f2py_flags = ['--fcompiler={0}'.format(fcompiler)]
@@ -598,7 +609,7 @@ class build_ext(_build_ext):
                 'irbemlib module failed. '
                 'Try a different Fortran compiler? (--fcompiler)')
             os.chdir(olddir)
-            return
+            return None, None
 
         #All matching outputs
         created_libfiles = [f for f in libfiles if os.path.exists(f)]
@@ -636,7 +647,7 @@ class build_ext(_build_ext):
                 if release_build:
                     raise
         os.chdir(olddir)
-        return irbempy
+        return os.path.join(outdir, irbemshared), irbempy
 
     def compile_libspacepy(self):
         """Compile the C library, libspacepy
@@ -682,8 +693,9 @@ class build_ext(_build_ext):
     def run(self):
         """Actually perform the extension build"""
         libspacepy = self.compile_libspacepy()
-        irbempy = self.compile_irbempy()
-        self._outputs = [l for l in (libspacepy, irbempy) if l is not None]
+        irbemshared, irbempy = self.compile_irbempy()
+        self._outputs = [l for l in (libspacepy, irbemshared, irbempy)
+                         if l is not None]
         if sys.platform == 'win32':
             #Copy mingw32 DLLs. This keeps them around if ming is uninstalled,
             #but more important puts them where bdist_wheel
@@ -709,6 +721,8 @@ class build_ext(_build_ext):
             shutil.copy2(libspacepy, package_dir)
         if irbempy is not None and os.path.exists(irbempy):
             shutil.copy2(irbempy, os.path.join(package_dir, 'irbempy'))
+        if irbemshared is not None and os.path.exists(irbemshared):
+            shutil.copy2(irbemshared, os.path.join(package_dir, 'irbempy'))
 
     def get_outputs(self):
         return self._outputs
