@@ -64,6 +64,10 @@ if 'TS07_DATA_PATH' not in os.environ:
         spdatapath = pkg_resources.resource_filename('spacepy', dataTS07D)
     os.environ['TS07_DATA_PATH'] = spdatapath  # set environment variable here
 
+# Fortran-like types
+int4 = ctypes.c_int32
+real8 = next((t for t in (ctypes.c_float, ctypes.c_double,
+                          ctypes.c_longdouble) if ctypes.sizeof(t) == 8))
 
 # -----------------------------------------------
 def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
@@ -221,24 +225,31 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     d = prep_irbem(ticks, loci, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
     nTAI = len(ticks)
     badval = d['badval']
-    kext = d['kext']
-    sysaxes = d['sysaxes']
+    kext = int4(d['kext'])
+    sysaxes = int4(d['sysaxes'])
     iyearsat = d['iyearsat']
     idoysat = d['idoysat']
     secs = d['utsat']
-    utsat = d['utsat']
     xin1 = d['xin1']
     xin2 = d['xin2']
     xin3 = d['xin3']
-    magin = d['magin']
+    # Ensure inputs for a given time are contiguous
+    magin = np.require(d['magin'], requirements='F')
+    options = (int4 * 5)(*options)
 
     results = dm.SpaceData()
     results['Blocal'] = np.zeros(nTAI)
     results['Bvec'] = np.zeros((nTAI, 3))
+    BxyzGEO = np.empty((3,), np.float64)
+    Blocal = np.empty((), np.float64)
     for i in np.arange(nTAI):
-        BxyzGEO, Blocal = oplib.get_field1(kext, options, sysaxes, iyearsat[i],
-                                           idoysat[i], secs[i], xin1[i],
-                                           xin2[i], xin3[i], magin[:, i])
+        irbemlib.get_field1(
+            kext, options, sysaxes, int4(iyearsat[i]),
+            int4(idoysat[i]), real8(secs[i]),
+            real8(xin1[i]), real8(xin2[i]), real8(xin3[i]),
+            magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+            BxyzGEO.ctypes.data_as(ctypes.POINTER(real8 * 3)),
+            Blocal.ctypes.data_as(ctypes.POINTER(real8)))
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(Blocal, badval):
@@ -2210,6 +2221,20 @@ def _load_lib():
             pass
     else:
         return None  # Fall through
+
+    functions = {
+        'get_field1': (int4, int4 * 5, int4, int4, int4, real8,
+                       real8, real8, real8, real8 * 25, real8 * 3, real8),
+    }
+    for funcname in functions:
+        try:  # Default name mangling first
+            func = getattr(lib, f'{funcname}_')
+            setattr(lib, funcname, func)
+        except AttributeError:
+            func = getattr(lib, funcname)
+        args = functions[funcname]
+        func.restype = None
+        func.argtypes = [ctypes.POINTER(a) for a in args]
     return lib
 
 
