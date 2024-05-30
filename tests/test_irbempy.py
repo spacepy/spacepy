@@ -95,6 +95,13 @@ class IRBEMBigTests(unittest.TestCase):
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key], got[key], decimal=6)
 
+    @unittest.expectedFailure
+    def test_find_Bmirror_size(self):
+        expected_size = 4
+        actual_results = ib.find_Bmirror(self.ticks, self.loci, [40, 60], omnivals=self.omnivals)
+        actual_size = np.size(actual_results["Bmirr"])
+        self.assertEqual(expected_size, actual_size)
+
     def test_find_magequator(self):
         expected = {'Bmin': array([ 1030.456337,  3444.077016 ])}
         Bmin_loci = array([[ 2.99935449,  0.005511 , -0.032353  ],
