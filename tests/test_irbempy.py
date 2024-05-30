@@ -95,6 +95,14 @@ class IRBEMBigTests(unittest.TestCase):
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key], got[key], decimal=6)
 
+    def test_find_Bmirror_multiple_PA(self):
+        """find_Bmirror incorrectly ignores all pitch angles besides first"""
+        expected = {'Blocal': array([ 1031.008992,  3451.98937]),
+            'Bmirr': array([ 2495.243004,  8354.355467])}
+        got = ib.find_Bmirror(self.ticks, self.loci, [40, 60, 90, 10], omnivals=self.omnivals)
+        for key in expected:
+            numpy.testing.assert_almost_equal(expected[key], got[key], decimal=6)
+
     @unittest.expectedFailure
     def test_find_Bmirror_size(self):
         expected_size = 4
