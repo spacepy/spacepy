@@ -533,20 +533,28 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 
             d = prep_irbem(tt, loci_brac1, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
             badval = d['badval']
-            kext = d['kext']
-            sysaxes = d['sysaxes']
+            kext = int4(d['kext'])
+            sysaxes = int4(d['sysaxes'])
             iyearsat = d['iyearsat']
             idoysat = d['idoysat']
             secs = d['utsat']
             xin1 = d['xin1']
             xin2 = d['xin2']
             xin3 = d['xin3']
-            magin = d['magin']
+            magin = np.require(d['magin'], requirements='F')
             nTtoG = 1.0e-5
+            options = (int4 * 5)(*options)
 
-            bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
-                                                    idoysat[0], secs[0], xin1[0],
-                                                    xin2[0], xin3[0], magin[:, 0])
+            bmin = np.empty((), np.float64)
+            GEOcoord = np.empty((3,), np.float64)
+            irbemlib.find_magequator1(
+                kext, options, sysaxes, int4(iyearsat[0]),
+                int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+                real8(xin2[0]), real8(xin3[0]),
+                magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                bmin.ctypes.data_as(ctypes.POINTER(real8)),
+                GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+            )
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
@@ -573,19 +581,27 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 
             d2 = prep_irbem(tt, loci_brac2, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
             badval = d2['badval']
-            kext = d2['kext']
-            sysaxes = d2['sysaxes']
+            kext = int4(d2['kext'])
+            sysaxes = int4(d2['sysaxes'])
             iyearsat = d2['iyearsat']
             idoysat = d2['idoysat']
             secs = d2['utsat']
             xin1 = d2['xin1']
             xin2 = d2['xin2']
             xin3 = d2['xin3']
-            magin = d2['magin']
+            magin = np.require(d2['magin'], requirements='F')
+            options = (int4 * 5)(*options)
 
-            bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
-                                                    idoysat[0], secs[0], xin1[0], xin2[0],
-                                                    xin3[0], magin[:, 0])
+            bmin = np.empty((), np.float64)
+            GEOcoord = np.empty((3,), np.float64)
+            irbemlib.find_magequator1(
+                kext, options, sysaxes, int4(iyearsat[0]),
+                int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+                real8(xin2[0]), real8(xin3[0]),
+                magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                bmin.ctypes.data_as(ctypes.POINTER(real8)),
+                GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+            )
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
@@ -610,19 +626,28 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 
                 dtest = prep_irbem(tt, pos_test, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
                 badval = dtest['badval']
-                kext = dtest['kext']
-                sysaxes = dtest['sysaxes']
+                kext = int4(dtest['kext'])
+                sysaxes = int4(dtest['sysaxes'])
                 iyearsat = dtest['iyearsat']
                 idoysat = dtest['idoysat']
                 secs = dtest['utsat']
                 xin1 = dtest['xin1']
                 xin2 = dtest['xin2']
                 xin3 = dtest['xin3']
-                magin = dtest['magin']
+                magin = np.require(dtest['magin'], requirements='F')
+                options = (int4 * 5)(*options)
 
-                bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
-                                                        idoysat[0], secs[0], xin1[0], xin2[0],
-                                                        xin3[0], magin[:, 0])
+                bmin = np.empty((), np.float64)
+                GEOcoord = np.empty((3,), np.float64)
+                irbemlib.find_magequator1(
+                    kext, options, sysaxes, int4(iyearsat[0]),
+                    int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+                    real8(xin2[0]), real8(xin3[0]),
+                    magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                    bmin.ctypes.data_as(ctypes.POINTER(real8)),
+                    GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+                )
+
                 # take out all the odd 'bad values' and turn them into NaN
                 if np.isclose(bmin, badval):
                     bmin = np.nan
