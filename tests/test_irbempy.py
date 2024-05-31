@@ -122,6 +122,19 @@ class IRBEMBigTests(unittest.TestCase):
                         datetime.datetime(2001, 2, 2, 12, 10)], dtype=object)
         numpy.testing.assert_array_equal(expected_utc, actual['UTC'])
 
+    def test_find_LCDS_K(self):
+        expected_numeric = {
+            'LCDS': np.array([8.94918006, 8.89753712]),
+            'AlphaEq': np.array([90., 90.]),
+            'K': np.array([1.5e-12])
+        }
+        actual = ib.find_LCDS_K(self.ticks, 1.5e-12, extMag='T96', omnivals=self.omnivals)
+        for key in expected_numeric:
+            numpy.testing.assert_almost_equal(expected_numeric[key], actual[key], decimal=6)
+        expected_utc = np.array([datetime.datetime(2001, 2, 2, 12, 0),
+                                datetime.datetime(2001, 2, 2, 12, 10)], dtype=object)
+        numpy.testing.assert_array_equal(expected_utc, actual['UTC'])
+
     def test_find_magequator(self):
         expected = {'Bmin': array([ 1030.456337,  3444.077016 ])}
         Bmin_loci = array([[ 2.99935449,  0.005511 , -0.032353  ],
