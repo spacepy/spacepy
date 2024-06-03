@@ -1111,15 +1111,16 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
     d = prep_irbem(ticks, loci, extMag=extMag, options=options, omnivals=omnivals)
     nTAI = len(ticks)
     badval = d['badval']
-    kext = d['kext']
-    sysaxes = d['sysaxes']
+    kext = int4(d['kext'])
+    sysaxes = int4(d['sysaxes'])
     iyearsat = d['iyearsat']
     idoysat = d['idoysat']
     secs = d['utsat']
     xin1 = d['xin1']
     xin2 = d['xin2']
     xin3 = d['xin3']
-    magin = d['magin']
+    magin = np.require(d['magin'], requirements='F')
+    options = (int4 * 5)(*options)
 
     hemi_dict = {'same': 0, 'north': 1, 'south': -1, 'other': 2}
     if hemi.lower() in ['same', 'other', 'north', 'south']:
@@ -1133,10 +1134,18 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
     results['Bfootvec'] = np.zeros([nTAI, 3])
     results['loci'] = ['']*nTAI
     for i in np.arange(nTAI):
-        xfoot, bfoot, bfootmag = oplib.find_foot_point1(kext, options, sysaxes, iyearsat[i],
-                                                        idoysat[i], secs[i], xin1[i],
-                                                        xin2[i], xin3[i], alt, hemi_flag,
-                                                        magin[:, i])
+        xfoot = np.empty((3,), np.float64)
+        bfoot = np.empty((3,), np.float64)
+        bfootmag = np.empty((), np.float64)
+        irbemlib.find_foot_point1(
+            kext, options, sysaxes, int4(iyearsat[i]), int4(idoysat[i]),
+            real8(secs[i]), real8(xin1[i]), real8(xin2[i]), real8(xin3[i]),
+            real8(alt), int4(hemi_flag),
+            magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+            xfoot.ctypes.data_as(ctypes.POINTER(real8 * 3)),
+            bfoot.ctypes.data_as(ctypes.POINTER(real8 * 3)),
+            bfootmag.ctypes.data_as(ctypes.POINTER(real8))
+        )
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(bfootmag, badval):
@@ -2304,7 +2313,10 @@ def _load_lib():
                                real8, real8, real8, real8 * 25, real8, real8,
                                real8 * 3),
         'find_magequator1': (int4, int4 * 5, int4, int4, int4, real8, real8,
-                             real8, real8, real8 * 25, real8, real8 * 3)
+                             real8, real8, real8 * 25, real8, real8 * 3),
+        'find_foot_point1': (int4, int4 * 5, int4, int4, int4, real8, real8,
+                             real8, real8, real8, int4, real8 * 25, real8 * 3,
+                             real8 * 3, real8)
     }
     for funcname in functions:
         try:  # Default name mangling first
