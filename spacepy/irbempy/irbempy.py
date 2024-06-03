@@ -1212,8 +1212,11 @@ def coord_trans(loci, returntype, returncarsph):
         secs = loci.ticks.UTC[i].hour*3600. + loci.ticks.UTC[i].minute*60. + \
             loci.ticks.UTC[i].second
 
-        xout[i, :] = oplib.coord_trans1(sysaxesin, sysaxesout, iyear,
-                                        idoy, secs, loci.data[i])
+        irbemlib.coord_trans1(
+            int4(sysaxesin), int4(sysaxesout), int4(iyear),
+            int4(idoy), real8(secs),
+            loci.data[i].ctypes.data_as(ctypes.POINTER(real8 * 3)),
+            xout[i, :].ctypes.data_as(ctypes.POINTER(real8 * 3)))
 
     # add  sph to car or v/v convertion if initial sysaxesout was None
     if aflag:
@@ -2316,7 +2319,8 @@ def _load_lib():
                              real8, real8, real8 * 25, real8, real8 * 3),
         'find_foot_point1': (int4, int4 * 5, int4, int4, int4, real8, real8,
                              real8, real8, real8, int4, real8 * 25, real8 * 3,
-                             real8 * 3, real8)
+                             real8 * 3, real8),
+        'coord_trans1': (int4, int4, int4, int4, real8, real8 * 3, real8 * 3)
     }
     for funcname in functions:
         try:  # Default name mangling first
