@@ -1338,12 +1338,24 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     if isinstance(loci, spc.Coords):
         assert loci.ticks, 'Coords require time information with a Ticktock object'
         d = prep_irbem(ticks=loci.ticks, loci=loci, omnivals=dum_omni)
-        E_array = np.zeros((2, d['nalp_max']))
-        E_array[:, 0] = energy
-        # now get the flux
-        flux = oplib.fly_in_nasa_aeap1(ntmax, d['sysaxes'], whichm, whatf, Nene, E_array,
-                                       d['iyearsat'], d['idoysat'], d['utsat'],
-                                       d['xin1'], d['xin2'], d['xin3'])
+        NENE_MAX = d['nalp_max']
+        NTIME_MAX = d['ntime_max']
+        E_array_F = np.zeros((2, NENE_MAX))
+        E_array_F[:, 0] = energy
+
+        flux = np.empty((NTIME_MAX, NENE_MAX), np.float64)
+        irbemlib.fly_in_nasa_aeap1(
+            int4(ntmax), int4(d['sysaxes']), int4(whichm), int4(whatf), int4(Nene),
+            E_array_F.ctypes.data_as(ctypes.POINTER((real8 * 2) * NENE_MAX)),
+            d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
+            d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
+            d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            flux.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NENE_MAX))
+        )
+
     elif isinstance(loci, (list, np.ndarray)):
         BBo, L = loci
         d = prep_irbem(omnivals=dum_omni)
@@ -2308,7 +2320,12 @@ def _load_lib():
             pass
     else:
         return None  # Fall through
-
+    # These are constants defined in irbemlib source code.
+    # It is necessary to know these at compile-time
+    NTIME_MAX = 100000
+    NENE_MAX = 25
+    IMAXI = 71
+    JMAXI = 301
     functions = {
         'get_field1': (int4, int4 * 5, int4, int4, int4, real8,
                        real8, real8, real8, real8 * 25, real8 * 3, real8),
@@ -2320,7 +2337,11 @@ def _load_lib():
         'find_foot_point1': (int4, int4 * 5, int4, int4, int4, real8, real8,
                              real8, real8, real8, int4, real8 * 25, real8 * 3,
                              real8 * 3, real8),
-        'coord_trans1': (int4, int4, int4, int4, real8, real8 * 3, real8 * 3)
+        'coord_trans1': (int4, int4, int4, int4, real8, real8 * 3, real8 * 3),
+        'fly_in_nasa_aeap1': (int4, int4, int4, int4, int4, (real8 * 2) * NENE_MAX,
+                              int4 * NTIME_MAX, int4 * NTIME_MAX, real8 * NTIME_MAX,
+                              real8 * NTIME_MAX, real8 * NTIME_MAX,
+                              real8 * NTIME_MAX, (real8 * NTIME_MAX) * NENE_MAX),
     }
     for funcname in functions:
         try:  # Default name mangling first
