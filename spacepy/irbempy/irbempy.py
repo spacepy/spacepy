@@ -1601,6 +1601,7 @@ class Shieldose2:
         # fix array inputs
         dpad = 71 - len(call['depths'])
         call['depths'] = np.pad(call['depths'], (0, dpad), mode='constant')
+        call['depths'] = np.require(call['depths'], dtype=np.float64)
         esin = settings.get('energy_p_un', None)
         epin = settings.get('energy_p_tr', None)
         eein = settings.get('energy_e', None)
@@ -1615,7 +1616,37 @@ class Shieldose2:
         call['energy_e'] = np.pad(eein, (0, epad), mode='constant')
         call['flux_e'] = settings.get('flux_e', None)
         call['flux_e'] = np.pad(call['flux_e'], (0, epad), mode='constant')
-        dose_tup = oplib.shieldose2(*call.values())
+        IMAXI = 71
+        JMAXI = 301
+        # Cast each piece of call to ctypes
+        call['detector'] = int4(call['detector'])
+        call['nucmeth'] = int4(call['nucmeth'])
+        call['ndepth'] = int4(call['ndepth'])
+        call['depthunit'] = int4(call['depthunit'])
+        call['depths'] = call['depths'].ctypes.data_as(ctypes.POINTER(real8 * IMAXI))
+        call['eminpun'] = real8(call['eminpun'])
+        call['emaxpun'] = real8(call['emaxpun'])
+        call['eminptr'] = real8(call['eminptr'])
+        call['emaxptr'] = real8(call['emaxptr'])
+        call['len_p'] = int4(call['len_p'])
+        call['emine'] = real8(call['emine'])
+        call['emaxe'] = real8(call['emaxe'])
+        call['len_e'] = int4(call['len_e'])
+        call['jsmax'] = int4(call['jsmax'])
+        call['jpmax'] = int4(call['jpmax'])
+        call['jemax'] = int4(call['jemax'])
+        call['unit_en'] = real8(call['unit_en'])
+        call['tau'] = real8(call['tau'])
+        call['energy_s'] = call['energy_s'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
+        call['flux_p_un'] = call['flux_p_un'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
+        call['energy_p'] = call['energy_p'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
+        call['flux_p_tr'] = call['flux_p_tr'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
+        call['energy_e'] = call['energy_e'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
+        call['flux_e'] = call['flux_e'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
+        dose_tup = [np.require(np.zeros((IMAXI, 3)), requirements='F') for _ in range(5)]
+        dose_pointers = [dose.ctypes.data_as(ctypes.POINTER((real8 * 3) * IMAXI))
+                        for dose in dose_tup]
+        irbemlib.shieldose2(*call.values(), *dose_pointers)
         # Now flag results as generated
         self.settings['calc_flag'] = True
 
@@ -1628,7 +1659,7 @@ class Shieldose2:
 
         self.results.clear()
         outdict = self.results
-        nd = call['ndepth']
+        nd = call['ndepth'].value
         outdict['dose_proton_untrapped'] = dm.dmarray(dose_tup[0][:nd, :])
         outdict['dose_proton_trapped'] = dm.dmarray(dose_tup[1][:nd, :])
         outdict['dose_electron'] = dm.dmarray(dose_tup[2][:nd, :])
@@ -2343,6 +2374,12 @@ def _load_lib():
                               int4 * NTIME_MAX, int4 * NTIME_MAX, real8 * NTIME_MAX,
                               real8 * NTIME_MAX, real8 * NTIME_MAX,
                               real8 * NTIME_MAX, (real8 * NTIME_MAX) * NENE_MAX),
+        'shieldose2': (int4, int4, int4, int4, real8 * IMAXI, real8, real8,
+                       real8, real8, int4, real8, real8, int4, int4, int4,
+                       int4, real8, real8, real8 * JMAXI, real8 * JMAXI,
+                       real8 * JMAXI, real8 * JMAXI, real8 * JMAXI,
+                       real8 * JMAXI, (real8 * 3) * IMAXI, (real8 * 3) * IMAXI,
+                       (real8 * 3) * IMAXI, (real8 * 3) * IMAXI, (real8 * 3) * IMAXI)
     }
     for funcname in functions:
         try:  # Default name mangling first
