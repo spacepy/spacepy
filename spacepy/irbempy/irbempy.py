@@ -1590,63 +1590,57 @@ class Shieldose2:
 
         settings = expand_dict(self.settings)
 
+        int4_inputs = {'detector',  'nucmeth', 'ndepth', 'depthunit', 'len_p',
+                       'len_e', 'jsmax', 'jpmax', 'jemax'}
+        real8_inputs = {'eminpun', 'emaxpun', 'eminptr', 'emaxptr', 'emine',
+                        'emaxe', 'unit_en', 'tau'}
+        IMAXI = 71
+        JMAXI = 301
+        array_inputs = {
+            'depths': IMAXI,
+            'energy_p_un': JMAXI,
+            'flux_p_un': JMAXI,
+            'energy_p_tr': JMAXI,
+            'flux_p_tr': JMAXI,
+            'energy_e': JMAXI,
+            'flux_e': JMAXI
+        }
         callorder = ['detector', 'nucmeth', 'ndepth', 'depthunit',
                      'depths', 'eminpun', 'emaxpun', 'eminptr', 'emaxptr',
                      'len_p', 'emine', 'emaxe', 'len_e', 'jsmax',
-                     'jpmax', 'jemax', 'unit_en', 'tau']
-        # Add items in order required for IRBEMlib call
+                     'jpmax', 'jemax', 'unit_en', 'tau', 'energy_p_un',
+                     'flux_p_un', 'energy_p_tr', 'flux_p_tr', 'energy_e', 'flux_e']
         call = OrderedDict()
-        for value in callorder:
-            call[value] = settings.get(value, None)
-        # fix array inputs
-        dpad = 71 - len(call['depths'])
-        call['depths'] = np.pad(call['depths'], (0, dpad), mode='constant')
-        call['depths'] = np.require(call['depths'], dtype=np.float64)
-        esin = settings.get('energy_p_un', None)
-        epin = settings.get('energy_p_tr', None)
-        eein = settings.get('energy_e', None)
-        ppad = 301 - len(epin)
-        epad = 301 - len(eein)
-        call['energy_s'] = np.pad(esin, (0, ppad), mode='constant')
-        call['flux_p_un'] = settings.get('flux_p_tr', None)
-        call['flux_p_un'] = np.pad(call['flux_p_un'], (0, ppad), mode='constant')
-        call['energy_p'] = np.pad(epin, (0, ppad), mode='constant')
-        call['flux_p_tr'] = settings.get('flux_p_tr', None)
-        call['flux_p_tr'] = np.pad(call['flux_p_tr'], (0, ppad), mode='constant')
-        call['energy_e'] = np.pad(eein, (0, epad), mode='constant')
-        call['flux_e'] = settings.get('flux_e', None)
-        call['flux_e'] = np.pad(call['flux_e'], (0, epad), mode='constant')
-        IMAXI = 71
-        JMAXI = 301
-        # Cast each piece of call to ctypes
-        call['detector'] = int4(call['detector'])
-        call['nucmeth'] = int4(call['nucmeth'])
-        call['ndepth'] = int4(call['ndepth'])
-        call['depthunit'] = int4(call['depthunit'])
-        call['depths'] = call['depths'].ctypes.data_as(ctypes.POINTER(real8 * IMAXI))
-        call['eminpun'] = real8(call['eminpun'])
-        call['emaxpun'] = real8(call['emaxpun'])
-        call['eminptr'] = real8(call['eminptr'])
-        call['emaxptr'] = real8(call['emaxptr'])
-        call['len_p'] = int4(call['len_p'])
-        call['emine'] = real8(call['emine'])
-        call['emaxe'] = real8(call['emaxe'])
-        call['len_e'] = int4(call['len_e'])
-        call['jsmax'] = int4(call['jsmax'])
-        call['jpmax'] = int4(call['jpmax'])
-        call['jemax'] = int4(call['jemax'])
-        call['unit_en'] = real8(call['unit_en'])
-        call['tau'] = real8(call['tau'])
-        call['energy_s'] = call['energy_s'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
-        call['flux_p_un'] = call['flux_p_un'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
-        call['energy_p'] = call['energy_p'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
-        call['flux_p_tr'] = call['flux_p_tr'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
-        call['energy_e'] = call['energy_e'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
-        call['flux_e'] = call['flux_e'].ctypes.data_as(ctypes.POINTER(real8 * JMAXI))
-        dose_tup = [np.require(np.zeros((IMAXI, 3)), requirements='F') for _ in range(5)]
+        # Add items in order required for irbemlib call
+        for key in callorder:
+            if key in int4_inputs:
+                call[key] = int4(settings[key])
+            elif key in real8_inputs:
+                call[key] = real8(settings[key])
+            elif key in array_inputs:
+                max_len = array_inputs[key]
+                actual_len = len(settings.get(key, None))
+                arr = np.zeros(max_len, dtype=np.float64)
+                arr[:actual_len] = settings[key]
+                call[key] = arr
+
+        def arrays_to_pointers(call):
+            # Copy call with arrays replaced with ctypes pointers
+            new_call = OrderedDict()
+            for key in call:
+                if key in array_inputs:
+                    new_call[key] = call[key].ctypes.data_as(
+                        ctypes.POINTER(real8 * array_inputs[key])
+                    )
+                else:
+                    new_call[key] = call[key]
+            return new_call
+
+        dose_tup = tuple(np.require(np.zeros((IMAXI, 3)), requirements='F')
+                         for _ in range(5))
         dose_pointers = [dose.ctypes.data_as(ctypes.POINTER((real8 * 3) * IMAXI))
                         for dose in dose_tup]
-        irbemlib.shieldose2(*call.values(), *dose_pointers)
+        irbemlib.shieldose2(*arrays_to_pointers(call).values(), *dose_pointers)
         # Now flag results as generated
         self.settings['calc_flag'] = True
 
