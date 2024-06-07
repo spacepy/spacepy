@@ -378,27 +378,27 @@ def loadpickle(fln):
     >>> d = loadpickle('test.pbin')
     """
     if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
-        gzip = True
+        # It's a gzip
         fln += '.gz'
     else:
         try:
             with open(fln, 'rb') as fh:
                 return pickle.load(fh, encoding='latin1')
         except pickle.UnpicklingError: #maybe it's a gzip?
-            gzip = True
-    if gzip:
-        try:
-            import zlib
-            with open(fln, 'rb') as fh:
-                stream = zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS) 
-                return pickle.loads(stream, encoding='latin1')
-        except MemoryError:
-            import gzip
-            with open(fln) as fh:
-                gzh = gzip.GzipFile(fileobj=fh)
-                contents = pickle.load(gzh, encoding='latin1')
-                gzh.close()
-            return contents
+            pass
+    # Try to resolve as a gzip
+    try:
+        import zlib
+        with open(fln, 'rb') as fh:
+            stream = zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS)
+            return pickle.loads(stream, encoding='latin1')
+    except MemoryError:
+        import gzip
+        with open(fln) as fh:
+            gzh = gzip.GzipFile(fileobj=fh)
+            contents = pickle.load(gzh, encoding='latin1')
+            gzh.close()
+        return contents
 
 
 # -----------------------------------------------
