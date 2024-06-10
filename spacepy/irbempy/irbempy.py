@@ -548,7 +548,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
             irbemlib.find_magequator1(
-                kext, options, sysaxes, int4(iyearsat),
+                kext, options, sysaxes, int4(iyearsat[0]),
                 int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
                 real8(xin2[0]), real8(xin3[0]),
                 magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -595,7 +595,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
             irbemlib.find_magequator1(
-                kext, options, sysaxes, int4(iyearsat),
+                kext, options, sysaxes, int4(iyearsat[0]),
                 int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
                 real8(xin2[0]), real8(xin3[0]),
                 magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -640,7 +640,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                 bmin = np.empty((), np.float64)
                 GEOcoord = np.empty((3,), np.float64)
                 irbemlib.find_magequator1(
-                    kext, options, sysaxes, int4(iyearsat),
+                    kext, options, sysaxes, int4(iyearsat[0]),
                     int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
                     real8(xin2[0]), real8(xin3[0]),
                     magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),

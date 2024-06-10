@@ -16,6 +16,7 @@ try:
     import spacepy.irbempy as ib
 except ImportError:  # if IRBEM fails, test suite should not break entirely...
     pass
+import datetime
 import numpy as np
 import numpy.testing
 from numpy import array
@@ -109,6 +110,17 @@ class IRBEMBigTests(unittest.TestCase):
         actual_results = ib.find_Bmirror(self.ticks, self.loci, [40, 60], omnivals=self.omnivals)
         actual_size = np.size(actual_results["Bmirr"])
         self.assertEqual(expected_size, actual_size)
+
+    def test_find_LCDS(self):
+        expected_numeric = {'LCDS': np.array([7.3386417 , 7.46836875]),
+                    'K': np.array([0.0526464 , 0.05057452]),
+                    'AlphaEq': np.array([45])}
+        actual = ib.find_LCDS(self.ticks, 45, omnivals=self.omnivals)
+        for key in expected_numeric:
+            numpy.testing.assert_almost_equal(expected_numeric[key], actual[key], decimal=6)
+        expected_utc = np.array([datetime.datetime(2001, 2, 2, 12, 0),
+                        datetime.datetime(2001, 2, 2, 12, 10)], dtype=object)
+        numpy.testing.assert_array_equal(expected_utc, actual['UTC'])
 
     def test_find_magequator(self):
         expected = {'Bmin': array([ 1030.456337,  3444.077016 ])}
