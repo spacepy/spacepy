@@ -312,6 +312,12 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         actual = ib.get_AEP8(E, c)
         numpy.testing.assert_almost_equal(expected, actual)
 
+    def test_get_AEP8_BBo_L(self):
+        """Test get_AEP8 with optional version of loci"""
+        expected = 11.391557407259167
+        actual = ib.get_AEP8(1, [10, 10])
+        numpy.testing.assert_almost_equal(expected, actual)
+
 
 class IRBEMShieldoseTests(spacepy_testing.TestPlot):
 
