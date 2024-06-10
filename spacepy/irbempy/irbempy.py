@@ -1359,14 +1359,23 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     elif isinstance(loci, (list, np.ndarray)):
         BBo, L = loci
         d = prep_irbem(omnivals=dum_omni)
-        E_array = np.zeros((2, d['nalp_max']))
+        NENE_MAX = d['nalp_max']
+        NTIME_MAX = d['ntime_max']
+        E_array = np.zeros((2, NENE_MAX))
         E_array[:, 0] = energy
-        B_array = np.zeros(d['ntime_max'])
+        B_array = np.zeros(NTIME_MAX)
         B_array[0] = BBo
-        L_array = np.zeros(d['ntime_max'])
+        L_array = np.zeros(NTIME_MAX)
         L_array[0] = L
         # now get the flux
-        flux = oplib.get_ae8_ap8_flux(ntmax, whichm, whatf, Nene, E_array, B_array, L_array)
+        flux = np.empty((NTIME_MAX, NENE_MAX), np.float64)
+        irbemlib.get_ae8_ap8_flux(
+            int4(ntmax), int4(whichm), int4(whatf), int4(Nene),
+            E_array.ctypes.data_as(ctypes.POINTER((real8 * 2) * NENE_MAX)),
+            B_array.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            L_array.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            flux.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NENE_MAX))
+        )
     else:
         print('Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]')
 
@@ -2367,6 +2376,9 @@ def _load_lib():
                               int4 * NTIME_MAX, int4 * NTIME_MAX, real8 * NTIME_MAX,
                               real8 * NTIME_MAX, real8 * NTIME_MAX,
                               real8 * NTIME_MAX, (real8 * NTIME_MAX) * NENE_MAX),
+        'get_ae8_ap8_flux': (int4, int4, int4, int4, (real8 * 2) * NENE_MAX,
+                             real8 * NTIME_MAX, real8 * NTIME_MAX,
+                             (real8 * NTIME_MAX) * NENE_MAX),
         'shieldose2': (int4, int4, int4, int4, real8 * IMAXI, real8, real8,
                        real8, real8, int4, real8, real8, int4, int4, int4,
                        int4, real8, real8, real8 * JMAXI, real8 * JMAXI,
