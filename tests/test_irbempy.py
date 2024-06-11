@@ -229,6 +229,20 @@ class IRBEMBigTests(unittest.TestCase):
         self.assertEqual('Too many pitch angles requested; 25 is maximum.',
                          str(cm.exception))
 
+    def test_get_Lstar_landi2_shell_splitting(self):
+        expected = {'Lm': array([[3.09135204, 3.09135204],
+                                 [2.05626165, 2.05626165]]),
+         'Lstar': array([[3.02418952, 3.02418952],[2.05327655, 2.05327655]]),
+         'Bmirr': array([[1019.052401, 1019.052401],
+                         [3467.52999008, 3467.52999008]]),
+         'Bmin': array([1018.6697011 , 3459.50096553]),
+         'Xj': array([[0.00105118, 0.00105118], [0.00272222, 0.00272222]]),
+         'MLT': array([11.97159175, 12.13313906])}
+        actual = ib.get_Lstar(self.ticks, self.loci, [90, 90], extMag='OPQUIET',
+                              omnivals=self.omnivals, landi2lstar=True)
+        for key in expected.keys():
+            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
+
     def test_get_Lstar_OPQuiet_landi2lstar(self):
         # test OP-Quiet with LandI2Lstar routine
         expected = {'Xj': array([[ 0.001051], [ 0.002722]]),
