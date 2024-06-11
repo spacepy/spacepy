@@ -1884,15 +1884,39 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
             d['sysaxes'], d['iyearsat'], d['idoysat'], d['utsat'],
             d['xin1'], d['xin2'], d['xin3'], d['magin']]
     if no_shell_splitting:  # no drift shell splitting
-        func = oplib.landi2lstar1 if landi2lstar else oplib.make_lstar1
+        func = irbemlib.landi2lstar1 if landi2lstar else irbemlib.make_lstar1
+        NTIME_MAX = 100000
+        NENE_MAX = 25
+        d['magin'] = np.require(d['magin'], requirements='F')
+        lm = np.empty((NTIME_MAX,), np.float64)
+        lstar = np.empty((NTIME_MAX,), np.float64)
+        bmirr = np.empty((NTIME_MAX,), np.float64)
+        bmin = np.empty((NTIME_MAX,), np.float64)
+        xj = np.empty((NTIME_MAX,), np.float64)
+        mlt = np.empty((NTIME_MAX,), np.float64)
+        func(int4(nTAI), int4(d['kext']), (int4 * 5)(*options), int4(d['sysaxes']),
+            d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
+            d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
+            d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            d['magin'].ctypes.data_as(ctypes.POINTER((real8 * NENE_MAX) * NTIME_MAX)),
+            lm.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            lstar.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            bmirr.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            bmin.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            xj.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            mlt.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX))
+        )
     else:  # with drift shell splitting
         # Drift shell splitting requires pitch angle positional args
         args.insert(1, nalpha)
         args.insert(-1, d['degalpha'])
         func = oplib.landi2lstar_shell_splitting1 if landi2lstar \
                else oplib.make_lstar_shell_splitting1
-    # For a locally 90-degree particle, bmirr is blocal
-    lm, lstar, bmirr, bmin, xj, mlt = func(*args)
+        # For a locally 90-degree particle, bmirr is blocal
+        lm, lstar, bmirr, bmin, xj, mlt = func(*args)
 
     # take out all the odd 'bad values' and turn them into NaN
     lm[np.where(np.isclose(lm, d['badval']))] = np.nan
@@ -2384,7 +2408,17 @@ def _load_lib():
                        int4, real8, real8, real8 * JMAXI, real8 * JMAXI,
                        real8 * JMAXI, real8 * JMAXI, real8 * JMAXI,
                        real8 * JMAXI, (real8 * 3) * IMAXI, (real8 * 3) * IMAXI,
-                       (real8 * 3) * IMAXI, (real8 * 3) * IMAXI, (real8 * 3) * IMAXI)
+                       (real8 * 3) * IMAXI, (real8 * 3) * IMAXI, (real8 * 3) * IMAXI),
+        'landi2lstar1': (int4, int4, int4 * 5, int4, int4 * NTIME_MAX, int4 * NTIME_MAX,
+                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
+                         real8 * NTIME_MAX, (real8 * NENE_MAX) * NTIME_MAX,
+                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
+                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX),
+        'make_lstar1': (int4, int4, int4 * 5, int4, int4 * NTIME_MAX, int4 * NTIME_MAX,
+                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
+                         real8 * NTIME_MAX, (real8 * NENE_MAX) * NTIME_MAX,
+                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
+                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX),
     }
     for funcname in functions:
         try:  # Default name mangling first
