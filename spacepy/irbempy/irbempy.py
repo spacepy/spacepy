@@ -30,7 +30,6 @@ import numpy as np
 import spacepy
 import spacepy.coordinates as spc
 import spacepy.datamodel as dm
-from . import irbempylib as oplib
 import spacepy.toolbox as tb
 
 # check whether TS07_DATA_PATH is set, if not then set to spacepy's installed data directory
@@ -1879,44 +1878,56 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
         landi2lstar = False
     no_shell_splitting = (nalpha == 0) or (nalpha == 1 and alpha[0] == 90)
 
+    NTIME_MAX = 100000
+    NALP = 25
+    d['magin'] = np.require(d['magin'], requirements='F')
     # Arguments that are common to all flavors of L* functions
-    args = [nTAI, d['kext'], d['options'],
-            d['sysaxes'], d['iyearsat'], d['idoysat'], d['utsat'],
-            d['xin1'], d['xin2'], d['xin3'], d['magin']]
+    args = [int4(nTAI), int4(d['kext']), (int4 * 5)(*options), int4(d['sysaxes']),
+        d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
+        d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
+        d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+        d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+        d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+        d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+        d['magin'].ctypes.data_as(ctypes.POINTER((real8 * 25) * NTIME_MAX)),
+    ]
     if no_shell_splitting:  # no drift shell splitting
+        # initialize outputs
+        outputs = [np.empty((NTIME_MAX,), np.float64)
+                    for _ in range(6)]
+        lm, lstar, bmirr, bmin, xj, mlt = outputs
+        # Add outputs to args as pointers
+        args += [arr.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX))
+                 for arr in outputs]
         func = irbemlib.landi2lstar1 if landi2lstar else irbemlib.make_lstar1
-        NTIME_MAX = 100000
-        NENE_MAX = 25
-        d['magin'] = np.require(d['magin'], requirements='F')
-        lm = np.empty((NTIME_MAX,), np.float64)
-        lstar = np.empty((NTIME_MAX,), np.float64)
-        bmirr = np.empty((NTIME_MAX,), np.float64)
-        bmin = np.empty((NTIME_MAX,), np.float64)
-        xj = np.empty((NTIME_MAX,), np.float64)
-        mlt = np.empty((NTIME_MAX,), np.float64)
-        func(int4(nTAI), int4(d['kext']), (int4 * 5)(*options), int4(d['sysaxes']),
-            d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
-            d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
-            d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            d['magin'].ctypes.data_as(ctypes.POINTER((real8 * NENE_MAX) * NTIME_MAX)),
-            lm.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            lstar.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            bmirr.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            bmin.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            xj.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            mlt.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX))
-        )
     else:  # with drift shell splitting
         # Drift shell splitting requires pitch angle positional args
-        args.insert(1, nalpha)
-        args.insert(-1, d['degalpha'])
-        func = oplib.landi2lstar_shell_splitting1 if landi2lstar \
-               else oplib.make_lstar_shell_splitting1
-        # For a locally 90-degree particle, bmirr is blocal
-        lm, lstar, bmirr, bmin, xj, mlt = func(*args)
+        args.insert(1, int4(nalpha))
+        args.insert(-1, d['degalpha'].ctypes.data_as(ctypes.POINTER(real8 * 25)))
+        # initialize outputs
+        lm = np.empty((NTIME_MAX, NALP), np.float64)
+        lstar = np.empty((NTIME_MAX, NALP), np.float64)
+        bmirr = np.empty((NTIME_MAX, NALP), np.float64)
+        bmin = np.empty((NTIME_MAX,), np.float64)
+        xj = np.empty((NTIME_MAX, NALP), np.float64)
+        mlt = np.empty((NTIME_MAX,), np.float64)
+        # make 2d arrays Fortran-contiguous
+        lm = np.require(lm, requirements='F')
+        lstar = np.require(lstar, requirements='F')
+        xj = np.require(xj, requirements='F')
+        bmirr= np.require(bmirr, requirements='F')
+        # Add outputs to args as pointers
+        args += [
+            lm.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NALP)),
+            lstar.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NALP)),
+            bmirr.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NALP)),
+            bmin.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            xj.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NALP)),
+            mlt.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX))
+        ]
+        func = irbemlib.landi2lstar_shell_splitting1 if landi2lstar \
+               else irbemlib.make_lstar_shell_splitting1
+    func(*args)
 
     # take out all the odd 'bad values' and turn them into NaN
     lm[np.where(np.isclose(lm, d['badval']))] = np.nan
@@ -2378,10 +2389,10 @@ def _load_lib():
             pass
     else:
         return None  # Fall through
-    # These are constants defined in irbemlib source code.
-    # It is necessary to know these at compile-time
+    # Various constants extracted from irbemlib source.
     NTIME_MAX = 100000
     NENE_MAX = 25
+    NALP = 25
     IMAXI = 71
     JMAXI = 301
     functions = {
@@ -2411,14 +2422,28 @@ def _load_lib():
                        (real8 * 3) * IMAXI, (real8 * 3) * IMAXI, (real8 * 3) * IMAXI),
         'landi2lstar1': (int4, int4, int4 * 5, int4, int4 * NTIME_MAX, int4 * NTIME_MAX,
                          real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
-                         real8 * NTIME_MAX, (real8 * NENE_MAX) * NTIME_MAX,
+                         real8 * NTIME_MAX, (real8 * 25) * NTIME_MAX,
                          real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
                          real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX),
         'make_lstar1': (int4, int4, int4 * 5, int4, int4 * NTIME_MAX, int4 * NTIME_MAX,
                          real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
-                         real8 * NTIME_MAX, (real8 * NENE_MAX) * NTIME_MAX,
+                         real8 * NTIME_MAX, (real8 * 25) * NTIME_MAX,
                          real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
                          real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX),
+        'landi2lstar_shell_splitting1': (int4, int4, int4, int4 * 5, int4,
+                        int4 * NTIME_MAX, int4 * NTIME_MAX, real8 * NTIME_MAX,
+                        real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
+                        real8 * NALP, (real8 * 25) * NTIME_MAX,
+                        (real8 * NTIME_MAX) * NALP, (real8 * NTIME_MAX) * NALP,
+                        (real8 * NTIME_MAX) * NALP, real8 * NTIME_MAX,
+                        (real8 * NTIME_MAX) * NALP, real8 * NTIME_MAX),
+        'make_lstar_shell_splitting1': (int4, int4, int4, int4 * 5, int4,
+                        int4 * NTIME_MAX, int4 * NTIME_MAX, real8 * NTIME_MAX,
+                        real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
+                        real8 * NALP, (real8 * 25) * NTIME_MAX,
+                        (real8 * NTIME_MAX) * NALP, (real8 * NTIME_MAX) * NALP,
+                        (real8 * NTIME_MAX) * NALP, real8 * NTIME_MAX,
+                        (real8 * NTIME_MAX) * NALP, real8 * NTIME_MAX),
     }
     for funcname in functions:
         try:  # Default name mangling first
