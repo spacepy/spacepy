@@ -39,14 +39,8 @@ import pickle
 
 import numpy as np
 
-try:
-    from spacepy import help
-except ImportError:
-    pass
-except:
-    pass
-
 import spacepy
+from spacepy import help
 from spacepy import time as spt
 
 #Try to pull in the C version. Assumption is that if you import this module,
@@ -384,29 +378,27 @@ def loadpickle(fln):
     >>> d = loadpickle('test.pbin')
     """
     if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
-        gzip = True
+        # It's a gzip
         fln += '.gz'
     else:
         try:
             with open(fln, 'rb') as fh:
                 return pickle.load(fh, encoding='latin1')
         except pickle.UnpicklingError: #maybe it's a gzip?
-            gzip = True
-        else:
-            gzip = False
-    if gzip:
-        try:
-            import zlib
-            with open(fln, 'rb') as fh:
-                stream = zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS) 
-                return pickle.loads(stream, encoding='latin1')
-        except MemoryError:
-            import gzip
-            with open(fln) as fh:
-                gzh = gzip.GzipFile(fileobj=fh)
-                contents = pickle.load(gzh, encoding='latin1')
-                gzh.close()
-            return contents
+            pass
+    # Try to resolve as a gzip
+    try:
+        import zlib
+        with open(fln, 'rb') as fh:
+            stream = zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS)
+            return pickle.loads(stream, encoding='latin1')
+    except MemoryError:
+        import gzip
+        with open(fln) as fh:
+            gzh = gzip.GzipFile(fileobj=fh)
+            contents = pickle.load(gzh, encoding='latin1')
+            gzh.close()
+        return contents
 
 
 # -----------------------------------------------
@@ -528,9 +520,6 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
             ax = np.where(dim==TAIcount)[0]
             if len(ax) == 1: # then match with length of TAI
                 dcomb[key] = dcomb[key][idx] # resort
-    else:
-        # do nothing
-        pass
 
     if verbose: print('\n writing: ', outfln)
     savepickle(outfln, dcomb)
