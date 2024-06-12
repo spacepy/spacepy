@@ -157,47 +157,46 @@ class WebGettingIntegration(unittest.TestCase):
         finally:
             conn.close()
         self.assertEqual(b'This is a test\n', data)
-
-    def testGetUrl404(self):
-        """Call get_url for a file that doesn't exist"""
-        with self.assertRaises(HTTPError):
-            data = spacepy.toolbox.get_url(
-                'http://localhost:{}/doesnotexist.txt'.format(self.port))
-    
-    def testGetUrlNoConnNoKeepAlive(self):
-        """Call get_url without specifying connection or keepalive"""
-        ctype = http.client.HTTPConnection
-        connection = ctype("localhost:{}".format(self.port))
-        with self.assertRaises(ValueError):
-            spacepy.toolbox.get_url('http://localhost:{}/'.format(self.port), conn=connection, keepalive=False)
     
     def testGetUrlReadableWritable(self):
         """Call get_url to trigger readable and writable"""
-        ctype = http.client.HTTPConnection
-        connection = ctype("localhost:{}".format(self.port))
-        connection.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-        _, connection = spacepy.toolbox.get_url('http://localhost:{}/'.format(self.port), conn=connection, keepalive=True)
-        self.assertEqual(connection.sock, None)
-    
+        try:
+            ctype = http.client.HTTPConnection
+            connection = ctype("localhost:{}".format(self.port))
+            connection.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+            _, connection = spacepy.toolbox.get_url('http://localhost:{}/'.format(self.port), conn=connection, keepalive=True)
+            self.assertEqual(connection.sock, None)
+        finally:
+            connection.close()
+
     def testGetUrlValueErrorOn404WithKeepAlive(self):
         """Call get_url with keepalive and a bad link"""
-        ctype = http.client.HTTPConnection
-        connection = ctype("localhost:{}".format(self.port))
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(RuntimeError) as cm:
             spacepy.toolbox.get_url('http://localhost:{}/doesnotexist.txt'.format(self.port), keepalive=True)
+        self.assertEqual('HTTP status 404 File not found',
+                         str(cm.exception))
     
     def testGetUrlCacheNoOutfileNoKeepAlive(self):
         """Call get_url with Cache, no outfile, and no keepalive"""
-        ctype = http.client.HTTPConnection
-        connection = ctype("localhost:{}".format(self.port))
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as cm:
             spacepy.toolbox.get_url('http://localhost:{}/'.format(self.port), cached=True, outfile=None, keepalive=False)
+        self.assertEqual('Must specify outfile if cached is True',
+                         str(cm.exception))
     
-    def testGetUrlNoKeepaliveBadUrl(self):
+    def testGetUrl404(self):
+        """Call get_url for a file that doesn't exist"""
+        with self.assertRaises(HTTPError) as cm:
+            spacepy.toolbox.get_url('http://localhost:{}/doesnotexist.txt'.format(self.port))
+        self.assertEqual('HTTP Error 404: File not found',
+                         str(cm.exception))
+    
+    def testGetUrlSpecifyConnNoKeepAlive(self):
+        """Call get_url specifying connection but no keepalive"""
         ctype = http.client.HTTPConnection
-        connection = ctype("localhost:{}".format(self.port))
-        with self.assertRaises(RuntimeError):
-            spacepy.toolbox.get_url('http://localhost:{}/doesnotexist.txt'.format(self.port),  keepalive=False)
+        with self.assertRaises(ValueError) as cm:
+            spacepy.toolbox.get_url('http://localhost:{}/'.format(self.port), conn=ctype("localhost:{}".format(self.port)), keepalive=False)
+        self.assertEqual('Cannot specify connection without keepalive',
+                         str(cm.exception))
 
 if __name__ == "__main__":
     unittest.main()
