@@ -311,7 +311,14 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
     def test_GSM_SM_init(self):
         '''test for initialization error in gsm to sm conversion'''
-        cc_got = ib.oplib.coord_trans1(2, 4, 2002, 33, 43200, np.asarray([1., 2., 4.]))
+        real8 = ib.real8
+        int4 = ib.int4
+        cc_got = np.zeros((3,), dtype=np.float64)
+        ib.irbemlib.coord_trans1(
+            int4(2), int4(4), int4(2002), int4(33), real8(43200),
+            np.asarray([1., 2., 4.]).ctypes.data_as(ib.ctypes.POINTER(real8 * 3)),
+            cc_got.ctypes.data_as(ib.ctypes.POINTER(ib.real8 * 3))
+        )
         expected = np.array([1.9286, 2., 3.6442])
         # NaN will result if init not done in IRBEM, assert_almost_equal will
         # compare NaNs without complaint
