@@ -2,6 +2,8 @@
 
 """Unit testing for istp support"""
 
+from ctypes import cast
+import ctypes
 import datetime
 import inspect
 import os.path
@@ -471,6 +473,7 @@ class VariablesTests(ISTPTestsBase):
     def testValidScale(self):
         """Check scale min and max."""
         v = self.cdf.new('var1', recVary=False, data=[1, 2, 3])
+        tt2000 = self.cdf.new('var2', recVary=False, type=spacepy.pycdf.const.CDF_TIME_TT2000)
         v.attrs['SCALEMIN'] = 1
         v.attrs['SCALEMAX'] = 3
         self.assertEqual(
@@ -523,6 +526,15 @@ class VariablesTests(ISTPTestsBase):
              'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
              ],
              errs)
+        tt2000.attrs['SCALEMIN'] = 200.42e45 #tt2000 testing
+        errs = spacepy.pycdf.istp.VariableChecks.validscale(tt2000)
+        errs.sort()
+        self.assertEqual(
+            ['SCALEMIN type CDF_DOUBLE does not match variable type CDF_TIME_TT2000.',
+             'SCALEMIN type CDF_DOUBLE not comparable to variable type CDF_TIME_TT2000.',
+             ],
+             errs)
+
         
     def testValidScaleDimensioned(self):
         """Validmin/validmax with multiple elements"""

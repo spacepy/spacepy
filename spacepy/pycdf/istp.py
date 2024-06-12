@@ -492,6 +492,15 @@ class VariableChecks(object):
                     continue
                 if firstdim: #Add pseudo-record dim
                     attrval = numpy.reshape(attrval, (1, -1))
+            if (v.attrs.type(which) in spacepy.pycdf.lib.timetypes) != (v.type() in spacepy.pycdf.lib.timetypes):
+                errs.append(
+                    '{} type {} not comparable to variable type {}.'.format(
+                        which,
+                        spacepy.pycdf.lib.cdftypenames[v.attrs.type(which)],
+                        spacepy.pycdf.lib.cdftypenames[v.type()]
+                    )
+                )
+                continue
             # min, max, variable data all same dtype
             if not numpy.can_cast(numpy.asanyarray(attrval),
                                   numpy.asanyarray(minval).dtype):
