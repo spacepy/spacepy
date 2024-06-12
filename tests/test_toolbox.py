@@ -8,6 +8,7 @@ Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
 import builtins
+import http.client
 import time, datetime
 import glob, os, sys
 import io
