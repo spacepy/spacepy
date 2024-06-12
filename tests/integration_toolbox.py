@@ -161,8 +161,7 @@ class WebGettingIntegration(unittest.TestCase):
     def testGetUrlReadableWritable(self):
         """Call get_url to trigger readable and writable"""
         try:
-            ctype = http.client.HTTPConnection
-            connection = ctype("localhost:{}".format(self.port))
+            connection = http.client.HTTPConnection("localhost:{}".format(self.port))
             connection.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
             _, connection = spacepy.toolbox.get_url('http://localhost:{}/'.format(self.port), conn=connection, keepalive=True)
             self.assertEqual(connection.sock, None)
@@ -192,9 +191,9 @@ class WebGettingIntegration(unittest.TestCase):
     
     def testGetUrlSpecifyConnNoKeepAlive(self):
         """Call get_url specifying connection but no keepalive"""
-        ctype = http.client.HTTPConnection
+        connection = http.client.HTTPConnection("localhost:{}".format(self.port))
         with self.assertRaises(ValueError) as cm:
-            spacepy.toolbox.get_url('http://localhost:{}/'.format(self.port), conn=ctype("localhost:{}".format(self.port)), keepalive=False)
+            spacepy.toolbox.get_url('http://localhost:{}/'.format(self.port), conn=connection, keepalive=False)
         self.assertEqual('Cannot specify connection without keepalive',
                          str(cm.exception))
 
