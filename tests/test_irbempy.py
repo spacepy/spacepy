@@ -78,6 +78,7 @@ class IRBEMBigTests(unittest.TestCase):
         actual = ib.prep_irbem(self.ticks, self.loci, omnivals=self.omnivals)
         # Cast ctypes back to python types
         actual['kext'] = actual['kext'].value
+        actual['sysaxes'] = actual['sysaxes'].value
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key],
                                               actual[key],
@@ -300,7 +301,7 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         locs = spacepy.coordinates.Coords(pos, 'GSM', 'sph', use_irbem=True)
         out2 = ib.prep_irbem(ticks=self.ticks, loci=locs,
                              extMag='0', options=[1, 0, 0, 0, 1])
-        self.assertEqual(out1['sysaxes'], out2['sysaxes'])
+        self.assertEqual(out1['sysaxes'].value, out2['sysaxes'].value)
         numpy.testing.assert_almost_equal(out1['xin1'], out2['xin1'])
         numpy.testing.assert_almost_equal(out1['xin2'], out2['xin2'])
         numpy.testing.assert_almost_equal(out1['xin3'], out2['xin3'])

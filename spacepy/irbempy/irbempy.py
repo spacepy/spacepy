@@ -225,7 +225,7 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     nTAI = len(ticks)
     badval = d['badval']
     kext = d['kext']
-    sysaxes = int4(d['sysaxes'])
+    sysaxes = d['sysaxes']
     iyearsat = d['iyearsat']
     idoysat = d['idoysat']
     secs = d['utsat']
@@ -311,7 +311,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     nTAI = len(ticks)
     badval = d['badval']
     kext = d['kext']
-    sysaxes = int4(d['sysaxes'])
+    sysaxes = d['sysaxes']
     iyearsat = d['iyearsat']
     idoysat = d['idoysat']
     secs = d['utsat']
@@ -401,7 +401,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omn
     nTAI = len(ticks)
     badval = d['badval']
     kext = d['kext']
-    sysaxes = int4(d['sysaxes'])
+    sysaxes = d['sysaxes']
     iyearsat = d['iyearsat']
     idoysat = d['idoysat']
     secs = d['utsat']
@@ -533,7 +533,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             d = prep_irbem(tt, loci_brac1, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
             badval = d['badval']
             kext = d['kext']
-            sysaxes = int4(d['sysaxes'])
+            sysaxes = d['sysaxes']
             iyearsat = d['iyearsat']
             idoysat = d['idoysat']
             secs = d['utsat']
@@ -581,7 +581,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             d2 = prep_irbem(tt, loci_brac2, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
             badval = d2['badval']
             kext = d2['kext']
-            sysaxes = int4(d2['sysaxes'])
+            sysaxes = d2['sysaxes']
             iyearsat = d2['iyearsat']
             idoysat = d2['idoysat']
             secs = d2['utsat']
@@ -626,7 +626,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                 dtest = prep_irbem(tt, pos_test, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
                 badval = dtest['badval']
                 kext = dtest['kext']
-                sysaxes = int4(dtest['sysaxes'])
+                sysaxes = dtest['sysaxes']
                 iyearsat = dtest['iyearsat']
                 idoysat = dtest['idoysat']
                 secs = dtest['utsat']
@@ -767,7 +767,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             d = prep_irbem(tt, loci_brac1, extMag=extMag, options=options, omnivals=omnivals)
             badval = d['badval']
             kext = d['kext']
-            sysaxes = int4(d['sysaxes'])
+            sysaxes = d['sysaxes']
             iyearsat = d['iyearsat']
             idoysat = d['idoysat']
             secs = d['utsat']
@@ -834,7 +834,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             d2 = prep_irbem(tt, loci_brac2, extMag=extMag, options=options, omnivals=omnivals)
             badval = d2['badval']
             kext = d2['kext']
-            sysaxes = int4(d2['sysaxes'])
+            sysaxes = d2['sysaxes']
             iyearsat = d2['iyearsat']
             idoysat = d2['idoysat']
             secs = d2['utsat']
@@ -888,7 +888,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 dtest = prep_irbem(tt, pos_test, extMag=extMag, options=options, omnivals=omnivals)
                 badval = dtest['badval']
                 kext = dtest['kext']
-                sysaxes = int4(dtest['sysaxes'])
+                sysaxes = dtest['sysaxes']
                 iyearsat = dtest['iyearsat']
                 idoysat = dtest['idoysat']
                 secs = dtest['utsat']
@@ -983,7 +983,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
     nTAI = len(ticks)
     badval = d['badval']
     kext = d['kext']
-    sysaxes = int4(d['sysaxes'])
+    sysaxes = d['sysaxes']
     iyearsat = d['iyearsat']
     idoysat = d['idoysat']
     secs = d['utsat']
@@ -1111,7 +1111,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
     nTAI = len(ticks)
     badval = d['badval']
     kext = d['kext']
-    sysaxes = int4(d['sysaxes'])
+    sysaxes = d['sysaxes']
     iyearsat = d['iyearsat']
     idoysat = d['idoysat']
     secs = d['utsat']
@@ -1344,7 +1344,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
 
         flux = np.empty((NTIME_MAX, NENE_MAX), np.float64)
         irbemlib.fly_in_nasa_aeap1(
-            int4(ntmax), int4(d['sysaxes']), int4(whichm), int4(whatf), int4(Nene),
+            int4(ntmax), d['sysaxes'], int4(whichm), int4(whatf), int4(Nene),
             E_array_F.ctypes.data_as(ctypes.POINTER((real8 * 2) * NENE_MAX)),
             d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
             d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
@@ -1882,7 +1882,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     NALP = 25
     d['magin'] = np.require(d['magin'], requirements='F')
     # Arguments that are common to all flavors of L* functions
-    args = [int4(nTAI), d['kext'], (int4 * 5)(*options), int4(d['sysaxes']),
+    args = [int4(nTAI), d['kext'], (int4 * 5)(*options), d['sysaxes'],
         d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
         d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
         d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
@@ -2319,7 +2319,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
         posi = loci.convert(loci.dtype, newcarsph)
     else:
         posi = loci
-    d['sysaxes'] = posi.sysaxes
+    d['sysaxes'] = int4(posi.sysaxes)
     xin1 = np.zeros(ntime_max, dtype=float)
     xin2 = np.zeros(ntime_max, dtype=float)
     xin3 = np.zeros(ntime_max, dtype=float)
