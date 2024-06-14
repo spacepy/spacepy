@@ -76,6 +76,8 @@ class IRBEMBigTests(unittest.TestCase):
              [  0.00000000e+00,   0.00000000e+00]])
 
         actual = ib.prep_irbem(self.ticks, self.loci, omnivals=self.omnivals)
+        # Cast ctypes back to python types
+        actual['kext'] = actual['kext'].value
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key],
                                               actual[key],
