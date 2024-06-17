@@ -249,7 +249,7 @@ class Coords(object):
         self.Re = IRBEM_RE if use_irbem else DEFAULTS.values.ellipsoid['A']  # kilometers
 
         # Make sure that inputs are all formed correctly
-        self.data = np.atleast_2d(data).astype(np.float_)
+        self.data = np.atleast_2d(data).astype(float)
         if len(self.data.shape) != 2 or self.data.shape[-1] != 3:
             raise ValueError('Input position vectors must be Nx3')
 

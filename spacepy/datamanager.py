@@ -1038,7 +1038,7 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
     """
     makefloat = lambda x: x if isinstance(x, numpy.ndarray)\
                 and issubclass(x.dtype.type, numpy.floating)\
-                else numpy.require(x, dtype=numpy.float_)
+                else numpy.require(x, dtype=float)
     bintype = bintype.lower()
     assert bintype in ('mean', 'count', 'unc')
     data = makefloat(data)
