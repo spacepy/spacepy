@@ -469,12 +469,14 @@ class VariableChecks(object):
         for which in (whichmin, whichmax):
             if not which in v.attrs:
                 continue
-            if v.attrs.type(which) != v.type():
+            atype = v.attrs.type(which) # attribute type
+            vtype = v.type() # variable type
+            if atype != vtype:
                 errs.append(
                     '{} type {} does not match variable type {}.'.format(
                         which,
-                        spacepy.pycdf.lib.cdftypenames[v.attrs.type(which)],
-                        spacepy.pycdf.lib.cdftypenames[v.type()]))
+                        spacepy.pycdf.lib.cdftypenames[atype],
+                        spacepy.pycdf.lib.cdftypenames[vtype]))
             attrval = v.attrs[which]
             multidim = bool(numpy.shape(attrval)) #multi-dimensional
             if multidim: #Compare shapes, require only 1D var
@@ -492,23 +494,15 @@ class VariableChecks(object):
                     continue
                 if firstdim: #Add pseudo-record dim
                     attrval = numpy.reshape(attrval, (1, -1))
-            if (v.attrs.type(which) in spacepy.pycdf.lib.timetypes) != (v.type() in spacepy.pycdf.lib.timetypes):
-                errs.append(
-                    '{} type {} not comparable to variable type {}.'.format(
-                        which,
-                        spacepy.pycdf.lib.cdftypenames[v.attrs.type(which)],
-                        spacepy.pycdf.lib.cdftypenames[v.type()]
-                    )
-                )
-                continue
             # min, max, variable data all same dtype
             if not numpy.can_cast(numpy.asanyarray(attrval),
-                                  numpy.asanyarray(minval).dtype):
+                                  numpy.asanyarray(minval).dtype) or \
+                (atype in spacepy.pycdf.lib.timetypes) != (vtype in spacepy.pycdf.lib.timetypes):
                 errs.append(
                     '{} type {} not comparable to variable type {}.'.format(
                         which,
-                        spacepy.pycdf.lib.cdftypenames[v.attrs.type(which)],
-                        spacepy.pycdf.lib.cdftypenames[v.type()]
+                        spacepy.pycdf.lib.cdftypenames[atype],
+                        spacepy.pycdf.lib.cdftypenames[vtype]
                     ))
                 continue # Cannot do comparisons
             if numpy.any((minval > attrval)) or numpy.any((maxval < attrval)):

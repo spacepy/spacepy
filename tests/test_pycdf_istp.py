@@ -524,7 +524,7 @@ class VariablesTests(ISTPTestsBase):
              'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
              ],
              errs)
-        tt2000.attrs['SCALEMIN'] = 200.42e45 #tt2000 testing
+        tt2000.attrs.new('SCALEMIN', 200.01, type=spacepy.pycdf.const.CDF_DOUBLE)
         errs = spacepy.pycdf.istp.VariableChecks.validscale(tt2000)
         errs.sort()
         self.assertEqual(
