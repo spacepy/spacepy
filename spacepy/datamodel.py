@@ -1841,10 +1841,9 @@ def toHDF5(fname, SDobject, **kwargs):
     path = kwargs.get('path', '/')
 
     allowed_attrs = [int, float, bytes, str, numpy.ndarray, list, tuple, numpy.bytes_]
-    for v in numpy.typecodes['AllInteger']:
-        allowed_attrs.append(numpy.sctypeDict[v])
-    for v in numpy.typecodes['AllFloat']:
-        allowed_attrs.append(numpy.sctypeDict[v])
+    allowed_attrs.extend([
+        numpy.dtype(v).type
+        for v in itertools.chain(numpy.typecodes['AllInteger'], numpy.typecodes['AllFloat'])])
     allowed_attrs = tuple(allowed_attrs)
 
     allowed_elems = (SpaceData, dmarray)
