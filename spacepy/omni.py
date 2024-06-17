@@ -193,13 +193,13 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
                 dum = keylist.pop(keylist.index(use_t_var))
                 for key in keylist:
                     try:
-                        omniout[key] = dmarray(np.interp(ticks.RDT, data['RDT'], data[key], left=np.NaN, right=np.NaN))
+                        omniout[key] = dmarray(np.interp(ticks.RDT, data['RDT'], data[key], left=np.nan, right=np.nan))
                         omniout[key].attrs = dmcopy(data[key].attrs)
                     except:
                         try:
-                            omniout[key] = dmfilled([len(ticks.RDT), data[key].shape[1]], fillval=np.NaN, attrs=dmcopy(data[key].attrs))
+                            omniout[key] = dmfilled([len(ticks.RDT), data[key].shape[1]], fillval=np.nan, attrs=dmcopy(data[key].attrs))
                             for col in range(data[key].shape[1]):
-                                omniout[key][:,col] = np.interp(ticks.RDT, data['RDT'], data[key][:,col], left=np.NaN, right=np.NaN)
+                                omniout[key][:,col] = np.interp(ticks.RDT, data['RDT'], data[key][:,col], left=np.nan, right=np.nan)
                         except ValueError:
                             print('Failed to interpolate {0} to new time base, skipping variable'.format(key))
                         except IndexError:
@@ -309,11 +309,11 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
     ###print('QDkeys: {0}\n\nO2keys: {1}'.format(QDkeylist, O2keylist))
     for key in sorted(omnivals.keys()):
         if key in O2keylist:
-            omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT_OMNI'], omnivals[key], left=np.NaN, right=np.NaN))
+            omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT_OMNI'], omnivals[key], left=np.nan, right=np.nan))
             #set metadata -- assume this has been set properly in d/l'd file to match ECT-SOC files
             omniout[key].attrs = dmcopy(omnivals[key].attrs)
         elif key in QDkeylist:
-            omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT'], omnivals[key], left=np.NaN, right=np.NaN))
+            omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT'], omnivals[key], left=np.nan, right=np.nan))
             omniout[key].attrs = dmcopy(omnivals[key].attrs)
         if key == 'G3': #then we have all the Gs
             omniout['G'] = dmarray(np.vstack([omniout['G1'], omniout['G2'], omniout['G3']]).T)
