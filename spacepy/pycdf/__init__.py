@@ -4176,7 +4176,7 @@ class _Hyperslice(object):
         @return: size of each dimension for this slice, excluding degenerate
         @rtype: list of int
         """
-        return [self.counts[i] for i in range(self.dims) if not self.degen[i]]
+        return [self.counts.item(i) for i in range(self.dims) if not self.degen[i]]
 
     def expand(self, data):
         """Expands the record dimension of this slice to hold a set of data

@@ -1311,6 +1311,7 @@ class ReadCDF(CDFTests):
         zvar = self.cdf['PhysRecNo']
         sliced = cdf._Hyperslice(zvar, slice(0, None, 1))
         self.assertEqual([100], sliced.expected_dims())
+        self.assertIsInstance(sliced.expected_dims()[0], int)
         sliced.expand(list(range(110)))
         self.assertEqual([110], sliced.expected_dims())
         sliced = cdf._Hyperslice(zvar, slice(0, 100, 2))
