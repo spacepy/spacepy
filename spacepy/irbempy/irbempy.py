@@ -240,8 +240,8 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(Blocal, badval):
-            Blocal = np.NaN
-        BxyzGEO[np.where(np.isclose(BxyzGEO, badval))] = np.NaN
+            Blocal = np.nan
+        BxyzGEO[np.where(np.isclose(BxyzGEO, badval))] = np.nan
 
         results['Blocal'][i] = Blocal
         results['Bvec'][i, :] = BxyzGEO
@@ -286,8 +286,8 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     >>> ib.find_Bmirror(t,y,[90,80,60,10])
     {'Blocal': array([ 0.,  0.]),
      'Bmirr': array([ 0.,  0.]),
-     'loci': Coords( [[ NaN  NaN  NaN]
-     [ NaN  NaN  NaN]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
+     'loci': Coords( [[ nan  nan  nan]
+     [ nan  nan  nan]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
 
     See Also
     --------
@@ -323,10 +323,10 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(blocal, badval):
-            blocal = np.NaN
+            blocal = np.nan
         if np.isclose(bmirr, badval):
-            bmirr = np.NaN
-        GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
+            bmirr = np.nan
+        GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
 
         results['Blocal'][i] = blocal
         results['Bmirr'][i] = bmirr
@@ -397,8 +397,8 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omn
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(bmin, badval):
-            bmin = np.NaN
-        GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
+            bmin = np.nan
+        GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
 
         results['Bmin'][i] = bmin
         results['loci'][i] = GEOcoord
@@ -518,10 +518,10 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
-                bmin = np.NaN
-            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
+                bmin = np.nan
+            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
             # Now get Lstar at this location...
-            if GEOcoord[0] != np.NaN:
+            if GEOcoord[0] != np.nan:
                 pos1 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
                 LS1 = get_Lstar(tt, pos1, pa, extMag=extMag, options=options, omnivals=omnivals)
                 if np.isnan(LS1['Lstar']).any():
@@ -557,16 +557,16 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
-                bmin = np.NaN
-            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
+                bmin = np.nan
+            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
             # Now get Lstar at this location...
-            if GEOcoord[0] != np.NaN:
+            if GEOcoord[0] != np.nan:
                 pos2 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
                 LS2 = get_Lstar(tt, pos2, pa, extMag=extMag, options=options, omnivals=omnivals)
                 if not np.isnan(LS2['Lstar']).any():
                     raise ValueError('Specified outer bracket is on a closed drift shell')
             else:
-                LS2 = {'Lstar': np.NaN}
+                LS2 = {'Lstar': np.nan}
             # print('L* at outer bracket: {0}; Xgsm = {1}'.format(LS2['Lstar'], loci_brac2.x))
 
             # now search by bisection
@@ -593,8 +593,8 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                                                         xin3[0], magin[:, 0])
                 # take out all the odd 'bad values' and turn them into NaN
                 if np.isclose(bmin, badval):
-                    bmin = np.NaN
-                GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
+                    bmin = np.nan
+                GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
                 # print('bmin, GEOcoord = {0},{1}'.format(bmin, GEOcoord))
                 if not (np.isnan(bmin)):
                     # Now get Lstar at this location...
@@ -602,7 +602,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                     LStry = get_Lstar(tt, postry, pa, extMag=extMag, options=options, omnivals=omnivals)
                     LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
                 else:
-                    LStry = {'Lstar': np.NaN, 'K': np.NaN}
+                    LStry = {'Lstar': np.nan, 'K': np.nan}
                 if 'verbose' in kwargs:
                     print('L* at test point: {0}; Xgsm = {1}'.format(LStry['Lstar'], pos_test))
 
@@ -720,7 +720,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             xin3 = d['xin3']
             magin = d['magin']
             nTtoG = 1.0e-5
-            pa = np.NaN
+            pa = np.nan
 
             bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
                                                     idoysat[0], secs[0], xin1[0],
@@ -728,8 +728,8 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
-                bmin = np.NaN
-            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
+                bmin = np.nan
+            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
             # Now get Lstar at this location...
             if np.isfinite(GEOcoord[0]):
                 pos1 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
@@ -737,22 +737,22 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 LS1 = get_Lstar(tt, pos1, pa, extMag=extMag, options=options, omnivals=omnivals)
                 if np.isnan(LS1['Lstar']).any():
                     try:
-                        results['LCDS'][idxt, idxk] = np.NaN
+                        results['LCDS'][idxt, idxk] = np.nan
                         results['AlphaEq'][idxt, idxk] = pa
                         results['Success'][idxt, idxk] = 'Invalid inner bracket'
                     except IndexError:
-                        results['LCDS'][idxt] = np.NaN
+                        results['LCDS'][idxt] = np.nan
                         results['AlphaEq'][idxt] = pa
                         results['Success'][idxt] = 'Invalid inner bracket'
                     continue
                 LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
             else:
                 try:
-                    results['LCDS'][idxt, idxk] = np.NaN
+                    results['LCDS'][idxt, idxk] = np.nan
                     results['AlphaEq'][idxt, idxk] = pa
                     results['Success'][idxt, idxk] = 'Invalid inner bracket'
                 except IndexError:
-                    results['LCDS'][idxt] = np.NaN
+                    results['LCDS'][idxt] = np.nan
                     results['AlphaEq'][idxt] = pa
                     results['Success'][idxt] = 'Invalid inner bracket'
                 continue
@@ -785,8 +785,8 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
-                bmin = np.NaN
-            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
+                bmin = np.nan
+            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
             # Now get Lstar at this location...
             if np.isfinite(GEOcoord[0]):
                 pos2 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
@@ -794,16 +794,16 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 LS2 = get_Lstar(tt, pos2, pa, extMag=extMag, options=options, omnivals=omnivals)
                 if not np.isnan(LS2['Lstar']).any():
                     try:
-                        results['LCDS'][idxt, idxk] = np.NaN
+                        results['LCDS'][idxt, idxk] = np.nan
                         results['AlphaEq'][idxt, idxk] = pa
                         results['Success'][idxt, idxk] = 'Invalid outer bracket'
                     except IndexError:
-                        results['LCDS'][idxt] = np.NaN
+                        results['LCDS'][idxt] = np.nan
                         results['AlphaEq'][idxt] = pa
                         results['Success'][idxt] = 'Invalid outer bracket'
                     continue
             else:
-                LS2 = {'Lstar': np.NaN}
+                LS2 = {'Lstar': np.nan}
             # print('L* at outer bracket: {0}; Xgsm = {1}'.format(LS2['Lstar'], loci_brac2.x))
 
             # now search by bisection
@@ -830,8 +830,8 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                                                         xin2[0], xin3[0], magin[:, 0])
                 # take out all the odd 'bad values' and turn them into NaN
                 if np.isclose(bmin, badval):
-                    bmin = np.NaN
-                GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
+                    bmin = np.nan
+                GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
                 # print('bmin, GEOcoord = {0},{1}'.format(bmin, GEOcoord))
                 if not (np.isnan(bmin)):
                     # Now get Lstar at this location...
@@ -840,7 +840,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                     LStry = get_Lstar(tt, postry, pa, extMag=extMag, options=options, omnivals=omnivals)
                     LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
                 else:
-                    LStry = {'Lstar': np.NaN, 'K': np.NaN}
+                    LStry = {'Lstar': np.nan, 'K': np.nan}
                 if 'verbose' in kwargs:
                     print('L* at test point: {0}; Xgsm = {1}'.format(LStry['Lstar'], pos_test))
 
@@ -915,7 +915,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
     nTtoG = 1.0e-5
 
     outvals = np.zeros(nTAI)
-    outvals.fill(np.NaN)
+    outvals.fill(np.nan)
     for i in np.arange(nTAI):
         bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[i],
                                                 idoysat[i], secs[i], xin1[i],
@@ -923,8 +923,8 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(bmin, badval):
-            bmin = np.NaN
-        GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.NaN
+            bmin = np.nan
+        GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
 
         pa0 = 90  # start with equatorially mirroring
         # Now get K for initial alpha at this location...
@@ -932,7 +932,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
             pos1 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
             LS1 = get_Lstar(ticks[i], pos1, pa0, extMag=extMag, options=options, omnivals=omnivals)
             if np.isnan(LS1['Xj']).any():
-                return np.NaN
+                return np.nan
             LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
         else:
             # print('i = {0}, skipping because of bad position'.format(i))
@@ -1052,9 +1052,9 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(bfootmag, badval):
-            bmin = np.NaN
-        xfoot[np.where(np.isclose(xfoot, badval))] = np.NaN
-        bfoot[np.where(np.isclose(bfoot, badval))] = np.NaN
+            bmin = np.nan
+        xfoot[np.where(np.isclose(xfoot, badval))] = np.nan
+        bfoot[np.where(np.isclose(bfoot, badval))] = np.nan
 
         results['Bfoot'][i] = bfootmag
         results['loci'][i] = xfoot
@@ -1258,7 +1258,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     else:
         print('Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]')
 
-    flux[np.where(np.isclose(flux, d['badval']))] = np.NaN
+    flux[np.where(np.isclose(flux, d['badval']))] = np.nan
 
     return flux[0, 0]
 
@@ -1749,17 +1749,17 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     lm, lstar, bmirr, bmin, xj, mlt = func(*args)
 
     # take out all the odd 'bad values' and turn them into NaN
-    lm[np.where(np.isclose(lm, d['badval']))] = np.NaN
-    lstar[np.where(np.isclose(lstar, d['badval']))] = np.NaN
-    bmin[np.where(np.isclose(bmin, d['badval']))] = np.NaN
-    xj[np.where(np.isclose(xj, d['badval']))] = np.NaN
-    mlt[np.where(np.isclose(mlt, d['badval']))] = np.NaN
+    lm[np.where(np.isclose(lm, d['badval']))] = np.nan
+    lstar[np.where(np.isclose(lstar, d['badval']))] = np.nan
+    bmin[np.where(np.isclose(bmin, d['badval']))] = np.nan
+    xj[np.where(np.isclose(xj, d['badval']))] = np.nan
+    mlt[np.where(np.isclose(mlt, d['badval']))] = np.nan
 
     results = {}
     if no_shell_splitting:
         results['Lm'] = lm[0:nTAI][:, None]
         results['Lstar'] = lstar[0:nTAI][:, None]
-        bmirr[np.where(np.isclose(bmirr, d['badval']))] = np.NaN
+        bmirr[np.where(np.isclose(bmirr, d['badval']))] = np.nan
         results['Blocal'] = bmirr[0:nTAI]
         results['Bmirr'] = results['Blocal'][:, None]
         results['Bmin'] = bmin[0:nTAI]
@@ -1768,7 +1768,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     else:
         results['Lm'] = lm[0:nTAI, 0:nalpha]
         results['Lstar'] = lstar[0:nTAI, 0:nalpha]
-        bmirr[np.where(np.isclose(bmirr, d['badval']))] = np.NaN
+        bmirr[np.where(np.isclose(bmirr, d['badval']))] = np.nan
         results['Bmirr'] = bmirr[0:nTAI, 0:nalpha]
         results['Bmin'] = bmin[0:nTAI]
         results['Xj'] = xj[0:nTAI, 0:nalpha]

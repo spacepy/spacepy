@@ -316,12 +316,12 @@ class Sea(SeaBase):
             enpt = j[0][0]+wind+1
             sea_slice = blankslice.copy()
             if stpt < 0: #fix for bad epochs not correctly moved to badepochs attr #TODO: make badepochs robust or do all checking here
-                sea_slice[0:abs(stpt)] = np.NaN
+                sea_slice[0:abs(stpt)] = np.nan
                 sea_slice[abs(stpt):] = y[0:enpt]
             elif enpt >= len(y):
                 tmpslice = y[stpt:]
                 sea_slice[:len(tmpslice)] = tmpslice
-                sea_slice[len(tmpslice):] = np.NaN
+                sea_slice[len(tmpslice):] = np.nan
             else:
                 sea_slice = y[stpt:enpt]
 
