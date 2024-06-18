@@ -243,7 +243,7 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     Blocal = np.empty((), np.float64)
     for i in np.arange(nTAI):
         irbemlib.get_field1(
-            kext, options, sysaxes, int4(iyearsat[i]),
+            int4(kext), options, int4(sysaxes), int4(iyearsat[i]),
             int4(idoysat[i]), real8(secs[i]),
             real8(xin1[i]), real8(xin2[i]), real8(xin3[i]),
             magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -333,7 +333,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     GEOcoord = np.empty((3,), np.float64)
     for i in np.arange(nTAI):
         irbemlib.find_mirror_point1(
-            kext, options, sysaxes,
+            int4(kext), options, int4(sysaxes),
             int4(iyearsat[i]), int4(idoysat[i]),
             real8(secs[i]), real8(xin1[i]), real8(xin2[i]),
             real8(xin3[i]),
@@ -418,7 +418,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omn
         bmin = np.empty((), np.float64)
         GEOcoord = np.empty((3,), np.float64)
         irbemlib.find_magequator1(
-            kext, options, sysaxes, int4(iyearsat[i]),
+            int4(kext), options, int4(sysaxes), int4(iyearsat[i]),
             int4(idoysat[i]), real8(secs[i]), real8(xin1[i]),
             real8(xin2[i]), real8(xin3[i]),
             magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -547,7 +547,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
             irbemlib.find_magequator1(
-                kext, options, sysaxes, int4(iyearsat[0]),
+                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                 int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
                 real8(xin2[0]), real8(xin3[0]),
                 magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -594,7 +594,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
             irbemlib.find_magequator1(
-                kext, options, sysaxes, int4(iyearsat[0]),
+                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                 int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
                 real8(xin2[0]), real8(xin3[0]),
                 magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -639,7 +639,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                 bmin = np.empty((), np.float64)
                 GEOcoord = np.empty((3,), np.float64)
                 irbemlib.find_magequator1(
-                    kext, options, sysaxes, int4(iyearsat[0]),
+                    int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                     int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
                     real8(xin2[0]), real8(xin3[0]),
                     magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -782,7 +782,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
             irbemlib.find_magequator1(
-                kext, options, sysaxes, int4(iyearsat[0]),
+                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                 int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
                 real8(xin2[0]), real8(xin3[0]),
                 magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -847,7 +847,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
             irbemlib.find_magequator1(
-                kext, options, sysaxes, int4(iyearsat[0]),
+                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                 int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
                 real8(xin2[0]), real8(xin3[0]),
                 magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -899,7 +899,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 options = (int4 * 5)(*options)
 
                 irbemlib.find_magequator1(
-                    kext, options, sysaxes, int4(iyearsat[0]),
+                    int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                     int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
                     real8(xin2[0]), real8(xin3[0]),
                     magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -1000,7 +1000,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
         bmin = np.empty((), np.float64)
         GEOcoord = np.empty((3,), np.float64)
         irbemlib.find_magequator1(
-            kext, options, sysaxes, int4(iyearsat[i]),
+            int4(kext), options, int4(sysaxes), int4(iyearsat[i]),
             int4(idoysat[i]), real8(secs[i]), real8(xin1[i]),
             real8(xin2[i]), real8(xin3[i]),
             magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -1137,7 +1137,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
         bfoot = np.empty((3,), np.float64)
         bfootmag = np.empty((), np.float64)
         irbemlib.find_foot_point1(
-            kext, options, sysaxes, int4(iyearsat[i]), int4(idoysat[i]),
+            int4(kext), options, int4(sysaxes), int4(iyearsat[i]), int4(idoysat[i]),
             real8(secs[i]), real8(xin1[i]), real8(xin2[i]), real8(xin3[i]),
             real8(alt), int4(hemi_flag),
             magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
@@ -1337,6 +1337,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     if isinstance(loci, spc.Coords):
         assert loci.ticks, 'Coords require time information with a Ticktock object'
         d = prep_irbem(ticks=loci.ticks, loci=loci, omnivals=dum_omni)
+        d_c = prep_ctypes(d)
         NENE_MAX = d['nalp_max']
         NTIME_MAX = d['ntime_max']
         E_array_F = np.zeros((2, NENE_MAX))
@@ -1344,14 +1345,10 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
 
         flux = np.empty((NTIME_MAX, NENE_MAX), np.float64)
         irbemlib.fly_in_nasa_aeap1(
-            int4(ntmax), d['sysaxes'], int4(whichm), int4(whatf), int4(Nene),
+            int4(ntmax), d_c['sysaxes'], int4(whichm), int4(whatf), int4(Nene),
             E_array_F.ctypes.data_as(ctypes.POINTER((real8 * 2) * NENE_MAX)),
-            d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
-            d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
-            d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
+            d_c['iyearsat'], d_c['idoysat'], d_c['utsat'],
+            d_c['xin1'], d_c['xin2'], d_c['xin3'],
             flux.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NENE_MAX))
         )
 
@@ -1873,23 +1870,17 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     """
     nTAI = len(ticks)
     d = prep_irbem(ticks, loci, alpha, extMag, options, omnivals)
+    d_c = prep_ctypes(d)
     nalpha = d['nalpha']
-    if d['kext'].value != 5 or d['options'][4] != 0:
+    if d['kext'] != 5 or d['options'][4] != 0:
         landi2lstar = False
     no_shell_splitting = (nalpha == 0) or (nalpha == 1 and alpha[0] == 90)
 
     NTIME_MAX = 100000
     NALP = 25
-    d['magin'] = np.require(d['magin'], requirements='F')
-    # Arguments that are common to all flavors of L* functions
-    args = [int4(nTAI), d['kext'], (int4 * 5)(*options), d['sysaxes'],
-        d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
-        d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * NTIME_MAX)),
-        d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-        d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-        d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-        d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-        d['magin'].ctypes.data_as(ctypes.POINTER((real8 * 25) * NTIME_MAX)),
+    args = [int4(nTAI), d_c['kext'], (int4 * 5)(*options), d_c['sysaxes'],
+        d_c['iyearsat'], d_c['idoysat'], d_c['utsat'],
+        d_c['xin1'], d_c['xin2'], d_c['xin3'], d_c['magin'],
     ]
     if no_shell_splitting:  # no drift shell splitting
         # initialize outputs
@@ -2319,7 +2310,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
         posi = loci.convert(loci.dtype, newcarsph)
     else:
         posi = loci
-    d['sysaxes'] = int4(posi.sysaxes)
+    d['sysaxes'] = posi.sysaxes
     xin1 = np.zeros(ntime_max, dtype=float)
     xin2 = np.zeros(ntime_max, dtype=float)
     xin3 = np.zeros(ntime_max, dtype=float)
@@ -2340,7 +2331,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
                'OSTA', 'T01QUIET', 'T01STORM', 'T05', 'ALEX', 'TS07']
     assert extMag in extkeys, 'extMag not available: {0}'.format(extMag)
     kext = extkeys.index(extMag.upper())
-    d['kext'] = int4(kext)
+    d['kext'] = kext
 
     # calc at given pitch angles 'alpha'?
     degalpha = np.zeros(nalp_max, dtype=float)
@@ -2357,6 +2348,29 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     d['degalpha'] = degalpha
 
     return d
+
+
+def prep_ctypes(d):
+    """Converts values of dict returned by prep_irbem to ctypes"""
+    d_c = {}
+    nalp_max = d['nalp_max']
+    ntime_max = d['ntime_max']
+
+    d_c['degalpha'] = (real8 * nalp_max)(*d['degalpha'])
+    d_c['idoysat'] = (int4 * ntime_max)(*d['idoysat'])
+    d_c['iyearsat'] = (int4 * ntime_max)(*d['iyearsat'])
+    d_c['utsat'] = (real8 * ntime_max)(*d['utsat'])
+    d_c['xin1'] = (real8 * ntime_max)(*d['xin1'])
+    d_c['xin2'] = (real8 * ntime_max)(*d['xin2'])
+    d_c['xin3'] = (real8 * ntime_max)(*d['xin3'])
+    d_c['options'] = (int4 * 5)(*d['options'])
+    magin = np.require(d['magin'], requirements='F')
+    d_c['magin'] = magin.ctypes.data_as(ctypes.POINTER((real8 * 25) * ntime_max))
+    d_c['kext'] = int4(d['kext'])
+    d_c['sysaxes'] = int4(d['sysaxes'])
+    d_c['nalpha'] = int4(d['nalpha'])
+
+    return d_c
 
 
 def _load_lib():
