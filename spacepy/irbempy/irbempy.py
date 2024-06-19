@@ -1338,39 +1338,39 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         assert loci.ticks, 'Coords require time information with a Ticktock object'
         d = prep_irbem(ticks=loci.ticks, loci=loci, omnivals=dum_omni)
         d_c = prep_ctypes(d)
-        NENE_MAX = d['nalp_max']
-        NTIME_MAX = d['ntime_max']
-        E_array_F = np.zeros((2, NENE_MAX))
+        nene_max = d['nalp_max']
+        ntime_max = d['ntime_max']
+        E_array_F = np.zeros((2, nene_max))
         E_array_F[:, 0] = energy
 
-        flux = np.empty((NTIME_MAX, NENE_MAX), np.float64)
+        flux = np.empty((ntime_max, nene_max), np.float64)
         irbemlib.fly_in_nasa_aeap1(
             int4(ntmax), d_c['sysaxes'], int4(whichm), int4(whatf), int4(Nene),
-            E_array_F.ctypes.data_as(ctypes.POINTER((real8 * 2) * NENE_MAX)),
+            E_array_F.ctypes.data_as(ctypes.POINTER((real8 * 2) * nene_max)),
             d_c['iyearsat'], d_c['idoysat'], d_c['utsat'],
             d_c['xin1'], d_c['xin2'], d_c['xin3'],
-            flux.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NENE_MAX))
+            flux.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nene_max))
         )
 
     elif isinstance(loci, (list, np.ndarray)):
         BBo, L = loci
         d = prep_irbem(omnivals=dum_omni)
-        NENE_MAX = d['nalp_max']
-        NTIME_MAX = d['ntime_max']
-        E_array = np.zeros((2, NENE_MAX))
+        nene_max = d['nalp_max']
+        ntime_max = d['ntime_max']
+        E_array = np.zeros((2, nene_max))
         E_array[:, 0] = energy
-        B_array = np.zeros(NTIME_MAX)
+        B_array = np.zeros(ntime_max)
         B_array[0] = BBo
-        L_array = np.zeros(NTIME_MAX)
+        L_array = np.zeros(ntime_max)
         L_array[0] = L
         # now get the flux
-        flux = np.empty((NTIME_MAX, NENE_MAX), np.float64)
+        flux = np.empty((ntime_max, nene_max), np.float64)
         irbemlib.get_ae8_ap8_flux(
             int4(ntmax), int4(whichm), int4(whatf), int4(Nene),
-            E_array.ctypes.data_as(ctypes.POINTER((real8 * 2) * NENE_MAX)),
-            B_array.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            L_array.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            flux.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NENE_MAX))
+            E_array.ctypes.data_as(ctypes.POINTER((real8 * 2) * nene_max)),
+            B_array.ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
+            L_array.ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
+            flux.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nene_max))
         )
     else:
         print('Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]')
@@ -1598,16 +1598,16 @@ class Shieldose2:
                        'len_e', 'jsmax', 'jpmax', 'jemax'}
         real8_inputs = {'eminpun', 'emaxpun', 'eminptr', 'emaxptr', 'emine',
                         'emaxe', 'unit_en', 'tau'}
-        IMAXI = 71
-        JMAXI = 301
+        imaxi = 71
+        jmaxi = 301
         array_inputs = {
-            'depths': IMAXI,
-            'energy_p_un': JMAXI,
-            'flux_p_un': JMAXI,
-            'energy_p_tr': JMAXI,
-            'flux_p_tr': JMAXI,
-            'energy_e': JMAXI,
-            'flux_e': JMAXI
+            'depths': imaxi,
+            'energy_p_un': jmaxi,
+            'flux_p_un': jmaxi,
+            'energy_p_tr': jmaxi,
+            'flux_p_tr': jmaxi,
+            'energy_e': jmaxi,
+            'flux_e': jmaxi
         }
         callorder = ['detector', 'nucmeth', 'ndepth', 'depthunit',
                      'depths', 'eminpun', 'emaxpun', 'eminptr', 'emaxptr',
@@ -1640,9 +1640,9 @@ class Shieldose2:
                     new_call[key] = call[key]
             return new_call
 
-        dose_tup = tuple(np.require(np.zeros((IMAXI, 3)), requirements='F')
+        dose_tup = tuple(np.require(np.zeros((imaxi, 3)), requirements='F')
                          for _ in range(5))
-        dose_pointers = [dose.ctypes.data_as(ctypes.POINTER((real8 * 3) * IMAXI))
+        dose_pointers = [dose.ctypes.data_as(ctypes.POINTER((real8 * 3) * imaxi))
                         for dose in dose_tup]
         irbemlib.shieldose2(*arrays_to_pointers(call).values(), *dose_pointers)
         # Now flag results as generated
@@ -1876,7 +1876,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
         landi2lstar = False
     no_shell_splitting = (nalpha == 0) or (nalpha == 1 and alpha[0] == 90)
 
-    NTIME_MAX = 100000
+    ntime_max = 100000
     NALP = 25
     args = [int4(nTAI), d_c['kext'], (int4 * 5)(*options), d_c['sysaxes'],
         d_c['iyearsat'], d_c['idoysat'], d_c['utsat'],
@@ -1884,11 +1884,11 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     ]
     if no_shell_splitting:  # no drift shell splitting
         # initialize outputs
-        outputs = [np.empty((NTIME_MAX,), np.float64)
+        outputs = [np.empty((ntime_max,), np.float64)
                     for _ in range(6)]
         lm, lstar, bmirr, bmin, xj, mlt = outputs
         # Add outputs to args as pointers
-        args += [arr.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX))
+        args += [arr.ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
                  for arr in outputs]
         func = irbemlib.landi2lstar1 if landi2lstar else irbemlib.make_lstar1
     else:  # with drift shell splitting
@@ -1896,12 +1896,12 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
         args.insert(1, int4(nalpha))
         args.insert(-1, d['degalpha'].ctypes.data_as(ctypes.POINTER(real8 * 25)))
         # initialize outputs
-        lm = np.empty((NTIME_MAX, NALP), np.float64)
-        lstar = np.empty((NTIME_MAX, NALP), np.float64)
-        bmirr = np.empty((NTIME_MAX, NALP), np.float64)
-        bmin = np.empty((NTIME_MAX,), np.float64)
-        xj = np.empty((NTIME_MAX, NALP), np.float64)
-        mlt = np.empty((NTIME_MAX,), np.float64)
+        lm = np.empty((ntime_max, NALP), np.float64)
+        lstar = np.empty((ntime_max, NALP), np.float64)
+        bmirr = np.empty((ntime_max, NALP), np.float64)
+        bmin = np.empty((ntime_max,), np.float64)
+        xj = np.empty((ntime_max, NALP), np.float64)
+        mlt = np.empty((ntime_max,), np.float64)
         # make 2d arrays Fortran-contiguous
         lm = np.require(lm, requirements='F')
         lstar = np.require(lstar, requirements='F')
@@ -1909,12 +1909,12 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
         bmirr= np.require(bmirr, requirements='F')
         # Add outputs to args as pointers
         args += [
-            lm.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NALP)),
-            lstar.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NALP)),
-            bmirr.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NALP)),
-            bmin.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX)),
-            xj.ctypes.data_as(ctypes.POINTER((real8 * NTIME_MAX) * NALP)),
-            mlt.ctypes.data_as(ctypes.POINTER(real8 * NTIME_MAX))
+            lm.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * NALP)),
+            lstar.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * NALP)),
+            bmirr.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * NALP)),
+            bmin.ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
+            xj.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * NALP)),
+            mlt.ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
         ]
         func = irbemlib.landi2lstar_shell_splitting1 if landi2lstar \
                else irbemlib.make_lstar_shell_splitting1
@@ -2404,11 +2404,11 @@ def _load_lib():
     else:
         return None  # Fall through
     # Various constants extracted from irbemlib source.
-    NTIME_MAX = 100000
-    NENE_MAX = 25
-    NALP = 25
-    IMAXI = 71
-    JMAXI = 301
+    ntime_max = 100000
+    nene_max = 25
+    nalp_max = 25
+    imaxi = 71
+    jmaxi = 301
     functions = {
         'get_field1': (int4, int4 * 5, int4, int4, int4, real8,
                        real8, real8, real8, real8 * 25, real8 * 3, real8),
@@ -2421,43 +2421,43 @@ def _load_lib():
                              real8, real8, real8, int4, real8 * 25, real8 * 3,
                              real8 * 3, real8),
         'coord_trans1': (int4, int4, int4, int4, real8, real8 * 3, real8 * 3),
-        'fly_in_nasa_aeap1': (int4, int4, int4, int4, int4, (real8 * 2) * NENE_MAX,
-                              int4 * NTIME_MAX, int4 * NTIME_MAX, real8 * NTIME_MAX,
-                              real8 * NTIME_MAX, real8 * NTIME_MAX,
-                              real8 * NTIME_MAX, (real8 * NTIME_MAX) * NENE_MAX),
-        'get_ae8_ap8_flux': (int4, int4, int4, int4, (real8 * 2) * NENE_MAX,
-                             real8 * NTIME_MAX, real8 * NTIME_MAX,
-                             (real8 * NTIME_MAX) * NENE_MAX),
-        'shieldose2': (int4, int4, int4, int4, real8 * IMAXI, real8, real8,
+        'fly_in_nasa_aeap1': (int4, int4, int4, int4, int4, (real8 * 2) * nene_max,
+                              int4 * ntime_max, int4 * ntime_max, real8 * ntime_max,
+                              real8 * ntime_max, real8 * ntime_max,
+                              real8 * ntime_max, (real8 * ntime_max) * nene_max),
+        'get_ae8_ap8_flux': (int4, int4, int4, int4, (real8 * 2) * nene_max,
+                             real8 * ntime_max, real8 * ntime_max,
+                             (real8 * ntime_max) * nene_max),
+        'shieldose2': (int4, int4, int4, int4, real8 * imaxi, real8, real8,
                        real8, real8, int4, real8, real8, int4, int4, int4,
-                       int4, real8, real8, real8 * JMAXI, real8 * JMAXI,
-                       real8 * JMAXI, real8 * JMAXI, real8 * JMAXI,
-                       real8 * JMAXI, (real8 * 3) * IMAXI, (real8 * 3) * IMAXI,
-                       (real8 * 3) * IMAXI, (real8 * 3) * IMAXI, (real8 * 3) * IMAXI),
-        'landi2lstar1': (int4, int4, int4 * 5, int4, int4 * NTIME_MAX, int4 * NTIME_MAX,
-                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
-                         real8 * NTIME_MAX, (real8 * 25) * NTIME_MAX,
-                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
-                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX),
-        'make_lstar1': (int4, int4, int4 * 5, int4, int4 * NTIME_MAX, int4 * NTIME_MAX,
-                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
-                         real8 * NTIME_MAX, (real8 * 25) * NTIME_MAX,
-                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
-                         real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX),
+                       int4, real8, real8, real8 * jmaxi, real8 * jmaxi,
+                       real8 * jmaxi, real8 * jmaxi, real8 * jmaxi,
+                       real8 * jmaxi, (real8 * 3) * imaxi, (real8 * 3) * imaxi,
+                       (real8 * 3) * imaxi, (real8 * 3) * imaxi, (real8 * 3) * imaxi),
+        'landi2lstar1': (int4, int4, int4 * 5, int4, int4 * ntime_max, int4 * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                         real8 * ntime_max, (real8 * 25) * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max),
+        'make_lstar1': (int4, int4, int4 * 5, int4, int4 * ntime_max, int4 * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                         real8 * ntime_max, (real8 * 25) * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max),
         'landi2lstar_shell_splitting1': (int4, int4, int4, int4 * 5, int4,
-                        int4 * NTIME_MAX, int4 * NTIME_MAX, real8 * NTIME_MAX,
-                        real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
-                        real8 * NALP, (real8 * 25) * NTIME_MAX,
-                        (real8 * NTIME_MAX) * NALP, (real8 * NTIME_MAX) * NALP,
-                        (real8 * NTIME_MAX) * NALP, real8 * NTIME_MAX,
-                        (real8 * NTIME_MAX) * NALP, real8 * NTIME_MAX),
+                        int4 * ntime_max, int4 * ntime_max, real8 * ntime_max,
+                        real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                        real8 * nalp_max, (real8 * 25) * ntime_max,
+                        (real8 * ntime_max) * nalp_max, (real8 * ntime_max) * nalp_max,
+                        (real8 * ntime_max) * nalp_max, real8 * ntime_max,
+                        (real8 * ntime_max) * nalp_max, real8 * ntime_max),
         'make_lstar_shell_splitting1': (int4, int4, int4, int4 * 5, int4,
-                        int4 * NTIME_MAX, int4 * NTIME_MAX, real8 * NTIME_MAX,
-                        real8 * NTIME_MAX, real8 * NTIME_MAX, real8 * NTIME_MAX,
-                        real8 * NALP, (real8 * 25) * NTIME_MAX,
-                        (real8 * NTIME_MAX) * NALP, (real8 * NTIME_MAX) * NALP,
-                        (real8 * NTIME_MAX) * NALP, real8 * NTIME_MAX,
-                        (real8 * NTIME_MAX) * NALP, real8 * NTIME_MAX),
+                        int4 * ntime_max, int4 * ntime_max, real8 * ntime_max,
+                        real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                        real8 * nalp_max, (real8 * 25) * ntime_max,
+                        (real8 * ntime_max) * nalp_max, (real8 * ntime_max) * nalp_max,
+                        (real8 * ntime_max) * nalp_max, real8 * ntime_max,
+                        (real8 * ntime_max) * nalp_max, real8 * ntime_max),
     }
     for funcname in functions:
         try:  # Default name mangling first
