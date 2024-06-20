@@ -1870,6 +1870,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     """
     nTAI = len(ticks)
     d = prep_irbem(ticks, loci, alpha, extMag, options, omnivals)
+    d_c = prep_ctypes(d)
     nalpha = d['nalpha']
     if d['kext'] != 5 or d['options'][4] != 0:
         landi2lstar = False
@@ -1877,16 +1878,10 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
 
     ntime_max = 100000
     nalp = 25
-    d['magin'] = d['magin']
     # Arguments that are common to all flavors of L* functions
-    args = [int4(nTAI), int4(d['kext']), (int4 * 5)(*options), int4(d['sysaxes']),
-        d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * ntime_max)),
-        d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * ntime_max)),
-        d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
-        d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
-        d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
-        d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
-        d['magin'].ctypes.data_as(ctypes.POINTER((real8 * 25) * ntime_max)),
+    args = [int4(nTAI), d_c['kext'], d_c['options'], d_c['sysaxes'],
+        d_c['iyearsat'], d_c['idoysat'], d_c['utsat'],
+        d_c['xin1'], d_c['xin2'], d_c['xin3'], d_c['magin'],
     ]
     if no_shell_splitting:  # no drift shell splitting
         # initialize outputs
@@ -1900,7 +1895,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     else:  # with drift shell splitting
         # Drift shell splitting requires pitch angle positional args
         args.insert(1, int4(nalpha))
-        args.insert(-1, d['degalpha'].ctypes.data_as(ctypes.POINTER(real8 * 25)))
+        args.insert(-1, d_c['degalpha'])
         # initialize outputs
         lm = np.empty((ntime_max, nalp), np.float64)
         lstar = np.empty((ntime_max, nalp), np.float64)
