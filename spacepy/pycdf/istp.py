@@ -469,8 +469,8 @@ class VariableChecks(object):
         for which in (whichmin, whichmax):
             if not which in v.attrs:
                 continue
-            atype = v.attrs.type(which) # attribute type
-            vtype = v.type() # variable type
+            atype = v.attrs.type(which)
+            vtype = v.type()
             if atype != vtype:
                 errs.append(
                     '{} type {} does not match variable type {}.'.format(
