@@ -1337,6 +1337,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     if isinstance(loci, spc.Coords):
         assert loci.ticks, 'Coords require time information with a Ticktock object'
         d = prep_irbem(ticks=loci.ticks, loci=loci, omnivals=dum_omni)
+        d_c = prep_ctypes(d)
         nene_max = d['nalp_max']
         ntime_max = d['ntime_max']
         E_array_F = np.zeros((2, nene_max))
@@ -1344,14 +1345,10 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
 
         flux = np.empty((ntime_max, nene_max), np.float64)
         irbemlib.fly_in_nasa_aeap1(
-            int4(ntmax), int4(d['sysaxes']), int4(whichm), int4(whatf), int4(Nene),
+            int4(ntmax), d_c['sysaxes'], int4(whichm), int4(whatf), int4(Nene),
             E_array_F.ctypes.data_as(ctypes.POINTER((real8 * 2) * nene_max)),
-            d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * ntime_max)),
-            d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * ntime_max)),
-            d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
-            d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
-            d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
-            d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
+            d_c['iyearsat'], d_c['idoysat'], d_c['utsat'],
+            d_c['xin1'], d_c['xin2'], d_c['xin3'],
             flux.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nene_max))
         )
 
