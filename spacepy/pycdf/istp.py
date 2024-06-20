@@ -378,14 +378,17 @@ class VariableChecks(object):
             else numpy.all(actual == expected)
         if not match:
             if timetype:
-                converted_expected = {
-                    spacepy.pycdf.const.CDF_EPOCH.value:
-                    spacepy.pycdf.lib.v_epoch_to_datetime,
-                    spacepy.pycdf.const.CDF_EPOCH16.value:
-                    spacepy.pycdf.lib.v_epoch16_to_datetime,
-                    spacepy.pycdf.const.CDF_TIME_TT2000.value:
-                    spacepy.pycdf.lib.v_tt2000_to_datetime
-                }[v.type()](expected)
+                if v.type() == spacepy.pycdf.const.CDF_EPOCH16.value:
+                    converted_expected = spacepy.pycdf.lib.v_epoch16_to_datetime(
+                        numpy.asanyarray(expected))
+                    actual = tuple(actual)
+                else:
+                    converted_expected = {
+                        spacepy.pycdf.const.CDF_EPOCH.value:
+                        spacepy.pycdf.lib.v_epoch_to_datetime,
+                        spacepy.pycdf.const.CDF_TIME_TT2000.value:
+                        spacepy.pycdf.lib.v_tt2000_to_datetime
+                    }[v.type()](expected)
                 errs.append(
                     'FILLVAL {} ({}), should be {} ({}) for variable type {}.'
                     .format(
