@@ -646,11 +646,13 @@ class VariablesTestsNew(ISTPTestsBase):
         """Test for fillval throwing error for incorrect default fill"""
         v = self.cdf.new('Epoch', type=spacepy.pycdf.const.CDF_EPOCH16)
         v.attrs.new(
-            'FILLVAL', (0.1, 2.0),
+            'FILLVAL', (1.0, 2.0),
             type=spacepy.pycdf.const.CDF_EPOCH16)
         errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
         self.assertEqual(
-            'FILLVAL (0.1, 2.0) (9999-12-13 23:59:59.999999), should be (-1e+31, -1e+31) (9999-12-31 23:59:59.999999) for variable type CDF_EPOCH16.', errs[0])
+            'FILLVAL [1. 2.] (9999-12-13 23:59:59.999999),'  
+            ' should be (-1e+31, -1e+31) (9999-12-31 23:59:59.999999)' 
+            ' for variable type CDF_EPOCH16.', errs[0])
         self.assertEqual(1, len(errs), '\n'.join(errs))
 
     def testFillvalTT2000(self):
