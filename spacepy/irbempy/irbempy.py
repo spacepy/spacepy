@@ -233,7 +233,7 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     xin2 = d['xin2']
     xin3 = d['xin3']
     # Ensure inputs for a given time are contiguous
-    magin = np.require(d['magin'], requirements='F')
+    magin = d['magin']
     options = (int4 * 5)(*options)
 
     results = dm.SpaceData()
@@ -318,7 +318,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     xin1 = d['xin1']
     xin2 = d['xin2']
     xin3 = d['xin3']
-    magin = np.require(d['magin'], requirements='F')
+    magin = d['magin']
     # degalpha = d['degalpha']
     # nalp_max = d['nalp_max']
     # nalpha = d['nalpha']
@@ -408,7 +408,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omn
     xin1 = d['xin1']
     xin2 = d['xin2']
     xin3 = d['xin3']
-    magin = np.require(d['magin'], requirements='F')
+    magin = d['magin']
     options = (int4 * 5)(*options)
 
     results = {}
@@ -540,7 +540,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             xin1 = d['xin1']
             xin2 = d['xin2']
             xin3 = d['xin3']
-            magin = np.require(d['magin'], requirements='F')
+            magin = d['magin']
             nTtoG = 1.0e-5
             options = (int4 * 5)(*options)
 
@@ -588,7 +588,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             xin1 = d2['xin1']
             xin2 = d2['xin2']
             xin3 = d2['xin3']
-            magin = np.require(d2['magin'], requirements='F')
+            magin = d2['magin']
             options = (int4 * 5)(*options)
 
             bmin = np.empty((), np.float64)
@@ -633,7 +633,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                 xin1 = dtest['xin1']
                 xin2 = dtest['xin2']
                 xin3 = dtest['xin3']
-                magin = np.require(dtest['magin'], requirements='F')
+                magin = dtest['magin']
                 options = (int4 * 5)(*options)
 
                 bmin = np.empty((), np.float64)
@@ -774,7 +774,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             xin1 = d['xin1']
             xin2 = d['xin2']
             xin3 = d['xin3']
-            magin = np.require(d['magin'], requirements='F')
+            magin = d['magin']
             nTtoG = 1.0e-5
             pa = np.nan
             options = (int4 * 5)(*options)
@@ -841,7 +841,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             xin1 = d2['xin1']
             xin2 = d2['xin2']
             xin3 = d2['xin3']
-            magin = np.require(d['magin'], requirements='F')
+            magin = d['magin']
             options = (int4 * 5)(*options)
 
             bmin = np.empty((), np.float64)
@@ -895,7 +895,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 xin1 = dtest['xin1']
                 xin2 = dtest['xin2']
                 xin3 = dtest['xin3']
-                magin = np.require(d['magin'], requirements='F')
+                magin = d['magin']
                 options = (int4 * 5)(*options)
 
                 irbemlib.find_magequator1(
@@ -990,7 +990,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
     xin1 = d['xin1']
     xin2 = d['xin2']
     xin3 = d['xin3']
-    magin = np.require(d['magin'], requirements='F')
+    magin = d['magin']
     nTtoG = 1.0e-5
     options = (int4 * 5)(*options)
 
@@ -1118,7 +1118,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
     xin1 = d['xin1']
     xin2 = d['xin2']
     xin3 = d['xin3']
-    magin = np.require(d['magin'], requirements='F')
+    magin = d['magin']
     options = (int4 * 5)(*options)
 
     hemi_dict = {'same': 0, 'north': 1, 'south': -1, 'other': 2}
@@ -2286,7 +2286,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     # this is what irbem lib is looking for
     magin[0, :] = magin[0, :]*10.
 
-    d['magin'] = magin
+    d['magin'] = np.require(magin, requirements="F")
 
     # setup time array
     iyearsat = np.zeros(ntime_max, dtype=int)
@@ -2364,8 +2364,7 @@ def prep_ctypes(d):
     d_c['xin2'] = (real8 * ntime_max)(*d['xin2'])
     d_c['xin3'] = (real8 * ntime_max)(*d['xin3'])
     d_c['options'] = (int4 * 5)(*d['options'])
-    magin = np.require(d['magin'], requirements='F')
-    d_c['magin'] = magin.ctypes.data_as(ctypes.POINTER((real8 * 25) * ntime_max))
+    d_c['magin'] = d['magin'].ctypes.data_as(ctypes.POINTER((real8 * 25) * ntime_max))
     d_c['kext'] = int4(d['kext'])
     d_c['sysaxes'] = int4(d['sysaxes'])
     d_c['nalpha'] = int4(d['nalpha'])
