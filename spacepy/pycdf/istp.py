@@ -381,7 +381,6 @@ class VariableChecks(object):
                 if v.type() == spacepy.pycdf.const.CDF_EPOCH16.value:
                     converted_expected = spacepy.pycdf.lib.v_epoch16_to_datetime(
                         numpy.asanyarray(expected))
-                    actual = tuple(actual)
                 else:
                     converted_expected = {
                         spacepy.pycdf.const.CDF_EPOCH.value:
