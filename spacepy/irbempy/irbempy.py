@@ -1876,8 +1876,8 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
         landi2lstar = False
     no_shell_splitting = (nalpha == 0) or (nalpha == 1 and alpha[0] == 90)
 
-    ntime_max = 100000
-    nalp = 25
+    ntime_max = d['ntime_max']
+    nalp_max = d['nalp_max']
     # Arguments that are common to all flavors of L* functions
     args = [int4(nTAI), d_c['kext'], d_c['options'], d_c['sysaxes'],
         d_c['iyearsat'], d_c['idoysat'], d_c['utsat'],
@@ -1897,11 +1897,11 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
         args.insert(1, int4(nalpha))
         args.insert(-1, d_c['degalpha'])
         # initialize outputs
-        lm = np.empty((ntime_max, nalp), np.float64)
-        lstar = np.empty((ntime_max, nalp), np.float64)
-        bmirr = np.empty((ntime_max, nalp), np.float64)
+        lm = np.empty((ntime_max, nalp_max), np.float64)
+        lstar = np.empty((ntime_max, nalp_max), np.float64)
+        bmirr = np.empty((ntime_max, nalp_max), np.float64)
         bmin = np.empty((ntime_max,), np.float64)
-        xj = np.empty((ntime_max, nalp), np.float64)
+        xj = np.empty((ntime_max, nalp_max), np.float64)
         mlt = np.empty((ntime_max,), np.float64)
         # make 2d arrays Fortran-contiguous
         lm = np.require(lm, requirements='F')
@@ -1910,11 +1910,11 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
         bmirr= np.require(bmirr, requirements='F')
         # Add outputs to args as pointers
         args += [
-            lm.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp)),
-            lstar.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp)),
-            bmirr.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp)),
+            lm.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp_max)),
+            lstar.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp_max)),
+            bmirr.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp_max)),
             bmin.ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
-            xj.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp)),
+            xj.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp_max)),
             mlt.ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
         ]
         func = irbemlib.landi2lstar_shell_splitting1 if landi2lstar \
