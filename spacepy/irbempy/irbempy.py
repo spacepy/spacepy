@@ -898,6 +898,8 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 magin = d['magin']
                 options = (int4 * 5)(*options)
 
+                bmin = np.empty((), np.float64)
+                GEOcoord = np.empty((3,), np.float64)
                 irbemlib.find_magequator1(
                     int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                     int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
