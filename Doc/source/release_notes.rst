@@ -17,6 +17,11 @@ New features
 ************
 `.help` now supports searching the documentation.
 
+Dependency requirements
+***********************
+Sphinx 4.0 is now required to build the documentation; this is not
+a concern for most users.
+
 0.6 Series
 ==========
 0.6.0 (2024-04-25)
