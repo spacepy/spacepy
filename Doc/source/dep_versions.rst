@@ -169,7 +169,7 @@ history. The oldest version supported according to this policy is in
      - **4.3.2** (2021/12/19)
      - 5.1.0 (2022/7/24)
      - 7.1.0 (2023/7/24)
-     - 1.8.0 (2018/9/13)
+     - 4.0.0 (2021/5/9)
    * - `build <https://pypa-build.readthedocs.io/en/latest/changelog.html>`_
        (only needed for developers to build releases)
      - 1.2.1 (2024/3/28)
