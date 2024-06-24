@@ -2,15 +2,6 @@
 
 This module is intended primarily to support :mod:`~spacepy.coordinates`
 rather than for direct end use, and the interface is subject to change.
-
-Classes
--------
-.. autosummary::
-    :template: clean_class.rst
-    :toctree: autosummary
-
-    IGRFCoefficients
-    IGRF
 """
 
 

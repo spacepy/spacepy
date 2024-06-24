@@ -38,7 +38,6 @@ Classes
 |
 
 .. autosummary::
-    :template: clean_class.rst
     :toctree: autosummary
 
     assertWarns
@@ -50,7 +49,6 @@ Functions
 |
 
 .. autosummary::
-    :template: clean_function.rst
     :toctree: autosummary
 
     add_build_to_path

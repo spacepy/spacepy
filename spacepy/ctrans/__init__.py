@@ -87,31 +87,9 @@ here) use a centered dipole axis.
     to both the dipole axis and True North, i.e., y is the cross product of
     the z-axis of the GEO system with the dipole axis. The x-axis completes.
 
-Classes
--------
-.. autosummary::
-    :template: clean_class.rst
-    :toctree: autosummary
-
-    CTrans
-    Ellipsoid
-
-Functions
----------
-.. autosummary::
-    :template: clean_function.rst
-    :toctree: autosummary
-
-    convert_multitime
-    gdz_to_geo
-    geo_to_gdz
-    geo_to_rll
-    rll_to_geo
-
 Submodules
 ----------
 .. autosummary::
-    :template: clean_module.rst
     :toctree: autosummary
 
     iau80n
