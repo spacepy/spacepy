@@ -15,24 +15,8 @@ Copyright 2015 Los Alamos National Security, LLC.
 This module provides a convenient class for handling data from
 AE9/AP9 (and legacy models provided by the software).
 
-.. rubric:: Class
-.. autosummary::
-    :template: clean_class.rst
-    :toctree: autosummary
-
-    Ae9Data
-
 Though the class is derived from SpacePy's SpaceData, the class also provides several methods
 targeted at the AE9/AP9 output. Additional functions for working with the data are provided.
-
-.. rubric:: Functions
-.. autosummary::
-    :template: clean_function.rst
-    :toctree: autosummary
-
-    readFile
-    parseHeader
-
 """
 
 import datetime as dt

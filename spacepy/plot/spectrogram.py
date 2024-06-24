@@ -25,20 +25,6 @@ Contact: balarsen@lanl.gov, smorley@lanl.gov
 Los Alamos National Laboratory
 
 Copyright 2011 Los Alamos National Security, LLC.
-
-.. rubric:: Class
-.. autosummary::
-    :template: clean_class.rst
-    :toctree: autosummary
-
-    Spectrogram
-
-.. rubric:: Function
-.. autosummary::
-    :template: clean_function.rst
-    :toctree: autosummary
-
-    simpleSpectrogram
 """
 
 import bisect

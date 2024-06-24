@@ -3,20 +3,6 @@ A PyBats module for handling input, output, and visualization of
 binary SWMF output files taylored to BATS-R-US-type data.
 
 .. currentmodule:: spacepy.pybats.bats
-
-.. rubric:: Classes
-
-.. autosummary::
-    :template: clean_class.rst
-    :toctree:
-
-    BatsLog
-    Stream
-    Bats2d
-    Mag
-    MagFile
-    GeoIndexFile
-    VirtSat
 '''
 import sys
 

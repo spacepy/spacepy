@@ -334,7 +334,6 @@ Classes
 =======
 
 .. autosummary::
-    :template: clean_class.rst
     :toctree: autosummary
 
     CDF
@@ -357,7 +356,6 @@ Functions
 =========
 
 .. autosummary::
-    :template: clean_function.rst
     :toctree: autosummary
 
     concatCDF
@@ -367,7 +365,6 @@ Submodules
 
 .. autosummary::
     :toctree: autosummary  
-    :template: clean_module.rst
 
     const
     istp

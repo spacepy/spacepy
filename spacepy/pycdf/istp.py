@@ -15,25 +15,6 @@ Additional Contributors: Lorna Ellis, Asher Merrill
 Institution: University of New Hampshire
 
 Contact: Jonathan.Niehof@unh.edu
-
-.. rubric:: Classes
-
-.. autosummary::
-    :toctree:
-    :template: clean_class.rst
-
-    FileChecks
-    VarBundle
-    VariableChecks
-
-.. rubric:: Functions
-
-.. autosummary::
-    :toctree:
-
-    fillval
-    format
-    nanfill
 """
 
 import collections

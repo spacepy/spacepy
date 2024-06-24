@@ -10,33 +10,6 @@ Contact: jniehof@lanl.gov
 Copyright 2012-2014 Los Alamos National Security, LLC.
 
 .. currentmodule:: spacepy.plot.utils
-
-Classes
--------
-
-.. autosummary::
-    :template: clean_class.rst
-    :toctree:
-
-    EventClicker
-
-Functions
----------
-
-.. autosummary::
-    :toctree:
-
-    add_logo
-    annotate_xaxis
-    applySmartTimeTicks
-    collapse_vertical
-    printfig
-    set_target
-    shared_ylabel
-    show_used
-    smartTimeTicks
-    timestamp
-    add_arrows
 """
 
 __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'

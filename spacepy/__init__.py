@@ -20,7 +20,6 @@ help available:
 .. rubric:: Submodules
 
 .. autosummary::
-    :template: clean_module.rst
 
     ~spacepy.coordinates
     ~spacepy.data_assimilation
@@ -37,16 +36,6 @@ help available:
     ~spacepy.time
     ~spacepy.toolbox
     ~spacepy.ae9ap9
-
-.. rubric:: Functions
-
-.. autosummary::
-
-    deprecated
-    help
-
-.. autofunction:: deprecated
-.. autofunction:: help
 
 Copyright 2010-2016 Los Alamos National Security, LLC.
 """
