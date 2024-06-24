@@ -1,19 +1,4 @@
 """IAU 1980 Nutation model
-
-Functions
----------
-.. autosummary::
-    :toctree:
-    :template: clean_function.rst
-
-    nutation
-
-Data
-----
-.. autosummary::
-   :toctree:
-
-   coeff80
 """
 
 from math import fmod, fsum

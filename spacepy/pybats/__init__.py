@@ -65,7 +65,6 @@ modules- they are not code specific, but rather provide functionality not
 related to an SWMF-included code.
 
 .. autosummary::
-   :template: clean_module.rst
    :toctree: autosummary
 
    bats
@@ -89,7 +88,6 @@ convenience functions for customizing plots.
 
 .. rubric:: Classes
 .. autosummary::
-   :template: clean_class.rst
    :toctree: autosummary
 
    IdlFile
@@ -101,7 +99,6 @@ convenience functions for customizing plots.
 
 .. rubric:: Functions
 .. autosummary::
-   :template: clean_function.rst
    :toctree: autosummary
 
    add_body

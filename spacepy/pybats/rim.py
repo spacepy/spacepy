@@ -5,23 +5,6 @@ from the Ridley Ionosphere Model (RIM) and the similar legacy code,
 Ridley Serial.
 
 Copyright 2010 Los Alamos National Security, LLC.
-
-.. rubric:: Classes
-
-.. autosummary::
-    :toctree:
-    :template: clean_class.rst
-
-    Iono
-    OvalDebugFile
-
-.. rubric:: Functions
-
-.. autosummary::
-    :toctree:
-
-    get_iono_cb
-    tex_label
 '''
 
 import os
