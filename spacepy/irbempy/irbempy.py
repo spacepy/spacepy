@@ -1614,7 +1614,7 @@ class Shieldose2:
                      'jpmax', 'jemax', 'unit_en', 'tau', 'energy_p_un',
                      'flux_p_un', 'energy_p_tr', 'flux_p_tr', 'energy_e', 'flux_e']
         call = OrderedDict()
-        # Add items in order required for irbemlib call
+        # Add items in order required for irbemlib call, casting to ctypes along the way
         for key in callorder:
             if key in int4_inputs:
                 call[key] = int4(settings[key])
@@ -1625,25 +1625,13 @@ class Shieldose2:
                 actual_len = len(settings.get(key, None))
                 arr = np.zeros(max_len, dtype=np.float64)
                 arr[:actual_len] = settings[key]
-                call[key] = arr
-
-        def arrays_to_pointers(call):
-            # Copy call with arrays replaced with ctypes pointers
-            new_call = OrderedDict()
-            for key in call:
-                if key in array_inputs:
-                    new_call[key] = call[key].ctypes.data_as(
-                        ctypes.POINTER(real8 * array_inputs[key])
-                    )
-                else:
-                    new_call[key] = call[key]
-            return new_call
+                call[key] = arr.ctypes.data_as(ctypes.POINTER(real8 * array_inputs[key]))
 
         dose_tup = tuple(np.require(np.zeros((imaxi, 3)), requirements='F')
                          for _ in range(5))
         dose_pointers = [dose.ctypes.data_as(ctypes.POINTER((real8 * 3) * imaxi))
                         for dose in dose_tup]
-        irbemlib.shieldose2(*arrays_to_pointers(call).values(), *dose_pointers)
+        irbemlib.shieldose2(*call.values(), *dose_pointers)
         # Now flag results as generated
         self.settings['calc_flag'] = True
 
