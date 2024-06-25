@@ -2358,13 +2358,13 @@ def prep_ctypes(d):
     nalp_max = d['nalp_max']
     ntime_max = d['ntime_max']
 
-    d_c['degalpha'] = (real8 * nalp_max)(*d['degalpha'])
-    d_c['idoysat'] = (int4 * ntime_max)(*d['idoysat'])
-    d_c['iyearsat'] = (int4 * ntime_max)(*d['iyearsat'])
-    d_c['utsat'] = (real8 * ntime_max)(*d['utsat'])
-    d_c['xin1'] = (real8 * ntime_max)(*d['xin1'])
-    d_c['xin2'] = (real8 * ntime_max)(*d['xin2'])
-    d_c['xin3'] = (real8 * ntime_max)(*d['xin3'])
+    d_c['degalpha'] = d['degalpha'].ctypes.data_as(ctypes.POINTER(real8 * nalp_max))
+    d_c['idoysat'] = d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * ntime_max))
+    d_c['iyearsat'] = d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * ntime_max))
+    d_c['utsat'] = d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
+    d_c['xin1'] = d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
+    d_c['xin2'] = d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
+    d_c['xin3'] = d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
     d_c['options'] = (int4 * 5)(*d['options'])
     d_c['magin'] = d['magin'].ctypes.data_as(ctypes.POINTER((real8 * 25) * ntime_max))
     d_c['kext'] = int4(d['kext'])
