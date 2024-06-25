@@ -232,7 +232,6 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     xin1 = d['xin1']
     xin2 = d['xin2']
     xin3 = d['xin3']
-    # Ensure inputs for a given time are contiguous
     magin = d['magin']
     options = (int4 * 5)(*options)
 
@@ -2242,7 +2241,8 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     nTAI = len(ticks)
 
     # setup mag array and move omni values
-    magin = np.zeros((nalp_max, ntime_max), float)
+    # magin is Fortran-contiguous
+    magin = np.zeros((nalp_max, ntime_max), float, order='F')
     magkeys = ['Kp', 'Dst', 'dens', 'velo', 'Pdyn', 'ByIMF', 'BzIMF',
                'G1', 'G2', 'G3', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6']
 
@@ -2288,8 +2288,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     # multiply Kp*10 to look like omni database
     # this is what irbem lib is looking for
     magin[0, :] = magin[0, :]*10.
-
-    d['magin'] = np.require(magin, requirements="F")
+    d['magin'] = magin
 
     # setup time array
     iyearsat = np.zeros(ntime_max, dtype=int)
