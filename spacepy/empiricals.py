@@ -17,6 +17,8 @@ import warnings
 from functools import partial
 import numpy as np
 import scipy.integrate as integ
+if not hasattr(integ, "simpson"):  # scipy<1.7.0
+    integ.simpson = integ.simps 
 
 from spacepy import help
 import spacepy.datamodel as dm
@@ -670,7 +672,7 @@ def omniFromDirectionalFlux(fluxarr, alphas, norm=True):
        fac = 2*np.pi
        denomina = 1
     alphrad = np.deg2rad(alphas)
-    numera = integ.simps(fluxarr*np.sin(alphrad), alphrad)
+    numera = integ.simpson(fluxarr*np.sin(alphrad), alphrad)
     omniflux = fac*numera/denomina
     return omniflux
 
