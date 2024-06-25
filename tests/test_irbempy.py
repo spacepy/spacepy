@@ -49,7 +49,7 @@ class IRBEMBigTests(unittest.TestCase):
         actual = ib.prep_ctypes(d)
         for key in expected_arrays:
             numpy.testing.assert_almost_equal(expected_arrays[key],
-                                              actual[key],
+                                              actual[key].contents,
                                               decimal=5)
         for key in expected_scalars:
             numpy.testing.assert_almost_equal(expected_scalars[key],
