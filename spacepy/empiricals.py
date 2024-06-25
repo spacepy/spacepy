@@ -672,7 +672,7 @@ def omniFromDirectionalFlux(fluxarr, alphas, norm=True):
        fac = 2*np.pi
        denomina = 1
     alphrad = np.deg2rad(alphas)
-    numera = integ.simpson(fluxarr*np.sin(alphrad), alphrad)
+    numera = integ.simpson(y=fluxarr*np.sin(alphrad), x=alphrad)
     omniflux = fac*numera/denomina
     return omniflux
 
