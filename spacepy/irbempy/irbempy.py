@@ -1614,6 +1614,9 @@ class Shieldose2:
                      'jpmax', 'jemax', 'unit_en', 'tau', 'energy_p_un',
                      'flux_p_un', 'energy_p_tr', 'flux_p_tr', 'energy_e', 'flux_e']
         call = OrderedDict()
+        # Needed to preserve a reference to original numpy arrays for numpy<1.16
+        # Can safely delete if we drop support for numpy<1.16
+        arrays = []
         # Add items in order required for irbemlib call, casting to ctypes along the way
         for key in callorder:
             if key in int4_inputs:
@@ -1625,6 +1628,7 @@ class Shieldose2:
                 actual_len = len(settings.get(key, None))
                 arr = np.zeros(max_len, dtype=np.float64)
                 arr[:actual_len] = settings[key]
+                arrays.append(arr)
                 call[key] = arr.ctypes.data_as(ctypes.POINTER(real8 * array_inputs[key]))
 
         dose_tup = tuple(np.require(np.zeros((imaxi, 3)), requirements='F')
