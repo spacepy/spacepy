@@ -517,6 +517,8 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     mlt *= 15  # hours to degrees
     mlt = np.deg2rad(mlt)
 
+    options = (int4 * 5)(*options)
+
     for idxt, tt in enumerate(ticks):
         if not omnivals:
             # prep_irbem will get omni if not specified, but to save on repeated calls, do it once here
@@ -541,7 +543,6 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             xin3 = d['xin3']
             magin = d['magin']
             nTtoG = 1.0e-5
-            options = (int4 * 5)(*options)
 
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
@@ -588,7 +589,6 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             xin2 = d2['xin2']
             xin3 = d2['xin3']
             magin = d2['magin']
-            options = (int4 * 5)(*options)
 
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
@@ -633,7 +633,6 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                 xin2 = dtest['xin2']
                 xin3 = dtest['xin3']
                 magin = dtest['magin']
-                options = (int4 * 5)(*options)
 
                 bmin = np.empty((), np.float64)
                 GEOcoord = np.empty((3,), np.float64)
@@ -751,6 +750,8 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
     mlt *= 15  # hours to degrees
     mlt = np.deg2rad(mlt)
 
+    options = (int4 * 5)(*options)
+
     for idxt, tt in enumerate(ticks):
         if not omnivals:
             # prep_irbem will get omni if not specified, but to save on repeated calls, do it once here
@@ -776,7 +777,6 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             magin = d['magin']
             nTtoG = 1.0e-5
             pa = np.nan
-            options = (int4 * 5)(*options)
 
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
@@ -841,7 +841,6 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             xin2 = d2['xin2']
             xin3 = d2['xin3']
             magin = d['magin']
-            options = (int4 * 5)(*options)
 
             bmin = np.empty((), np.float64)
             GEOcoord = np.empty((3,), np.float64)
@@ -895,7 +894,6 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 xin2 = dtest['xin2']
                 xin3 = dtest['xin3']
                 magin = d['magin']
-                options = (int4 * 5)(*options)
 
                 bmin = np.empty((), np.float64)
                 GEOcoord = np.empty((3,), np.float64)
