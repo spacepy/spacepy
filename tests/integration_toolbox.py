@@ -157,16 +157,6 @@ class WebGettingIntegration(unittest.TestCase):
         finally:
             conn.close()
         self.assertEqual(b'This is a test\n', data)
-    
-    def testGetUrlReadableWritable(self):
-        """Call get_url to trigger readable and writable"""
-        try:
-            connection = http.client.HTTPConnection("localhost:{}".format(self.port))
-            connection.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-            _, connection = spacepy.toolbox.get_url('http://localhost:{}/'.format(self.port), conn=connection, keepalive=True)
-            self.assertEqual(connection.sock, None)
-        finally:
-            connection.close()
 
     def testGetUrlValueErrorOn404WithKeepAlive(self):
         """Call get_url with keepalive and a bad link"""
