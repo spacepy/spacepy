@@ -2228,7 +2228,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
 
     # setup mag array and move omni values
     # magin is Fortran-contiguous
-    magin = np.zeros((nalp_max, ntime_max), float, order='F')
+    magin = np.zeros((nalp_max, ntime_max), np.float64, order='F')
     magkeys = ['Kp', 'Dst', 'dens', 'velo', 'Pdyn', 'ByIMF', 'BzIMF',
                'G1', 'G2', 'G3', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6']
 
@@ -2277,9 +2277,9 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     d['magin'] = magin
 
     # setup time array
-    iyearsat = np.zeros(ntime_max, dtype=int)
-    idoysat = np.zeros(ntime_max, dtype=int)
-    utsat = np.zeros(ntime_max, dtype=float)
+    iyearsat = np.zeros(ntime_max, dtype=np.int32)
+    idoysat = np.zeros(ntime_max, dtype=np.int32)
+    utsat = np.zeros(ntime_max, dtype=np.float64)
     for i in np.arange(nTAI):
         iyearsat[i] = UTC[i].year
         idoysat[i] = int(DOY[i])
@@ -2299,9 +2299,9 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     else:
         posi = loci
     d['sysaxes'] = posi.sysaxes
-    xin1 = np.zeros(ntime_max, dtype=float)
-    xin2 = np.zeros(ntime_max, dtype=float)
-    xin3 = np.zeros(ntime_max, dtype=float)
+    xin1 = np.zeros(ntime_max, dtype=np.float64)
+    xin2 = np.zeros(ntime_max, dtype=np.float64)
+    xin3 = np.zeros(ntime_max, dtype=np.float64)
     if posi.carsph == 'sph':
         xin1[0:nTAI] = posi.radi[:]
         xin2[0:nTAI] = posi.lati[:]
