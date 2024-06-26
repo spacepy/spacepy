@@ -498,8 +498,10 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
         else:
             TAIcount = len(d[fln][ list(d[fln].keys())[0] ])
         for key in d[fln]:
-            #print fln, key
-            dim = np.array(np.shape(d[fln][key]))
+            if isinstance(dcomb[key], spt.Ticktock):
+                dim = np.array(d[fln][key].data.shape)
+            else:
+                dim = np.array(np.shape(d[fln][key]))
             ax = np.where(dim==TAIcount)[0]
             if len(ax) == 1: # then match with TAI length is given (jump over otherwise like for 'parameters')
                 if isinstance(dcomb[key], spt.Ticktock):

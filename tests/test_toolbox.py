@@ -26,8 +26,10 @@ from scipy.stats import poisson
 
 import spacepy_testing
 import spacepy
-import spacepy.toolbox as tb
+import spacepy.coordinates
 import spacepy.lib
+import spacepy.time
+import spacepy.toolbox as tb
 
 __all__ = ['PickleAssembleTests', 'SimpleFunctionTests', 'TBTimeFunctionTests',
            'ArrayBinTests']
@@ -99,6 +101,43 @@ class PickleAssembleTests(unittest.TestCase):
         for key in result:
             result[key] = result[key].tolist()
         self.assertEqual(expected, result)
+
+    def test_assemble_time_coords(self):
+        """Assemble with time and coordinates data"""
+        D1 = {
+            'time': spacepy.time.Ticktock(['2020-01-01', '2020-01-02'],
+                                          dtype='ISO'),
+            'coord': spacepy.coordinates.Coords([[1, 1, 0], [2, 1, 0]],
+                                                'GSM', 'car')
+        }
+        D2 = {
+            'time': spacepy.time.Ticktock(['2020-01-03', '2020-01-04'],
+                                          dtype='ISO'),
+            'coord': spacepy.coordinates.Coords([[0, 1, 0], [1, 0, 0]],
+                                                'GSM', 'car')
+        }
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), D1)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_2.pkl'), D2)
+        result = tb.assemble(
+            os.path.join(self.tempdir, 'test_pickle_[1-2].pkl'),
+            os.path.join(self.tempdir, 'test_all.pkl'),
+            sortkey=None, verbose=False)
+        frompkl = tb.loadpickle(os.path.join(self.tempdir, 'test_all.pkl'))
+        exp = spacepy.time.Ticktock([
+                '2020-01-01', '2020-01-02', '2020-01-03', '2020-01-04'],
+                                  dtype='ISO')
+        # numpy testing methods don't work with ticktock's __eq__ operator
+        self.assertTrue((result['time'] == exp).all())
+        self.assertTrue((result['time'] == frompkl['time']).all())
+        expected = spacepy.coordinates.Coords([[1, 1, 0], [2, 1, 0], [0, 1, 0],
+                                               [1, 0, 0]], 'GSM', 'car')
+        numpy.testing.assert_array_equal(result['coord'].data, expected.data)
+        numpy.testing.assert_array_equal(result['coord'].data,
+                                         frompkl['coord'].data)
+        self.assertEqual(result['coord'].dtype, expected.dtype)
+        self.assertEqual(result['coord'].dtype, frompkl['coord'].dtype)
+        self.assertEqual(result['coord'].sysaxes, expected.sysaxes)
+        self.assertEqual(result['coord'].sysaxes, frompkl['coord'].sysaxes)
 
     def test_assemble_sorted(self):
         tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1)
