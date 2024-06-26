@@ -1247,6 +1247,31 @@ class TBTimeFunctionTests(unittest.TestCase):
         anst = [ 1.,  3.,  5.,  7.]
         numpy.testing.assert_almost_equal(anst, out[1])
 
+    def test_link_extracter(self):
+        """Get links from sample html"""
+        indata = """
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SpacePy 0.6.0 documentation &#8212; SpacePy v0.6.0 Manual</title>
+  </head><body>
+  <section id="spacepy-version-documentation">
+<h1>SpacePy 0.6.0 documentation<a class="headerlink" href="#spacepy-version-documentation" title="Permalink to this heading"></a></h1>
+<dl class="simple">
+<dt>To cite the code itself:</dt><dd><p>&#64;software{spacepy_code,
+doi          = {10.5281/zenodo.3252523},
+url          = {<a class="reference external" href="https://doi.org/10.5281/zenodo.3252523">https://doi.org/10.5281/zenodo.3252523</a>}
+}</p></dd></dl>
+</section></body></html>
+        """
+        p = tb.LinkExtracter()
+        p.feed(indata)
+        p.close()
+        self.assertEqual(
+            ['#spacepy-version-documentation', 'https://doi.org/10.5281/zenodo'
+             '.3252523'], p.links)
+
 
 class ArrayBinTests(unittest.TestCase):
     """Tests for arraybin function"""
