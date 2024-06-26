@@ -537,8 +537,13 @@ class build_ext(_build_ext):
         else:
             distutils.sysconfig.customize_compiler(ccomp)
         irbemshared = ccomp.library_filename('irbem', lib_type='shared')
-        subprocess.check_call([fc, '-shared'] + list(glob.glob('*.o'))
-                              + ['-o', irbemshared, '-fPIC'])
+        compile_irbemlib = [fc, '-shared'] \
+            + list(glob.glob('*.o')) \
+            + ['-o', irbemshared, '-fPIC']
+        if sys.platform == 'darwin' and 'SDKROOT' in os.environ:
+            compile_irbemlib[2:2] = ["-isysroot", os.environ['SDKROOT']]
+        subprocess.check_call(compile_irbemlib)
+
         shutil.move(irbemshared, os.path.join(outdir, irbemshared))
         retval = -1
         if 'archiver' in fcompexec:
