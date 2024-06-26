@@ -187,5 +187,21 @@ class WebGettingIntegration(unittest.TestCase):
         self.assertEqual('Cannot specify connection without keepalive',
                          str(cm.exception))
 
+    def testGetUrlReport(self):
+        """Call get_url, use report hook"""
+        hook_record = []
+        def hook(count, bs, size):
+            hook_record.append((count, bs, size))
+        with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
+            f.write(b'1' * 1536)
+        data = spacepy.toolbox.get_url(
+            'http://localhost:{}/foo.txt'.format(self.port), reporthook=hook)
+        self.assertEqual(
+            b"1" * 1536, data)
+        self.assertEqual(
+            [(1, 1024, 1536), (2, 1024, 1536)],
+            hook_record)
+
+
 if __name__ == "__main__":
     unittest.main()
