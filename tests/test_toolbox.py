@@ -156,6 +156,30 @@ class PickleAssembleTests(unittest.TestCase):
             result[key] = result[key].tolist()
         self.assertEqual(expected, result)
 
+    def test_assemble_sorted_time(self):
+        """Test assemble with a ticktock as sort key"""
+        D1 = {
+            'time': spacepy.time.Ticktock(['2020-01-03', '2020-01-02'],
+                                          dtype='ISO'),
+            'val': numpy.array([1, 2]),
+        }
+        D2 = {
+            'time': spacepy.time.Ticktock(['2020-01-04', '2020-01-01'],
+                                          dtype='ISO'),
+            'val': numpy.array([3, 4]),
+        }
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), D1)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_2.pkl'), D2)
+        result = tb.assemble(
+            os.path.join(self.tempdir, 'test_pickle_[1-2].pkl'),
+            os.path.join(self.tempdir, 'test_all.pkl'),
+            sortkey='time', verbose=False)
+        numpy.testing.assert_array_equal(
+            result['val'], [4, 2, 1, 3])
+        numpy.testing.assert_array_equal(
+            result['time'].ISO,
+            [f'2020-01-0{d}T00:00:00' for d in range(1, 5)])
+
 
 class SimpleFunctionTests(unittest.TestCase):
 
