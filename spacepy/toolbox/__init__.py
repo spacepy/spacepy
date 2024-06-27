@@ -1527,14 +1527,14 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
     else:
         if len(data) != len(time):
             raise ValueError('windowmean error: data and time must have same length')
-        #First check if datetime objects
-        try:
-            assert type(winsize) == datetime.timedelta
-            assert type(overlap) == datetime.timedelta
-        except AssertionError:
-            raise TypeError('windowmean error: winsize/overlap must be timedeltas if a time array is supplied.')
         pts = False #force time-based averaging
-        if (type(time[0]) != datetime.datetime):
+        #First check if datetime objects
+        if isinstance(time[0], datetime.datetime):
+            if not (isinstance(winsize, datetime.timedelta)
+               and isinstance(overlap, datetime.timedelta)):
+                raise TypeError('windowmean error: winsize/overlap must be'
+                                ' timedeltas if a time array is datetime.')
+        else:
             startpt = time[0]
 
     #now actually do windowing mean
@@ -1542,11 +1542,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
     data = np.array(data)
     if pts:
         #loop for fixed number of points in window
-        try:
-            inttypes = (int, long)
-        except NameError:
-            inttypes = (int,)
-        if not isinstance(winsize, inttypes):
+        if not isinstance(winsize, int):
             winsize = int(round(winsize))
             warnings.warn('windowmean: non-integer windowsize, rounding to %d' \
             % winsize)
@@ -1571,11 +1567,11 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
     else:
         #loop with time-based window
         lastpt = time[0] + winsize
-        delta = datetime.timedelta(microseconds=1) #TODO: replace this with an explicit check for times on the boundary?
-        if st_time:
-            startpt = st_time
+        if isinstance(time[0], datetime.datetime):
+            delta = datetime.timedelta(microseconds=1) #TODO: replace this with an explicit check for times on the boundary?
         else:
-            startpt = time[0]
+            delta = (max(time) - min(time)) / 1.e6  # Definite fudge...
+        startpt = time[0] if st_time is None else st_time
         if overlap >= winsize:
             raise ValueError('Overlap requested greater than size of window')
         while startpt < time[-1]:
@@ -1585,7 +1581,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
                 getmean = op(getdata.compressed()) #find mean excluding NaNs
             else:
                 getmean = np.nan
-            gettime = startpt + winsize//2 #new timestamp -floordiv req'd with future division
+            gettime = startpt + winsize/2
             startpt = startpt + winsize - overlap #advance window start
             lastpt = startpt + winsize
             outdata.append(getmean) #construct output arrays

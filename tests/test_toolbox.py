@@ -1247,6 +1247,23 @@ class TBTimeFunctionTests(unittest.TestCase):
         anst = [ 1.,  3.,  5.,  7.]
         numpy.testing.assert_almost_equal(anst, out[1])
 
+    def test_windowMeanNotDatetime(self):
+        """windowMean should give known results, with non-datetime time"""
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', r'windowmean\:', UserWarning, 'spacepy.toolbox$')
+            # same setup as windowMean3, but 'time' is in fractional days
+            wsize = 1.
+            olap = .5
+            data = [10, 20] * 50
+            time = [(n + .5) / 24 for n in range(100)]
+            time[50:] = [val + 2 for val in time[50:]]
+            outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=0.)
+            od_ans = [ 15.,  15.,  15.,  15.,  15.,  numpy.nan,  numpy.nan,  15.,  15.,  15.,  15., 15., 15.]
+            ot_ans = [.5 * n for n in range(1, 14)]
+            numpy.testing.assert_almost_equal(od_ans, outdata)
+            self.assertEqual(ot_ans, outtime)
+
     def test_link_extracter(self):
         """Get links from sample html"""
         indata = """
