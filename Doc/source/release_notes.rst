@@ -22,6 +22,11 @@ Dependency requirements
 Sphinx 4.0 is now required to build the documentation; this is not
 a concern for most users.
 
+Deprecations and removals
+*************************
+`~spacepy.toolbox.timeout_check_call` is deprecated as redundant to using
+`subprocess.check_call` with the ``timeout`` argument.
+
 0.6 Series
 ==========
 0.6.0 (2024-04-25)

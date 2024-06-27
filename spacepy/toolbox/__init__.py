@@ -2859,6 +2859,10 @@ def timeout_check_call(timeout, *args, **kwargs):
     """
     Call a subprocess with a timeout.
 
+    .. deprecated:: 0.7.0
+        Use ``timeout`` argument of :func:`subprocess.check_call`, added
+        in Python 3.3.
+
     Like :func:`subprocess.check_call`, but will terminate the process and
     raise :exc:`TimeoutError` if it runs for too long.
 
@@ -2892,6 +2896,9 @@ def timeout_check_call(timeout, *args, **kwargs):
     out : int
         0 on successful completion
     """
+    warnings.warn("timeout_check_call was deprecated in 0.7.0"
+                  " and will be removed.",
+                  DeprecationWarning)
     resolution = 0.1
     pro = subprocess.Popen(*args, **kwargs)
     starttime = time.time()
