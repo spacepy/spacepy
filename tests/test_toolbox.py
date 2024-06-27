@@ -860,13 +860,19 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertRaises(IndexError, tb.do_with_timeout,
                           0.5, testfunc, 5)
 
+    #This test definitely doesn't work on Windows, and the function
+    #itself probably doesn't, either
+    @unittest.skipIf(sys.platform == 'win32', 'Not supported on Windows.')
     def test_timeout_check_call(self):
         """Make sure check_call replacement handles timeout"""
-        #This test definitely doesn't work on Windows, and the function
-        #itself probably doesn't, either
-        if sys.platform != 'win32':
+        with spacepy_testing.assertWarns(
+                self, message='timeout_check_call was deprecated',
+                category=DeprecationWarning):
             self.assertEqual(0, tb.timeout_check_call(10.0, 'sleep 2',
                                                       shell=True))
+        with spacepy_testing.assertWarns(
+                self, message='timeout_check_call was deprecated',
+                category=DeprecationWarning):
             self.assertRaises(tb.TimeoutError, tb.timeout_check_call,
                               1.0, 'sleep 5', shell=True)
 
