@@ -17,26 +17,6 @@ Detailed HTML documentation is available online by typing:
 Most functionality is in spacepy's submodules. Each module has specific
 help available:
 
-.. rubric:: Submodules
-
-.. autosummary::
-
-    ~spacepy.coordinates
-    ~spacepy.data_assimilation
-    ~spacepy.datamodel
-    ~spacepy.empiricals
-    ~spacepy.irbempy
-    ~spacepy.LANLstar
-    ~spacepy.omni
-    ~spacepy.poppy
-    ~spacepy.pybats
-    ~spacepy.pycdf
-    ~spacepy.radbelt
-    ~spacepy.seapy
-    ~spacepy.time
-    ~spacepy.toolbox
-    ~spacepy.ae9ap9
-
 Copyright 2010-2016 Los Alamos National Security, LLC.
 """
 
