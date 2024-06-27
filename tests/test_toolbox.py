@@ -32,7 +32,7 @@ import spacepy.time
 import spacepy.toolbox as tb
 
 __all__ = ['PickleAssembleTests', 'SimpleFunctionTests', 'TBTimeFunctionTests',
-           'ArrayBinTests']
+           'ArrayBinTests', 'TBPlotTests']
 
 @contextmanager
 def mockRawInput(mock):
@@ -1307,6 +1307,23 @@ class ArrayBinTests(unittest.TestCase):
             self.assertEqual(output,
                              tb.arraybin(*input))
 
+class TBPlotTests(spacepy_testing.TestPlot):
+    """Toolbox tests that make plots"""
+
+    def testBootHistoPlot(self):
+        """Bootstrap histogram makes a plot"""
+        numpy.random.seed(28420)
+        data = numpy.random.randn(1000)
+        bin_edges, ci_low, ci_high, sample, bars = spacepy.toolbox.bootHisto(
+            data, n=1000, seed=28420, plot=True)
+        # Return values checked in testBootHisto, checking plot only.
+        self.assertEqual(10, len(bars))  # len(bin_edges) - 1
+        self.assertEqual(7, bars[0].get_height())  # sample[0]
+        self.assertAlmostEqual(0.766784192,  # bin_edges[1] - bin_edges[0]
+                               bars[0].get_width())
+        self.assertAlmostEqual(-3.173718043,  # bin_edges[0]
+                               bars[0].get_x())
+        self.assertEqual(10, len(bars.errorbar[2][0].get_segments()))
 
 
 if __name__ == "__main__":
