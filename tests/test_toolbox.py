@@ -617,6 +617,14 @@ class SimpleFunctionTests(unittest.TestCase):
                                    tb.intsolve(*input),
                                    places=6)
 
+    def testIntSolveWarning(self):
+        """intsolve warns when it doesn't converge"""
+        with spacepy_testing.assertWarns(
+                self, message='Difference between desired value and actual',
+                category=UserWarning):
+            ans = tb.intsolve(lambda x: x**2, 1, 0, 5, maxit=10)
+        self.assertAlmostEqual(3.0 ** (1.0 / 3), ans, places=2)
+
     def testDistToList(self):
         """Convert probability distribution to list of values"""
         inputs = [[lambda x: x, 10, 0, 10],
