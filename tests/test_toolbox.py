@@ -545,6 +545,16 @@ class SimpleFunctionTests(unittest.TestCase):
             for i, val in enumerate(real_ans):
                 self.assertEqual(val, tb.pmm(data[i]))
 
+    def test_pmm_list_str(self):
+        """Test pmm with list of str input"""
+        data = ['foo', 'bar', 'qux']
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'pmm: Unable to exclude non-finite',
+                RuntimeWarning, 'spacepy.toolbox$')
+            ans = tb.pmm(data)
+        self.assertEqual([['bar', 'qux']], ans)
+
     def test_rad2mlt(self):
         """rad2mlt should give known answers (regression)"""
         real_ans = array([ -6.        ,  -4.10526316,  -2.21052632,  -0.31578947,
