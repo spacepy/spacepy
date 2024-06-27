@@ -277,22 +277,49 @@ class SimpleFunctionTests(unittest.TestCase):
         )
 
     def test_query_yes_no(self):
-        '''query_yes_no should return known strings for known input'''
+        """query_yes_no should return known strings for known input"""
         realstdout = sys.stdout
         output = io.StringIO()
         sys.stdout = output
-        with mockRawInput('y'):
-            self.assertEqual(tb.query_yes_no('yes?'), 'yes')
-        with mockRawInput('n'):
-            self.assertEqual(tb.query_yes_no('no?'), 'no')
-        with mockRawInput(''):
-            self.assertEqual(tb.query_yes_no('no?', default='no'), 'no')
-        output.close()
-        sys.stdout = realstdout
+        try:
+            with mockRawInput('y'):
+                self.assertEqual(tb.query_yes_no('yes?'), 'yes')
+            with mockRawInput('n'):
+                self.assertEqual(tb.query_yes_no('no?'), 'no')
+            with mockRawInput(''):
+                self.assertEqual(tb.query_yes_no('no?', default='no'), 'no')
+        finally:
+            result = output.getvalue()
+            output.close()
+            sys.stdout = realstdout
+        self.assertEqual(
+            "yes? [Y/n] no? [Y/n] no? [y/N] ",
+            result)
 
     def test_query_yes_no_badDefault(self):
-        '''query_yes_no should return error for bad args'''
+        """query_yes_no should return error for bad args"""
         self.assertRaises(ValueError, tb.query_yes_no, '', default='bad')
+
+    def test_query_yes_no_bad_choice(self):
+        """query_yes_no with an invalid choice"""
+        realstdout = sys.stdout
+        output = io.StringIO()
+        realstdin = sys.stdin
+        input_ = io.StringIO("z\ny\n")
+        sys.stdout = output
+        sys.stdin = input_
+        try:
+            self.assertEqual(tb.query_yes_no('no?', default='no'), 'yes')
+        finally:
+            result = output.getvalue()
+            output.close()
+            input_.close()
+            sys.stdout = realstdout
+            sys.stdin = realstdin
+        self.assertEqual(
+            "no? [y/N] Please respond with 'yes' or 'no' (or 'y' or 'n').\n"
+            "no? [y/N] ",
+            result)
 
     def test_mlt2rad(self):
         """mlt2rad should have known output for known input"""
