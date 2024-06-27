@@ -120,28 +120,9 @@ Description of all functions within SpacePy, by module.
 
 .. toctree::
     :maxdepth: 1
-
-    spacepy
-    ae9ap9
-    coordinates
-    ctrans
-    datamanager
-    datamodel
-    data_assimilation
-    empiricals
-    igrf
-    irbempy
-    lanlstar
-    omni
-    plot
-    poppy
-    pybats
+    
+    api
     pycdf
-    radbelt
-    seapy
-    time
-    toolbox
-..  realtime
 
 
 Indices and tables
