@@ -604,10 +604,13 @@ class SimpleFunctionTests(unittest.TestCase):
                   [lambda x: x / 2, 4, 0, 100],
                   [lambda x: numpy.exp(-(x ** 2) / (2 * 5 ** 2)) / \
                           (5 * numpy.sqrt(2 * numpy.pi)), 0.6, -inf, inf],
+                  [lambda x: numpy.exp(-(x ** 2) / (2 * 5 ** 2)) / \
+                          (5 * numpy.sqrt(2 * numpy.pi)), 0.6],
                   ]
         outputs = [3.0 ** (1.0 / 3),
                    4,
-                   1.266735515678999
+                   1.266735515678999,
+                   1.266735515678999,
                    ]
         for (input, output) in zip(inputs, outputs):
             self.assertAlmostEqual(output,
