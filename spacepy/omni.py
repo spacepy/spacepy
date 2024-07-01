@@ -35,7 +35,7 @@ Higher resolution data, or custom data sources, can also be managed/accessed
 with this module, although this is considered an advanced use for this module.
 This is achieved using custom names for the dbase keyword in get_omni, which
 must be defined in the SpacePy configuration file (for a user-install on linux,
-this is ~/.spacepy/spacepy.rc; see :doc:`configuration`).
+this is ~/.spacepy/spacepy.rc; see :doc:`/configuration`).
 An example of the formatting required is
 
 qd1min: /usr/somedir/QinDenton/YYYY/QinDenton_YYYYMMDD_1min.txt

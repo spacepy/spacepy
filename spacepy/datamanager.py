@@ -23,26 +23,6 @@ Examples
 Examples go here
 
 .. currentmodule:: spacepy.datamanager
-
-.. rubric:: Classes
-
-.. autosummary::
-    :template: clean_class.rst
-
-    DataManager
-
-.. rubric:: Functions
-
-.. autosummary::
-
-    apply_index
-    array_interleave
-    axis_index
-    flatten_idx
-    insert_fill
-    rebin
-    rev_index
-    values_to_steps
 """
 
 __all__ = ["DataManager", "apply_index", "array_interleave", "axis_index",

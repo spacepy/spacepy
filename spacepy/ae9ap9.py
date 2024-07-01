@@ -15,24 +15,8 @@ Copyright 2015 Los Alamos National Security, LLC.
 This module provides a convenient class for handling data from
 AE9/AP9 (and legacy models provided by the software).
 
-.. rubric:: Class
-.. autosummary::
-    :template: clean_class.rst
-    :toctree: autosummary
-
-    Ae9Data
-
 Though the class is derived from SpacePy's SpaceData, the class also provides several methods
 targeted at the AE9/AP9 output. Additional functions for working with the data are provided.
-
-.. rubric:: Functions
-.. autosummary::
-    :template: clean_function.rst
-    :toctree: autosummary
-
-    readFile
-    parseHeader
-
 """
 
 import datetime as dt
@@ -59,20 +43,6 @@ class Ae9Data(dm.SpaceData):
     To inspect the variables within this class, use the tree method.
     To export the data to a CDF, HDF5 or JSON-headed ASCII file use the relevant "to" method
     (toCDF, toHDF5, toJSONheadedASCII).
-
-    .. autosummary::
-
-        ~Ae9Data.getLm
-        ~Ae9Data.plotOrbit
-        ~Ae9Data.plotSummary
-        ~Ae9Data.plotSpectrogram
-        ~Ae9Data.setUnits
-
-    .. automethod:: getLm
-    .. automethod:: plotOrbit
-    .. automethod:: plotSummary
-    .. automethod:: plotSpectrogram
-    .. automethod:: setUnits
     """
 
     def setUnits(self, per=None):

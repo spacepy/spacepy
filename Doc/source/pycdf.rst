@@ -2,14 +2,14 @@
 pycdf - Python interface to CDF files
 ######################################
 
-.. automodule:: spacepy.pycdf
-
 Contents
 --------
 
 .. contents::
    :depth: 2
    :local:
+
+See also the `full API documentation <spacepy.pycdf>`.
 
 Create a CDF
 ============
@@ -329,59 +329,3 @@ available in the :mod:`~spacepy.pycdf.const` module.
 
 The underlying C library is represented by the :attr:`~spacepy.pycdf.lib`
 variable.
-
-Classes
-=======
-
-.. autosummary::
-    :template: clean_class.rst
-    :toctree: autosummary
-
-    CDF
-    Var
-    gAttrList
-    zAttrList
-    zAttr
-    gAttr
-    AttrList
-    Attr
-    Library
-    CDFCopy
-    VarCopy
-    CDFError
-    CDFException
-    CDFWarning
-    EpochError
-
-Functions
-=========
-
-.. autosummary::
-    :template: clean_function.rst
-    :toctree: autosummary
-
-    concatCDF
-
-Submodules
-==========
-
-.. autosummary::
-    :toctree: autosummary  
-    :template: clean_module.rst
-
-    const
-    istp
-
-Data
-====
-
-.. attribute:: lib
-
-    Module global :class:`Library` object.
-
-    Initalized at :mod:`~spacepy.pycdf` load time so all classes have ready
-    access to the CDF library and a common state. E.g:
-
-    >>> from spacepy import pycdf
-    >>> pycdf.lib.version
-        (3, 3, 0, ' ')

@@ -2,21 +2,6 @@
 A PyBats module for handling input, output, and visualization of
 binary SWMF output files taylored to BATS-R-US-type data.
 
-.. currentmodule:: spacepy.pybats.bats
-
-.. rubric:: Classes
-
-.. autosummary::
-    :template: clean_class.rst
-    :toctree:
-
-    BatsLog
-    Stream
-    Bats2d
-    Mag
-    MagFile
-    GeoIndexFile
-    VirtSat
 '''
 import sys
 
@@ -130,11 +115,6 @@ class BatsLog(LogFile):
     special methods for plotting common BATS-R-US log file values, such as
     D$_{ST}$.
 
-    .. autosummary::
-
-        ~BatsLog.add_dst_quicklook
-
-    .. automethod:: add_dst_quicklook
     '''
 
     def fetch_obs_dst(self):
@@ -443,19 +423,6 @@ class Stream(Extraction):
     .. Not really "notes" but need to keep this section from being parsed
        as parameters
 
-    .. rubric:: Methods
-
-    .. autosummary::
-
-        ~Stream.set_style
-        ~Stream.treetrace
-        ~Stream.trace
-        ~Stream.plot
-
-    .. automethod:: set_style
-    .. automethod:: treetrace
-    .. automethod:: trace
-    .. automethod:: plot
     '''
 
     def __init__(self, bats, xstart, ystart, xfield, yfield, style='mag',

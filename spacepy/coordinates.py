@@ -227,17 +227,6 @@ class Coords(object):
     >>> cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticks
     >>> newcoord = cvals.convert('GSM', 'sph')
     >>> newcoord
-
-    .. currentmodule:: spacepy.coordinates
-    .. autosummary::
-        ~Coords.append
-        ~Coords.convert
-        ~Coords.from_skycoord
-        ~Coords.to_skycoord
-    .. automethod:: append
-    .. automethod:: convert
-    .. automethod:: from_skycoord
-    .. automethod:: to_skycoord
     '''
     def __init__(self, data, dtype, carsph, units=None, ticks=None, use_irbem=None):
         if use_irbem is None:

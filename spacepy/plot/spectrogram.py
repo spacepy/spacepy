@@ -25,20 +25,6 @@ Contact: balarsen@lanl.gov, smorley@lanl.gov
 Los Alamos National Laboratory
 
 Copyright 2011 Los Alamos National Security, LLC.
-
-.. rubric:: Class
-.. autosummary::
-    :template: clean_class.rst
-    :toctree: autosummary
-
-    Spectrogram
-
-.. rubric:: Function
-.. autosummary::
-    :template: clean_function.rst
-    :toctree: autosummary
-
-    simpleSpectrogram
 """
 
 import bisect
@@ -119,12 +105,6 @@ class Spectrogram(dm.SpaceData):
     >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
     >>> spec = splot.Spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
     >>> ax = spec.plot()
-
-    .. autosummary::
-
-        ~Spectrogram.plot
-
-    .. automethod:: Spectrogram.plot
 
     """
 

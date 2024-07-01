@@ -2,15 +2,6 @@
 
 This module is intended primarily to support :mod:`~spacepy.coordinates`
 rather than for direct end use, and the interface is subject to change.
-
-Classes
--------
-.. autosummary::
-    :template: clean_class.rst
-    :toctree: autosummary
-
-    IGRFCoefficients
-    IGRF
 """
 
 
@@ -104,31 +95,6 @@ class IGRF():
     -----
 
     .. versionadded:: 0.3.0
-
-    .. rubric:: Methods
-
-    .. autosummary::
-
-        ~IGRF.calcDipoleAxis
-        ~IGRF.initialize
-
-    .. rubric:: Data
-
-    .. autosummary::
-
-        dipole
-        moment
-
-    .. automethod:: calcDipoleAxis
-    .. automethod:: initialize
-
-    .. attribute:: dipole
-
-        Characteristics of dipole (`dict`).
-
-    .. attribute:: moment
-
-        Dipole moments (`dict`).
     """
     dipole = {}
     """Characteristics of dipole (`dict`)."""

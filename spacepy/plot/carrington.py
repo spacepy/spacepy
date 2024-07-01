@@ -10,12 +10,6 @@ Contact: smorley@lanl.gov
 Los Alamos National Laboratory
 
 Copyright 2011-2015 Los Alamos National Security, LLC.
-
-.. autosummary::
-    :template: clean_function.rst
-    :toctree: autosummary
-
-    solarRotationPlot
 """
 import datetime as dt
 import numpy as np

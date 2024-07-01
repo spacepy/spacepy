@@ -37,34 +37,12 @@ Contact: balarsen@lanl.gov
 
 Copyright 2011-2016 Los Alamos National Security, LLC.
 
-.. autosummary::
-   :template: clean_function.rst
-   :toctree: autosummary
-
-   add_logo
-   annotate_xaxis
-   applySmartTimeTicks
-   available
-   collapse_vertical
-   dual_half_circle
-   levelPlot
-   plot
-   revert_style
-   set_target
-   shared_ylabel
-   solarRotationPlot
-   Spectrogram
-   style
-   timestamp
-   add_arrows
-
 Most of the functionality in the plot module is made available directly 
 through the *plot* namespace. However, the plot module does contain
 several submodules listed below
 
 .. autosummary::
     :toctree: autosummary
-    :template: clean_module.rst
 
     carrington
     spectrogram
