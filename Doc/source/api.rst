@@ -16,6 +16,7 @@
     ~spacepy.plot
     ~spacepy.poppy
     ~spacepy.pybats
+    ~spacepy.pycdf
     ~spacepy.radbelt
     ~spacepy.seapy
     ~spacepy.time

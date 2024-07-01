@@ -139,17 +139,6 @@ class EventClicker(object):
     True
     >>> clicker.get_events_data() is None #should be nothing
     True
-
-
-    .. autosummary::
-         ~EventClicker.analyze
-         ~EventClicker.get_events
-         ~EventClicker.get_events_data
-
-    .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
-    .. automethod:: analyze
-    .. automethod:: get_events
-    .. automethod:: get_events_data
     """
     _colors = ['k', 'r', 'g']
     _styles = ['solid', 'dashed', 'dotted']

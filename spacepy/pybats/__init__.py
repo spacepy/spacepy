@@ -119,14 +119,14 @@ def calc_wrapper(meth):
 
 # Some common, global functions.
 def parse_filename_time(filename):
-    '''
+    """
     Given an SWMF file whose name follows the usual standards (see below),
     attempt to parse the file name to extract information about the iteration,
     runtime and date/time at which the file was written.  All three are
     returned to the caller in that order.  If any cannot be found in the
     file name, "None" is returned in its place.
 
-    For *.outs files, ranges of times and iterations can be given in the
+    For '*'.outs files, ranges of times and iterations can be given in the
     file names.  If this is the case, a list of values will be returned
     for that entry (see third example below).
 
@@ -164,7 +164,7 @@ def parse_filename_time(filename):
 
     >>> parse_filename_time('z=0_mhd_2_e20140410-000000-000_20140410-000300-000.outs')
     (None, None, [datetime.datetime(2014, 4, 10, 0, 0), datetime.datetime(2014, 4, 10, 0, 3)])
-    '''
+    """
 
     from dateutil.parser import parse
     import re
@@ -1678,7 +1678,7 @@ class NgdcIndex(PbData):
 
 
 class ImfInput(PbData):
-    '''
+    """
     A class to read, write, manipulate, and visualize solar wind upstream
     input files for SWMF simulations.  More about such files can be found
     in the SWMF/BATS-R-US documentation for the \\#SOLARWINDFILE command.
@@ -1763,7 +1763,7 @@ class ImfInput(PbData):
 
     .. versionchanged:: 0.5.0
         Default variable names for temperature and density are now 't' and 'n'.
-    '''
+    """
 
     def __init__(self, filename=False, load=True, npoints=0, *args, **kwargs):
         from numpy import zeros
@@ -2148,9 +2148,6 @@ class ImfInput(PbData):
         The figure and main axes object are returned.
 
         Parameters
-        ==========
-
-        Other Parameters
         ================
         target : Figure or Axes
             If None (default), a new figure is generated from scratch.

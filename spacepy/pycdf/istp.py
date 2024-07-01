@@ -41,33 +41,6 @@ class VariableChecks(object):
     tests return a list, one error string for every noncompliance
     found (empty list if compliant). `all` will perform all
     tests and concatenate all errors.
-
-    .. autosummary::
-
-        all
-        deltas
-        depends
-        depsize
-        empty_entry
-        fieldnam
-        fillval
-        recordcount
-        validdisplaytype
-        validrange
-        validscale
-        
-    .. automethod:: all
-    .. automethod:: deltas
-    .. automethod:: depends
-    .. automethod:: depsize
-    .. automethod:: empty_entry
-    .. automethod:: fieldnam
-    .. automethod:: fillval
-    .. automethod:: recordcount
-    .. automethod:: validdisplaytype
-    .. automethod:: validrange
-    .. automethod:: validscale
-
     """
     #When adding new tests, add to list above
     #Validation failures should be formatted as a sentence (initial cap,
@@ -643,21 +616,6 @@ class FileChecks(object):
     tests return a list, one error string for every noncompliance
     found (empty list if compliant). `all` will perform all
     tests and concatenate all errors.
-
-    .. autosummary::
-
-        all
-        empty_entry
-        filename
-        time_monoton
-        times
-        
-    .. automethod:: all
-    .. automethod:: empty_entry
-    .. automethod:: filename
-    .. automethod:: time_monoton
-    .. automethod:: times
-
     """
     #When adding new tests, add to list above.
     #Validation failures should be formatted as a sentence (initial cap,
@@ -1233,25 +1191,6 @@ class VarBundle(object):
     >
     >>> outfile.close()
     >>> infile.close()
-
-    .. autosummary::
-
-        mean
-        operations
-        output
-        slice
-        sum
-        toSpaceData
-        variables
-
-    .. automethod:: mean
-    .. automethod:: output
-    .. automethod:: operations
-    .. automethod:: slice
-    .. automethod:: sum
-    .. automethod:: toSpaceData
-    .. automethod:: variables
-
     """
 
     def __init__(self, source, name=None):
