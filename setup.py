@@ -377,65 +377,42 @@ class build_ext(_build_ext):
         finalize_compiler_options(self)
 
     def compile_irbempy(self):
-        """Compile the irbempy extension
+        """Compile the irbem library
 
-        Returns path to compiled extension if successful.
+        Returns path to compiled shared library if successful.
         """
         fcompiler = self.fcompiler
         if fcompiler in ['none', 'None']:
             warnings.warn(
                 'Fortran compiler specified was "none."\n'
                 'IRBEM will not be available.')
-            return None, None
+            return None
         # 64 bit or 32 bit?
         bit = len('%x' % sys.maxsize)*4
         irbemdir = 'irbem-lib-20220829-dfb9d26'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'irbempy')
-        #Possible names of the output library. Unfortunately this seems
-        #to depend on Python version, f2py version, and phase of the moon
-        libfiles = get_irbem_libfiles()
-        #Delete any irbem extension modules from other versions
-        for f in glob.glob(os.path.join(outdir, 'irbempylib*')):
-            if not os.path.basename(f) in libfiles:
-                os.remove(f)
-        #Does a matching one exist?
-        existing_libfiles = [f for f in libfiles
-                             if os.path.exists(os.path.join(outdir, f))]
-        #Can we import it?
-        importable = []
-        for f in existing_libfiles:
-            fspec = os.path.join(outdir, f)
-            loader = importlib.machinery.ExtensionFileLoader(
-                'irbempylib', fspec)
-            try:
-                loader.load_module('irbempylib')
-            except ImportError:
-                os.remove(fspec)
-            else:
-                importable.append(f)
-        existing_libfiles = importable
-        #if MORE THAN ONE matching output library file, delete all;
-        #no way of knowing which is the correct one or if it's up to date
-        if len(existing_libfiles) > 1:
-            for f in existing_libfiles:
-                os.remove(os.path.join(outdir, f))
-            existing_libfiles = []
-        #If there's still one left, check up to date
-        if existing_libfiles:
+
+        # Check for existing shared library and if up to date
+        ccomp = distutils.ccompiler.new_compiler(compiler=self.compiler)
+        if hasattr(distutils.ccompiler, 'customize_compiler'):
+            distutils.ccompiler.customize_compiler(ccomp)
+        else:
+            distutils.sysconfig.customize_compiler(ccomp)
+        irbemname = ccomp.library_filename('irbem', lib_type='shared')
+        libirbem = os.path.join(outdir, irbemname)
+        if os.path.exists(libirbem):
             sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                       glob.glob(os.path.join(srcdir, '*.inc'))
-            irbempy = os.path.join(outdir, existing_libfiles[0])
-            if not setuptools.modified.newer_group(sources, irbempy):
-                # Doesn't check for the shared object!
-                return None, irbempy
+            if not setuptools.modified.newer_group(sources, libirbem):
+                return irbemname
 
         if not sys.platform in ('darwin', 'linux2', 'linux', 'win32'):
             warnings.warn(
                 '%s not supported at this time. ' % sys.platform +
                 'IRBEM will not be available')
-            return None, None
+            return None
 
         if not os.path.exists(outdir):
             os.makedirs(outdir)
@@ -453,52 +430,6 @@ class build_ext(_build_ext):
         # compile irbemlib
         olddir = os.getcwd()
         os.chdir(builddir)
-        F90files = ['source/shieldose2.f', 'source/onera_desp_lib.f', 'source/CoordTrans.f',
-                    'source/AE8_AP8.f', 'source/find_foot.f',
-                    'source/LAndI2Lstar.f', 'source/drift_bounce_orbit.f']
-        functions = ['shieldose2', 'make_lstar1', 'make_lstar_shell_splitting1', 'find_foot_point1',
-                     'coord_trans1','find_magequator1', 'find_mirror_point1',
-                     'get_field1', 'get_ae8_ap8_flux', 'fly_in_nasa_aeap1',
-                     'trace_field_line2_1', 'trace_field_line_towards_earth1', 'trace_drift_bounce_orbit',
-                     'landi2lstar1', 'landi2lstar_shell_splitting1']
-
-        # call f2py
-        cmd = self.f2py + ['--overwrite-signature', '-m', 'irbempylib', '-h',
-               'irbempylib.pyf'] + F90files + ['only:'] + functions + [':']
-        print(f'Generating signatures with f2py: {cmd}')
-        subprocess.check_call(cmd)
-        # intent(out) substitute list
-        outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit',
-                   'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind', 'xfoot', 'bfoot', 'bfootmag',
-                   'leI0', 'Bposit', 'Nposit', 'hmin', 'hmin_lon',
-                   'soldose', 'protdose', 'elecdose', 'bremdose', 'totdose']
-
-        inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin', 'kext', 'options',
-                  'sysaxes', 'UT', 'xIN1', 'xIN2', 'xIN3', 'stop_alt', 'hemi_flag', 'maginput',
-                  't_resol', 'r_resol', 'lati', 'longi', 'alti', 'R0','xx0',
-                  'IDET', 'INUC', 'IMAX', 'IUNT', 'Zin', 'EMINS', 'EMAXS', 'EMINP',
-                  'EMAXP', 'NPTSP', 'EMINE', 'EMAXE', 'NPTSE', 'JSMAX', 'JPMAX',
-                  'JEMAX', 'EUNIT', 'DURATN', 'ESin', 'SFLUXin', 'EPin', 'PFLUXin',
-                  'EEin', 'EFLUXin']
-        fln = 'irbempylib.pyf'
-        if not os.path.isfile(fln):
-            if release_build:
-                raise RuntimeError('f2py signature generation failed.')
-            warnings.warn(
-                'f2py failed; '
-                'IRBEM will not be available.')
-            os.chdir(olddir)
-            return None, None
-        print('Substituting fortran intent(in/out) statements')
-        with open(fln, 'r') as f:
-            filestr = f.read()
-        for item in inlist:
-            filestr = subst( ':: '+item, ', intent(in) :: '+item, filestr)
-        for item in outlist:
-            filestr = subst( ':: '+item, ', intent(out) :: '+item, filestr)
-        with open(fln, 'w') as f:
-            f.write(filestr)
-
         print('Building irbem library...')
         # compile (platform dependent)
         os.chdir('source')
@@ -529,130 +460,34 @@ class build_ext(_build_ext):
             warnings.warn('irbemlib compile failed. '
                           'Try a different Fortran compiler? (--fcompiler)')
             os.chdir(olddir)
-            return None, None
-        # fc is known-good compiler, link shared object (C compiler gives name)
-        ccomp = distutils.ccompiler.new_compiler(compiler=self.compiler)
-        if hasattr(distutils.ccompiler, 'customize_compiler'):
-            distutils.ccompiler.customize_compiler(ccomp)
-        else:
-            distutils.sysconfig.customize_compiler(ccomp)
-        irbemshared = ccomp.library_filename('irbem', lib_type='shared')
-        compile_irbemlib = [fc, '-shared'] \
+            return None
+        # fc is known-good compiler, link shared object
+        link_irbemlib = [fc, '-shared'] \
             + list(glob.glob('*.o')) \
-            + ['-o', irbemshared, '-fPIC']
+            + ['-o', irbemname, '-fPIC']
         if sys.platform == 'darwin' and 'SDKROOT' in os.environ:
-            compile_irbemlib[2:2] = ["-isysroot", os.environ['SDKROOT']]
-        subprocess.check_call(compile_irbemlib)
-
-        shutil.move(irbemshared, os.path.join(outdir, irbemshared))
-        retval = -1
-        if 'archiver' in fcompexec:
-            retval = subprocess.check_call(fcompexec['archiver'] + ['libBL2.a']
-                                           + list(glob.glob('*.o')))
-            if (retval == 0) and 'ranlib' in fcompexec:
-                retval = subprocess.call(fcompexec['ranlib'] + ['libBL2.a'])
-            if retval != 0:
-                warnings.warn(
-                    'irbemlib linking failed, trying with default linker.')
-        if retval != 0: #Try again with defaults
-            archiver = {
-                'darwin': ['libtool', '-static', '-o'],
-                'linux': ['ar', '-r '],
-                'linux2': ['ar', '-r '],
-                'win32': ['ar', '-r '],
-                }[sys.platform]
-            ranlib = {
-                'darwin': None,
-                'linux': 'ranlib',
-                'linux2': 'ranlib',
-                'win32': 'ranlib',
-                }[sys.platform]
-            try:
-                subprocess.check_call(archiver + ['libBL2.a']
-                                      + list(glob.glob('*.o')))
-                if ranlib:
-                    subprocess.check_call([ranlib, 'libBL2.a'])
-            except:
-                if release_build:
-                    raise RuntimeError(
-                        'irbemlib linking failed (falling back to default).')
-                warnings.warn(
-                    'irbemlib linking failed. '
-                    'Try a different Fortran compiler? (--fcompiler)')
-                os.chdir(olddir)
-                return None, None
-        os.chdir('..')
-
-        f2py_flags = ['--fcompiler={0}'.format(fcompiler)]
-        if fcompiler == 'gnu95':
-            f2py_flags.extend(['--f77flags=-std=legacy',
-                               '--f90flags=-std=legacy'])
-        if self.compiler:
-            f2py_flags.append('--compiler={0}'.format(self.compiler))
-        if self.f77exec:
-            f2py_flags.append('--f77exec={0}'.format(self.f77exec))
-        if self.f90exec:
-            f2py_flags.append('--f90exec={0}'.format(self.f90exec))
-        if sys.platform == 'darwin':
-            sdkroot = os.environ.get(
-                'SDKROOT', os.path.join(
-                    os.sep, 'Library', 'Developer', 'CommandLineTools',
-                    'SDKs', 'MacOSX.sdk'))
-            sdklibs = os.path.join(sdkroot, 'usr', 'lib')
-            # Explicitly include path for -lSystem
-            if os.path.isdir(sdklibs):
-                f2py_flags.append('-L{}'.format(sdklibs))
-        cmd = self.f2py + ['-c', 'irbempylib.pyf', 'source/onera_desp_lib.f',
-                           '-Lsource', '-lBL2'] + f2py_flags
-        print(f'Calling f2py: {cmd}')
-        try:
-            subprocess.check_call(cmd, env=f2py_env)
-        except:
+            link_irbemlib[2:2] = ["-isysroot", os.environ['SDKROOT']]
+        subprocess.check_call(link_irbemlib)
+        if not os.path.exists(irbemname):
             if release_build:
-                raise RuntimeError('irbemlib module f2py failed.')
+                raise RuntimeError('irbem shared library failed.')
             warnings.warn(
-                'irbemlib module failed. '
-                'Try a different Fortran compiler? (--fcompiler)')
+                'irbemlib shared library failed.')
             os.chdir(olddir)
-            return None, None
+            return None
+        shutil.move(irbemname, libirbem)
 
-        #All matching outputs
-        created_libfiles = [f for f in libfiles if os.path.exists(f)]
-        irbempy = None
-        if len(created_libfiles) == 0: #no matches
-            if release_build:
-                raise RuntimeError('No recognizable irbempylib module')
-            warnings.warn(
-                'irbemlib build produced no recognizable module. '
-                'Try a different Fortran compiler? (--fcompiler)')
-        elif len(created_libfiles) == 1: #only one, no ambiguity
-            irbempy = os.path.join(outdir, created_libfiles[0])
-            shutil.move(created_libfiles[0], irbempy)
-        elif len(created_libfiles) == 2 and \
-                len(existing_libfiles) == 1: #two, so one is old and one new
-            for f in created_libfiles:
-                if f == existing_libfiles[0]: #delete the old one
-                    os.remove(f)
-                else: #and move the new one to its place in build
-                    shutil.move(f,
-                                os.path.join(outdir, f))
-        else:
-            if release_build:
-                raise RuntimeError('Multiple irbempylib modules found.')
-            warnings.warn(
-                'irbem build failed: multiple build outputs ({0}).'.format(
-                    ', '.join(created_libfiles)))
         if sys.platform == 'darwin':
             # Look for the library location that is shipped with the wheel
             cmd = ['install_name_tool', '-add_rpath', '@loader_path/../libs/',
-                   irbempy]
+                   libirbem]
             try:
                 subprocess.call(cmd)
             except FileNotFoundError:
                 if release_build:
                     raise
         os.chdir(olddir)
-        return os.path.join(outdir, irbemshared), irbempy
+        return libirbem
 
     def compile_libspacepy(self):
         """Compile the C library, libspacepy
@@ -698,8 +533,8 @@ class build_ext(_build_ext):
     def run(self):
         """Actually perform the extension build"""
         libspacepy = self.compile_libspacepy()
-        irbemshared, irbempy = self.compile_irbempy()
-        self._outputs = [l for l in (libspacepy, irbemshared, irbempy)
+        libirbem = self.compile_irbempy()
+        self._outputs = [l for l in (libspacepy, libirbem)
                          if l is not None]
         if sys.platform == 'win32':
             #Copy mingw32 DLLs. This keeps them around if ming is uninstalled,
@@ -707,7 +542,7 @@ class build_ext(_build_ext):
             #will include them in binary installers
             libs = copy_win_libs(os.path.join(self.build_lib, 'spacepy'))
             self._outputs.extend(libs)
-        if sys.platform == 'darwin' and irbempy:
+        if sys.platform == 'darwin' and libirbem:
             # Copy gfortran dyanamic libraries
             # Puts them where bdist_wheel will include them in binary installers
             libs = copy_mac_libs(os.path.join(self.build_lib, 'spacepy'))
@@ -724,10 +559,8 @@ class build_ext(_build_ext):
         package_dir = build_py.get_package_dir('spacepy')
         if libspacepy is not None and os.path.exists(libspacepy):
             shutil.copy2(libspacepy, package_dir)
-        if irbempy is not None and os.path.exists(irbempy):
-            shutil.copy2(irbempy, os.path.join(package_dir, 'irbempy'))
-        if irbemshared is not None and os.path.exists(irbemshared):
-            shutil.copy2(irbemshared, os.path.join(package_dir, 'irbempy'))
+        if libirbem is not None and os.path.exists(libirbem):
+            shutil.copy2(libirbem, os.path.join(package_dir, 'irbempy'))
 
     def get_outputs(self):
         return self._outputs
