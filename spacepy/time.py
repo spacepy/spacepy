@@ -728,6 +728,7 @@ class Ticktock(MutableSequence):
                 values to insert
             dtype : str (optional)
                 must be specified if not CDF, ISO, or UTC
+                
         """
         fmt = self.data.attrs['dtype']
         if not dtype:
