@@ -50,37 +50,6 @@ class RBmodel(object):
     Finally, visualize the results:
 
     >>> rmod.plot_summary()
-
-    .. currentmodule:: spacepy.radbelt
-    .. autosummary::
-        ~RBmodel.Gaussian_source
-        ~RBmodel.add_Lmax
-        ~RBmodel.add_Lpp
-        ~RBmodel.add_PSD_obs
-        ~RBmodel.add_PSD_twin
-        ~RBmodel.add_omni
-        ~RBmodel.add_source
-        ~RBmodel.assimilate
-        ~RBmodel.evolve
-        ~RBmodel.get_DLL
-        ~RBmodel.plot
-        ~RBmodel.plot_obs
-        ~RBmodel.set_lgrid
-        ~RBmodel.setup_ticks
-    .. automethod:: Gaussian_source
-    .. automethod:: add_Lmax
-    .. automethod:: add_Lpp
-    .. automethod:: add_PSD_obs
-    .. automethod:: add_PSD_twin
-    .. automethod:: add_omni
-    .. automethod:: add_source
-    .. automethod:: assimilate
-    .. automethod:: evolve
-    .. automethod:: get_DLL
-    .. automethod:: plot
-    .. automethod:: plot_obs
-    .. automethod:: set_lgrid
-    .. automethod:: setup_ticks
     """
 
     def __init__(self, grid='L', NL=91, const_kp=False):

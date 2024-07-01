@@ -1,8 +1,11 @@
+:orphan:
+
 ######################################
 pycdf - Python interface to CDF files
 ######################################
 
 .. automodule:: spacepy.pycdf
+    :no-index:
 
 Contents
 --------
@@ -347,10 +350,10 @@ Classes
     Library
     CDFCopy
     VarCopy
-    CDFError
-    CDFException
-    CDFWarning
-    EpochError
+    .. CDFError
+    .. CDFException
+    .. CDFWarning
+    .. EpochError
 
 Functions
 =========
@@ -358,7 +361,7 @@ Functions
 .. autosummary::
     :toctree: autosummary
 
-    concatCDF
+    .. concatCDF
 
 Submodules
 ==========
@@ -373,6 +376,7 @@ Data
 ====
 
 .. attribute:: lib
+    :no-index:
 
     Module global :class:`Library` object.
 

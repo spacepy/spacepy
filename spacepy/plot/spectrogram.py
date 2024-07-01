@@ -106,12 +106,6 @@ class Spectrogram(dm.SpaceData):
     >>> spec = splot.Spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
     >>> ax = spec.plot()
 
-    .. autosummary::
-
-        ~Spectrogram.plot
-
-    .. automethod:: Spectrogram.plot
-
     """
 
 #    TODO

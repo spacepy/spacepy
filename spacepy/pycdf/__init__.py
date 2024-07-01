@@ -105,91 +105,17 @@ class Library(object):
 
     Instantiating this object loads the C library, see :doc:`/pycdf` docs
     for details.
-
-    .. autosummary::
-
-        ~Library.call
-        ~Library.check_status
-        ~Library.datetime_to_epoch
-        ~Library.datetime_to_epoch16
-        ~Library.datetime_to_tt2000
-        ~Library.epoch_to_datetime
-        ~Library.epoch_to_epoch16
-        ~Library.epoch_to_num
-        ~Library.epoch_to_tt2000
-        ~Library.epoch16_to_datetime
-        ~Library.epoch16_to_epoch
-        ~Library.epoch16_to_tt2000
-        ~Library.get_minmax
-        ~Library.set_backward
-        supports_int8
-        ~Library.tt2000_to_datetime
-        ~Library.tt2000_to_epoch
-        ~Library.tt2000_to_epoch16
-        v_datetime_to_epoch
-        v_datetime_to_epoch16
-        v_datetime_to_tt2000
-        v_epoch_to_datetime
-        v_epoch_to_tt2000
-        v_epoch16_to_datetime
-        v_epoch16_to_tt2000
-        v_tt2000_to_datetime
-        v_tt2000_to_epoch
-        v_tt2000_to_epoch16
-        libpath
-        version
-
-    .. automethod:: call
-    .. automethod:: check_status
-    .. automethod:: datetime_to_epoch
-    .. automethod:: datetime_to_epoch16
-    .. automethod:: datetime_to_tt2000
-    .. automethod:: epoch_to_datetime
-    .. automethod:: epoch_to_epoch16
-    .. automethod:: epoch_to_num
-    .. automethod:: epoch_to_tt2000
-    .. automethod:: epoch16_to_datetime
-    .. automethod:: epoch16_to_epoch
-    .. automethod:: epoch16_to_tt2000
-    .. automethod:: get_minmax
-    .. automethod:: set_backward
-    .. attribute:: supports_int8
-
-       True if this library supports INT8 and TIME_TT2000 types; else False.
-
-    .. automethod:: tt2000_to_datetime
-    .. automethod:: tt2000_to_epoch
-    .. automethod:: tt2000_to_epoch16
-    .. automethod:: v_datetime_to_epoch
-    .. automethod:: v_datetime_to_epoch16
-    .. automethod:: v_datetime_to_tt2000
-    .. automethod:: v_epoch_to_datetime
-    .. automethod:: v_epoch_to_tt2000
-    .. automethod:: v_epoch16_to_datetime
-    .. automethod:: v_epoch16_to_tt2000
-    .. automethod:: v_tt2000_to_datetime
-    .. automethod:: v_tt2000_to_epoch
-    .. automethod:: v_tt2000_to_epoch16
-
-    .. attribute:: libpath
-
-       The path where pycdf found the CDF C library, potentially useful in
-       debugging. If this contains just the name of a file (with no path
-       information), then the system linker found the library for pycdf.
-       On Linux, ``ldconfig -p`` may be useful for displaying the system's
-       library resolution.
-
-    .. attribute:: version
-
-       Version of the CDF library, (version, release, increment, subincrement)
     """
     supports_int8 = True
     """True if this library supports INT8 and TIME_TT2000 types; else False."""
     libpath = ''
     """The path where pycdf found the CDF C library, potentially useful in
-       debugging."""
+       debugging. If this contains just the name of a file (with no path
+       information), then the system linker found the library for pycdf.
+       On Linux, ``ldconfig -p`` may be useful for displaying the system's
+       library resolution."""
     version = (0, 0, 0, '')
-    """Version of the CDF library"""
+    """Version of the CDF library, (version, release, increment, subincrement)"""
 
     _arm32 = platform.uname()[4].startswith('arm') and sys.maxsize <= 2 ** 32
     """Excuting on 32-bit ARM, which requires typepunned arguments"""
@@ -226,6 +152,7 @@ class Library(object):
             1. Appropriately-named file in CDF_LIB
             2. Appropriately-named file in CDF_BASE
             3. Standard library search path
+            
         @raise CDFError: BAD_DATA_TYPE if can't map types properly
         """
 
@@ -406,8 +333,8 @@ class Library(object):
         Returns
         =======
         out : tuple
-             This is either (path to library, loaded library)
-             or, in the event of failure, (None, list of libraries tried)
+            This is either (path to library, loaded library)
+            or, in the event of failure, (None, list of libraries tried)
         """
         failed = []
         for libpath in Library._lib_paths():
@@ -1171,7 +1098,6 @@ class Library(object):
         out : tuple
             minimum, maximum value supported by type (of type matching the
             CDF type).
-
         """
         try:
             cdftype = cdftype.value
@@ -1299,6 +1225,7 @@ lib = Library(_libpath, _library)
 
 Initalized at module load time so all classes have ready
 access to the CDF library and a common state. E.g:
+    
     >>> from spacepy import pycdf
     >>> pycdf.lib.version
         (3, 3, 0, ' ')
@@ -1653,59 +1580,6 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         >>> cdffile.new('Var1', data=[5, 6, 7, 8]
         >>> var[...]
         [5, 6, 7, 8]
-
-    .. autosummary::
-
-        ~CDF.attr_num
-        ~CDF.attrs
-        ~CDF.add_attr_to_cache
-        ~CDF.add_to_cache
-        ~CDF.backward
-        ~CDF.checksum
-        ~CDF.clear_attr_from_cache
-        ~CDF.clear_from_cache
-        ~CDF.clone
-        ~CDF.close
-        ~CDF.col_major
-        ~CDF.compress
-        ~CDF.copy
-        ~CDF.from_data
-        ~CDF.new
-        ~CDF.raw_var
-        ~CDF.readonly
-        ~CDF.save
-        ~CDF.var_num
-        ~CDF.version
-
-    .. attribute:: CDF.attrs
-
-       Global attributes for this CDF in a dict-like format.
-       See `gAttrList` for details.
-
-    .. attribute:: CDF.backward
-
-       True if this CDF was created in backward-compatible mode
-       (for opening with CDF library before 3.x)
-
-    .. automethod:: add_to_cache
-    .. automethod:: add_attr_to_cache
-    .. automethod:: attr_num
-    .. automethod:: checksum
-    .. automethod:: clear_from_cache
-    .. automethod:: clear_attr_from_cache
-    .. automethod:: clone
-    .. automethod:: close
-    .. automethod:: col_major
-    .. automethod:: compress
-    .. automethod:: copy
-    .. automethod:: from_data
-    .. automethod:: new
-    .. automethod:: raw_var
-    .. automethod:: readonly
-    .. automethod:: save
-    .. automethod:: var_num
-    .. automethod:: version
-
     """
     backward = False
     """True if this CDF was created in backward-compatible mode."""
@@ -1743,7 +1617,9 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         Examples
         ========
         Open a CDF by creating a CDF object, e.g.:
+
             >>> cdffile = pycdf.CDF('cdf_filename.cdf')
+
         Be sure to :meth:`pycdf.CDF.close` or :meth:`pycdf.CDF.save`
         when done.
         """
@@ -2375,7 +2251,6 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         This will switch to an eight-byte double in some cases where four bytes
         would be sufficient for IEEE 754 encoding, but where DEC formats would
         require eight.
-
         """
         if hasattr(data, 'compress'):
             try:
@@ -2731,8 +2606,6 @@ class CDFCopy(spacepy.datamodel.SpaceData):
     >>> with pycdf.CDF('test.cdf') as cdffile:
     ...     data = cdffile.copy()
 
-    .. attribute:: attrs
-
        Python dictionary containing attributes copied from the CDF.
     """
 
@@ -3044,41 +2917,6 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         Although this interface only directly supports zVariables, zMode is
         set on opening the CDF so rVars appear as zVars. See p.24 of the
         CDF user's guide; pyCDF uses zMode 2.
-
-
-    .. autosummary::
-
-        ~Var.attrs
-        ~Var.compress
-        ~Var.copy
-        ~Var.dtype
-        ~Var.dv
-        ~Var.insert
-        ~Var.name
-        ~Var.nelems
-        ~Var.pad
-        ~Var.rename
-        ~Var.rv
-        ~Var.shape
-        ~Var.sparse
-        ~Var.type
-    .. attribute:: Var.attrs
-
-       zAttributes for this zVariable in a dict-like format.
-       See `zAttrList` for details.
-    .. automethod:: compress
-    .. automethod:: copy
-    .. autoattribute:: dtype
-    .. automethod:: dv
-    .. automethod:: insert
-    .. automethod:: name
-    .. automethod:: nelems
-    .. automethod:: pad
-    .. automethod:: rename
-    .. automethod:: rv
-    .. autoattribute:: shape
-    .. automethod:: sparse
-    .. automethod:: type
     """
     def __init__(self, cdf_file, var_name, *args):
         """Create or locate a variable
@@ -3672,8 +3510,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         Returns
         =======
         out : dtype
-            numpy dtype that will hold value from this variable
-            
+            numpy dtype that will hold value from this variable      
         """
         cdftype = self.type()
         if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
@@ -3886,31 +3723,6 @@ class VarCopy(spacepy.datamodel.dmarray):
     :meth:`~spacepy.pycdf.CDF.new`. Operations that e.g. change the
     dimensionality of the copy may make this (or any) metadata out of
     date; see :meth:`set` to update.
-
-    .. autosummary::
-
-        compress
-        dv
-        nelems
-        pad
-        rv
-        set
-        sparse
-        type
-
-    .. attribute:: attrs
-
-       Python dictionary containing attributes copied from the zVar
-
-    .. automethod:: compress
-    .. automethod:: dv
-    .. automethod:: nelems
-    .. automethod:: pad
-    .. automethod:: rv
-    .. automethod:: set
-    .. automethod:: sparse
-    .. automethod:: type
-
     """
     Allowed_Attributes = spacepy.datamodel.dmarray.Allowed_Attributes \
                          + ['_cdf_meta']
@@ -3940,7 +3752,6 @@ class VarCopy(spacepy.datamodel.dmarray):
         =======
         tuple
             compression type, parameter currently in effect.
-
         """
         if args or kwargs:
             return super(VarCopy, self).compress(*args, **kwargs)
@@ -3957,7 +3768,6 @@ class VarCopy(spacepy.datamodel.dmarray):
         =======
         list of boolean
             True if that dimension has variance, else False
-
         """
         return self._cdf_meta['dv']
 
@@ -4657,26 +4467,6 @@ class Attr(MutableSequence):
 
         >>> first_three = attribute[5, 0:3] #will fail
         >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
-
-    .. autosummary::
-
-        ~Attr.append
-        ~Attr.has_entry
-        ~Attr.insert
-        ~Attr.max_idx
-        ~Attr.new
-        ~Attr.number
-        ~Attr.rename
-        ~Attr.type
-
-    .. automethod:: append
-    .. automethod:: has_entry
-    .. automethod:: insert
-    .. automethod:: max_idx
-    .. automethod:: new
-    .. automethod:: number
-    .. automethod:: rename
-    .. automethod:: type
     """
 
     def __init__(self, cdf_file, attr_name, create=False):
@@ -5448,17 +5238,6 @@ class AttrList(MutableMapping):
         subclasses, `gAttrList` and `zAttrList`.
         Methods listed here are safe to use from the subclasses.
 
-    .. autosummary::
-
-        ~AttrList.clone
-        ~AttrList.copy
-        ~AttrList.new
-        ~AttrList.rename
-    
-    .. automethod:: clone
-    .. automethod:: copy
-    .. automethod:: new
-    .. automethod:: rename
     """
 
     def __init__(self, cdf_file, special_entry=None):
@@ -5810,7 +5589,6 @@ class zAttrList(AttrList):
     See Also
     ========
     AttrList
-
     """
     AttrType = zAttr
     attr_name = 'zAttribute'
@@ -5913,14 +5691,22 @@ class zAttrList(AttrList):
     def type(self, name, new_type=None):
         """Find or change the CDF type of a zEntry in this zVar
 
-        @param name: name of the zAttr to check or change
-        @type name: str
-        @param new_type: type to change it to, see `pycdf.const`
-        @type new_type: ctypes.c_long
-        @return: CDF variable type, see `pycdf.const`
-        @rtype: int
-        @note: If changing types, old and new must be equivalent, see CDF
-               User's Guide section 2.5.5 pg. 57
+        Parameters
+        ----------
+        name : string
+            name of the zAttr to check or change
+
+        new_type : ctypes.c_long
+            type to change it to, see   ``pycdf.const``
+
+        Returns
+        -------
+        CDF variable type : int
+
+        Notes
+        -----
+        If changing types, old and new must be equivalent, see CDF
+        User's guide section 2.5.5 pg. 57
         """
         attrib = super(zAttrList, self).__getitem__(name)
         zvar_num = self._zvar._num()

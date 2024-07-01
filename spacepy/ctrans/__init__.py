@@ -86,13 +86,6 @@ here) use a centered dipole axis.
     the centered dipole axis of date. The y-axis is perpendicular to
     to both the dipole axis and True North, i.e., y is the cross product of
     the z-axis of the GEO system with the dipole axis. The x-axis completes.
-
-Submodules
-----------
-.. autosummary::
-    :toctree: autosummary
-
-    iau80n
 """
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -191,27 +184,6 @@ class CTrans(dm.SpaceData):
     -----
 
     .. versionadded:: 0.3.0
-
-
-    .. rubric:: Methods
-
-    .. autosummary::
-
-        ~CTrans.calcTimes
-        ~CTrans.calcOrbitParams
-        ~CTrans.calcCoreTransforms
-        ~CTrans.calcMagTransforms
-        ~CTrans.convert
-        ~CTrans.getEOP
-        ~CTrans.gmst
-
-    .. automethod:: calcTimes
-    .. automethod:: calcOrbitParams
-    .. automethod:: calcCoreTransforms
-    .. automethod:: calcMagTransforms
-    .. automethod:: convert
-    .. automethod:: getEOP
-    .. automethod:: gmst
     """
     def __init__(self, ctime, ephmodel=None, pnmodel=None, eop=False):
         super(CTrans, self).__init__()
