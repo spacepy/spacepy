@@ -64,18 +64,6 @@ convenience at the cost of flexibility.  A few of the submodules are helper
 modules- they are not code specific, but rather provide functionality not
 related to an SWMF-included code.
 
-.. autosummary::
-   :toctree: autosummary
-
-   bats
-   dgcpm
-   dipole
-   gitm
-   kyoto
-   pwom
-   ram
-   rim
-   trace2d
 
 Top-Level Classes & Functions
 -----------------------------
@@ -86,24 +74,6 @@ and are very flexible.  However, they do little beyond open files for the user.
 There are several functions found in the top-level module.  These are mostly
 convenience functions for customizing plots.
 
-.. rubric:: Classes
-.. autosummary::
-   :toctree: autosummary
-
-   IdlFile
-   ImfInput
-   LogFile
-   NgdcIndex
-   PbData
-   SatOrbit
-
-.. rubric:: Functions
-.. autosummary::
-   :toctree: autosummary
-
-   add_body
-   add_planet
-   parse_tecvars
 
 '''
 

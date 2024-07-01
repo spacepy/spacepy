@@ -43,20 +43,6 @@ class Ae9Data(dm.SpaceData):
     To inspect the variables within this class, use the tree method.
     To export the data to a CDF, HDF5 or JSON-headed ASCII file use the relevant "to" method
     (toCDF, toHDF5, toJSONheadedASCII).
-
-    .. autosummary::
-
-        ~Ae9Data.getLm
-        ~Ae9Data.plotOrbit
-        ~Ae9Data.plotSummary
-        ~Ae9Data.plotSpectrogram
-        ~Ae9Data.setUnits
-
-    .. automethod:: getLm
-    .. automethod:: plotOrbit
-    .. automethod:: plotSummary
-    .. automethod:: plotSpectrogram
-    .. automethod:: setUnits
     """
 
     def setUnits(self, per=None):
