@@ -202,8 +202,9 @@ class TestPlot(unittest.TestCase):
         super().tearDown()
         import matplotlib
         import matplotlib.pyplot
-        if self.save_plots and matplotlib.pyplot.get_fignums():
-            fname = 'output_{}.png'.format('_'.join(self.id().split('.')[1:]))
-            matplotlib.pyplot.savefig(fname)
+        if matplotlib.pyplot.get_fignums():
+            if self.save_plots:
+                fname = 'output_{}.png'.format('_'.join(self.id().split('.')[1:]))
+                matplotlib.pyplot.savefig(fname)
             matplotlib.pyplot.close()
         matplotlib.use(self.old_backend)
