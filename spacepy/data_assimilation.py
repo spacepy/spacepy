@@ -25,27 +25,6 @@ Copyright 2010 Los Alamos National Security, LLC.
 class ensemble(object):
     """
     Ensemble-based data assimilation subroutines for the Radiation Belt Model
-    
-    .. currentmodule:: spacepy.data_assimilation
-    .. autosummary::
-        ~ensemble.EnKF
-        ~ensemble.EnKF_oneobs
-        ~ensemble.add_model_error
-        ~ensemble.add_model_error_obs
-        ~ensemble.getHA
-        ~ensemble.getHAprime
-        ~ensemble.getHPH
-        ~ensemble.getInnovation
-        ~ensemble.getperturb
-    .. automethod:: EnKF
-    .. automethod:: EnKF_oneobs
-    .. automethod:: add_model_error
-    .. automethod:: add_model_error_obs
-    .. automethod:: getHA
-    .. automethod:: getHAprime
-    .. automethod:: getHPH
-    .. automethod:: getInnovation
-    .. automethod:: getperturb
     """
 
     def __init__(self, ensembles = 50):

@@ -243,13 +243,6 @@ class Sea(SeaBase):
     =====
     Output can be nicely plotted with :py:meth:`plot`, or for multiple objects
     use the :py:func:`multisea` function
-
-    .. currentmodule:: spacepy.seapy
-    .. autosummary::
-        ~Sea.sea
-        ~Sea.plot
-    .. automethod:: sea
-    .. automethod:: plot
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
         super(Sea, self).__init__(data, times, epochs, \
@@ -604,14 +597,6 @@ class Sea2d(SeaBase):
     =====
     Output can be nicely plotted with :meth:`plot`, or for multiple
     objects use the :func:`multisea` function
-
-
-    .. currentmodule:: spacepy.seapy
-    .. autosummary::
-        ~Sea2d.sea
-        ~Sea2d.plot
-    .. automethod:: sea
-    .. automethod:: plot
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=False, y=[]):
         super(Sea2d, self).__init__(data, times, epochs, window=window, \

@@ -7,12 +7,6 @@ Authors: Steve Morley, Josef Koller, Yiqun Yu, Aaron Hendry
 Contact: smorley@lanl.gov, yiqunyu17@gmail.com
 
 Copyright 2012 Los Alamos National Security, LLC.
-
-.. autosummary::
-    :toctree: autosummary
-
-    LANLstar
-    LANLmax
 """
 import os.path
 import sys

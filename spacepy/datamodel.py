@@ -237,18 +237,6 @@ class ISTPArray:
     these are in `ISTPContainer`.
 
     .. versionadded:: 0.5.0
-
-    .. autosummary::
-        ~ISTPArray.fromQuantity
-        ~ISTPArray.plot_as_line
-        ~ISTPArray.replace_invalid
-        ~ISTPArray.toQuantity
-        ~ISTPArray.units
-    .. automethod:: fromQuantity
-    .. automethod:: plot_as_line
-    .. automethod:: replace_invalid
-    .. automethod:: toQuantity
-    .. automethod:: units
     """
     attrs: collections.abc.Mapping
 
@@ -465,20 +453,6 @@ class ISTPContainer(collections.abc.Mapping):
     and are unlikely to give good results if that is not the case.
 
     .. versionadded:: 0.5.0
-
-    .. autosummary::
-        ~ISTPContainer.fromDataFrame
-        ~ISTPContainer.lineplot
-        ~ISTPContainer.main_vars
-        ~ISTPContainer.plot
-        ~ISTPContainer.spectrogram
-        ~ISTPContainer.toDataFrame
-    .. automethod:: fromDataFrame
-    .. automethod:: lineplot
-    .. automethod:: main_vars
-    .. automethod:: plot
-    .. automethod:: spectrogram
-    .. automethod:: toDataFrame
     """
     attrs:  collections.abc.Mapping
 
@@ -924,11 +898,6 @@ class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
     'TestName'
 
     See methods of `ISTPArray` if attributes are ISTP-compliant.
-
-    .. currentmodule:: spacepy.datamodel
-    .. autosummary::
-        ~dmarray.addAttribute
-    .. automethod:: addAttribute
     """
     Allowed_Attributes = ['attrs']
 
@@ -1122,19 +1091,6 @@ class SpaceData(dict, MetaMixin, ISTPContainer):
 
     Although the format of attributes is not enforced, using ISTP metadata
     enables the use of methods from `ISTPContainer`.
-
-    .. currentmodule:: spacepy.datamodel
-    .. autosummary::
-        ~SpaceData.flatten
-        ~SpaceData.tree
-        ~SpaceData.toCDF
-        ~SpaceData.toHDF5
-        ~SpaceData.toJSONheadedASCII
-    .. automethod:: flatten
-    .. automethod:: tree
-    .. automethod:: toCDF
-    .. automethod:: toHDF5
-    .. automethod:: toJSONheadedASCII
     """
     def __getitem__(self, key):
         """

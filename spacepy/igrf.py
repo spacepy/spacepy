@@ -95,31 +95,6 @@ class IGRF():
     -----
 
     .. versionadded:: 0.3.0
-
-    .. rubric:: Methods
-
-    .. autosummary::
-
-        ~IGRF.calcDipoleAxis
-        ~IGRF.initialize
-
-    .. rubric:: Data
-
-    .. autosummary::
-
-        dipole
-        moment
-
-    .. automethod:: calcDipoleAxis
-    .. automethod:: initialize
-
-    .. attribute:: dipole
-
-        Characteristics of dipole (`dict`).
-
-    .. attribute:: moment
-
-        Dipole moments (`dict`).
     """
     dipole = {}
     """Characteristics of dipole (`dict`)."""

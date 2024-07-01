@@ -122,7 +122,6 @@ Description of all functions within SpacePy, by module.
     :maxdepth: 1
     
     api
-    pycdf
 
 
 Indices and tables

@@ -82,40 +82,16 @@ class PPro(object):
     Includes method to perform association analysis of input series
 
     Output can be nicely plotted with :py:meth:`plot`.
-
-    .. currentmodule:: spacepy.poppy
-    
-    .. autosummary::
-        ~PPro.aa_ci
-        ~PPro.assoc
-        ~PPro.assoc_mult
-        ci
-        conf_above
-        ~PPro.plot
-        ~PPro.plot_mult
-        ~PPro.swap
-
-    .. automethod:: aa_ci
-    .. automethod:: assoc
-    .. automethod:: assoc_mult
-
-    .. attribute:: ci
     
        Contains the upper and lower confidence limits for the association
        number as a function of lag. The first element is the array of lower
        limits; the second, the array of upper limits. Not available until
        after calling :meth:`aa_ci`.
-
-    .. attribute:: conf_above
     
        Contains the confidence that the association number, as a function
        of lag, is above the asymptotic association number. (The confidence
        of being below is 100 - ``conf_above``.)  Not available until
        after calling :meth:`aa_ci`.
-
-    .. automethod:: plot
-    .. automethod:: plot_mult
-    .. automethod:: swap
     """
     #NB: P2 is the "master" timescale, P1 gets shifted by lags
     #Add lag to p1 to reach p2's timescale, subtract lag from p2 to reach p1's

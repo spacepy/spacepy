@@ -301,50 +301,6 @@ class Ticktock(MutableSequence):
     >>> y.DOY # Day of year
     dmarray([  1.,  79.])
 
-    .. autosummary::
-        ~Ticktock.append
-        ~Ticktock.argsort
-        ~Ticktock.convert
-        ~Ticktock.getAPT
-        ~Ticktock.getCDF
-        ~Ticktock.getDOY
-        ~Ticktock.getGPS
-        ~Ticktock.getISO
-        ~Ticktock.getJD
-        ~Ticktock.getMJD
-        ~Ticktock.getRDT
-        ~Ticktock.getTAI
-        ~Ticktock.getUNX
-        ~Ticktock.getUTC
-        ~Ticktock.geteDOY
-        ~Ticktock.getleapsecs
-        ~Ticktock.isoformat
-        ~Ticktock.now
-        ~Ticktock.sort
-        ~Ticktock.today
-        ~Ticktock.update_items
-    .. automethod:: append
-    .. automethod:: argsort
-    .. automethod:: convert
-    .. automethod:: getAPT
-    .. automethod:: getCDF
-    .. automethod:: getDOY
-    .. automethod:: getGPS
-    .. automethod:: getISO
-    .. automethod:: getJD
-    .. automethod:: getMJD
-    .. automethod:: getRDT
-    .. automethod:: getTAI
-    .. automethod:: getUNX
-    .. automethod:: getUTC
-    .. automethod:: geteDOY
-    .. automethod:: getleapsecs
-    .. automethod:: isoformat
-    .. automethod:: now
-    .. automethod:: sort
-    .. automethod:: today
-    .. automethod:: update_items
-
     """
     _keylist = ['UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
     if HAVE_ASTROPY:
@@ -762,7 +718,7 @@ class Ticktock(MutableSequence):
         insert values into the TickTock object
 
         .. note:: If more than one value to insert a slice must be specified
-        as the index.  See numpy.insert
+            as the index.  See numpy.insert
 
         Parameters
         ==========
