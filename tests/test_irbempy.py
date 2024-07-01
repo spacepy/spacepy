@@ -16,6 +16,7 @@ try:
     import spacepy.irbempy as ib
 except ImportError:  # if IRBEM fails, test suite should not break entirely...
     pass
+import datetime
 import numpy as np
 import numpy.testing
 from numpy import array
@@ -29,6 +30,33 @@ class IRBEMBigTests(unittest.TestCase):
         self.ticks = spacepy.time.Ticktock(['2001-02-02T12:00:00', '2001-02-02T12:10:00'], 'ISO')
         self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
         self.omnivals = spacepy.omni.get_omni(self.ticks, dbase='Test')
+
+    def test_prep_ctypes(self):
+        expected_arrays = {
+            'degalpha': [0.0] * 25,
+            'idoysat': [33.0] * 2 + [0.0] * 99998,
+            'iyearsat': [2001.] * 2 + [0.0] * 99998,
+            'xin3': [0.0] * 100000,
+            'xin2': [0.0] * 100000,
+            'xin1': [3., 2.] + [0.0] * 99998,
+            'utsat': [43200., 43800.] + [0.0] * 99998,
+            }
+        expected_scalars = {
+            'sysaxes': 1,
+            'kext': 10,
+        }
+        d = ib.prep_irbem(self.ticks, self.loci, omnivals=self.omnivals)
+        actual = ib.prep_ctypes(d)
+        for key in expected_arrays:
+            numpy.testing.assert_almost_equal(expected_arrays[key],
+                                              actual[key].contents,
+                                              decimal=5)
+        for key in expected_scalars:
+            numpy.testing.assert_almost_equal(expected_scalars[key],
+                                              actual[key].value,
+                                              decimal = 5)
+        numpy.testing.assert_almost_equal([1, 0, 0, 0, 0], actual['options'])
+
 
     def test_prep_irbem(self):
         expected = {
@@ -94,6 +122,45 @@ class IRBEMBigTests(unittest.TestCase):
         got = ib.find_Bmirror(self.ticks, self.loci, [40], omnivals=self.omnivals)
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key], got[key], decimal=6)
+
+    def test_find_Bmirror_multiple_PA(self):
+        """find_Bmirror incorrectly ignores all pitch angles besides first"""
+        expected = {'Blocal': array([ 1031.008992,  3451.98937]),
+            'Bmirr': array([ 2495.243004,  8354.355467])}
+        got = ib.find_Bmirror(self.ticks, self.loci, [40, 60, 90, 10], omnivals=self.omnivals)
+        for key in expected:
+            numpy.testing.assert_almost_equal(expected[key], got[key], decimal=6)
+
+    @unittest.expectedFailure
+    def test_find_Bmirror_size(self):
+        expected_size = 4
+        actual_results = ib.find_Bmirror(self.ticks, self.loci, [40, 60], omnivals=self.omnivals)
+        actual_size = np.size(actual_results["Bmirr"])
+        self.assertEqual(expected_size, actual_size)
+
+    def test_find_LCDS(self):
+        expected_numeric = {'LCDS': np.array([7.3386417 , 7.46836875]),
+                    'K': np.array([0.0526464 , 0.05057452]),
+                    'AlphaEq': np.array([45])}
+        actual = ib.find_LCDS(self.ticks, 45, omnivals=self.omnivals)
+        for key in expected_numeric:
+            numpy.testing.assert_almost_equal(expected_numeric[key], actual[key], decimal=6)
+        expected_utc = np.array([datetime.datetime(2001, 2, 2, 12, 0),
+                        datetime.datetime(2001, 2, 2, 12, 10)], dtype=object)
+        numpy.testing.assert_array_equal(expected_utc, actual['UTC'])
+
+    def test_find_LCDS_K(self):
+        expected_numeric = {
+            'LCDS': np.array([8.94918006, 8.89753712]),
+            'AlphaEq': np.array([90., 90.]),
+            'K': np.array([1.5e-12])
+        }
+        actual = ib.find_LCDS_K(self.ticks, 1.5e-12, extMag='T96', omnivals=self.omnivals)
+        for key in expected_numeric:
+            numpy.testing.assert_almost_equal(expected_numeric[key], actual[key], decimal=6)
+        expected_utc = np.array([datetime.datetime(2001, 2, 2, 12, 0),
+                                datetime.datetime(2001, 2, 2, 12, 10)], dtype=object)
+        numpy.testing.assert_array_equal(expected_utc, actual['UTC'])
 
     def test_find_magequator(self):
         expected = {'Bmin': array([ 1030.456337,  3444.077016 ])}
@@ -189,6 +256,20 @@ class IRBEMBigTests(unittest.TestCase):
         self.assertEqual('Too many pitch angles requested; 25 is maximum.',
                          str(cm.exception))
 
+    def test_get_Lstar_landi2_shell_splitting(self):
+        expected = {'Lm': array([[3.09135204, 3.09135204],
+                                 [2.05626165, 2.05626165]]),
+         'Lstar': array([[3.02418952, 3.02418952],[2.05327655, 2.05327655]]),
+         'Bmirr': array([[1019.052401, 1019.052401],
+                         [3467.52999008, 3467.52999008]]),
+         'Bmin': array([1018.6697011 , 3459.50096553]),
+         'Xj': array([[0.00105118, 0.00105118], [0.00272222, 0.00272222]]),
+         'MLT': array([11.97159175, 12.13313906])}
+        actual = ib.get_Lstar(self.ticks, self.loci, [90, 90], extMag='OPQUIET',
+                              omnivals=self.omnivals, landi2lstar=True)
+        for key in expected.keys():
+            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
+
     def test_get_Lstar_OPQuiet_landi2lstar(self):
         # test OP-Quiet with LandI2Lstar routine
         expected = {'Xj': array([[ 0.001051], [ 0.002722]]),
@@ -257,7 +338,14 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
     def test_GSM_SM_init(self):
         '''test for initialization error in gsm to sm conversion'''
-        cc_got = ib.oplib.coord_trans1(2, 4, 2002, 33, 43200, np.asarray([1., 2., 4.]))
+        real8 = ib.real8
+        int4 = ib.int4
+        cc_got = np.zeros((3,), dtype=np.float64)
+        ib.irbemlib.coord_trans1(
+            int4(2), int4(4), int4(2002), int4(33), real8(43200),
+            np.asarray([1., 2., 4.]).ctypes.data_as(ib.ctypes.POINTER(real8 * 3)),
+            cc_got.ctypes.data_as(ib.ctypes.POINTER(ib.real8 * 3))
+        )
         expected = np.array([1.9286, 2., 3.6442])
         # NaN will result if init not done in IRBEM, assert_almost_equal will
         # compare NaNs without complaint
@@ -270,6 +358,12 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         E = 2.0  # energy in MeV
         expected = 99492.059080021136
         actual = ib.get_AEP8(E, c)
+        numpy.testing.assert_almost_equal(expected, actual)
+
+    def test_get_AEP8_BBo_L(self):
+        """Test get_AEP8 with optional version of loci"""
+        expected = 11.391557407259167
+        actual = ib.get_AEP8(1, [10, 10])
         numpy.testing.assert_almost_equal(expected, actual)
 
 

@@ -14,12 +14,14 @@ Josef Koller, Steve Morley
 Copyright 2010 Los Alamos National Security, LLC.
 """
 
+import ctypes
 import numbers
 from collections.abc import Iterable
 from collections import OrderedDict
 import os
 import pathlib
 import sys
+import sysconfig
 import tempfile
 import warnings
 
@@ -28,7 +30,6 @@ import numpy as np
 import spacepy
 import spacepy.coordinates as spc
 import spacepy.datamodel as dm
-from . import irbempylib as oplib
 import spacepy.toolbox as tb
 
 # check whether TS07_DATA_PATH is set, if not then set to spacepy's installed data directory
@@ -62,6 +63,10 @@ if 'TS07_DATA_PATH' not in os.environ:
         spdatapath = pkg_resources.resource_filename('spacepy', dataTS07D)
     os.environ['TS07_DATA_PATH'] = spdatapath  # set environment variable here
 
+# Fortran-like types
+int4 = ctypes.c_int32
+real8 = next((t for t in (ctypes.c_float, ctypes.c_double,
+                          ctypes.c_longdouble) if ctypes.sizeof(t) == 8))
 
 # -----------------------------------------------
 def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
@@ -224,19 +229,25 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     iyearsat = d['iyearsat']
     idoysat = d['idoysat']
     secs = d['utsat']
-    utsat = d['utsat']
     xin1 = d['xin1']
     xin2 = d['xin2']
     xin3 = d['xin3']
     magin = d['magin']
+    options = (int4 * 5)(*options)
 
     results = dm.SpaceData()
     results['Blocal'] = np.zeros(nTAI)
     results['Bvec'] = np.zeros((nTAI, 3))
+    BxyzGEO = np.empty((3,), np.float64)
+    Blocal = np.empty((), np.float64)
     for i in np.arange(nTAI):
-        BxyzGEO, Blocal = oplib.get_field1(kext, options, sysaxes, iyearsat[i],
-                                           idoysat[i], secs[i], xin1[i],
-                                           xin2[i], xin3[i], magin[:, i])
+        irbemlib.get_field1(
+            int4(kext), options, int4(sysaxes), int4(iyearsat[i]),
+            int4(idoysat[i]), real8(secs[i]),
+            real8(xin1[i]), real8(xin2[i]), real8(xin3[i]),
+            magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+            BxyzGEO.ctypes.data_as(ctypes.POINTER(real8 * 3)),
+            Blocal.ctypes.data_as(ctypes.POINTER(real8)))
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(Blocal, badval):
@@ -310,16 +321,27 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     # degalpha = d['degalpha']
     # nalp_max = d['nalp_max']
     # nalpha = d['nalpha']
+    options = (int4 * 5)(*options)
 
     results = dm.SpaceData()
     results['Blocal'] = np.zeros(nTAI)
     results['Bmirr'] = np.zeros(nTAI)
     results['loci'] = ['']*nTAI
+    blocal = np.empty((), np.float64)
+    bmirr = np.empty((), np.float64)
+    GEOcoord = np.empty((3,), np.float64)
     for i in np.arange(nTAI):
-        blocal, bmirr, GEOcoord = oplib.find_mirror_point1(kext, options, sysaxes,
-                                                           iyearsat[i], idoysat[i],
-                                                           secs[i], xin1[i], xin2[i],
-                                                           xin3[i], alpha, magin[:, i])
+        irbemlib.find_mirror_point1(
+            int4(kext), options, int4(sysaxes),
+            int4(iyearsat[i]), int4(idoysat[i]),
+            real8(secs[i]), real8(xin1[i]), real8(xin2[i]),
+            real8(xin3[i]),
+            real8(alpha[0]),
+            magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+            blocal.ctypes.data_as(ctypes.POINTER(real8)),
+            bmirr.ctypes.data_as(ctypes.POINTER(real8)),
+            GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+        )
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(blocal, badval):
@@ -386,14 +408,22 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omn
     xin2 = d['xin2']
     xin3 = d['xin3']
     magin = d['magin']
+    options = (int4 * 5)(*options)
 
     results = {}
     results['Bmin'] = np.zeros(nTAI)
     results['loci'] = ['']*nTAI
     for i in np.arange(nTAI):
-        bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[i],
-                                                idoysat[i], secs[i], xin1[i],
-                                                xin2[i], xin3[i], magin[:, i])
+        bmin = np.empty((), np.float64)
+        GEOcoord = np.empty((3,), np.float64)
+        irbemlib.find_magequator1(
+            int4(kext), options, int4(sysaxes), int4(iyearsat[i]),
+            int4(idoysat[i]), real8(secs[i]), real8(xin1[i]),
+            real8(xin2[i]), real8(xin3[i]),
+            magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+            bmin.ctypes.data_as(ctypes.POINTER(real8)),
+            GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+            )
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(bmin, badval):
@@ -487,6 +517,8 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     mlt *= 15  # hours to degrees
     mlt = np.deg2rad(mlt)
 
+    options = (int4 * 5)(*options)
+
     for idxt, tt in enumerate(ticks):
         if not omnivals:
             # prep_irbem will get omni if not specified, but to save on repeated calls, do it once here
@@ -512,9 +544,16 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             magin = d['magin']
             nTtoG = 1.0e-5
 
-            bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
-                                                    idoysat[0], secs[0], xin1[0],
-                                                    xin2[0], xin3[0], magin[:, 0])
+            bmin = np.empty((), np.float64)
+            GEOcoord = np.empty((3,), np.float64)
+            irbemlib.find_magequator1(
+                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
+                int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+                real8(xin2[0]), real8(xin3[0]),
+                magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                bmin.ctypes.data_as(ctypes.POINTER(real8)),
+                GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+            )
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
@@ -551,9 +590,16 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             xin3 = d2['xin3']
             magin = d2['magin']
 
-            bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
-                                                    idoysat[0], secs[0], xin1[0], xin2[0],
-                                                    xin3[0], magin[:, 0])
+            bmin = np.empty((), np.float64)
+            GEOcoord = np.empty((3,), np.float64)
+            irbemlib.find_magequator1(
+                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
+                int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+                real8(xin2[0]), real8(xin3[0]),
+                magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                bmin.ctypes.data_as(ctypes.POINTER(real8)),
+                GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+            )
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
@@ -588,9 +634,17 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                 xin3 = dtest['xin3']
                 magin = dtest['magin']
 
-                bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
-                                                        idoysat[0], secs[0], xin1[0], xin2[0],
-                                                        xin3[0], magin[:, 0])
+                bmin = np.empty((), np.float64)
+                GEOcoord = np.empty((3,), np.float64)
+                irbemlib.find_magequator1(
+                    int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
+                    int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+                    real8(xin2[0]), real8(xin3[0]),
+                    magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                    bmin.ctypes.data_as(ctypes.POINTER(real8)),
+                    GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+                )
+
                 # take out all the odd 'bad values' and turn them into NaN
                 if np.isclose(bmin, badval):
                     bmin = np.nan
@@ -696,6 +750,8 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
     mlt *= 15  # hours to degrees
     mlt = np.deg2rad(mlt)
 
+    options = (int4 * 5)(*options)
+
     for idxt, tt in enumerate(ticks):
         if not omnivals:
             # prep_irbem will get omni if not specified, but to save on repeated calls, do it once here
@@ -722,9 +778,16 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             nTtoG = 1.0e-5
             pa = np.nan
 
-            bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
-                                                    idoysat[0], secs[0], xin1[0],
-                                                    xin2[0], xin3[0], magin[:, 0])
+            bmin = np.empty((), np.float64)
+            GEOcoord = np.empty((3,), np.float64)
+            irbemlib.find_magequator1(
+                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
+                int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+                real8(xin2[0]), real8(xin3[0]),
+                magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                bmin.ctypes.data_as(ctypes.POINTER(real8)),
+                GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+            )
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
@@ -777,11 +840,18 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             xin1 = d2['xin1']
             xin2 = d2['xin2']
             xin3 = d2['xin3']
-            magin = d2['magin']
+            magin = d['magin']
 
-            bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
-                                                    idoysat[0], secs[0], xin1[0],
-                                                    xin2[0], xin3[0], magin[:, 0])
+            bmin = np.empty((), np.float64)
+            GEOcoord = np.empty((3,), np.float64)
+            irbemlib.find_magequator1(
+                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
+                int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+                real8(xin2[0]), real8(xin3[0]),
+                magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                bmin.ctypes.data_as(ctypes.POINTER(real8)),
+                GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+            )
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
@@ -823,11 +893,19 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 xin1 = dtest['xin1']
                 xin2 = dtest['xin2']
                 xin3 = dtest['xin3']
-                magin = dtest['magin']
+                magin = d['magin']
 
-                bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[0],
-                                                        idoysat[0], secs[0], xin1[0],
-                                                        xin2[0], xin3[0], magin[:, 0])
+                bmin = np.empty((), np.float64)
+                GEOcoord = np.empty((3,), np.float64)
+                irbemlib.find_magequator1(
+                    int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
+                    int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+                    real8(xin2[0]), real8(xin3[0]),
+                    magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                    bmin.ctypes.data_as(ctypes.POINTER(real8)),
+                    GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+                )
+
                 # take out all the odd 'bad values' and turn them into NaN
                 if np.isclose(bmin, badval):
                     bmin = np.nan
@@ -913,13 +991,21 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
     xin3 = d['xin3']
     magin = d['magin']
     nTtoG = 1.0e-5
+    options = (int4 * 5)(*options)
 
     outvals = np.zeros(nTAI)
     outvals.fill(np.nan)
     for i in np.arange(nTAI):
-        bmin, GEOcoord = oplib.find_magequator1(kext, options, sysaxes, iyearsat[i],
-                                                idoysat[i], secs[i], xin1[i],
-                                                xin2[i], xin3[i], magin[:, i])
+        bmin = np.empty((), np.float64)
+        GEOcoord = np.empty((3,), np.float64)
+        irbemlib.find_magequator1(
+            int4(kext), options, int4(sysaxes), int4(iyearsat[i]),
+            int4(idoysat[i]), real8(secs[i]), real8(xin1[i]),
+            real8(xin2[i]), real8(xin3[i]),
+            magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+            bmin.ctypes.data_as(ctypes.POINTER(real8)),
+            GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+        )
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(bmin, badval):
@@ -1032,6 +1118,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
     xin2 = d['xin2']
     xin3 = d['xin3']
     magin = d['magin']
+    options = (int4 * 5)(*options)
 
     hemi_dict = {'same': 0, 'north': 1, 'south': -1, 'other': 2}
     if hemi.lower() in ['same', 'other', 'north', 'south']:
@@ -1045,10 +1132,18 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
     results['Bfootvec'] = np.zeros([nTAI, 3])
     results['loci'] = ['']*nTAI
     for i in np.arange(nTAI):
-        xfoot, bfoot, bfootmag = oplib.find_foot_point1(kext, options, sysaxes, iyearsat[i],
-                                                        idoysat[i], secs[i], xin1[i],
-                                                        xin2[i], xin3[i], alt, hemi_flag,
-                                                        magin[:, i])
+        xfoot = np.empty((3,), np.float64)
+        bfoot = np.empty((3,), np.float64)
+        bfootmag = np.empty((), np.float64)
+        irbemlib.find_foot_point1(
+            int4(kext), options, int4(sysaxes), int4(iyearsat[i]), int4(idoysat[i]),
+            real8(secs[i]), real8(xin1[i]), real8(xin2[i]), real8(xin3[i]),
+            real8(alt), int4(hemi_flag),
+            magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+            xfoot.ctypes.data_as(ctypes.POINTER(real8 * 3)),
+            bfoot.ctypes.data_as(ctypes.POINTER(real8 * 3)),
+            bfootmag.ctypes.data_as(ctypes.POINTER(real8))
+        )
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(bfootmag, badval):
@@ -1115,8 +1210,11 @@ def coord_trans(loci, returntype, returncarsph):
         secs = loci.ticks.UTC[i].hour*3600. + loci.ticks.UTC[i].minute*60. + \
             loci.ticks.UTC[i].second
 
-        xout[i, :] = oplib.coord_trans1(sysaxesin, sysaxesout, iyear,
-                                        idoy, secs, loci.data[i])
+        irbemlib.coord_trans1(
+            int4(sysaxesin), int4(sysaxesout), int4(iyear),
+            int4(idoy), real8(secs),
+            loci.data[i].ctypes.data_as(ctypes.POINTER(real8 * 3)),
+            xout[i, :].ctypes.data_as(ctypes.POINTER(real8 * 3)))
 
     # add  sph to car or v/v convertion if initial sysaxesout was None
     if aflag:
@@ -1238,23 +1336,41 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     if isinstance(loci, spc.Coords):
         assert loci.ticks, 'Coords require time information with a Ticktock object'
         d = prep_irbem(ticks=loci.ticks, loci=loci, omnivals=dum_omni)
-        E_array = np.zeros((2, d['nalp_max']))
-        E_array[:, 0] = energy
-        # now get the flux
-        flux = oplib.fly_in_nasa_aeap1(ntmax, d['sysaxes'], whichm, whatf, Nene, E_array,
-                                       d['iyearsat'], d['idoysat'], d['utsat'],
-                                       d['xin1'], d['xin2'], d['xin3'])
+        d_c = prep_ctypes(d)
+        nene_max = d['nalp_max']
+        ntime_max = d['ntime_max']
+        E_array_F = np.zeros((2, nene_max))
+        E_array_F[:, 0] = energy
+
+        flux = np.empty((ntime_max, nene_max), np.float64)
+        irbemlib.fly_in_nasa_aeap1(
+            int4(ntmax), d_c['sysaxes'], int4(whichm), int4(whatf), int4(Nene),
+            E_array_F.ctypes.data_as(ctypes.POINTER((real8 * 2) * nene_max)),
+            d_c['iyearsat'], d_c['idoysat'], d_c['utsat'],
+            d_c['xin1'], d_c['xin2'], d_c['xin3'],
+            flux.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nene_max))
+        )
+
     elif isinstance(loci, (list, np.ndarray)):
         BBo, L = loci
         d = prep_irbem(omnivals=dum_omni)
-        E_array = np.zeros((2, d['nalp_max']))
+        nene_max = d['nalp_max']
+        ntime_max = d['ntime_max']
+        E_array = np.zeros((2, nene_max))
         E_array[:, 0] = energy
-        B_array = np.zeros(d['ntime_max'])
+        B_array = np.zeros(ntime_max)
         B_array[0] = BBo
-        L_array = np.zeros(d['ntime_max'])
+        L_array = np.zeros(ntime_max)
         L_array[0] = L
         # now get the flux
-        flux = oplib.get_ae8_ap8_flux(ntmax, whichm, whatf, Nene, E_array, B_array, L_array)
+        flux = np.empty((ntime_max, nene_max), np.float64)
+        irbemlib.get_ae8_ap8_flux(
+            int4(ntmax), int4(whichm), int4(whatf), int4(Nene),
+            E_array.ctypes.data_as(ctypes.POINTER((real8 * 2) * nene_max)),
+            B_array.ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
+            L_array.ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
+            flux.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nene_max))
+        )
     else:
         print('Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]')
 
@@ -1477,32 +1593,49 @@ class Shieldose2:
 
         settings = expand_dict(self.settings)
 
+        int4_inputs = {'detector',  'nucmeth', 'ndepth', 'depthunit', 'len_p',
+                       'len_e', 'jsmax', 'jpmax', 'jemax'}
+        real8_inputs = {'eminpun', 'emaxpun', 'eminptr', 'emaxptr', 'emine',
+                        'emaxe', 'unit_en', 'tau'}
+        imaxi = 71
+        jmaxi = 301
+        array_inputs = {
+            'depths': imaxi,
+            'energy_p_un': jmaxi,
+            'flux_p_un': jmaxi,
+            'energy_p_tr': jmaxi,
+            'flux_p_tr': jmaxi,
+            'energy_e': jmaxi,
+            'flux_e': jmaxi
+        }
         callorder = ['detector', 'nucmeth', 'ndepth', 'depthunit',
                      'depths', 'eminpun', 'emaxpun', 'eminptr', 'emaxptr',
                      'len_p', 'emine', 'emaxe', 'len_e', 'jsmax',
-                     'jpmax', 'jemax', 'unit_en', 'tau']
-        # Add items in order required for IRBEMlib call
+                     'jpmax', 'jemax', 'unit_en', 'tau', 'energy_p_un',
+                     'flux_p_un', 'energy_p_tr', 'flux_p_tr', 'energy_e', 'flux_e']
         call = OrderedDict()
-        for value in callorder:
-            call[value] = settings.get(value, None)
-        # fix array inputs
-        dpad = 71 - len(call['depths'])
-        call['depths'] = np.pad(call['depths'], (0, dpad), mode='constant')
-        esin = settings.get('energy_p_un', None)
-        epin = settings.get('energy_p_tr', None)
-        eein = settings.get('energy_e', None)
-        ppad = 301 - len(epin)
-        epad = 301 - len(eein)
-        call['energy_s'] = np.pad(esin, (0, ppad), mode='constant')
-        call['flux_p_un'] = settings.get('flux_p_tr', None)
-        call['flux_p_un'] = np.pad(call['flux_p_un'], (0, ppad), mode='constant')
-        call['energy_p'] = np.pad(epin, (0, ppad), mode='constant')
-        call['flux_p_tr'] = settings.get('flux_p_tr', None)
-        call['flux_p_tr'] = np.pad(call['flux_p_tr'], (0, ppad), mode='constant')
-        call['energy_e'] = np.pad(eein, (0, epad), mode='constant')
-        call['flux_e'] = settings.get('flux_e', None)
-        call['flux_e'] = np.pad(call['flux_e'], (0, epad), mode='constant')
-        dose_tup = oplib.shieldose2(*call.values())
+        # Needed to preserve a reference to original numpy arrays for numpy<1.16
+        # Can safely delete if we drop support for numpy<1.16
+        arrays = []
+        # Add items in order required for irbemlib call, casting to ctypes along the way
+        for key in callorder:
+            if key in int4_inputs:
+                call[key] = int4(settings[key])
+            elif key in real8_inputs:
+                call[key] = real8(settings[key])
+            elif key in array_inputs:
+                max_len = array_inputs[key]
+                actual_len = len(settings.get(key, None))
+                arr = np.zeros(max_len, dtype=np.float64)
+                arr[:actual_len] = settings[key]
+                arrays.append(arr)
+                call[key] = arr.ctypes.data_as(ctypes.POINTER(real8 * array_inputs[key]))
+
+        dose_tup = tuple(np.require(np.zeros((imaxi, 3)), requirements='F')
+                         for _ in range(5))
+        dose_pointers = [dose.ctypes.data_as(ctypes.POINTER((real8 * 3) * imaxi))
+                        for dose in dose_tup]
+        irbemlib.shieldose2(*call.values(), *dose_pointers)
         # Now flag results as generated
         self.settings['calc_flag'] = True
 
@@ -1515,7 +1648,7 @@ class Shieldose2:
 
         self.results.clear()
         outdict = self.results
-        nd = call['ndepth']
+        nd = call['ndepth'].value
         outdict['dose_proton_untrapped'] = dm.dmarray(dose_tup[0][:nd, :])
         outdict['dose_proton_trapped'] = dm.dmarray(dose_tup[1][:nd, :])
         outdict['dose_electron'] = dm.dmarray(dose_tup[2][:nd, :])
@@ -1728,25 +1861,56 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     """
     nTAI = len(ticks)
     d = prep_irbem(ticks, loci, alpha, extMag, options, omnivals)
+    d_c = prep_ctypes(d)
     nalpha = d['nalpha']
     if d['kext'] != 5 or d['options'][4] != 0:
         landi2lstar = False
     no_shell_splitting = (nalpha == 0) or (nalpha == 1 and alpha[0] == 90)
 
+    ntime_max = d['ntime_max']
+    nalp_max = d['nalp_max']
     # Arguments that are common to all flavors of L* functions
-    args = [nTAI, d['kext'], d['options'],
-            d['sysaxes'], d['iyearsat'], d['idoysat'], d['utsat'],
-            d['xin1'], d['xin2'], d['xin3'], d['magin']]
+    args = [int4(nTAI), d_c['kext'], d_c['options'], d_c['sysaxes'],
+        d_c['iyearsat'], d_c['idoysat'], d_c['utsat'],
+        d_c['xin1'], d_c['xin2'], d_c['xin3'], d_c['magin'],
+    ]
     if no_shell_splitting:  # no drift shell splitting
-        func = oplib.landi2lstar1 if landi2lstar else oplib.make_lstar1
+        # initialize outputs
+        outputs = [np.empty((ntime_max,), np.float64)
+                    for _ in range(6)]
+        lm, lstar, bmirr, bmin, xj, mlt = outputs
+        # Add outputs to args as pointers
+        args += [arr.ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
+                 for arr in outputs]
+        func = irbemlib.landi2lstar1 if landi2lstar else irbemlib.make_lstar1
     else:  # with drift shell splitting
         # Drift shell splitting requires pitch angle positional args
-        args.insert(1, nalpha)
-        args.insert(-1, d['degalpha'])
-        func = oplib.landi2lstar_shell_splitting1 if landi2lstar \
-               else oplib.make_lstar_shell_splitting1
-    # For a locally 90-degree particle, bmirr is blocal
-    lm, lstar, bmirr, bmin, xj, mlt = func(*args)
+        args.insert(1, int4(nalpha))
+        args.insert(-1, d_c['degalpha'])
+        # initialize outputs
+        lm = np.empty((ntime_max, nalp_max), np.float64)
+        lstar = np.empty((ntime_max, nalp_max), np.float64)
+        bmirr = np.empty((ntime_max, nalp_max), np.float64)
+        bmin = np.empty((ntime_max,), np.float64)
+        xj = np.empty((ntime_max, nalp_max), np.float64)
+        mlt = np.empty((ntime_max,), np.float64)
+        # make 2d arrays Fortran-contiguous
+        lm = np.require(lm, requirements='F')
+        lstar = np.require(lstar, requirements='F')
+        xj = np.require(xj, requirements='F')
+        bmirr= np.require(bmirr, requirements='F')
+        # Add outputs to args as pointers
+        args += [
+            lm.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp_max)),
+            lstar.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp_max)),
+            bmirr.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp_max)),
+            bmin.ctypes.data_as(ctypes.POINTER(real8 * ntime_max)),
+            xj.ctypes.data_as(ctypes.POINTER((real8 * ntime_max) * nalp_max)),
+            mlt.ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
+        ]
+        func = irbemlib.landi2lstar_shell_splitting1 if landi2lstar \
+               else irbemlib.make_lstar_shell_splitting1
+    func(*args)
 
     # take out all the odd 'bad values' and turn them into NaN
     lm[np.where(np.isclose(lm, d['badval']))] = np.nan
@@ -2067,7 +2231,8 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     nTAI = len(ticks)
 
     # setup mag array and move omni values
-    magin = np.zeros((nalp_max, ntime_max), float)
+    # magin is Fortran-contiguous
+    magin = np.zeros((nalp_max, ntime_max), np.float64, order='F')
     magkeys = ['Kp', 'Dst', 'dens', 'velo', 'Pdyn', 'ByIMF', 'BzIMF',
                'G1', 'G2', 'G3', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6']
 
@@ -2113,13 +2278,12 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     # multiply Kp*10 to look like omni database
     # this is what irbem lib is looking for
     magin[0, :] = magin[0, :]*10.
-
     d['magin'] = magin
 
     # setup time array
-    iyearsat = np.zeros(ntime_max, dtype=int)
-    idoysat = np.zeros(ntime_max, dtype=int)
-    utsat = np.zeros(ntime_max, dtype=float)
+    iyearsat = np.zeros(ntime_max, dtype=np.int32)
+    idoysat = np.zeros(ntime_max, dtype=np.int32)
+    utsat = np.zeros(ntime_max, dtype=np.float64)
     for i in np.arange(nTAI):
         iyearsat[i] = UTC[i].year
         idoysat[i] = int(DOY[i])
@@ -2139,9 +2303,9 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     else:
         posi = loci
     d['sysaxes'] = posi.sysaxes
-    xin1 = np.zeros(ntime_max, dtype=float)
-    xin2 = np.zeros(ntime_max, dtype=float)
-    xin3 = np.zeros(ntime_max, dtype=float)
+    xin1 = np.zeros(ntime_max, dtype=np.float64)
+    xin2 = np.zeros(ntime_max, dtype=np.float64)
+    xin3 = np.zeros(ntime_max, dtype=np.float64)
     if posi.carsph == 'sph':
         xin1[0:nTAI] = posi.radi[:]
         xin2[0:nTAI] = posi.lati[:]
@@ -2176,3 +2340,127 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     d['degalpha'] = degalpha
 
     return d
+
+
+def prep_ctypes(d):
+    """Converts values of dict returned by prep_irbem to ctypes"""
+    d_c = {}
+    nalp_max = d['nalp_max']
+    ntime_max = d['ntime_max']
+
+    d_c['degalpha'] = d['degalpha'].ctypes.data_as(ctypes.POINTER(real8 * nalp_max))
+    d_c['idoysat'] = d['idoysat'].ctypes.data_as(ctypes.POINTER(int4 * ntime_max))
+    d_c['iyearsat'] = d['iyearsat'].ctypes.data_as(ctypes.POINTER(int4 * ntime_max))
+    d_c['utsat'] = d['utsat'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
+    d_c['xin1'] = d['xin1'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
+    d_c['xin2'] = d['xin2'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
+    d_c['xin3'] = d['xin3'].ctypes.data_as(ctypes.POINTER(real8 * ntime_max))
+    d_c['options'] = (int4 * 5)(*d['options'])
+    d_c['magin'] = d['magin'].ctypes.data_as(ctypes.POINTER((real8 * 25) * ntime_max))
+    d_c['kext'] = int4(d['kext'])
+    d_c['sysaxes'] = int4(d['sysaxes'])
+    d_c['nalpha'] = int4(d['nalpha'])
+
+    return d_c
+
+
+def _load_lib():
+    """Load the IRBEM shared library
+
+    Returns
+    -------
+    ctypes.CDLL
+        Opened shared library
+    """
+    libdir = os.path.dirname(os.path.abspath(__file__))
+    libnames = {
+        'win32': ['libirbem.dll.a', 'irbem.dll'],
+        'darwin':  ['libirbem.dylib', 'libirbem.so',
+                    'irbem.dylib', 'irbem.so'],
+        }.get(sys.platform, ['libirbem.so'])
+    ext = sysconfig.get_config_var('EXT_SUFFIX')
+    if ext is None:
+        ext = sysconfig.get_config_var('SO')
+    if ext:
+        libnames.append('libirbem' + ext)
+        libnames.append('irbem' + ext)
+    libpaths = [os.path.join(libdir, n) for n in libnames]
+    libpaths = [p for p in libpaths if os.path.exists(p)]
+    for p in libpaths:
+        try:
+            lib = ctypes.CDLL(p)
+            break
+        except OSError:
+            pass
+    else:
+        return None  # Fall through
+    # Various constants extracted from irbemlib source.
+    ntime_max = 100000
+    nene_max = 25
+    nalp_max = 25
+    imaxi = 71
+    jmaxi = 301
+    functions = {
+        'get_field1': (int4, int4 * 5, int4, int4, int4, real8,
+                       real8, real8, real8, real8 * 25, real8 * 3, real8),
+        'find_mirror_point1': (int4, int4 * 5, int4, int4, int4, real8, real8,
+                               real8, real8, real8, real8 * 25, real8, real8,
+                               real8 * 3),
+        'find_magequator1': (int4, int4 * 5, int4, int4, int4, real8, real8,
+                             real8, real8, real8 * 25, real8, real8 * 3),
+        'find_foot_point1': (int4, int4 * 5, int4, int4, int4, real8, real8,
+                             real8, real8, real8, int4, real8 * 25, real8 * 3,
+                             real8 * 3, real8),
+        'coord_trans1': (int4, int4, int4, int4, real8, real8 * 3, real8 * 3),
+        'fly_in_nasa_aeap1': (int4, int4, int4, int4, int4, (real8 * 2) * nene_max,
+                              int4 * ntime_max, int4 * ntime_max, real8 * ntime_max,
+                              real8 * ntime_max, real8 * ntime_max,
+                              real8 * ntime_max, (real8 * ntime_max) * nene_max),
+        'get_ae8_ap8_flux': (int4, int4, int4, int4, (real8 * 2) * nene_max,
+                             real8 * ntime_max, real8 * ntime_max,
+                             (real8 * ntime_max) * nene_max),
+        'shieldose2': (int4, int4, int4, int4, real8 * imaxi, real8, real8,
+                       real8, real8, int4, real8, real8, int4, int4, int4,
+                       int4, real8, real8, real8 * jmaxi, real8 * jmaxi,
+                       real8 * jmaxi, real8 * jmaxi, real8 * jmaxi,
+                       real8 * jmaxi, (real8 * 3) * imaxi, (real8 * 3) * imaxi,
+                       (real8 * 3) * imaxi, (real8 * 3) * imaxi, (real8 * 3) * imaxi),
+        'landi2lstar1': (int4, int4, int4 * 5, int4, int4 * ntime_max, int4 * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                         real8 * ntime_max, (real8 * 25) * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max),
+        'make_lstar1': (int4, int4, int4 * 5, int4, int4 * ntime_max, int4 * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                         real8 * ntime_max, (real8 * 25) * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                         real8 * ntime_max, real8 * ntime_max, real8 * ntime_max),
+        'landi2lstar_shell_splitting1': (int4, int4, int4, int4 * 5, int4,
+                        int4 * ntime_max, int4 * ntime_max, real8 * ntime_max,
+                        real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                        real8 * nalp_max, (real8 * 25) * ntime_max,
+                        (real8 * ntime_max) * nalp_max, (real8 * ntime_max) * nalp_max,
+                        (real8 * ntime_max) * nalp_max, real8 * ntime_max,
+                        (real8 * ntime_max) * nalp_max, real8 * ntime_max),
+        'make_lstar_shell_splitting1': (int4, int4, int4, int4 * 5, int4,
+                        int4 * ntime_max, int4 * ntime_max, real8 * ntime_max,
+                        real8 * ntime_max, real8 * ntime_max, real8 * ntime_max,
+                        real8 * nalp_max, (real8 * 25) * ntime_max,
+                        (real8 * ntime_max) * nalp_max, (real8 * ntime_max) * nalp_max,
+                        (real8 * ntime_max) * nalp_max, real8 * ntime_max,
+                        (real8 * ntime_max) * nalp_max, real8 * ntime_max),
+    }
+    for funcname in functions:
+        try:  # Default name mangling first
+            func = getattr(lib, f'{funcname}_')
+            setattr(lib, funcname, func)
+        except AttributeError:
+            func = getattr(lib, funcname)
+        args = functions[funcname]
+        func.restype = None
+        func.argtypes = [ctypes.POINTER(a) for a in args]
+    return lib
+
+
+irbemlib = _load_lib()
+"""IRBEM shared library"""
