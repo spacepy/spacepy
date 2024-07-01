@@ -5,7 +5,7 @@ pycdf - Python interface to CDF files
 ######################################
 
 .. automodule:: spacepy.pycdf
-    :no-index:
+    :noindex:
 
 Contents
 --------
