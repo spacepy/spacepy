@@ -376,7 +376,7 @@ Data
 ====
 
 .. attribute:: lib
-    :no-index:
+    :noindex:
 
     Module global :class:`Library` object.
 
