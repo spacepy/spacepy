@@ -49,7 +49,7 @@ PDFs := $(foreach dir, $(IMAGEDIRS), $(patsubst %.svg,%.pdf,$(wildcard $(SOURCED
 images: $(PDFs)
 
 clean:
-	-rm -rf $(BUILDDIR)/* source/autosummary/*.rst source/autosummary/autosummary/*.rst $(PDFs)
+	-rm -rf $(BUILDDIR)/* source/autosummary/*.rst source/autosummary/autosummary/*.rst source/_autosummary/*.rst $(PDFs)
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
