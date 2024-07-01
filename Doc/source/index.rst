@@ -67,8 +67,6 @@ validate the analysis and receive appropriate credit for his or her
 work.
 
 
-.. currentmodule:: spacepy
-
 Getting Started
 ===============
 
@@ -96,6 +94,19 @@ Further reference material on how to use SpacePy, and examples.
     configuration
     scripts
 
+User Documentation
+==================
+
+In-depth usage focused information for specific modules and tasks. See
+also :ref:`module_reference` for documentation of the API for each
+module.
+
+.. toctree::
+    :maxdepth: 1
+
+    pycdf
+
+
 Developer Guide
 ===============
 
@@ -118,10 +129,29 @@ SpacePy Module Reference
 
 Description of all functions within SpacePy, by module.
 
-.. toctree::
-    :maxdepth: 1
-    
-    api
+.. autosummary::
+    :toctree: autosummary
+
+    spacepy
+    ~spacepy.ae9ap9
+    ~spacepy.coordinates
+    ~spacepy.ctrans
+    ~spacepy.data_assimilation
+    ~spacepy.datamanager
+    ~spacepy.datamodel
+    ~spacepy.empiricals
+    ~spacepy.irbempy
+    ~spacepy.igrf
+    ~spacepy.LANLstar
+    ~spacepy.omni
+    ~spacepy.plot
+    ~spacepy.poppy
+    ~spacepy.pybats
+    ~spacepy.pycdf
+    ~spacepy.radbelt
+    ~spacepy.seapy
+    ~spacepy.time
+    ~spacepy.toolbox
 
 
 Indices and tables
