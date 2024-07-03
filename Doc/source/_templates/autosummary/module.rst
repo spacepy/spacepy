@@ -3,6 +3,20 @@
 
 .. automodule:: {{ fullname }}
 
+   {% block modules %}
+   {% if modules %}
+   .. rubric:: Submodules
+
+   .. autosummary::
+      :toctree:
+      :recursive:
+
+   {% for item in modules %}
+      {{ item.split('.')[-1] }}
+   {%- endfor %}
+   {% endif %}
+   {% endblock %}
+
    {% block functions %}
    {% if functions %}
    .. rubric:: Functions
