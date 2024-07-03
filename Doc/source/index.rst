@@ -105,6 +105,7 @@ module.
     :maxdepth: 1
 
     pycdf
+    pybats
 
 
 Developer Guide
