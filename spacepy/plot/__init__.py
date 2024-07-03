@@ -40,14 +40,6 @@ Copyright 2011-2016 Los Alamos National Security, LLC.
 Most of the functionality in the plot module is made available directly 
 through the *plot* namespace. However, the plot module does contain
 several submodules listed below
-
-.. autosummary::
-    :toctree: autosummary
-
-    carrington
-    spectrogram
-    utils
-
 """
 from collections.abc import Mapping
 import os

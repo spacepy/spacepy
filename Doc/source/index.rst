@@ -132,6 +132,7 @@ Description of all functions within SpacePy, by module.
 
 .. autosummary::
     :toctree: autosummary
+    :recursive:
 
     spacepy
     ~spacepy.ae9ap9
