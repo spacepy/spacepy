@@ -465,8 +465,12 @@ class build_ext(_build_ext):
         link_irbemlib = [fc, '-shared'] \
             + list(glob.glob('*.o')) \
             + ['-o', irbemname, '-fPIC']
-        if sys.platform == 'darwin' and 'SDKROOT' in os.environ:
-            link_irbemlib[2:2] = ["-isysroot", os.environ['SDKROOT']]
+        if sys.platform == 'darwin':
+            isarm = platform.uname()[4].startswith(('arm', 'aarch64'))
+            min_os_ver = 11.0 if isarm else 10.9
+            link_irbemlib.insert(2, f"-mmacosx-version-min={min_os_ver}")
+            if 'SDKROOT' in os.environ:
+                link_irbemlib[2:2] = ["-isysroot", os.environ['SDKROOT']]
         subprocess.check_call(link_irbemlib)
         if not os.path.exists(irbemname):
             if release_build:
