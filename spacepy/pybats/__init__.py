@@ -7,24 +7,6 @@ For more information on the SWMF, please visit the
 
 Copyright ©2010 Los Alamos National Security, LLC.
 
-.. rubric:: Submodules
-
-.. autosummary::
-    :toctree:   
-
-    bats
-    batsmath
-    dgcpm
-    dipole
-    gitm
-    interact
-    kyoto
-    pwom
-    qotree
-    ram
-    rim
-    trace2d
-
 
 '''
 

@@ -86,14 +86,6 @@ here) use a centered dipole axis.
     the centered dipole axis of date. The y-axis is perpendicular to
     to both the dipole axis and True North, i.e., y is the cross product of
     the z-axis of the GEO system with the dipole axis. The x-axis completes.
-
-
-.. rubric:: Submodules
-
-.. autosummary::
-    :toctree:   
-
-    iau80n
 """
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
