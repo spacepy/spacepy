@@ -162,8 +162,7 @@ If building from source, install the needed compilers::
   brew install gfortran
 
 Homebrew does not have most of the dependencies required for SpacePy
-(in particular their numpy does not include the required f2py) so
-leaving them to pip to install is recommended.
+so leaving them to pip to install is recommended.
 
 You can install SpacePy (which will grab dependencies as well)::
 

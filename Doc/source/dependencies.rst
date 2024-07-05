@@ -30,13 +30,7 @@ NumPy 1.15.1+
 -------------
 `NumPy <http://numpy.scipy.org/>`_ provides the
 high-performance array data structure used throughout SpacePy. Version
-1.15.1 or later is required.
-
-Required to install SpacePy. f2py is part of NumPy, but is sometimes
-packaged separately; it is required (at installation time) if
-:mod:`~spacepy.irbempy` is to be used.
-
-Due to a numpy bug, numpy 1.15.0 is not supported. Use 1.15.1 or later.
+1.15.1 or later is required. Due to a numpy bug, numpy 1.15.0 is not supported.
 
 On Python 3.9, numpy 1.18 or later is required.
 

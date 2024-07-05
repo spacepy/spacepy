@@ -149,7 +149,7 @@ jobs:
           - python-version: "3.12"
             os: ubuntu-22.04
             build-deps: "pip setuptools wheel cython meson-python ninja versioneer"
-            numpy-version: "<1.26.0"
+            numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
             cdf-version: "3.9.1"
@@ -249,7 +249,7 @@ jobs:
           - python-version: "3.12"
             os: ubuntu-22.04
             build-deps: "pip setuptools wheel cython"
-            numpy-version: "<1.26.0"
+            numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
             cflags: ""
             cdf-version: "3.9.1"
