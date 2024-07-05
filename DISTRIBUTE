@@ -172,6 +172,16 @@ docker run -i -t --rm -v `pwd`:/io quay.io/pypa/manylinux2014_x86_64 /bin/bash /
 
 Need to change owner of the wheels after they're copied out, in the future can try running docker with --user $(id -u):$(id -g) but then will need to work with write permissions for the pip installs inside the container.
 
+To build for ARM (Raspberry Pi):
+sudo aptitude install binfmt-support qemu-user-static
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+docker run -i -t --rm -v `pwd`:/io --platform linux/arm64 quay.io/pypa/manylinux2014_aarch64 /bin/bash /io/developer/scripts/manylinux_wheels.sh
+
+See:
+https://www.stereolabs.com/docs/docker/building-arm-container-on-x86
+https://stackoverflow.com/questions/70872114/x86-docker-image-on-arm
+https://github.com/pypa/manylinux/
+
 Fixing wheel metadata version
 -----------------------------
 

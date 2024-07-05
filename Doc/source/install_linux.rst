@@ -95,7 +95,7 @@ Raspberry Pi
 SpacePy works on Raspberry Pi, using Raspberry Pi OS in 32-bit or
 64-bit flavors. A few tips:
 
-   * No binary wheels are provided, so you will need to build from source.
+   * Binary wheels are provided for 64-bit only.
 
    * It is highly recommended to install all dependencies (numpy,
      etc.) via the system package manager ``apt-get`` rather than
