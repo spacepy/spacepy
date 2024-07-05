@@ -36,4 +36,5 @@ do
     auditwheel repair --plat manylinux2014_x86_64 dist/spacepy-*${PYVER}-linux_x86_64.whl
     PATH=${OLDPATH}
 done
+mkdir -p /io/dist/
 cp -a wheelhouse/spacepy-*manylinux_2_17_x86_64.manylinux2014_x86_64.whl /io/dist/
