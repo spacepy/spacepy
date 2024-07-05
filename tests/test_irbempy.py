@@ -520,7 +520,7 @@ class IRBEMShieldoseTests(spacepy_testing.TestPlot):
         """Check string representation"""
         self.sd_default.set_shielding(depths=self.depths_mil, units='Mil')
         res = str(self.sd_default)
-        expected = """spacepy.irbempy.irbempy.Shieldose2
+        expected = """spacepy.irbempy.Shieldose2
 |____settings
      |____calc_flag (bool)
      |____depths (spacepy.datamodel.dmarray (30,))
@@ -538,7 +538,7 @@ class IRBEMShieldoseTests(spacepy_testing.TestPlot):
         self.assertEqual(expected, res)
         self.sd_default.get_dose()
         res = str(self.sd_default)
-        expected = """spacepy.irbempy.irbempy.Shieldose2
+        expected = """spacepy.irbempy.Shieldose2
 |____settings
      |____calc_flag (bool)
      |____depths (spacepy.datamodel.dmarray (30,))
