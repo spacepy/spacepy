@@ -4,11 +4,7 @@
 #wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
 #bash ./Miniconda3-latest-MacOSX-arm64.sh -b -p ~/opt/miniconda
 VERSIONS=(
-    "3.8"
-    "3.9"
     "3.10"
-    "3.11"
-    "3.12"
 )
 for PYVER in "${VERSIONS[@]}"
 do
