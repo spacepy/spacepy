@@ -100,7 +100,7 @@ This is recommended if dependencies are managed by the OS or manually.
 If installing into the system Python version on Linux (and potentially
 some other cases), you will need to pass the flag
 :option:`--break-system-packages`. Despite the frightening name this is
-usually safe, although in this case is recommended to use
+usually safe, although in this case it is recommended to use
 :option:`--no-build-isolation` :option:`--no-deps` and manage the
 dependencies using the system package manager or conda.
 
@@ -125,14 +125,21 @@ release from `PyPI <https://pypi.org/project/SpacePy/#files>`__
 
 Following the instructions above will compile before the installation,
 if installing from source or a binary installer is not available. If
-this fails, specify a Fortran compiler::
+this fails, specify the name of, or full path to, the Fortran compiler
+with the ``FC`` environment variable, e.g.::
 
-    pip install . --config-setting="--build-option=--fcompiler=gnu95"
+    FC=/usr/local/bin/gfortran pip install .
+    FC=arm64-apple-darwin20.0.0-gfortran pip install .
 
-The supported compiler is ``gnu95`` (the GNU gfortran compiler); ``none``
-can be specified as a "compiler" to skip all Fortran.
+The supported compiler is the current GNU gfortran compiler, also
+called ``gnu95``.
 
-    pip install . --config-setting="--build-option=--fcompiler=gnu95"
+If defined, the ``LDFLAGS`` environment variable is also honored when
+linking irbem. The contents must be valid ``gfortran`` flags.
+
+If irbem compilation fails, SpacePy will install without `irbempy`
+support. This can be forced by e.g. setting ``FC`` to
+``/usr/bin/false``.
 
 
 Troubleshooting
