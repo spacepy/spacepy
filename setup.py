@@ -54,14 +54,6 @@ except ImportError:
 import setuptools.extension
 
 import distutils.sysconfig
-# setuptools goes back and forth on having setuptools.errors
-try:
-    from setuptools.errors import OptionError
-except ImportError:
-    from distutils.errors import DistutilsOptionError as OptionError
-import importlib.machinery
-
-import numpy
 
 
 # building official release, fail fast instead of accepting "partly works"
@@ -97,128 +89,15 @@ def subst(pattern, replacement, filestr,
     return filestr
 
 
-def default_f2py():
-    """Looks for f2py based on name of python executable
-    Assumes any suffix to python should also apply to f2py.
-    This picks up .exe, version numbers, etc.
-    """
-    interpdir, interp = os.path.split(sys.executable)
-    if interp[0:6] == 'python':
-        suffixes = [interp[6:], '-' + interp[6:]]
-        if '.' in interp[6:]: #try slicing off suffix-of-suffix (e.g., exe)
-            suffix = interp[6:-(interp[::-1].index('.') + 1)]
-            suffixes.extend([suffix, '-' + suffix])
-        vers = "{0.major:01d}.{0.minor:01d}".format(sys.version_info)
-        suffixes.extend([vers, '-'+vers])
-        f2py_names = ['f2py{}{}'.format(s, ext)
-                      for s in suffixes for ext in ('', '.py')]
-        candidates = []
-        for n in f2py_names:
-            candidates.extend([
-                n for d in os.environ['PATH'].split(os.pathsep)
-                if os.path.isfile(os.path.join(d, n))])
-            if os.path.isfile(os.path.join(interpdir, n)):
-                candidates.append(os.path.join(interpdir, n))  # need full path
-        for c in candidates:
-            # If not executable on Windows, the current interpreter is used
-            if sys.platform == 'win32' and not is_win_exec(c):
-                return c
-            # If f2py isn't using the same numpy as the interpreter,
-            # probably found the wrong f2py
-            p = subprocess.Popen([c], stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            output, errors = p.communicate()
-            np_vers = [l.split()[2] for l in output.split(b'\n')
-                       if l.startswith(b'numpy Version: ')]
-            if len(np_vers) == 1\
-               and np_vers[0] == numpy.__version__.encode('ascii'):
-                return c
-    return 'f2py.py' if sys.platform == 'win32' else 'f2py'
-
-
-def f2py_options():
-    """Get an OS environment for f2py, and find name of Fortan compiler
-
-    The OS environment puts in the shared options if LDFLAGS is set
-    """
-    env = None
-    # Only used on OSX
-    isarm = platform.uname()[4].startswith('arm')
-    stack_protector = 'no-stack-protector' if isarm else 'stack-protector'
-    # what numpy uses (M1 is 8.5-a; nocona is first Intel x86-64)
-    arch = 'armv8.3-a' if isarm else 'nocona'
-    fcompexec = {
-        'darwin': [
-                'gfortran', '-Wall', '-g', '-ffixed-form', '-fno-second-underscore',
-                f'-march={arch}', '-ftree-vectorize', '-fPIC',
-                f'-f{stack_protector}', '-pipe', '-O3', '-funroll-loops'
-        ],
-        'linux': [
-                'gfortran', '-Wall', '-g', '-ffixed-form', '-fno-second-underscore',
-                '-fPIC', '-O3', '-funroll-loops'
-        ],
-        'win32': [
-                'gfortran.exe', '-Wall', '-g', '-ffixed-form', '-fno-second-underscore',
-                '-fPIC', '-O3', '-funroll-loops'
-        ],
-    }[sys.platform]
-    if 'LDFLAGS' in os.environ \
-       or sys.platform == 'darwin' and 'SDKROOT' in os.environ:
-        env = os.environ.copy()
-    else:
-        return (None, fcompexec)
-    if sys.platform == 'darwin' and 'SDKROOT' in env:
-        if 'LDFLAGS' in env:
-            env['LDFLAGS'] = '{} -isysroot {}'.format(
-                env['LDFLAGS'], env['SDKROOT'])
-        else:
-            env['LDFLAGS'] = '-isysroot {}'.format(env['SDKROOT'])
-    if 'LDFLAGS' in env:
-        currflags = env['LDFLAGS'].split()
-        fcompflags = {
-            'darwin': ['-m64', '-Wall', '-g', '-undefined', 'dynamic_lookup',
-                       '-bundle'],
-            'linux': ['-Wall', '-g', '-shared'],
-            'win32': ['-Wall', '-g', '-shared'],
-        }[sys.platform]
-        if sys.platform == 'darwin' and platform.uname()[4].startswith('arm'):
-            # numpy distutils also does rpathing; hopefully not necessary!
-            fcompflags.extend(['-Wl,-pie', '-Wl,-headerpad_max_install_names',
-                               '-Wl,-dead_strip_dylibs'])
-        it = iter(range(len(fcompflags)))
-        for i in it:
-            if i == len(fcompflags) - 1 or fcompflags[i + 1].startswith('-'):
-                #a simple flag
-                if not fcompflags[i] in currflags:
-                    currflags.append(fcompflags[i])
-                continue
-            #Flag that takes an option, consume the option (and maybe add)
-            next(it)
-            idx = 0
-            while fcompflags[i] in currflags[idx:]:
-                idx = currflags.index(fcompflags[i], idx)
-                if idx < len(currflags) + 1 and \
-                   currflags[idx + 1] == fcompflags[i + 1]:
-                    break
-            else:
-                #Was NOT found, so add it
-                currflags.append(fcompflags[i])
-                currflags.append(fcompflags[i + 1])
-        env['LDFLAGS'] = ' '.join(currflags)
-    return (env, fcompexec)
-
-
 def initialize_compiler_options(cmd):
     """Initialize the compiler options for a command"""
-    cmd.fcompiler = None
-    cmd.f2py = None
     cmd.compiler = None
 
 
 def finalize_compiler_options(cmd):
     """Finalize compiler options for a command
 
-    If compiler options (fcompiler, compiler, f2py) have not been
+    If compiler options (compiler) have not been
     specified for a command, check if they were specified for other
     commands on the command line--if so, grab from there. If not,
     set reasonable defaults.
@@ -226,9 +105,7 @@ def finalize_compiler_options(cmd):
     cmd: the command to finalize the options for
     """
     dist = cmd.distribution
-    defaults = {'fcompiler': 'gnu95',
-                'f2py': default_f2py(),
-                'compiler': None,
+    defaults = {'compiler': None,
                 }
     #Check all options on all other commands, reverting to default
     #as necessary
@@ -244,98 +121,12 @@ def finalize_compiler_options(cmd):
             if getattr(cmd, option) == None:
                 setattr(cmd, option, defaults[option])
     #Special-case defaults, checks
-    if not cmd.fcompiler in ('gnu95', 'none', 'None'):
-        raise OptionError(
-            '--fcompiler={0} unknown'.format(cmd.fcompiler) +
-            ', options: gnu95, None')
     if cmd.compiler == None and sys.platform == 'win32':
         cmd.compiler = 'mingw32'
-    #Add interpreter to f2py if it needs it (usually on Windows)
-    #If it's a list, it's already been patched up
-    if isinstance(cmd.f2py, list):
-        return
-    if sys.platform == 'win32' and isinstance(cmd.f2py, str) \
-       and not is_win_exec(cmd.f2py):
-        f2py = cmd.f2py
-        if not os.path.isfile(f2py): #Not a file, and didn't exec
-            f2pydir = next((d for d in os.environ['PATH'].split(os.pathsep)
-                            if os.path.isfile(os.path.join(d, f2py))), None)
-            if f2pydir: #Found the file, try it
-                f2py = os.path.join(f2pydir, f2py)
-                if not is_win_exec(f2py): #Try the interpreter
-                    if is_win_exec(sys.executable, f2py):
-                        cmd.f2py = [sys.executable, f2py]
-                    else: #Nothing to be done
-                        raise RuntimeError(
-                            'f2py {0} found but not executable'.format(
-                                cmd.f2py))
-                else: #Found and executable (unlikely, since would have worked)
-                    cmd.f2py = [f2py]
-            else: #Couldn't find the file, just try the interpreter
-                if is_win_exec(sys.executable, f2py):
-                    cmd.f2py = [sys.executable, f2py]
-                else: #Nothing to be done
-                    raise RuntimeError(
-                        'f2py {0} not found and not executable'.format(
-                            cmd.f2py))
-        else: #Not executable, but IS a file
-            if is_win_exec(sys.executable, f2py):
-                cmd.f2py = [sys.executable, f2py]
-            else: #Nothing to be done
-                raise RuntimeError(
-                    'f2py {0} exists but not executable'.format(
-                        cmd.f2py))
-    else:
-        cmd.f2py = [cmd.f2py]
-
-
-def is_win_exec(*args):
-    """Test if a file spec is an executable
-
-    This is really only useful on Windows
-
-    :param list args: arguments to call
-    :returns: True if the arguments can be called with subprocess
-    :rtype: bool
-    """
-    try:
-        p = subprocess.Popen(args, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-    except WindowsError:
-        return False
-    else:
-        output, errors = p.communicate()
-        return not(p.returncode)
-
-
-compiler_options = [
-        ('fcompiler=', None,
-         'specify the fortran compiler to use: gnu95, none [gnu95]'),
-        ('f2py=', None,
-         'specify name (or full path) of f2py executable [{0}]'.format(
-        default_f2py())),
-        ]
-
-
-#Possible names of the irbem output library. Unfortunately this seems
-#to depend on Python version, f2py version, and phase of the moon
-def get_irbem_libfiles():
-    cvars = sysconfig.get_config_vars('SO', 'EXT_SUFFIX')
-    libfiles = ['irbempylib' + ext for ext in cvars if ext is not None]
-    if len(libfiles) < 2: #did we get just the ABI-versioned one?
-        abi = sysconfig.get_config_var('SOABI')
-        if abi and libfiles[0].startswith('irbempylib.' + abi):
-            libfiles.append('irbempylib' +
-                            libfiles[0][(len('irbempylib.') + len(abi)):])
-    if len(libfiles) == 2 and libfiles[0] == libfiles[1]:
-        del libfiles[0]
-    return libfiles
 
 
 class build(_build):
-    """Support Fortran compiler options on build"""
-
-    user_options = _build.user_options + compiler_options
+    """Support compiler options on build"""
 
     def initialize_options(self):
         _build.initialize_options(self)
@@ -348,8 +139,6 @@ class build(_build):
 
 class build_ext(_build_ext):
     """Extends base distutils build_ext to make libspacepy, irbem"""
-
-    user_options = _build_ext.user_options + compiler_options
 
     def initialize_options(self):
         _build_ext.initialize_options(self)
@@ -364,11 +153,6 @@ class build_ext(_build_ext):
 
         Returns path to compiled shared library if successful.
         """
-        if self.fcompiler in ['none', 'None']:
-            warnings.warn(
-                'Fortran compiler specified was "none."\n'
-                'IRBEM will not be available.')
-            return None
         # 64 bit or 32 bit?
         bit = len('%x' % sys.maxsize)*4
         irbemdir = 'irbem-lib-20220829-dfb9d26'
@@ -407,24 +191,23 @@ class build_ext(_build_ext):
             os.path.join(builddir, 'source', 'wrappers_{0}.inc'.format(bit)),
             os.path.join(builddir, 'source', 'wrappers.inc'.format(bit)))
 
-        f2py_env, fcompexec = f2py_options()
-
         # compile irbemlib
         olddir = os.getcwd()
         os.chdir(builddir)
         print('Building irbem library...')
         # compile (platform dependent)
         os.chdir('source')
-        comppath = 'gfortran'
         compflags = ['-w', '-O2', '-fPIC', '-ffixed-line-length-none',
                      '-std=legacy']
         if not sys.platform.startswith('win') \
            and not platform.uname()[4].startswith(('arm', 'aarch64')):
             # Raspberry Pi doesn't have or need this switch
             compflags = ['-m{0}'.format(bit)] + compflags
-        comp_candidates = [comppath]
-        if fcompexec is not None:
-            comp_candidates.insert(0, fcompexec[0])
+        comp_candidates = ['gfortran']
+        if sys.platform == 'win32':
+            comp_candidates.insert(0, 'gfortran.exe')
+        if 'FC' in os.environ:
+            comp_candidates.insert(0, os.environ['FC'])
         for fc in comp_candidates:
             retval = subprocess.call([fc, '-c'] + compflags
                                      + list(glob.glob('*.f')))
@@ -435,20 +218,26 @@ class build_ext(_build_ext):
         else:
             if release_build:
                 raise RuntimeError('irbemlib compile failed.')
-            warnings.warn('irbemlib compile failed. '
-                          'Try a different Fortran compiler? (--fcompiler)')
+            warnings.warn('irbemlib compile failed.')
             os.chdir(olddir)
             return None
         # fc is known-good compiler, link shared object
-        link_irbemlib = [fc, '-shared'] \
+        ldflags = os.environ.get('LDFLAGS', '').split()
+        if '-shared' not in ldflags:
+            ldflags.insert(0, '-shared')
+        if '-fPIC' in ldflags:
+            del ldflags[ldflags.index('-fPIC')]
+        if sys.platform == 'darwin':
+            if not any([flag.startswith(f'-mmacosx-version-min') for flag in ldflags]):
+                isarm = platform.uname()[4].startswith(('arm', 'aarch64'))
+                min_os_ver = 11.0 if isarm else 10.9
+                ldflags.insert(1, f"-mmacosx-version-min={min_os_ver}")
+            if 'SDKROOT' in os.environ and '-isysroot' not in ldflags:
+                ldflags.insert(1, '-isysroot')
+                ldflags.insert(2, os.environ['SDKROOT'])
+        link_irbemlib = [fc] + ldflags \
             + list(glob.glob('*.o')) \
             + ['-o', irbemname, '-fPIC']
-        if sys.platform == 'darwin':
-            isarm = platform.uname()[4].startswith(('arm', 'aarch64'))
-            min_os_ver = 11.0 if isarm else 10.9
-            link_irbemlib.insert(2, f"-mmacosx-version-min={min_os_ver}")
-            if 'SDKROOT' in os.environ:
-                link_irbemlib[2:2] = ["-isysroot", os.environ['SDKROOT']]
         subprocess.check_call(link_irbemlib)
         if not os.path.exists(irbemname):
             if release_build:
@@ -549,9 +338,9 @@ class build_ext(_build_ext):
 
 
 class install(_install):
-    """Support Fortran compiler options on install"""
+    """Support compiler options on install"""
 
-    user_options = _install.user_options + compiler_options
+    user_options = _install.user_options
 
     def initialize_options(self):
         initialize_compiler_options(self)
@@ -697,9 +486,7 @@ def copy_linux_libs(outdir):
 
 
 class bdist_wheel(_bdist_wheel):
-    """Handle Fortran compiler options for wheel build"""
-
-    user_options = _bdist_wheel.user_options + compiler_options
+    """Handle compiler options for wheel build"""
 
     def initialize_options(self):
         initialize_compiler_options(self)
@@ -712,9 +499,7 @@ class bdist_wheel(_bdist_wheel):
 
 if has_editable_wheel:
     class editable_wheel(_editable_wheel):
-        """Handle Fortran compiler options for editable wheel build"""
-
-        user_options = _editable_wheel.user_options + compiler_options
+        """Handle compiler options for editable wheel build"""
 
         def initialize_options(self):
             initialize_compiler_options(self)
@@ -727,9 +512,7 @@ if has_editable_wheel:
 
 if has_develop:
     class develop(_develop):
-        """Make sure old-style editable install has Fortran compiler options"""
-
-        user_options = _develop.user_options + compiler_options
+        """Make sure old-style editable install has compiler options"""
 
         def initialize_options(self):
             initialize_compiler_options(self)
