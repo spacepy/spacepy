@@ -104,4 +104,3 @@ SpacePy works on Raspberry Pi, using Raspberry Pi OS in 32-bit or
 
       sudo apt-get install gfortran python3-numpy python3-dateutil python3-scipy python3-h5py python3-matplotlib
 
-   * Similarly, use the ``--no-build-isolation`` flag to use the system numpy.

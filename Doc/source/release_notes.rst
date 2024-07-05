@@ -19,6 +19,11 @@ New features
 
 Dependency requirements
 ***********************
+Numpy and f2py are no longer required to build SpacePy. This change
+will not be noticable to most users, but it does mean binary wheels
+are compatible regardless of numpy version. Numpy is still required to
+run SpacePy.
+
 Sphinx 4.0 is now required to build the documentation; this is not
 a concern for most users.
 
@@ -26,6 +31,10 @@ Deprecations and removals
 *************************
 `~spacepy.toolbox.timeout_check_call` is deprecated as redundant to using
 `subprocess.check_call` with the ``timeout`` argument.
+
+The ``spacepy.irbempy.irbempylib`` module has been removed. This was
+the old internal interface to the IRBEM library and was not intended
+for public use.
 
 0.6 Series
 ==========

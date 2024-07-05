@@ -151,10 +151,8 @@ pip failures
 ------------
 If ``pip`` completely fails to build, a common issue is a failure in
 the isolated build environment that ``pip`` sets up. Usually this can
-be addressed by installing numpy first and eschewing the separate
-build environment::
+be addressed by eschewing the separate build environment::
 
-  pip install numpy
   pip install spacepy --no-build-isolation
 
 Another option is manually installing all dependencies (via ``pip``,
@@ -185,19 +183,8 @@ library. Unfortunately ``pip`` will hide these warnings, so they
 manifest when running ``import spacepy.irbempy`` (or some other
 component of SpacePy that uses irbempy).
 
-The error ``ImportError: cannot import name 'irbempylib' from
-partially initialized module 'spacepy.irbempy' (most likely due to a
-circular import)`` means the IRBEM library did not compile at
+The error ``RuntimeError: cannot load IRBEM library; irbempy is not
+available.`` means the IRBEM library did not compile at
 all. This is most likely a compiler issue: either there is no Fortran
 compiler, or, when using conda on :doc:`Mac <install_mac>`, the correct
-SDK version has not been installed. This may also result from
-:ref:`pip caching <install_pip_failures>`.
-
-The error ``RuntimeError: module compiled against API version 0x10 but
-this version of numpy is 0xe`` followed by ``ImportError:
-numpy.core.multiarray failed to import`` means that the version of
-numpy used at installation of SpacePy does not match that used at
-runtime. Check that there is only one version of numpy installed. In
-some cases ``pip`` will install another version of numpy to support
-the build; try installing numpy separately first, and then using the
-``--no-build-isolation`` flag to ``pip``.
+SDK version has not been installed.

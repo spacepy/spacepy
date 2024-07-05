@@ -39,48 +39,12 @@ CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%1
 IF "%ACTION%"=="BUILD" (
     :: Get the compiler
     CALL conda install -y m2w64-gcc-fortran libpython
-    set NUMPY="numpy"
-    :: Build with the minimum version for each Python version
-    IF "%1"=="312" (
-        set NUMPY="numpy~=1.24.0"
-    )
-    IF "%1"=="311" (
-        set NUMPY="numpy~=1.22.0"
-    )
-    IF "%1"=="310" (
-        set NUMPY="numpy~=1.21.0"
-    )
-    IF "%1"=="39" (
-    :: 1.18 works on 3.9, but there's no Windows binary wheel.
-    :: 1.19.4 has Win10 2004 bug on 64-bit, but
-    :: we'll avoid it on 32-bit as well, no point getting picky...
-        set NUMPY="numpy~=1.19.5"
-    )
-    IF "%1"=="38" (
-        set NUMPY="numpy~=1.17.0"
-    )
-    IF "%1"=="37" (
-        set NUMPY="numpy~=1.15.1"
-    )
-    IF "%1"=="36" (
-        set NUMPY="numpy~=1.15.1"
-    )
     IF "%1"=="36" (
         :: conda doesn't have build for py3.6
         CALL pip install build
 	CALL conda install -y wheel
     ) ELSE (
         CALL conda install -y python-build wheel
-    )
-    IF "%1"=="312" (
-        :: Need to manually install MSVC from
-        :: https://visualstudio.microsoft.com/visual-cpp-build-tools/
-        CALL conda install -y "cython<3.0"
-        CALL pip install --no-build-isolation --no-deps !NUMPY!
-        :: Should manually uninstall MSVC after this
-        CALL conda uninstall -y cython
-    ) ELSE (
-        CALL conda install -y !NUMPY!
     )
 ) ELSE (
     :: Testing. Get the latest of everything

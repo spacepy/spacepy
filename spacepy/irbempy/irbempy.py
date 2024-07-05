@@ -2393,7 +2393,8 @@ def _load_lib():
         except OSError:
             pass
     else:
-        return None  # Fall through
+        raise RuntimeError(
+            'Cannot load IRBEM library; irbempy is not available.')
     # Various constants extracted from irbemlib source.
     ntime_max = 100000
     nene_max = 25

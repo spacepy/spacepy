@@ -4,28 +4,25 @@
 #wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
 #bash ./Miniconda3-latest-MacOSX-arm64.sh -b -p ~/opt/miniconda
 VERSIONS=(
-    "3.8|numpy~=1.19.0"
-    "3.9|numpy~=1.21.0"
-    "3.10|numpy~=1.21.0"
-    "3.11|numpy~=1.22.0"
-    "3.12|numpy~=1.24.0"
+    "3.8"
+    "3.9"
+    "3.10"
+    "3.11"
+    "3.12"
 )
-for thisBuild in "${VERSIONS[@]}"
+for PYVER in "${VERSIONS[@]}"
 do
-    IFS='|' read -r PYVER NUMPY <<< "$thisBuild"
     ENVNAME=spacepy${PYVER//.}
     ~/opt/miniconda/bin/conda create -y -n ${ENVNAME} python=${PYVER}
     source ~/opt/miniconda/bin/activate ${ENVNAME}
     if [ ${PYVER} = "3.9" ]; then
-	conda install -y python-build wheel gfortran~=11.2.0 "cython<3"
-	SDKROOT=/opt/MacOSX11.0.sdk pip install --no-build-isolation ${NUMPY}
+	conda install -y python-build wheel gfortran~=11.2.0
 	BUILD=python-build
     elif [ ${PYVER} = "3.12" ]; then
-	conda install -y python-build wheel gfortran~=11.2.0 "cython<3"
-	SDKROOT=/opt/MacOSX11.0.sdk pip install --no-build-isolation ${NUMPY}
+	conda install -y python-build wheel gfortran~=11.2.0
 	BUILD=python-build
     else
-	conda install -y python-build wheel ${NUMPY} gfortran~=11.2.0
+	conda install -y python-build wheel gfortran~=11.2.0
 	BUILD=python-build
     fi
     rm -rf build

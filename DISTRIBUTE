@@ -39,8 +39,7 @@ Make a clean isolated environment just for SpacePy build:
 ~/miniconda/bin/conda create -y -n spacepy_build python=3
 source ~/miniconda/bin/activate spacepy_build
 conda install -y pip python-build wheel
-conda install -y numpy
-conda install -y scipy matplotlib h5py astropy sphinx numpydoc
+conda install -y numpy scipy matplotlib h5py astropy sphinx numpydoc
 
 (Use "conda deactivate" when done, but not done yet...))
 
@@ -114,7 +113,7 @@ and that confuses f2py.
 
 Set up conda environments for the build by running
 "win_build_system_setup.cmd build". This will make conda environments
-and install the earliest supported version of numpy in each. Then run
+for each version of Python. Then run
 build_win.cmd to make Windows binaries and wheels, and
 win_build_system_teardown.cmd to remove those environment (and
 miniconda). Windows binaries and wheels will be in the "dist"
@@ -190,37 +189,6 @@ General notes on binaries
 It looks like the wheels are compatible across Windows versions,
 i.e. a wheel built on Windows 10 seems to install okay in Windows 7,
 which is great.
-
-Using the oldest supported numpy for the build is used for ABI
-compatibility for the f2py-built extensions (irbem mostly). See
-https://github.com/numpy/numpy/issues/5888. It looks like there isn't
-a way to specify the ABI version in f2py so the only answer is to
-compile with an old-enough numpy. In particular there's a note "SciPy
-pins its build system to the oldest numpy it wishes to support".
-
-ABI is in numpy/core/setup_common.py and there's no history, so going
-through the git tags for each numpy release gives:
-
-1.4 through current main : 0x01000009
-
-It looks like ABI version is a complete break: if it changes, old
-modules will no longer work. However, the API version is backward
-compatible: any version with a particular API version can be used on
-anything with the same API version (even older numpy versions) or
-newer, provided ABI version is the same. There's a list in
-numpyconfig.h but it disagrees with the history given in
-setup_common.py; they are probably used for slightly different
-purposes. History going through commits of setup_common.py is:
-
-1.10.0, 1.11.0, 1.12.0: 0x0000000a
-1.13.0: 0x0000000b
-1.14.0, 1.15.0: 0x0000000c
-1.16.0, 1.17.0, 1.18.0, 1.19.0: 0x0000000d
-1.20.0, 1.21.0: 0x0000000e
-
-The list in the latest setup_common.py is incomplete (it seems to
-imply that gaps are filled with the same value.)
-
 
 Docs
 ----
