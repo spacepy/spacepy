@@ -45,6 +45,9 @@ dependencies = [
   "python_dateutil>=2.5",
 ]
 
+[tool.distutils.bdist_wheel]
+py-limited-api = "cp36"
+
 [tool.setuptools]
 packages = ["spacepy", "spacepy.irbempy", "spacepy.pycdf",
   "spacepy.plot", "spacepy.pybats", "spacepy.toolbox", "spacepy.ctrans",

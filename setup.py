@@ -594,6 +594,7 @@ setup_kwargs = {
                  'bdist_wheel': bdist_wheel,
           },
     'zip_safe': False,
+    'options': {'bdist_wheel': {'py_limited_api': 'cp36'}},
 }
 
 if has_editable_wheel:

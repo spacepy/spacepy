@@ -12,13 +12,7 @@ cp -a src/lib/libcdf.so /tmp/spacepy/libcdf.so
 cd /tmp/spacepy
 
 VERSIONS=(
-    "cp36-cp36m"
-    "cp37-cp37m"
-    "cp38-cp38"
-    "cp39-cp39"
     "cp310-cp310"
-    "cp311-cp311"
-    "cp312-cp312"
 )
 for PYVER in "${VERSIONS[@]}"
 do
@@ -33,7 +27,7 @@ do
     rm -rf build
     SPACEPY_RELEASE=1 pyproject-build -w -n -x .
     pip install auditwheel
-    auditwheel repair --plat manylinux2014_x86_64 dist/spacepy-*${PYVER}-linux_x86_64.whl
+    auditwheel repair --plat manylinux2014_x86_64 dist/spacepy-*-cp36-abi3-linux_x86_64.whl
     PATH=${OLDPATH}
 done
 mkdir -p /io/dist/

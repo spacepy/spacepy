@@ -20,9 +20,9 @@ New features
 Dependency requirements
 ***********************
 Numpy and f2py are no longer required to build SpacePy. This change
-will not be noticable to most users, but it does mean binary wheels
-are compatible regardless of numpy version. Numpy is still required to
-run SpacePy.
+will not be noticable to most users. Binary wheels are no longer tied
+to numpy or Python version. SpacePy will now build on numpy 1.26 and
+later on Python 3.12. Numpy is still required to run SpacePy.
 
 Sphinx 4.0 is now required to build the documentation; this is not
 a concern for most users.

@@ -7,7 +7,7 @@ SETLOCAL EnableDelayedExpansion
 set PYTHONPATH=
 set PATH=
 
-FOR %%P in (36 37 38 39 310 311 312) DO CALL :build %%P
+FOR %%P in (310) DO CALL :build %%P
 
 GOTO :EOF
 
