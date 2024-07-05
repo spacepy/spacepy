@@ -136,7 +136,7 @@ def default_f2py():
     return 'f2py.py' if sys.platform == 'win32' else 'f2py'
 
 
-def f2py_options(fcompiler):
+def f2py_options():
     """Get an OS environment for f2py, and find name of Fortan compiler
 
     The OS environment puts in the shared options if LDFLAGS is set
@@ -147,36 +147,26 @@ def f2py_options(fcompiler):
     stack_protector = 'no-stack-protector' if isarm else 'stack-protector'
     # what numpy uses (M1 is 8.5-a; nocona is first Intel x86-64)
     arch = 'armv8.3-a' if isarm else 'nocona'
-    executables = {
-        'darwin': {
-            # NOTE: -isystem is used on M2 Mac, check if works without
-            'compiler_f77': [
+    fcompexec = {
+        'darwin': [
                 'gfortran', '-Wall', '-g', '-ffixed-form', '-fno-second-underscore',
                 f'-march={arch}', '-ftree-vectorize', '-fPIC',
-                f'-f{stack_protector}', '-pipe', '-O3', '-funroll-loops'],
-            'archiver': ['ar', '-cr'],
-            'ranlib': ['ranlib'],
-        },
-        'linux': {
-            'compiler_f77': [
+                f'-f{stack_protector}', '-pipe', '-O3', '-funroll-loops'
+        ],
+        'linux': [
                 'gfortran', '-Wall', '-g', '-ffixed-form', '-fno-second-underscore',
-                '-fPIC', '-O3', '-funroll-loops'],
-            'archiver': ['ar', '-cr'],
-            'ranlib': ['ranlib'],
-        },
-        'win32': {
-            'compiler_f77': [
+                '-fPIC', '-O3', '-funroll-loops'
+        ],
+        'win32': [
                 'gfortran.exe', '-Wall', '-g', '-ffixed-form', '-fno-second-underscore',
-                '-fPIC', '-O3', '-funroll-loops'],
-            'archiver': ['ar.exe', '-cr'],
-            'ranlib': ['ranlib.exe'],
-        },
-        }[sys.platform]
+                '-fPIC', '-O3', '-funroll-loops'
+        ],
+    }[sys.platform]
     if 'LDFLAGS' in os.environ \
        or sys.platform == 'darwin' and 'SDKROOT' in os.environ:
         env = os.environ.copy()
     else:
-        return (None, executables)
+        return (None, fcompexec)
     if sys.platform == 'darwin' and 'SDKROOT' in env:
         if 'LDFLAGS' in env:
             env['LDFLAGS'] = '{} -isysroot {}'.format(
@@ -215,7 +205,7 @@ def f2py_options(fcompiler):
                 currflags.append(fcompflags[i])
                 currflags.append(fcompflags[i + 1])
         env['LDFLAGS'] = ' '.join(currflags)
-    return (env, executables)
+    return (env, fcompexec)
 
 
 def initialize_compiler_options(cmd):
@@ -223,8 +213,6 @@ def initialize_compiler_options(cmd):
     cmd.fcompiler = None
     cmd.f2py = None
     cmd.compiler = None
-    cmd.f77exec = None
-    cmd.f90exec = None
 
 
 def finalize_compiler_options(cmd):
@@ -241,8 +229,7 @@ def finalize_compiler_options(cmd):
     defaults = {'fcompiler': 'gnu95',
                 'f2py': default_f2py(),
                 'compiler': None,
-                'f77exec': None,
-                'f90exec': None,}
+                }
     #Check all options on all other commands, reverting to default
     #as necessary
     for option in defaults:
@@ -327,10 +314,6 @@ compiler_options = [
         ('f2py=', None,
          'specify name (or full path) of f2py executable [{0}]'.format(
         default_f2py())),
-        ('f77exec=', None,
-         'specify the path to the F77 compiler'),
-        ('f90exec=', None,
-         'specify the path to the F90 compiler'),
         ]
 
 
@@ -381,8 +364,7 @@ class build_ext(_build_ext):
 
         Returns path to compiled shared library if successful.
         """
-        fcompiler = self.fcompiler
-        if fcompiler in ['none', 'None']:
+        if self.fcompiler in ['none', 'None']:
             warnings.warn(
                 'Fortran compiler specified was "none."\n'
                 'IRBEM will not be available.')
@@ -425,7 +407,7 @@ class build_ext(_build_ext):
             os.path.join(builddir, 'source', 'wrappers_{0}.inc'.format(bit)),
             os.path.join(builddir, 'source', 'wrappers.inc'.format(bit)))
 
-        f2py_env, fcompexec = f2py_options(fcompiler)
+        f2py_env, fcompexec = f2py_options()
 
         # compile irbemlib
         olddir = os.getcwd()
@@ -433,20 +415,16 @@ class build_ext(_build_ext):
         print('Building irbem library...')
         # compile (platform dependent)
         os.chdir('source')
-        comppath = {
-            'gnu95': 'gfortran',
-            }[fcompiler]
-        compflags = {
-            'gnu95': ['-w', '-O2', '-fPIC', '-ffixed-line-length-none',
-                      '-std=legacy'],
-            }[fcompiler]
-        if not sys.platform.startswith('win') and fcompiler == 'gnu95' \
+        comppath = 'gfortran'
+        compflags = ['-w', '-O2', '-fPIC', '-ffixed-line-length-none',
+                     '-std=legacy']
+        if not sys.platform.startswith('win') \
            and not platform.uname()[4].startswith(('arm', 'aarch64')):
             # Raspberry Pi doesn't have or need this switch
             compflags = ['-m{0}'.format(bit)] + compflags
         comp_candidates = [comppath]
-        if fcompexec is not None and 'compiler_f77' in fcompexec:
-            comp_candidates.insert(0, fcompexec['compiler_f77'][0])
+        if fcompexec is not None:
+            comp_candidates.insert(0, fcompexec[0])
         for fc in comp_candidates:
             retval = subprocess.call([fc, '-c'] + compflags
                                      + list(glob.glob('*.f')))

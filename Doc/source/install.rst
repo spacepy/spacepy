@@ -130,11 +130,9 @@ this fails, specify a Fortran compiler::
     pip install . --config-setting="--build-option=--fcompiler=gnu95"
 
 The supported compiler is ``gnu95`` (the GNU gfortran compiler); ``none``
-can be specified as a "compiler" to skip all Fortran. You can also specify
-the full path to the Fortran 77 compiler with ``--f77exec`` and to the
-Fortran 90 compiler with ``--f90exec``::
+can be specified as a "compiler" to skip all Fortran.
 
-    pip install . --config-setting="--build-option=--fcompiler=gnu95" --config-setting="--build-option=--f77exec=/usr/bin/gfortran" --config-setting="--build-option=--f90exec=/usr/bin/gfortran"
+    pip install . --config-setting="--build-option=--fcompiler=gnu95"
 
 
 Troubleshooting
