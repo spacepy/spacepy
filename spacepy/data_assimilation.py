@@ -1,14 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import sys
-from numpy import shape, dot, eye, set_printoptions, diag, sum
-import numpy as np
-from numpy.linalg import svd
-import pdb
-
-__contact__ = 'Josef Koller, jkoller@lanl.gov'
-
 """
 Data assimilation functions used for several projects
 
@@ -18,6 +9,14 @@ Contact: jkoller@lanl.gov
 
 Copyright 2010 Los Alamos National Security, LLC.
 """
+
+import sys
+from numpy import shape, dot, eye, set_printoptions, diag, sum
+import numpy as np
+from numpy.linalg import svd
+import pdb
+
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 # -----------------------------------------------
 # Data Assimilation class: enKF
