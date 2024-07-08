@@ -29,5 +29,6 @@ Copyright 2010 Los Alamos National Security, LLC.
     find_magequator
     coord_trans
     get_dtype
+    prep_ctypes
     prep_irbem
     Shieldose2
