@@ -454,6 +454,8 @@ class PlasmaFile(PbData):
         colors      Set color of line.  Defaults to 'orange'.
         linestyles  Set line style.  Defaults to 'dashed'.
         ----------- ----------------------------------------------------------
+        =========== ==========================================================
+
 
         '''
 

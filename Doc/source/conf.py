@@ -37,6 +37,15 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
               'sphinx.ext.autosummary', 'sphinx.ext.extlinks',
               'matplotlib.sphinxext.plot_directive']
 
+# Not actually Python modules, or so beta that we don't want them in docs
+autodoc_mock_imports = ["spacepy.data_assimilation",
+                        "spacepy.irbempy.libirbem",
+                        "spacepy.libspacepy",
+                        "spacepy.radbelt",
+                        "spacepy.sandbox",
+                        "spacepy.spacepy_EnKF",
+                        ]
+
 autosummary_generate = True
 numpydoc_show_class_members = False
 

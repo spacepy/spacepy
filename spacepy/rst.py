@@ -9,7 +9,7 @@ def listToEnumerate(inList, startingNum=1, makeBlock=True):
     """
     starting from a python list return a string that is the RST equlivant of
     the list in enumerated list
-    makeBlock : make the text into a text block in rst if there are \n in the string
+    makeBlock : make the text into a text block in rst if there are newline chars in the string
     """
     outVal = ''
     for i, val in enumerate(inList):

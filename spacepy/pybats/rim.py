@@ -229,16 +229,15 @@ class Iono(PbData):
         Calculate total horizontal current as related values.  Each will be
         stored into *self* using the typical key-value approach.  Calculations
         are done for both the northern and southern hemisphere with the
-        appropriate prefixes ('n_' and 's_') applied to each key.
+        appropriate prefixes (``n_`` and ``s_``) applied to each key.
 
-        | key  | Description |
-        |------|-------------|
-        | j    | Total horizontal current, $sqrt(jx^2+jy^2+jz^2)$ |
-        | jphi | Azimuthal current, positive values are eastward. |
-
-
-        Parameters
-        ==========
+        
+        ====== ====================================================
+        key    Description                                       
+        ====== ==================================================== 
+        j      Total horizontal current, $sqrt(jx^2+jy^2+jz^2)$  
+        jphi   Azimuthal current, positive values are eastward. 
+        ====== ====================================================
 
         Returns
         =======
@@ -272,14 +271,10 @@ class Iono(PbData):
         Iup:   The total upward current over one hemisphere.
         Idown: The total downward current over one hemisphere.
 
-        Values are stored in the object with the prefix 'n_' or 's_'
+        Values are stored in the object with the prefix ``n_`` or ``s_``
         to indicate the hemisphere and may be accessed via self['n_I'], etc.
 
         Values are stored in units of mega Amps.
-
-        Parameters
-        ==========
-
 
         Returns
         =======
@@ -370,7 +365,7 @@ class Iono(PbData):
             that is strictly positive and "Seismic" for diverging data.
             Alternatively, legacy Ridley Ionosphere Model color maps can be
             loaded using "l_wr" (white red) or "l_bwr" (blue-white-red),
-            where the "l_" prefix indicates legacy and not Matplotlib color maps.
+            where the "l\_" prefix indicates legacy and not Matplotlib color maps.
         add_cbar : bool
             Add colorbar to plot.  Default is **False** which will
             not add one to the plot.

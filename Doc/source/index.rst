@@ -138,7 +138,6 @@ Description of all functions within SpacePy, by module.
     ~spacepy.ae9ap9
     ~spacepy.coordinates
     ~spacepy.ctrans
-    ~spacepy.data_assimilation
     ~spacepy.datamanager
     ~spacepy.datamodel
     ~spacepy.empiricals
@@ -150,7 +149,6 @@ Description of all functions within SpacePy, by module.
     ~spacepy.poppy
     ~spacepy.pybats
     ~spacepy.pycdf
-    ~spacepy.radbelt
     ~spacepy.seapy
     ~spacepy.time
     ~spacepy.toolbox
