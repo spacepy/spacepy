@@ -2417,7 +2417,20 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
 
 
 def prep_ctypes(d):
-    """Converts values of dict returned by prep_irbem to ctypes"""
+    """Converts `prep_irbem` output to correct types for ctypes call.
+
+    This is primarily for internal use by `get_AEP8` and `get_Lstar`.
+
+    Parameters
+    ----------
+    d : dict
+        Output IRBEM parameters from `prep_irbem`
+
+    Returns
+    -------
+    dict
+        ``d`` with most values converted to ctypes objects or pointers.
+    """
     d_c = {}
     nalp_max = d['nalp_max']
     ntime_max = d['ntime_max']
