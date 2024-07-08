@@ -24,8 +24,8 @@ class KyotoDst(PbData):
     '''
     Handle hourly dst index from Kyoto WDC.  
 
-    Use the specialized constructor functions :function:`fetch` and 
-    :function:`load` to instantiate from the web or from file.
+    Use the specialized constructor functions :func:`fetch` and 
+    :func:`load` to instantiate from the web or from file.
     '''
 
     def __repr__(self):
@@ -79,8 +79,8 @@ class KyotoAe(PbData):
     '''
     Handle Ae index from Kyoto WDC.  
 
-    Use the specialized constructor functions :function:`fetch` and 
-    :function:`load` to instantiate from the web or from file.
+    Use the specialized constructor functions :func:`fetch` and 
+    :func:`load` to instantiate from the web or from file.
     '''
 
     def __repr__(self):
@@ -110,8 +110,8 @@ class KyotoSym(PbData):
     '''
     Handle Sym-H and related indices from Kyoto WDC.  
 
-    Use the specialized constructor functions :function:`fetch` and 
-    :function:`load` to instantiate from the web or from file.
+    Use the specialized constructor functions fetch() and 
+    load() to instantiate from the web or from file.
     '''
 
     def __repr__(self):
@@ -141,8 +141,8 @@ class KyotoKp(PbData):
     '''
     Handles global Kp index from Kyoto WDC.
     
-    Use the specialized constructor functions :function:`fetch` and 
-    :function:`load` to instantiate from the web or from file.
+    Use the specialized constructor functions :func:`fetch` and 
+    :func:`load` to instantiate from the web or from file.
     '''
     def __repr__(self):
         return 'KyotoDst object for handling observations-based global '+\
@@ -238,7 +238,7 @@ class KyotoKp(PbData):
             spacepy.plot.levelPlot. Extra keyword arguments for levelPlot can
             be supplied via level_kwargs.
 
-        Extra keyword arguments are passed to :function:`matplotlib.pyplot.plot`
+        Extra keyword arguments are passed to :func:`matplotlib.pyplot.plot`
         to customize the line style (and are ignored if filled is True).
 
         Examples

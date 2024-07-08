@@ -1276,7 +1276,7 @@ class Bats2d(IdlFile):
     def calc_all(self, exclude=[]):
         '''
         Perform all variable calculations (e.g. calculations that
-        begin with 'calc_').  Any exceptions raised by functions that
+        begin with "calc").  Any exceptions raised by functions that
         could not be peformed (typicaly from missing variables) are
         discarded.
         '''
@@ -1927,7 +1927,7 @@ class Bats2d(IdlFile):
         colors and styles lines based on characteristics (e.g., open, closed).
         The default is 'mag', which colors open lines black and closed lines
         white.  Alternatively, this kwarg works in a similar manner as
-        it does in :function:`~matplotlib.pyplot.plot`,
+        it does in :func:`~matplotlib.pyplot.plot`,
         i.e., a string code such as "b-" (a solid blue line) or 'r:' (a
         dotted red line), etc.  Both *colors* and *linestyles* work much
         as they do for :class:`~matplotlib.collections.LineCollection`, but
@@ -2812,10 +2812,10 @@ class Mag(PbData):
     def calc_dbdt(self):
         '''
         Calculate the time derivative of all dB-like variables and save as
-        'dBdt[direction][component].  For example, the time derivative of
+        dBdt[direction][component].  For example, the time derivative of
         dBeMhd will be saved as dBdteMhd.
 
-        |dB/dt|_h is also calculated following the convention of
+        $|dB/dt|_h$ is also calculated following the convention of
         Pulkkinen et al, 2013:
         $|dB/dt|_H = \\sqrt{(\\dB_N/dt)^2 + (dB_E/dt)^2}$
 
@@ -3195,7 +3195,7 @@ class MagFile(PbData):
         For each magnetometer object, calculate the horizontal component of
         the perturbations.
 
-        |dB/dt|_h is also calculated following the convention of
+        $|dB/dt|_h$ is also calculated following the convention of
         Pulkkinen et al, 2013:
         $|dB/dt|_H = \\sqrt{(\\dB_N/dt)^2 + (dB_E/dt)^2}$
         '''

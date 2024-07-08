@@ -171,8 +171,8 @@ def viz_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
 
 def gen_pgrid(nPa=72):
     '''
-    Given number of points, *nPa*, build the RAM-SCB pitch angle grid.
-    The return value is a *nPa*x3 matrix containing the bin starts, centers,
+    Given number of points, $*nPa*$, build the RAM-SCB pitch angle grid.
+    The return value is a $*nPa*x3$ matrix containing the bin starts, centers,
     and ends in cosine of pitch angle.
     '''
     pgrid = np.zeros((nPa, 3))
@@ -464,11 +464,8 @@ class EfieldFile(PbData):
                     add_cbar=True, labcolor='lightgray', title='Noon'):
         '''
         Quickly add a potential plot to MPL object *target*.
-
+        
         Parameters
-        ==========
-
-        Other Parameters
         ================
         target : object
            The object on which plotting will happen.
@@ -1276,9 +1273,6 @@ class PressureFile(PbData):
         *target*.  For speedier plots, use plot_cont_press, which makes its
         own axis.
 
-        Parameters
-        ==========
-
         Returns
         =======
         fig : matplotlib figure object
@@ -1286,7 +1280,7 @@ class PressureFile(PbData):
         cont : matplotlib contour object
         cbar : matplotlib colorbar object
 
-        Other Parameters
+        Parameters
         ================
         var : string
              The variable within the object to plot.  Defaults to 'total'.
@@ -1354,9 +1348,6 @@ class PressureFile(PbData):
         '''
         Add a pcolor plot of the pressure object to *target*.
 
-        Parameters
-        ==========
-
         Returns
         =======
         fig : matplotlib figure object
@@ -1364,7 +1355,7 @@ class PressureFile(PbData):
         cont : matplotlib contour object
         cbar : matplotlib colorbar object
 
-        Other Parameters
+        Parameters
         ================
         var : string
              The variable within the object to plot.  Defaults to 'total'.
@@ -1425,8 +1416,8 @@ class PressureFile(PbData):
 
 class BoundaryFluxFile(object):
     '''
-    Read, plot, and edit flux (*.swf) or (*.dat) files.
-    *.dat files are output into the Dsbnd directory.
+    Read, plot, and edit flux $([filename].swf)$ or $([filename].dat)$ files.
+    $([filename].dat)$ files are output into the Dsbnd directory.
     '''
     def __init__(self, filename):
         self.filename = filename
@@ -1607,15 +1598,12 @@ class LogFile(PbData):
         Two values are returned: the matplotlib Figure and Axes objects
         used to generate the plot (in that order.)
 
-        Parameters
-        ==========
-
         Returns
         =======
         fig : matplotlib figure object
         ax  : matplotlib axes object
 
-        Other Parameters
+        Parameters
         ================
         target : Figure or Axes
              If None (default), a new figure is generated from scratch.
@@ -1732,6 +1720,7 @@ class IonoPotScb(PbData):
         target may be a matplotlib figure or axis or None.  If target
         is a figure, a new subplot is created.  If target is None, a
         new figure AND axis is created.
+
         Parameters
         ==========
         time : int
