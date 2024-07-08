@@ -56,7 +56,7 @@ def _adjust_dialplot(ax, rad, title='12', labelsize=15):
 def saturation(L):
     '''
     Return saturation density of a flux tube as a function of L-shell in units
-    of :math:`#/cm^3`. Formula is from Carpenter and Anderson, JGR, 1992.
+    of :math:`\#/cm^3`. Formula is from Carpenter and Anderson, JGR, 1992.
     '''
 
     return 10**(-0.3145*L + 3.9043)
