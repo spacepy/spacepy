@@ -722,12 +722,12 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-            idx : int, slice or sequence of ints
-                Object that defines the index or indices before which `val` is inserted.
-            val : array_like
-                values to insert
-            dtype : str (optional)
-                must be specified if not CDF, ISO, or UTC
+        idx : int, slice or sequence of ints
+            Object that defines the index or indices before which `val` is inserted.
+        val : array_like
+            values to insert
+        dtype : str (optional)
+            must be specified if not CDF, ISO, or UTC
                 
         """
         fmt = self.data.attrs['dtype']
