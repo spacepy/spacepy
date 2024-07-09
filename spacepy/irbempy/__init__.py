@@ -728,7 +728,8 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                     # Now get Lstar at this location...
                     postry = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
                     LStry = get_Lstar(tt, postry, pa, extMag=extMag, options=options, omnivals=omnivals)
-                    LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
+                    LStry['Lstar'] = LStry['Lstar'][0, 0]
+                    LStry['K'] = (LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG))[0, 0]
                 else:
                     LStry = {'Lstar': np.nan, 'K': np.nan}
                 if 'verbose' in kwargs:
@@ -738,7 +739,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                     loci_brac2 = pos_test
                 else:
                     loci_brac1 = pos_test
-                    LCDS, LCDS_K = LStry['Lstar'][0], LStry['K'][0]
+                    LCDS, LCDS_K = LStry['Lstar'], LStry['K']
             try:
                 results['LCDS'][idxt, idxa] = LCDS
                 results['K'][idxt, idxa] = LCDS_K
@@ -988,8 +989,9 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 if not (np.isnan(bmin)):
                     # Now get Lstar at this location...
                     postry = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
-                    pa = AlphaOfK(tt, postry, k_i, extMag=extMag, options=Aopt, omnivals=omnivals)
+                    pa = AlphaOfK(tt, postry, k_i, extMag=extMag, options=Aopt, omnivals=omnivals)[0]
                     LStry = get_Lstar(tt, postry, pa, extMag=extMag, options=options, omnivals=omnivals)
+                    LStry['Lstar'] = LStry['Lstar'][0, 0]
                     LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
                 else:
                     LStry = {'Lstar': np.nan, 'K': np.nan}
@@ -1000,7 +1002,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                     loci_brac2 = pos_test
                 else:
                     loci_brac1 = pos_test
-                    LCDS, LCDS_PA = LStry['Lstar'][0], pa
+                    LCDS, LCDS_PA = LStry['Lstar'], pa
             try:
                 results['LCDS'][idxt, idxk] = LCDS
                 results['AlphaEq'][idxt, idxk] = LCDS_PA
