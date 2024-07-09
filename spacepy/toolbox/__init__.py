@@ -75,8 +75,8 @@ def unique_columns(inval, axis=0):
     inval :  array-like
         array to find unique columns or rows of
 
-    Optional Parameters
-    -------------------
+    Other Parameters
+    ----------------
     axis : int
         The axis to find unique over, default: 0
 

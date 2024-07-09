@@ -7,7 +7,6 @@ For more information on the SWMF, please visit the
 
 Copyright ©2010 Los Alamos National Security, LLC.
 
-
 '''
 
 __contact__ = 'Dan Welling, daniel.welling@uta.edu'
@@ -71,10 +70,6 @@ def parse_filename_time(filename):
     ==========
     filename : string
         An SWMF output file name.
-
-    Other Parameters
-    ================
-    None
 
     Returns
     =======
@@ -590,7 +585,7 @@ def _scan_bin_header(f, endchar, inttype, floattype):
     f : Binary file object
         The file from which to read the array of values.
     endchar : str
-        Endian character:'<' or '>'
+        Endian character-'<' or '>'
     inttype : Numpy integer type
         Set the precision for the integers that store the size of each
         entry with the correct endianess.
@@ -669,10 +664,6 @@ def _probe_idlfile(filename):
     ----------
     filename : str
         String path of file to probe.
-
-    Other Parameters
-    ----------------
-    None
 
     Returns
     -------
@@ -1008,89 +999,8 @@ class PbData(SpaceData):
 class IdlFile(PbData):
 
     '''
-    Introduction
-    ------------
-
     An object class that reads/parses an IDL-formatted output file from the
     SWMF and places it into a :class:`spacepy.pybats.PbData` object.
-
-    Usage:
-    >>>data = spacepy.pybats.IdlFile('binary_file.out')
-
-    See :class:`spacepy.pybats.PbData` for information on how to explore
-    data contained within the returned object.
-
-    This class serves as a parent class to SWMF component-specific derivative
-    classes that do more preprocessing of the data before returning the
-    object.  Hence, using this class to read binary files is typically not
-    the most efficient way to proceed.  Look for a PyBats sub module that suits
-    your specific needs, or use this base object to write your own.
-
-    Multi-Frame Files
-    -----------------
-
-    Typically, Idl-formatted data has a single *frame*, or a single snapshot
-    worth of data (a `*.out` file).  However, it is possible to (externally)
-    combine many of these files together such that a time series of data frames
-    are contained within a single file (`*.outs` files). This class can read
-    these files, but only one data frame can be made available at a time.  This
-    prevents very large memory requirements.
-
-    These files are opened and handled similarly to regular IDL-formatted
-    files  with some important differences.  Upon instantiation, the user
-    may select which data frame to open with the *iframe* kwarg.  The default
-    action is to open the first frame.  The user may learn more about the
-    number of frames within the file and their associated epoch/iteration
-    information by examining the top level *attrs* (see below.)
-    The user may switch to any arbitrary frame using the `switch_frame(iframe)`
-    object method.  This will load the relevant data from disk into the
-    object, overwriting the previous contents.
-
-    If the user has created any new variables using the data from a certain
-    data frame, those new values will not be updated automatically.  An
-    exception is for any *self.calc_* type methods that are set to update
-    automatically.
-
-    Top Level Attributes
-    --------------------
-    Critical file information can be found via the top-level object attributes
-    (e.g., accessing the dictionary `self.attrs`).  All IdlFile objects and
-    child classes begin with at least these attributes:
-
-    | Attribute Name       | Description                                      |
-    | -------------------- | ------------------------------------------------ |
-    | file                 | Path/name of file represented by object          |
-    | iter/time/runtime    | Iteration/datetime/runtime of the current frame  |
-    | iters/times/runtimes | Lists of all iterations/times of each data frame |
-    | *_range              | The range of iterations/epochs covered in file   |
-    | ndim                 | Number of spatial dimensions covered by the data |
-    | nframe               | The total number of data frames within the file  |
-    | iframe               | The current frame loaded (zero-based)            |
-    | format               | The format of the file, either binary or ascii   |
-    | header               | The raw string header of the file                |
-
-    Notes
-    -----
-    PyBats assumes little endian byte ordering because
-    this is what most machines use.  However, there is an autodetect feature
-    such that, if PyBats doesn't make sense of the first read (a record length
-    entry, or RecLen), it will proceed using big endian ordering.  If this
-    doesn't work, the error will manifest itself through the "struct" package
-    as an "unpack requires a string of argument length 'X'".
-
-    .. versionchanged:: 0.5.0
-
-       Unstructured data are presented as in the files. When reading
-       3D magnetosphere files, this preserves the 3D block structure,
-       as required for the BATSRUS interpolator in the `Kamodo
-       Heliophysics model readers package
-       <https://github.com/nasa/kamodo>`_. Before 0.5.0, binary
-       unstructured data were sorted in an attempt to put nearby
-       positions close to each other in the data arrays. This sorting
-       was nondeterministic and has been removed; see
-       :meth:`~spacepy.pybats.bats.Bats2d.extract` and
-       :class:`~spacepy.pybats.qotree.QTree` for processing
-       adjacent cells. (ASCII data were never sorted.)
 
     Parameters
     ----------
@@ -1106,6 +1016,30 @@ class IdlFile(PbData):
     keep_case : bool
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
+    
+    Notes
+    -----
+    PyBats assumes little endian byte ordering because
+    this is what most machines use.  However, there is an autodetect feature
+    such that, if PyBats doesn't make sense of the first read (a record length
+    entry, or RecLen), it will proceed using big endian ordering.  If this
+    doesn't work, the error will manifest itself through the "struct" package
+    as an "unpack requires a string of argument length 'X'".
+
+    .. versionchanged:: 0.5.0
+
+        Unstructured data are presented as in the files. When reading
+        3D magnetosphere files, this preserves the 3D block structure,
+        as required for the BATSRUS interpolator in the `Kamodo
+        Heliophysics model readers package
+        <https://github.com/nasa/kamodo>`_. Before 0.5.0, binary
+        unstructured data were sorted in an attempt to put nearby
+        positions close to each other in the data arrays. This sorting
+        was nondeterministic and has been removed; see
+        :meth:`~spacepy.pybats.bats.Bats2d.extract` and
+        :class:`~spacepy.pybats.qotree.QTree` for processing
+        adjacent cells. (ASCII data were never sorted.)
+        
     '''
 
     def __init__(self, filename, iframe=0, header='units',
@@ -1613,78 +1547,7 @@ class NgdcIndex(PbData):
 class ImfInput(PbData):
     """
     A class to read, write, manipulate, and visualize solar wind upstream
-    input files for SWMF simulations.  More about such files can be found
-    in the SWMF/BATS-R-US documentation for the \\#SOLARWINDFILE command.
-
-    Creating an :class:`ImfInput` object is simple:
-
-    >>> from spacepy import pybats
-    >>> obj=pybats.ImfInput(filename='test.dat', load=True)
-
-    Upon instantiation, if *filename* is a valid file AND kwarg *load* is set
-    to boolean True, the contents of *filename* are loaded into the object
-    and no other work needs to be done.
-
-    If *filename* is False or *load* is False, a blank :class:`ImfInput file`
-    is created for the user to manipulate.
-    The user can set the time array and the
-    associated data values (see *obj.attrs['var']* for a list) to any values
-    desired and use the method *obj.write()* to dump the contents to an SWMF
-    formatted input file.  See the documentation for the write method for
-    more details.
-
-    Like most :mod:`~spacepy.pybats` objects, you may interact with
-    :class:`ImfInput` objects as if they were specialized dictionaries.
-    Access data like so:
-
-    >>> obj.keys()
-    ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'n', 't']
-    >>> density=obj['n']
-
-    Adding new data entries is equally simple so long as you have the values
-    and the name for the values:
-
-    >>> import numpy as np
-    >>> u = np.sqrt(obj['ux']**2 + obj['uy']**2 + obj['uz']**2)
-    >>> obj['u']=u
-
-    If new data entries are added as :class:`~spacepy.datamodel.dmarray`
-    objects, the `label` and `units` attributes can be set to enhance plotting.
-
-    >>> from spacepy import datamodel
-    >>> u = np.sqrt(obj['ux']**2 + obj['uy']**2 + obj['uz']**2)
-    >>> obj['u']= datamodel.dmarray(u, {'units': '$km/s$', 'label': '|U|'})
-
-    Concerning Variable Naming & Order
-    ----------------------------------
-    By default, IMF files contain the following variables in this order:
-
-    Year, month, day, hour, minute, second, millisecond, bx, by, bz,
-    vx, vy, vz, n, t
-
-    If the variable order changes, or if new state variables are included
-    (e.g., species-specific densities for multi-ion simulations), the
-    #VAR entry must be included in the solar wind file.  While the SWMF
-    documentation refers to density and temperature values as having names
-    'dens' or 'temp', **only 'n', 't', or MHD state variable names as defined
-    in the BATS-R-US equation file are accepted.**.  In multi-ion simulations,
-    'n' is the total number density; all other densities must sum to 'n'.
-
-    To illustrate, consider this example of converting a single fluid input
-    file to a multi-fluid input file where density is split evenly across
-    two ion species: a solar wind fluid and an ionosphere fluid that has
-    minimal density upstream of the Earth. Each fluid has an explicit state
-    variable name defined in the BATS-R-US equation module that configures the
-    multi-fluid configuration.
-
-    >>> import numpy as np
-    >>> from spacepy import pybats, datamodel
-    >>> imf = pybats.ImfInput('tests/data/pybats_test/imf_single.dat')
-    >>> imf['IonoRho'] = datamodel.dmarray(np.zeros(imf['n'].shape) + 0.01,
-    ... {'units': '$cm^{-3}$', 'label': '$\\rho_{Iono}$'})
-    >>> imf['SwRho'] = imf['n'] - imf['IonoRho']
-    >>> imf['SwRho'].attrs['label'] = '$\\rho_{Sw}$'
-    >>> imf.quicklook( ['bz', ['n', 'SwRho', 'IonoRho'], 'pram'])
+    input files for SWMF simulations.
 
     =========== ============================================================
     Kwarg       Description
@@ -1869,7 +1732,7 @@ class ImfInput(PbData):
     def calc_epsilon(self):
         '''
         Calculate the epsilon parameter, an approximation of power input into
-        the magnetosphere. It is Poynting flux ($E \times B / \mu_0$) scaled
+        the magnetosphere. It is Poynting flux ($E \times B / \\mu_0$) scaled
         to the solar wind clock angle. Thus, it is an energy flux, or,
         equivalently, power-per-unit area.
 
@@ -2081,7 +1944,7 @@ class ImfInput(PbData):
         The figure and main axes object are returned.
 
         Parameters
-        ================
+        ==========
         target : Figure or Axes
             If None (default), a new figure is generated from scratch.
             If a matplotlib Figure object, a new axis is created

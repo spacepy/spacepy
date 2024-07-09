@@ -466,7 +466,7 @@ class EfieldFile(PbData):
         Quickly add a potential plot to MPL object *target*.
         
         Parameters
-        ================
+        ==========
         target : object
            The object on which plotting will happen.
         figsize : tuple
@@ -1273,15 +1273,8 @@ class PressureFile(PbData):
         *target*.  For speedier plots, use plot_cont_press, which makes its
         own axis.
 
-        Returns
-        =======
-        fig : matplotlib figure object
-        ax  : matplotlib axes object
-        cont : matplotlib contour object
-        cbar : matplotlib colorbar object
-
         Parameters
-        ================
+        ==========
         var : string
              The variable within the object to plot.  Defaults to 'total'.
              Can be set to other species-specific pressure values.
@@ -1312,6 +1305,13 @@ class PressureFile(PbData):
             Use to specify the subplot placement of the axis
             (e.g. loc=212, etc.) Used if target is a Figure or None.
             Default 111 (single plot).
+
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+        cont : matplotlib contour object
+        cbar : matplotlib colorbar object
 
         '''
         from matplotlib.colors import LogNorm
@@ -1348,15 +1348,8 @@ class PressureFile(PbData):
         '''
         Add a pcolor plot of the pressure object to *target*.
 
-        Returns
-        =======
-        fig : matplotlib figure object
-        ax  : matplotlib axes object
-        cont : matplotlib contour object
-        cbar : matplotlib colorbar object
-
         Parameters
-        ================
+        ==========
         var : string
              The variable within the object to plot.  Defaults to 'total'.
              Can be set to other species-specific pressure values.
@@ -1380,6 +1373,13 @@ class PressureFile(PbData):
             Use to specify the subplot placement of the axis
             (e.g. loc=212, etc.) Used if target is a Figure or None.
             Default 111 (single plot).
+        
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+        cont : matplotlib contour object
+        cbar : matplotlib colorbar object
 
         '''
         from matplotlib.colors import LogNorm
@@ -1598,13 +1598,8 @@ class LogFile(PbData):
         Two values are returned: the matplotlib Figure and Axes objects
         used to generate the plot (in that order.)
 
-        Returns
-        =======
-        fig : matplotlib figure object
-        ax  : matplotlib axes object
-
         Parameters
-        ================
+        ==========
         target : Figure or Axes
              If None (default), a new figure is generated from scratch.
              If a matplotlib Figure object, a new axis is created
@@ -1620,7 +1615,10 @@ class LogFile(PbData):
         showBiot : bool
             Show Biot-Savart Dst?  Defaults to **True**
 
-
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
         '''
         fig, ax = set_target(target, loc=loc)
 

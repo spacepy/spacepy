@@ -94,8 +94,8 @@ Further reference material on how to use SpacePy, and examples.
     configuration
     scripts
 
-User Documentation
-==================
+Additional User Documentation
+=============================
 
 In-depth usage focused information for specific modules and tasks. See
 also :ref:`module_reference` for documentation of the API for each
