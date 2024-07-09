@@ -9,11 +9,18 @@ Copyright 2015-2020 the contributors
 """
 
 import sys
-
 try:
     import unittest_pretty as ut
 except ImportError:
     import unittest as ut
+import warnings
+
+warnings.filterwarnings("error", module=r"spacepy\.")
+warnings.filterwarnings("error", module="spacepy_testing$")
+import spacepy
+if spacepy.config['enable_deprecation_warning']:
+    # Remove "default" deprecation, which overrides the error filter
+    del warnings.filters[0]
 
 import spacepy_testing
 
@@ -45,4 +52,4 @@ from test_lanlstar import *
 # add others here as they are written
 
 if __name__ == '__main__':
-    ut.main()
+    ut.main(warnings=False)  # do not reset warning filter
