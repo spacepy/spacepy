@@ -49,9 +49,6 @@ def _calc_ndens(obj):
     obj : :class:`~spacepy.pybats.PbData` object
        The object on which to act.
 
-    Other Parameters
-    ================
-
     Returns
     =======
     True
@@ -644,90 +641,6 @@ class Stream(Extraction):
 class Bats2d(IdlFile):
     '''
     A child class of :class:`~pybats.IdlFile` tailored to 2D BATS-R-US output.
-
-    Calculations
-    ------------
-    New values can be added via the addition of new keys.  For example,
-    a user could add radial distance to an equatorial Bats2d object as follows:
-
-    >>> import numpy as np
-    >>> from spacepy.pybats import bats
-    >>> mhd = bats.Bats2d('tests/data/pybats_test/z=0_sine.out')
-    >>> mhd['rad'] = np.sqrt( mhd['x']**2 + mhd['y']**2 )
-
-    Note, however, that if the user switches the data frame in a *.outs file
-    to access data from a different epoch, these values will need to be
-    updated.
-
-    An exception to this is built-in `calc_*` methods, which perform common
-    MHD/fluid dynamic calculations (i.e., Alfven wave speed, vorticity, and
-    more.)  These values are updated when the data frame is switched (see the
-    `switch_frame` method).
-
-    For example, to calculate number density and the fraction of the total
-    density for each species in a multi-fluid simulation,
-
-    >>> mhd = bats.Bats2d('tests/data/pybats_test/cut_multispecies.out')
-    >>> mhd.calc_ndens()
-
-    In an interactive session, users can tab-complete to explore the possible
-    built-in calculation methods.
-
-    Plotting
-    --------
-    While users can employ Matplotlib to plot values, a set of built-in
-    methods are available to expedite plotting.  These are the
-    `add_<plot type>` methods.  These methods always have the following
-    keyword arguments that allow users to optionally build more complicated
-    plots: *target* and *loc*.  The *target* kwarg tells the plotting method
-    where to place the plot and can either be a Matplotlib figure or axes
-    object.  If it's an axes object, *loc* sets the subplot location using
-    the typical matplotlib syntax (e.g., `loc=121`).  The default behavior is
-    to create a new figure and axes object.
-
-    This approach allows a user to over-plot contours, field lines, and
-    other plot artists as well as combine different subplots onto a single
-    figure.  Continuing with our example above, let's plot the grid layout
-    for our file as well as equatorial pressure and flow streamlines:
-
-    >>> import matplotlib.pyplot as plt
-    >>> fig = plt.Figure(figsize=(8,6))
-    >>> mhd.add_grid_plot(target=fig, loc=121)
-    >>> mhd.add_contour('x','y','p', target=fig, loc=122)
-    >>> mhd.add_stream_scatter('ux', 'uy', target=fig, loc=122)
-
-    Useful plotting methods include the following:
-
-    | Plot Method        | Description                                    |
-    | ------------------ | ---------------------------------------------- |
-    | add_grid_plot      | Create a quick-look diagram of the grid layout |
-    | add_contour        | Create a contour plot of a given variable      |
-    | add_pcolor         | Add a p-color (no-interpolation contour) plot  |
-    | add_stream_scatter | Scatter stream traces (any vector field)       |
-    | add_b_magsphere    | Add magnetic field lines for X-Z plane cuts    |
-    | add_planet         | Add a simple black/white planet at the origin  |
-    | add_body           | Add an inner boundary at the origin            |
-
-    Extracting and Stream Tracing
-    -----------------------------
-    Extracting values via interpolation to arbitrary points and creating
-    stream traces through any vector field (e.g., velocity or magnetic field)
-    are aided via the use of the following object methods:
-
-    | Method     | Description                                        |
-    | ---------- | -------------------------------------------------- |
-    | extract    | Interpolate to arbitrary points and extract values |
-    | get_stream | Integrate stream lines through vector fields       |
-
-
-    Be sure to read the docstring information of :class:`~pybats.IdlFile` to
-    see how to handle multi-frame files (*.outs) and for a list of critical
-    attributes.
-
-    .. versionchanged:: 0.5.0
-
-       Unstructured data are now presented as in the files. See
-       `~pybats.IdlFile` for details.
     '''
     # Init by calling IdlFile init and then building qotree, etc.
     def __init__(self, filename, *args, blocksize=8, **kwargs):
@@ -1568,7 +1481,7 @@ class Bats2d(IdlFile):
 
         Figure and axis, even if none given, are returned.
 
-         Parameters
+        Parameters
         ----------
         target : Matplotlib Figure or Axes object
            Set plot destination.  Defaults to new figure.
@@ -1673,8 +1586,8 @@ class Bats2d(IdlFile):
         arrsize : int
             Set the size, in points, of each directional arrow.  Default is 12.
 
-        Returns:
-        --------
+        Returns
+        -------
         fig : matplotlib Figure object
         ax  : matplotlib Axes object
         collect : matplotlib Collection object of trace results

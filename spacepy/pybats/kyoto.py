@@ -110,8 +110,8 @@ class KyotoSym(PbData):
     '''
     Handle Sym-H and related indices from Kyoto WDC.  
 
-    Use the specialized constructor functions fetch() and 
-    load() to instantiate from the web or from file.
+    Use the specialized constructor functions :func:`fetch` and 
+    :func:`load()` to instantiate from the web or from file.
     '''
 
     def __repr__(self):
