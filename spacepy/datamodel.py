@@ -892,6 +892,11 @@ class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
     Although the format of attributes is not enforced, using ISTP metadata
     enables the use of methods from `ISTPArray`.
 
+    .. versionchanged:: 0.7.0
+       Operations on a ``dmarray`` which return a scalar value return a numpy
+       :std:term:`array scalar`. Previously they would return the base
+       Python type.
+
     Raises
     ------
     NameError
@@ -953,7 +958,7 @@ class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
         #this traps most of the bad behaviour ( std() and var() still problems)
         if out_arr.ndim > 0:
             return numpy.ndarray.__array_wrap__(self, out_arr, context)
-        return numpy.ndarray.__array_wrap__(self, out_arr, context).tolist()
+        return numpy.ndarray.__array_wrap__(self, out_arr, context)[()]
 
     def __reduce__(self):
         """This is called when pickling, see:

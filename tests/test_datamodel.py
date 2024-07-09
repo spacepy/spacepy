@@ -583,6 +583,16 @@ class dmarrayTests(unittest.TestCase):
         expected = [sd[key].dtype for key in sd]
         got = [ra.dtype[name] for name in ra.dtype.names]
         self.assertEqual(expected, got)
+
+    def test_scalar_output(self):
+        """ufuncs should return numpy scalar not 0D array"""
+        d = dm.dmarray([1, 2, 3], dtype=np.int32)
+        res = d.max()
+        self.assertIsInstance(res, np.int32)
+        d = dm.dmarray([[1, 2, 3], [4, 5, 6]])
+        res = d.max(axis=1)
+        self.assertIsInstance(res, dm.dmarray)
+
         
 class converterTests(unittest.TestCase):
     def setUp(self):
