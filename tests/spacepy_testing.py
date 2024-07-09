@@ -196,6 +196,7 @@ class TestPlot(unittest.TestCase):
         import matplotlib
         import matplotlib.pyplot
         self.old_backend = matplotlib.get_backend()
+        matplotlib.pyplot.close('all')
         matplotlib.use('agg')
 
     def tearDown(self):
@@ -207,4 +208,5 @@ class TestPlot(unittest.TestCase):
                 fname = 'output_{}.png'.format('_'.join(self.id().split('.')[1:]))
                 matplotlib.pyplot.savefig(fname)
             matplotlib.pyplot.close()
+        matplotlib.pyplot.close('all')
         matplotlib.use(self.old_backend)
