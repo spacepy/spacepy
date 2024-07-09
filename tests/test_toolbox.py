@@ -560,7 +560,7 @@ class SimpleFunctionTests(unittest.TestCase):
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 'ignore', 'pmm: Unable to exclude non-finite',
-                RuntimeWarning, 'spacepy.toolbox$')
+                RuntimeWarning)
             data = [array([5,9,23,24,6]).astype(object),
                     [datetime.datetime(2000, 3, 1, 0, 1), datetime.datetime(2000, 2, 28), datetime.datetime(2000, 3, 1)],
                     numpy.array(['foo', 'bar', 'baz'], dtype=object),
@@ -578,7 +578,7 @@ class SimpleFunctionTests(unittest.TestCase):
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 'ignore', 'pmm: Unable to exclude non-finite',
-                RuntimeWarning, 'spacepy.toolbox$')
+                RuntimeWarning)
             ans = tb.pmm(data)
         self.assertEqual([['bar', 'qux']], ans)
 
@@ -1214,7 +1214,7 @@ class TBTimeFunctionTests(unittest.TestCase):
         """windowMean should give known results 5(regression)"""
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                'ignore', r'windowmean\:', UserWarning, 'spacepy.toolbox$')
+                'ignore', r'windowmean\:', UserWarning)
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
             data = [10, 20]*50
@@ -1305,7 +1305,7 @@ class TBTimeFunctionTests(unittest.TestCase):
         """windowMean should give known results, with non-datetime time"""
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                'ignore', r'windowmean\:', UserWarning, 'spacepy.toolbox$')
+                'ignore', r'windowmean\:', UserWarning)
             # same setup as windowMean3, but 'time' is in fractional days
             wsize = 1.
             olap = .5

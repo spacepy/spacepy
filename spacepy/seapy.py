@@ -81,9 +81,10 @@ class SeaBase(object):
         if nonmon or noncontig:
             warnings.warn('Input time not {}; results are unlikely to be valid.'.format(
                           ('monotonic or contiguous' if nonmon else 'contiguous')
-                          if noncontig else 'monotonic'))
+                          if noncontig else 'monotonic'), stacklevel=2)
         if len(epochs) > len(times) / 2:
-            warnings.warn('Too many epochs; results are unlikely to be valid.')
+            warnings.warn('Too many epochs; results are unlikely to be valid.',
+                          stacklevel=2)
         if isinstance(epochs, spt.Ticktock):
             self.epochs = epochs.UTC
         else:
@@ -102,7 +103,7 @@ class SeaBase(object):
         if kwargs['window'] != self.window:
             warnings.warn(
                 'Window size changed to {0} (points) to fit resolution ({1})'.format(
-                self.window, self.delta))
+                    self.window, self.delta), stacklevel=2)
         self.bound_type = None
 
     def __str__(self):

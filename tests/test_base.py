@@ -40,8 +40,8 @@ class SpacepyFuncTests(unittest.TestCase):
             "            this will test things\n"
             "            ",
             testfunc.__doc__)
-        with spacepy_testing.assertWarns(self, 'always', r'pithy message$',
-                                         DeprecationWarning, r'spacepy$'):
+        with spacepy_testing.assertWarns(self, 'always', r'.*pithy message$',
+                                         DeprecationWarning):
             self.assertEqual(2, testfunc(1))
 
     def testDeprecationNone(self):
@@ -55,7 +55,7 @@ class SpacepyFuncTests(unittest.TestCase):
             "       pithy message",
             testfunc.__doc__)
         with spacepy_testing.assertWarns(self, 'always', r'pithy message$',
-                                         DeprecationWarning, r'spacepy$'):
+                                         DeprecationWarning):
             self.assertEqual(2, testfunc(1))
 
     def testDeprecationDifferentIndent(self):
@@ -97,7 +97,7 @@ class SpacepyFuncTests(unittest.TestCase):
             "            ",
             testfunc.__doc__)
         with spacepy_testing.assertWarns(self, 'always', r'pithy message$',
-                                         DeprecationWarning, r'spacepy$'):
+                                         DeprecationWarning):
             self.assertEqual(2, testfunc(1))
 
 

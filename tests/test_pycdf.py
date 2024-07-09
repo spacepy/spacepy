@@ -2669,11 +2669,10 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual(zVar.sparse(), const.NO_SPARSERECORDS)
         zVar.sparse(const.PREV_SPARSERECORDS)
         self.assertEqual(zVar.sparse(), const.PREV_SPARSERECORDS)
-        zVar[0] = 1;
-        zVar[3] = 2;
-        # Arguments to use for assertWarngs, since used a lot....
-        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-                   r'spacepy\.pycdf$')
+        zVar[0] = 1
+        zVar[3] = 2
+        # Arguments to use for assertWarnings, since used a lot....
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning)
         with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[1], 1);
         with spacepy_testing.assertWarns(*aw_args):
@@ -2686,8 +2685,7 @@ class ChangeCDF(ChangeCDFBase):
         zVar[0] = [1, 2];
         zVar[3] = [3, 4];
         # Arguments to use for assertWarngs, since used a lot....
-        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-                   r'spacepy\.pycdf$')
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning)
         with spacepy_testing.assertWarns(*aw_args):
             numpy.testing.assert_array_equal(
                 [[1, 2], [1, 2], [1, 2], [3, 4]],
@@ -2701,8 +2699,7 @@ class ChangeCDF(ChangeCDFBase):
         zVar[3] = 2;
         self.assertEqual(4, len(zVar))
         # Arguments to use for assertWarngs, since used a lot....
-        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-                   r'spacepy\.pycdf$')
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning)
         with spacepy_testing.assertWarns(*aw_args):
             numpy.testing.assert_array_equal(zVar[...],
                                              [1, 1, 1, 2]);
@@ -2717,8 +2714,7 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual([0], hs.starts)
         self.assertEqual([4], hs.counts)
         with spacepy_testing.assertWarns(
-                self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-                r'spacepy\.pycdf$'):
+                self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning):
             numpy.testing.assert_array_equal(zVar[:4],
                                              [1, 2, 3, 3]);
 
@@ -2731,8 +2727,7 @@ class ChangeCDF(ChangeCDFBase):
         zVar[3] = 2;
         pad = zVar.pad()
         # Arguments to use for assertWarngs, since used a lot....
-        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-                   r'spacepy\.pycdf$')
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning)
         with spacepy_testing.assertWarns(*aw_args):
             self.assertEqual(zVar[1], pad);
         with spacepy_testing.assertWarns(*aw_args):
@@ -2751,8 +2746,7 @@ class ChangeCDF(ChangeCDFBase):
         zVar[3] = [3, 4];
         pad = zVar.pad(20)
         # Arguments to use for assertWarngs, since used a lot....
-        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-                   r'spacepy\.pycdf$')
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning)
         with spacepy_testing.assertWarns(*aw_args):
             numpy.testing.assert_array_equal(
                 [[1, 2], [20, 20], [20, 20], [3, 4]],
@@ -2770,8 +2764,7 @@ class ChangeCDF(ChangeCDFBase):
                          str(cm.exception))
         # Following is test for if this did work
         # Arguments to use for assertWarngs, since used a lot....
-        #aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-        #           r'spacepy\.pycdf$')
+        #aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning)
         #with spacepy_testing.assertWarns(*aw_args):
         #    numpy.testing.assert_array_equal(zVar[0:5],
         #                                     [1, 1, 99, 99, 2])
@@ -2785,8 +2778,7 @@ class ChangeCDF(ChangeCDFBase):
         zVar[5] = 3;
         del zVar[3]
         # Arguments to use for assertWarngs, since used a lot....
-        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-                   r'spacepy\.pycdf$')
+        aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning)
         with spacepy_testing.assertWarns(*aw_args):
             numpy.testing.assert_array_equal(zVar[0:6],
                                              [1, 1, 1, 1, 1, 3])
@@ -2804,8 +2796,7 @@ class ChangeCDF(ChangeCDFBase):
                          str(cm.exception))
         # Following is test for if this did work
         # Arguments to use for assertWarngs, since used a lot....
-        #aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-        #           r'spacepy\.pycdf$')
+        #aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning)
         #with spacepy_testing.assertWarns(*aw_args):
         #    numpy.testing.assert_array_equal(zVar[0:4],
         #                                     [1, 1, 1, 3])
@@ -2823,8 +2814,7 @@ class ChangeCDF(ChangeCDFBase):
                          str(cm.exception))
         # Following is test for if this did work
         # Arguments to use for assertWarngs, since used a lot....
-        #aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning,
-        #           r'spacepy\.pycdf$')
+        #aw_args = (self, 'always', r'VIRTUAL_RECORD_DATA', cdf.CDFWarning)
         #with spacepy_testing.assertWarns(*aw_args):
         #    numpy.testing.assert_array_equal(zVar[0:4],
         #                                     [1000, 101, 102, 3])
@@ -2836,7 +2826,7 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual(const.PAD_SPARSERECORDS, zVar.sparse())
         self.assertEqual(99, zVar.pad())
         with spacepy_testing.assertWarns(self, 'always', r'VIRTUAL_RECORD_DATA',
-                                         cdf.CDFWarning, r'spacepy\.pycdf$'):
+                                         cdf.CDFWarning):
             numpy.testing.assert_array_equal(zVar[0:5], [1, 2, 3, 4, 99])
 
     def testSparseCopy(self):
@@ -2914,7 +2904,7 @@ class ChangeCDF(ChangeCDFBase):
         if not str is bytes:
             msg = msg.encode('ascii')
         with spacepy_testing.assertWarns(self, 'always', r'ATTR_NAME_TRUNC',
-                                         cdf.CDFWarning, r'spacepy\.pycdf$'):
+                                         cdf.CDFWarning):
             self.cdf._call(cdf.const.CREATE_, cdf.const.ATTR_, msg,
                            cdf.const.GLOBAL_SCOPE, ctypes.byref(attrnum))
 

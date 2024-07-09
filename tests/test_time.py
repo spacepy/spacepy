@@ -126,7 +126,7 @@ class TimeFunctionTests(unittest.TestCase):
         with spacepy_testing.assertWarns(
                 self, 'always',
                 r'Number of seconds > seconds in day\. Try days keyword\.$',
-                UserWarning, r'spacepy\.time$'):
+                UserWarning):
             for i, val in enumerate(inval):
                 ans = t.sec2hms(*val)
                 self.assertEqual(real_ans[i], ans)
@@ -1424,7 +1424,7 @@ class TimeClassTests(unittest.TestCase):
         with spacepy_testing.assertWarns(
                 self, 'always',
                 r'today\(\) returns UTC day as of 0\.2\.2\.$',
-                DeprecationWarning, r'spacepy\.time$'):
+                DeprecationWarning):
             v1 = t.Ticktock.today()
         self.assertEqual(v1.UTC[0].hour, 0)
         self.assertEqual(v1.UTC[0].minute, 0)

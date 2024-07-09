@@ -418,4 +418,5 @@ if not (presentQD and presentO2):
     warnings.warn(
         "Qin-Denton/OMNI2 data not found in current format."
         " This module has limited functionality."
-        " Run spacepy.toolbox.update(QDomni=True) to download data.")
+        " Run spacepy.toolbox.update(QDomni=True) to download data.",
+        stacklevel=2)
