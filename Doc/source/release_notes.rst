@@ -39,6 +39,12 @@ The ``spacepy.irbempy.irbempylib`` module has been removed. This was
 the old internal interface to the IRBEM library and was not intended
 for public use.
 
+Other changes
+*************
+Operations on `~spacepy.datamodel.dmarray` which return a scalar value
+will now return a numpy :std:term:`array scalar` rather than the base
+Python type. This is consistent with the behavior of `~numpy.ndarray`.
+
 0.6 Series
 ==========
 0.6.0 (2024-04-25)
