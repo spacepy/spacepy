@@ -8,6 +8,9 @@ Copyright 2010-2014 Triad National Security, LLC.
 Copyright 2015-2020 the contributors
 """
 
+import glob
+import importlib
+import os.path
 import sys
 try:
     import unittest_pretty as ut
@@ -24,32 +27,17 @@ if spacepy.config['enable_deprecation_warning']:
 
 import spacepy_testing
 
-from test_pybats import *
-from test_time import *
-from test_empiricals import *
-from test_toolbox import *
-from test_omni import *
-from test_coordinates import *
-from test_ctrans import *
-from test_igrf import *
-from test_seapy import *
-from test_poppy import *
-from test_pycdf import *
-from test_pycdf_istp import *
-from test_data_assimilation import *
-from test_spectrogram import *
-from test_irbempy import *
-from test_datamanager import *
-from test_datamodel import *
-from test_base import *
-from test_plot import *
-from test_plot_utils import *
-from test_rst import *
-from test_lib import *
-from test_ae9ap9 import *
-from test_testing import *
-from test_lanlstar import *
-# add others here as they are written
+# Duplicative of test discovery, but avoids pulling the integration tests
+for testfile in glob.glob(os.path.join(os.path.dirname(__file__), 'test_*.py')):
+    modname = os.path.basename(testfile)[:-3]
+    if modname == 'test_all':
+        continue
+    mod = importlib.import_module(modname)
+    for name in dir(mod):
+        cls = getattr(mod, name)
+        if isinstance(cls, type) and issubclass(cls, ut.TestCase):
+            globals()[name] = cls
+
 
 if __name__ == '__main__':
     ut.main(warnings=False)  # do not reset warning filter
