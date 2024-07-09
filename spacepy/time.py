@@ -1793,7 +1793,7 @@ class Ticktock(MutableSequence):
 
         """
         warnings.warn('today() returns UTC day as of 0.2.2.',
-                      DeprecationWarning)
+                      DeprecationWarning, stacklevel=2)
         try:
             dt = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
         except AttributeError:
@@ -2078,7 +2078,7 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
     if not days:
         if sec > 86400:
             warnings.warn("Number of seconds > seconds in day. "
-                          "Try days keyword.")
+                          "Try days keyword.", stacklevel=2)
     else:
         sec %= 86400
     if dtobj:  # no need to do the computation
@@ -2290,7 +2290,7 @@ def _read_leaps(oldstyle=False):
         mtime = datetime.datetime(*time.gmtime(os.path.getmtime(fname))[:6])
     except IOError:
         warnings.warn('Cannot read leapsecond file. Use'
-                      ' spacepy.toolbox.update(leapsecs=True).')
+                      ' spacepy.toolbox.update(leapsecs=True).', stacklevel=2)
         text = [] # Use built-in pre-1972 leaps
         mtime = None
     # Some files have a "last checked" line at the top
@@ -2339,7 +2339,8 @@ def _read_leaps(oldstyle=False):
            utcnow, mtime,
            datetime.datetime(int(year[-1]), int(mon[-1]), int(day[-1]))):
             warnings.warn('Leapseconds may be out of date.'
-                          ' Use spacepy.toolbox.update(leapsecs=True)')
+                          ' Use spacepy.toolbox.update(leapsecs=True)',
+                          stacklevel=2)
 
     TAIleaps = np.zeros(len(secs))
     TAItup = [''] * len(secs)

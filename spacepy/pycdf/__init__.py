@@ -328,7 +328,7 @@ class Library(object):
             if ctypes.sizeof(ctypes.c_longlong) != \
                ctypes.sizeof(ctypes.c_double):
                 warnings.warn('ARM with unknown type sizes; '
-                              'TT2000 functions will not work.')
+                              'TT2000 functions will not work.', stacklevel=2)
             else:
                 if self._library.computeTT2000(
                         _cast_ll(2010), _cast_ll(1), _cast_ll(1),
@@ -336,7 +336,8 @@ class Library(object):
                         _cast_ll(0), _cast_ll(0), _cast_ll(0)
                 ) != 315576066184000000:
                     warnings.warn('ARM with unknown calling convention; '
-                                  'TT2000 functions will not work.')
+                                  'TT2000 functions will not work.',
+                                  stacklevel=2)
                 self.datetime_to_tt2000 = self._datetime_to_tt2000_typepunned
         if self.epoch_to_datetime(63113903999999.984).year != 1999:
             self.epoch_to_datetime = self._epoch_to_datetime_bad_rounding
@@ -1361,7 +1362,7 @@ class CDFError(CDFException):
 class CDFWarning(CDFException, UserWarning):
     """Used for a warning in the CDF library."""
 
-    def warn(self, level=4):
+    def warn(self, level=5):
         """
         Issues a warning based on the information stored in my exception
 
@@ -1370,7 +1371,7 @@ class CDFWarning(CDFException, UserWarning):
         Other Parameters
         ================
         level : int
-            optional (default 3), how far up the stack the warning should
+            optional (default 5), how far up the stack the warning should
             be reported. Passed directly to `warnings.warn`.
         """
         warnings.warn(self, self.__class__, level)
@@ -2000,7 +2001,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         if self.encoding not in ('ascii', 'utf-8'):
             warnings.warn(
                 'Opening CDF for write with nonstandard encoding {}'.format(
-                    self.encoding))
+                    self.encoding), stacklevel=2)
 
     @classmethod
     def from_data(cls, filename, sd):

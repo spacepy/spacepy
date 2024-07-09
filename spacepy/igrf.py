@@ -164,7 +164,7 @@ class IGRF():
         if time < igrfcoeffs.datelow or time > igrfcoeffs.datehigh:
             if limits.lower() == 'warn':
                 errmsg += '\nProceeding using effective date {0}'.format(igrfcoeffs.datehigh)
-                warnings.warn(errmsg)
+                warnings.warn(errmsg, stacklevel=2)
                 self.time = igrfcoeffs.datehigh
             else:
                 errmsg += '''\nUse "limits='warn'" to force out-of-range times '''
@@ -186,7 +186,8 @@ class IGRF():
         if self.__status['time_set']:
             return
         if not self.__status['init']:
-            warnings.warn('IGRF: Initialize for a time before invoking this method.')
+            warnings.warn('IGRF: Initialize for a time before invoking this method.',
+                          stacklevel=2)
             return
 
         # Find the indices for the epochs surrounding input time

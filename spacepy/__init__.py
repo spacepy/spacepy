@@ -115,7 +115,7 @@ def _deprecator(version, message, docstring, func):
     #this is the actual, deprecated function
     @functools.wraps(func)
     def _deprecated(*args, **kwargs):
-        warnings.warn(message, DeprecationWarning)
+        warnings.warn(message, DeprecationWarning, stacklevel=2)
         return func(*args, **kwargs)
     if func.__doc__ is None:
         doclines = []

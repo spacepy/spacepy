@@ -83,7 +83,7 @@ class empFunctionTests(unittest.TestCase):
         with spacepy_testing.assertWarns(
                 self, 'always',
                 r'No LT dependence currently supported for CA1992 model',
-                RuntimeWarning, r'spacepy\.empiricals$'):
+                RuntimeWarning):
             em.getPlasmaPause(self.ticks, model='CA1992', LT=12, omnivals=self.omnivals)
 
     def test_getLmax(self):

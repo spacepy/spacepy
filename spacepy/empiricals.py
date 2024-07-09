@@ -129,7 +129,8 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
 
     if model == 'CA1992':
         if LT != 'all':
-            warnings.warn('No LT dependence currently supported for CA1992 model', RuntimeWarning)
+            warnings.warn('No LT dependence currently supported for CA1992 model',
+                          RuntimeWarning, stacklevel=2)
     if model not in model_list:
         raise ValueError("Please specify a valid model:\n{0}".format(' or '.join(model_list)))
 

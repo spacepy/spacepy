@@ -540,7 +540,7 @@ def _parseInfo(header):
             if match:  # But old has propagator on this line; process and warn
                 warnings.warn(
                     "Support for orbit files from AE9AP9 model <1.5 is deprecated; please update to model 1.5 or later.",
-                    DeprecationWarning)
+                    DeprecationWarning, stacklevel=2)
                 ans['propagator'] = match.group(1).strip()
     return ans
 

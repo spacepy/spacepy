@@ -1545,14 +1545,15 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
         if not isinstance(winsize, int):
             winsize = int(round(winsize))
             warnings.warn('windowmean: non-integer windowsize, rounding to %d' \
-            % winsize)
+                          % winsize, stacklevel=2)
         if winsize < 1:
             winsize = 1
-            warnings.warn('windowmean: window length < 1, defaulting to 1')
+            warnings.warn('windowmean: window length < 1, defaulting to 1',
+                          stacklevel=2)
         if overlap >= winsize:
             overlap = winsize - 1
             warnings.warn('''windowmean: overlap longer than window, truncated to
-            %d''' % overlap)
+            %d''' % overlap, stacklevel=2)
         lastpt = winsize-1 #set last point to end of window size
         while lastpt < len(data):
             datwin = np.ma.masked_where(np.isnan(data[startpt:startpt+winsize]), \
@@ -2098,7 +2099,8 @@ def pmm(*args):
         except TypeError:
             ind = np.arange(len(a)).astype(int)
             import warnings
-            warnings.warn('pmm: Unable to exclude non-finite values, results may be incorrect', RuntimeWarning)
+            warnings.warn('pmm: Unable to exclude non-finite values, results may be incorrect',
+                          RuntimeWarning, stacklevel=2)
         try:
             ans.append([np.min(a[ind]), np.max(a[ind])])
         except TypeError:
@@ -2898,7 +2900,7 @@ def timeout_check_call(timeout, *args, **kwargs):
     """
     warnings.warn("timeout_check_call was deprecated in 0.7.0"
                   " and will be removed.",
-                  DeprecationWarning)
+                  DeprecationWarning, stacklevel=2)
     resolution = 0.1
     pro = subprocess.Popen(*args, **kwargs)
     starttime = time.time()

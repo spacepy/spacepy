@@ -470,7 +470,8 @@ class CTrans(dm.SpaceData):
         if not pnmodel == 'IAU82':
             import warnings
             warnings.warn('Only the IAU1980 nutation model is currently implemented. '
-                          + 'This will be used with the selected precession model.')
+                          + 'This will be used with the selected precession model.',
+                          stacklevel=2)
         else:
             from . import iau80n
             dPsi, dEps = iau80n.nutation(self['TT_JC'], self['constants'], nTerms)
@@ -935,7 +936,8 @@ class CTrans(dm.SpaceData):
             error = np.abs(ecc_anom - ecc_anom_old)
         if count >= maxiter:
             import warnings
-            warnings.warn('Estimation of eccentric anomaly failed to converge')
+            warnings.warn('Estimation of eccentric anomaly failed to converge',
+                          stacklevel=2)
         return ecc_anom
 
 

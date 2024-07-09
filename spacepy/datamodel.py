@@ -1687,14 +1687,15 @@ def fromHDF5(fname, **kwargs):
                 try:
                     value = hfile[path].attrs[key]
                 except TypeError:
-                    warnings.warn('Unsupported datatype in dataset {}.attrs[{}]'.format(path, key))
+                    warnings.warn('Unsupported datatype in dataset {}.attrs[{}]'.format(path, key), stacklevel=2)
                     continue
                 try:
                     SDobject.attrs[key] = value
                 except:
                     warnings.warn('The following key:value pair is not permitted\n' +
                                   'key = {0} ({1})\n'.format(key, type(key)) +
-                                  'value = {0} ({1})'.format(value, type(value)), DMWarning)
+                                  'value = {0} ({1})'.format(value, type(value)),
+                                  DMWarning, stacklevel=2)
 
     try:
         import h5py
@@ -1805,7 +1806,7 @@ def toHDF5(fname, SDobject, **kwargs):
                                 'key, value, type = {0}, {1}, {2})\n'.format(
                                     key, value, type(value)) +
                                 'value has been converted to a string for output',
-                                DMWarning)
+                                DMWarning, stacklevel=2)
                     else:
                         hfile[path].attrs[dumkey] = ''
                 elif isinstance(value, datetime.datetime):
@@ -1816,7 +1817,7 @@ def toHDF5(fname, SDobject, **kwargs):
                     warnings.warn('The following key:value pair is not permitted\n' +
                                   'key = {0} ({1})\n'.format(key, type(key)) +
                                   'value type {0} is not in the allowed attribute list'.format(type(value)),
-                                  DMWarning)
+                                  DMWarning, stacklevel=2)
 
     try:
         import h5py
@@ -1896,7 +1897,7 @@ def toHDF5(fname, SDobject, **kwargs):
                 warnings.warn('The following data is not being written as is not of an allowed type\n' +
                               'key = {0} ({1})\n'.format(key, type(key)) +
                               'value type {} is not in the allowed data type list'.format(
-                                  type(value)), DMWarning)
+                                  type(value)), DMWarning, stacklevel=2)
     finally:
         if must_close:
             hfile.close()
@@ -2211,7 +2212,8 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
             try:
                 name = keys.pop(keys.index(conkey)) #remove from keylist
             except ValueError:
-                warnings.warn('Key {} for conversion not found in file'.format(conkey), UserWarning)
+                warnings.warn('Key {} for conversion not found in file'.format(conkey),
+                              UserWarning, stacklevel=2)
                 continue
             for i, element in numpy.ndenumerate(mdata[name]):
                 mdata[name][i] = conversions[name](element)
@@ -2324,7 +2326,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
                          ' as it has too high a rank\n'
                     l2 = 'key = {0} ({1})\n'.format(key, insd[key].shape)
                     l3 = 'Maximum allowed number of dimensions is 2\n'
-                    warnings.warn(''.join([l1, l2, l3]), DMWarning)
+                    warnings.warn(''.join([l1, l2, l3]), DMWarning, stacklevel=2)
             except AttributeError: #AttrErr if just metadata
                 #js_out[key]['DIMENSION'] = insd[key].attrs['DIMENSION']
                 pass

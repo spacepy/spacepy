@@ -48,6 +48,9 @@ Operations on `~spacepy.datamodel.dmarray` which return a scalar value
 will now return a numpy :std:term:`array scalar` rather than the base
 Python type. This is consistent with the behavior of `~numpy.ndarray`.
 
+Warnings issued by SpacePy are now associated with the line of the
+calling code, not with the SpacePy code itself.
+
 0.6 Series
 ==========
 0.6.0 (2024-04-25)

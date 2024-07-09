@@ -123,7 +123,8 @@ if 'TS07_DATA_PATH' not in os.environ:
             # https://discuss.python.org/t/importlib-resources-access-whole-directories-as-resources/15618/5
             td = tempfile.mkdtemp()
             warnings.warn(
-                f"Writing TS07 data to {td}; will not automatically clean.")
+                f"Writing TS07 data to {td}; will not automatically clean.",
+                stacklevel=2)
             td = os.path.join(td, 'TAIL_PAR')
             os.mkdir(td)
             files = list(spdatapath.joinpath('TAIL_PAR').iterdir())
@@ -1728,7 +1729,7 @@ class Shieldose2:
             cfac = fl_convert.get(fluence.lower(), fl_convert['nasa'])
             if fluence.lower() not in fl_convert:
                 wstr = f'{fluence} not a supported fluence model. Defaulting to NASA.'
-                warnings.warn(wstr)
+                warnings.warn(wstr, stacklevel=2)
             outdict['fluence_electron'] = dm.dmarray(outdict['dose_electron']
                                                      * cfac)
             ftext = f'Fluence calculated from Dose-Si using {fluence} model'
