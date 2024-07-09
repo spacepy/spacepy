@@ -348,8 +348,7 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
 def _read_config(rcfile):
     """Read configuration information from a file"""
     global config
-    defaults = {'enable_deprecation_warning': str(True),
-                'keepalive': str(True),
+    defaults = {'keepalive': str(True),
                 'ncpus': str(multiprocessing.cpu_count()),
                 'qindenton_url': 'http://virbo.org/ftp/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
                 'qd_daily_url': 'https://rbsp-ect.newmexicoconsortium.org/data_pub/QinDenton/',
@@ -361,8 +360,7 @@ def _read_config(rcfile):
                 }
     #Functions to cast a config value; if not specified, value is a string
     str2bool = lambda x: x.lower() in ('1', 'yes', 'true', 'on')
-    caster = {'enable_deprecation_warning': str2bool,
-              'keepalive': str2bool,
+    caster = {'keepalive': str2bool,
               'ncpus': int,
               'support_notice': str2bool,
               'enable_old_data_warning': str2bool,
@@ -460,7 +458,3 @@ _read_config(rcfile)
 if __version__ == 'UNRELEASED' and config['support_notice']:
     print('This unreleased version of SpacePy is not supported '
           'by the SpacePy team.')
-# Set up a filter to always warn on deprecation
-if config['enable_deprecation_warning']:
-    warnings.filterwarnings('default', '', DeprecationWarning,
-                            '^spacepy', 0, False)
