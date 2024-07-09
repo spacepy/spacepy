@@ -735,7 +735,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
                 if 'verbose' in kwargs:
                     print('L* at test point: {0}; Xgsm = {1}'.format(LStry['Lstar'], pos_test))
 
-                if np.isnan(LStry['Lstar']).any():
+                if np.isnan(LStry['Lstar']):
                     loci_brac2 = pos_test
                 else:
                     loci_brac1 = pos_test
@@ -746,9 +746,6 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             except IndexError:
                 results['LCDS'][idxt] = LCDS
                 results['K'][idxt] = LCDS_K
-
-    results['LCDS'] = results['LCDS']
-    results['K'] = results['K']
 
     return results
 
@@ -992,13 +989,12 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                     pa = AlphaOfK(tt, postry, k_i, extMag=extMag, options=Aopt, omnivals=omnivals)[0]
                     LStry = get_Lstar(tt, postry, pa, extMag=extMag, options=options, omnivals=omnivals)
                     LStry['Lstar'] = LStry['Lstar'][0, 0]
-                    LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
                 else:
-                    LStry = {'Lstar': np.nan, 'K': np.nan}
+                    LStry = {'Lstar': np.nan}
                 if 'verbose' in kwargs:
                     print('L* at test point: {0}; Xgsm = {1}'.format(LStry['Lstar'], pos_test))
 
-                if np.isnan(LStry['Lstar']).any():
+                if np.isnan(LStry['Lstar']):
                     loci_brac2 = pos_test
                 else:
                     loci_brac1 = pos_test
@@ -1009,9 +1005,6 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             except IndexError:
                 results['LCDS'][idxt] = LCDS
                 results['AlphaEq'][idxt] = LCDS_PA
-
-    results['LCDS'] = results['LCDS']
-    results['AlphaEq'] = results['AlphaEq']
 
     return results
 
