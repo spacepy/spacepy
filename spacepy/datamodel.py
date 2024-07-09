@@ -953,12 +953,17 @@ class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
         for val in self.Allowed_Attributes:
             self.__setattr__(val, copy.deepcopy(getattr(obj, val, {})))
 
-    def __array_wrap__(self, out_arr, context=None):
+    def __array_wrap__(self, out_arr, context=None, return_scalar=None):
         #check for zero-dims (numpy bug means subclass behaviour isn't consistent with ndarray
         #this traps most of the bad behaviour ( std() and var() still problems)
-        if out_arr.ndim > 0:
-            return numpy.ndarray.__array_wrap__(self, out_arr, context)
-        return numpy.ndarray.__array_wrap__(self, out_arr, context)[()]
+        if return_scalar:
+            return super().__array_wrap__(out_arr, context, True)[()]
+        if return_scalar is False:
+            return super().__array_wrap__(out_arr, context, False)
+        # Pre numpy 2.0, so guess if scalar
+        if out_arr.ndim:
+            return super().__array_wrap__(out_arr, context)
+        return super().__array_wrap__(out_arr, context)[()]
 
     def __reduce__(self):
         """This is called when pickling, see:
