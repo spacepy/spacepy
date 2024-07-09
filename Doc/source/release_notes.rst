@@ -22,6 +22,9 @@ New features
 
 Dependency requirements
 ***********************
+Numpy 2.0 is now fully supported. Several deprecations and errors
+using 2.0 were fixed.
+
 Numpy and f2py are no longer required to build SpacePy. This change
 will not be noticable to most users. Binary wheels are no longer tied
 to numpy or Python version. SpacePy will now build on numpy 1.26 and
