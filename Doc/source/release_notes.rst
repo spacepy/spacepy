@@ -49,7 +49,14 @@ will now return a numpy :std:term:`array scalar` rather than the base
 Python type. This is consistent with the behavior of `~numpy.ndarray`.
 
 Warnings issued by SpacePy are now associated with the line of the
-calling code, not with the SpacePy code itself.
+calling code, not with the SpacePy code itself. The
+``enable_deprecation_warning`` :doc:`configuration option <configuration>`
+has been removed and SpacePy does not force display of deprecation
+warnings, as warnings issued by SpacePy cannot be distinguished from
+other warnings. It is recommended to occasionally run Python code with
+the :option:`-Wd <-W>` option to enable deprecation warnings. See
+:py:mod:`warnings` for more details.
+
 
 0.6 Series
 ==========

@@ -58,14 +58,6 @@ data, which can be updated with :func:`~spacepy.toolbox.update`.
 
 Available configuration options
 ===============================
-enable_deprecation_warning
-  SpacePy raises :py:exc:`~exceptions.DeprecationWarning` when deprecated functions
-  are called. Starting in Python 2.7, these are ignored. SpacePy adds a warnings
-  filter to force display of deprecation warnings from SpacePy the first time a
-  deprecated function is called. Set this option to False to retain the default
-  Python behavior. (See :py:mod:`warnings` module for details on custom warning
-  filters.)
-
 enable_old_data_warning
   SpacePy maintains certain databases from external sources, notably the
   leapsecond database used by :py:mod:`~spacepy.time`. By default

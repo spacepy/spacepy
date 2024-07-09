@@ -20,10 +20,6 @@ import warnings
 
 warnings.filterwarnings("error", module=r"spacepy\.")
 warnings.filterwarnings("error", module="spacepy_testing$")
-import spacepy
-if spacepy.config['enable_deprecation_warning']:
-    # Remove "default" deprecation, which overrides the error filter
-    del warnings.filters[0]
 
 import spacepy_testing
 
