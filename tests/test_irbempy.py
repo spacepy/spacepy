@@ -314,6 +314,12 @@ class IRBEMBigTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(expected['Bfoot'], ans['Bfoot'], decimal=5)
         numpy.testing.assert_almost_equal(expected['loci'].data, ans['loci'].data, decimal=5)
 
+    def test_get_Bfield_badval(self):
+        """test get_Bfield hitting badval"""
+        loci_noncredible = spacepy.coordinates.Coords([[-1e4, 1e4, 0], [2, 0, 0]], 'GEO', 'car', use_irbem=True)
+        actual = ib.get_Bfield(self.ticks, loci_noncredible, omnivals=self.omnivals)
+        self.assertTrue(np.isnan(actual["Blocal"][0]))
+        self.assertTrue(np.isnan(actual["Bvec"][0]).all())
 
 class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
