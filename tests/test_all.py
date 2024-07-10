@@ -18,8 +18,12 @@ except ImportError:
     import unittest as ut
 import warnings
 
+# Warnings attributed to SpacePy code should be errors
 warnings.filterwarnings("error", module=r"spacepy\.")
 warnings.filterwarnings("error", module="spacepy_testing$")
+# omni is imported from spacepy and may not have this data in testing
+warnings.filterwarnings("default", "Qin-Denton/OMNI2 data not found",
+                        UserWarning, r"spacepy\.")
 
 import spacepy_testing
 
