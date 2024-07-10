@@ -87,7 +87,7 @@ jobs:
             os: ubuntu-22.04
             build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0"
             numpy-version: "~=1.18.0"
-            piplist: "python-dateutil~=2.5.0 scipy>=1.5.0,<1.6.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1 pandas~=0.25.0"
+            piplist: "python-dateutil~=2.6.1 scipy>=1.5.0,<1.6.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1 pandas~=0.25.0"
             cflags: "-Wno-error=format-security"
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"
