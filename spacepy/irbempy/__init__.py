@@ -326,7 +326,7 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(Blocal, badval):
-            Blocal = np.nan
+            Blocal[()] = np.nan
         BxyzGEO[np.where(np.isclose(BxyzGEO, badval))] = np.nan
 
         results['Blocal'][i] = Blocal
