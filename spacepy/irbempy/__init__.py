@@ -420,9 +420,9 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
 
         # take out all the odd 'bad values' and turn them into NaN
         if np.isclose(blocal, badval):
-            blocal = np.nan
+            blocal[()] = np.nan
         if np.isclose(bmirr, badval):
-            bmirr = np.nan
+            bmirr[()] = np.nan
         GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
 
         results['Blocal'][i] = blocal
