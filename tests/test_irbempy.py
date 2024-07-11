@@ -321,6 +321,15 @@ class IRBEMBigTests(unittest.TestCase):
         self.assertTrue(np.isnan(actual["Blocal"][0]))
         self.assertTrue(np.isnan(actual["Bvec"][0]).all())
 
+    def test_find_Bmirror_badval(self):
+        """test find_Bmirror hitting badval"""
+        loci_noncredible = spacepy.coordinates.Coords([[-1e4, 1e4, 0], [2, 0, 0]], 'GEO', 'car', use_irbem=True)
+        actual = ib.find_Bmirror(self.ticks, loci_noncredible, [0, 45], omnivals=self.omnivals)
+        # These will need to be changed slightly once find_Bmirror is fixed
+        self.assertTrue(np.isnan(actual["Blocal"][0]))
+        self.assertTrue(np.isnan(actual["Bmirr"]).all())
+        self.assertTrue(np.isnan(actual["loci"].data[0]).all())
+
 class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
     def setUp(self):
