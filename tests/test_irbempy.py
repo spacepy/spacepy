@@ -330,6 +330,14 @@ class IRBEMBigTests(unittest.TestCase):
         self.assertTrue(np.isnan(actual["Bmirr"]).all())
         self.assertTrue(np.isnan(actual["loci"].data[0]).all())
 
+    def test_find_magequator_badval(self):
+        """test find_magequator hitting badval"""
+        loci_noncredible = spacepy.coordinates.Coords([[-1e4, 1e4, 0], [2, 0, 0]], 'GEO', 'car', use_irbem=True)
+        actual = ib.find_magequator(self.ticks, loci_noncredible, omnivals=self.omnivals)
+        self.assertTrue(np.isnan(actual["Bmin"][0]))
+        self.assertTrue(np.isnan(actual["loci"].data[0]).all())
+
+
 class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
     def setUp(self):
