@@ -556,9 +556,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
     nTAI = len(ticks)
 
     # First set inner bracket (default to R of 3)
-    try:
-        assert len(bracket) == 2
-    except:
+    if len(bracket) != 2:
         raise ValueError('Specified initial bracket is invalid')
 
     if not isinstance(alpha, Iterable):
