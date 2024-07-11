@@ -791,9 +791,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
     Aopt.extend(options[1:])
 
     # First set inner bracket (default to R of 3)
-    try:
-        assert len(bracket) == 2
-    except:
+    if len(bracket) != 2:
         raise ValueError('Specified initial bracket is invalid')
 
     if not isinstance(K, Iterable):
