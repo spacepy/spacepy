@@ -148,14 +148,15 @@ class IRBEMBigTests(unittest.TestCase):
 
     def test_find_LCDS(self):
         """test find_LCDS"""
-        expected_numeric = {'LCDS': np.array([7.3386417, 7.46836875]),
-                    'K': np.array([0.0526464 , 0.05057452]),
-                    'AlphaEq': np.array([45])}
-        actual = ib.find_LCDS(self.ticks, 45, omnivals=self.omnivals)
-        for key in expected_numeric:
-            numpy.testing.assert_almost_equal(expected_numeric[key], actual[key], decimal=6)
+        expected_numeric = {
+            'LCDS': np.array([7.25101749, 7.36026469]),
+            'K': np.array([0.05414297, 0.05167069]),
+            'AlphaEq': np.array([45])}
         expected_utc = np.array([datetime.datetime(2001, 2, 2, 12, 0),
-                        datetime.datetime(2001, 2, 2, 12, 10)], dtype=object)
+                                 datetime.datetime(2001, 2, 2, 12, 10)], dtype=object)
+        actual = ib.find_LCDS(self.ticks, 45, omnivals=self.omnivals, bracket=[5, 10], tol=0.1)
+        for key in expected_numeric:
+            numpy.testing.assert_allclose(expected_numeric[key], actual[key])
         numpy.testing.assert_array_equal(expected_utc, actual['UTC'])
 
     def test_find_LCDS_K(self):
