@@ -32,6 +32,7 @@ class IRBEMBigTests(unittest.TestCase):
         self.omnivals = spacepy.omni.get_omni(self.ticks, dbase='Test')
 
     def test_prep_ctypes(self):
+        """Check prep_ctypes preserves original values of prep_irbem"""
         expected_arrays = {
             'degalpha': [0.0] * 25,
             'idoysat': [33.0] * 2 + [0.0] * 99998,
