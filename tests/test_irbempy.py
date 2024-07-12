@@ -147,6 +147,7 @@ class IRBEMBigTests(unittest.TestCase):
         self.assertEqual(expected_size, actual_size)
 
     def test_find_LCDS(self):
+        """test find_LCDS"""
         expected_numeric = {'LCDS': np.array([7.3386417 , 7.46836875]),
                     'K': np.array([0.0526464 , 0.05057452]),
                     'AlphaEq': np.array([45])}
