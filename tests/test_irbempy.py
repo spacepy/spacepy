@@ -267,6 +267,7 @@ class IRBEMBigTests(unittest.TestCase):
                          str(cm.exception))
 
     def test_get_Lstar_landi2_shell_splitting(self):
+        """test get_Lstar with landi2lstar and shell splitting options"""
         expected = {'Lm': array([[3.09135204, 3.09135204],
                                  [2.05626165, 2.05626165]]),
          'Lstar': array([[3.02418952, 3.02418952],[2.05327655, 2.05327655]]),
