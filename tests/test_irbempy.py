@@ -159,6 +159,7 @@ class IRBEMBigTests(unittest.TestCase):
         numpy.testing.assert_array_equal(expected_utc, actual['UTC'])
 
     def test_find_LCDS_K(self):
+        """test find_LCDS_K"""
         expected_numeric = {
             'LCDS': np.array([8.94918006, 8.89753712]),
             'AlphaEq': np.array([90., 90.]),
