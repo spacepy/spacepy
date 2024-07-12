@@ -137,6 +137,10 @@ class IRBEMBigTests(unittest.TestCase):
 
     @unittest.expectedFailure
     def test_find_Bmirror_size(self):
+        """Demonstrate failing desired behavior of find_Bmirror
+
+        Intended size of find_Bmirror output is nTAI * nalpha, instead it is just nTAI.
+        """
         expected_size = 4
         actual_results = ib.find_Bmirror(self.ticks, self.loci, [40, 60], omnivals=self.omnivals)
         actual_size = np.size(actual_results["Bmirr"])
