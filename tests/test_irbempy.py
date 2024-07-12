@@ -159,6 +159,18 @@ class IRBEMBigTests(unittest.TestCase):
             numpy.testing.assert_allclose(expected_numeric[key], actual[key])
         numpy.testing.assert_array_equal(expected_utc, actual['UTC'])
 
+    def test_find_LCDS_multi_PA(self):
+        """test find_LCDS with multiple pitch angles"""
+        expected_numeric = {
+            'LCDS': np.array([[7.25101749, 7.38250892]]),
+            'K': np.array([[0.05414297, 0.03647328]]),
+            'AlphaEq': np.array([45, 50])}
+        expected_utc = np.array([datetime.datetime(2001, 2, 2, 12, 0)], dtype=object)
+        actual = ib.find_LCDS(self.ticks[0], [45, 50], omnivals=self.omnivals, bracket=[5, 10], tol=0.1)
+        for key in expected_numeric:
+            numpy.testing.assert_allclose(actual[key], expected_numeric[key], rtol=1e-6)
+        numpy.testing.assert_array_equal(actual['UTC'], expected_utc)
+
     def test_find_LCDS_K(self):
         """test find_LCDS_K"""
         expected_numeric = {
