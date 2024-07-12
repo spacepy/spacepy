@@ -30,7 +30,7 @@ TESTS=(
        "3.11|pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0|numpy~=1.23.0|python-dateutil~=2.8.1 scipy~=1.9.0 matplotlib~=3.1.0 h5py~=3.8.0 astropy~=5.0.0 pandas~=1.5.0|old"
        "3.11|pip setuptools wheel cython|numpy>=1.26.0|python-dateutil scipy matplotlib h5py astropy pandas|new"
        "3.12|pip~=23.1.0 setuptools~=66.1.0 wheel~=0.34.2 cython<3.0|numpy~=1.24.0|python-dateutil~=2.8.1 scipy~=1.11.0 matplotlib~=3.5.0 h5py~=3.10.0 astropy~=5.3.0 pandas~=1.5.0|old"
-       "3.12|pip setuptools wheel cython meson-python ninja versioneer|numpy|python-dateutil scipy matplotlib h5py astropy pandas|new"
+       "3.12|pip setuptools wheel|numpy>=1.26.0|python-dateutil scipy matplotlib h5py astropy pandas|new"
       )
 for thisTest in "${TESTS[@]}"
 do

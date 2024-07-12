@@ -148,7 +148,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.12"
             os: ubuntu-22.04
-            build-deps: "pip setuptools wheel cython meson-python ninja versioneer"
+            build-deps: "pip setuptools wheel"
             numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
