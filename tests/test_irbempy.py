@@ -171,6 +171,23 @@ class IRBEMBigTests(unittest.TestCase):
             numpy.testing.assert_allclose(actual[key], expected_numeric[key], rtol=1e-6)
         numpy.testing.assert_array_equal(actual['UTC'], expected_utc)
 
+    def test_find_LCDS_badval(self):
+        """test find_LCDS hitting badval"""
+        # Bad inner bracket results in a ValueError
+        with self.assertRaises(ValueError):
+            ib.find_LCDS(self.ticks, 45, omnivals=self.omnivals, bracket=[100, 10])
+        # Bad outer bracket just carries computation forward, regression test
+        expected_bad_outer = {'LCDS': np.array([5.01071307, 4.99741893]),
+                              'K': np.array([0.11522738, 0.11620084]),
+                              'AlphaEq': np.array([45])}
+        expected_utc = np.array([datetime.datetime(2001, 2, 2, 12, 0),
+                                 datetime.datetime(2001, 2, 2, 12, 10)])
+        # Huge tolerance because we don't need to spend forever hitting nans
+        actual_bad_outer = ib.find_LCDS(self.ticks, 45, omnivals=self.omnivals, bracket=[5, -100], tol=10)
+        for key, arr in expected_bad_outer.items():
+            numpy.testing.assert_allclose(arr, expected_bad_outer[key], rtol=1e-6)
+        numpy.testing.assert_array_equal(actual_bad_outer['UTC'], expected_utc)
+
     def test_find_LCDS_K(self):
         """test find_LCDS_K"""
         expected_numeric = {
