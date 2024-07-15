@@ -77,8 +77,8 @@ second aware timebases: CDF and RDT.
 See the :class:`Ticktock` documentation and its various ``get`` functions for
 more details on the exact definitions of time systems used by SpacePy.
 
-Examples:
-=========
+Examples
+========
 
 >>> import spacepy.time as spt
 >>> import datetime as dt
