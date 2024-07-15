@@ -818,6 +818,9 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
 
     options = (int4 * 5)(*options)
 
+    bmin = np.empty((), np.float64)
+    GEOcoord = np.empty((3,), np.float64)
+
     for idxt, tt in enumerate(ticks):
         if not omnivals:
             # prep_irbem will get omni if not specified, but to save on repeated calls, do it once here
@@ -844,8 +847,6 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             nTtoG = 1.0e-5
             pa = np.nan
 
-            bmin = np.empty((), np.float64)
-            GEOcoord = np.empty((3,), np.float64)
             irbemlib.find_magequator1(
                 int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                 int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
@@ -857,7 +858,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
-                bmin = np.nan
+                bmin[()] = np.nan
             GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
             # Now get Lstar at this location...
             if np.isfinite(GEOcoord[0]):
@@ -908,8 +909,6 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
             xin3 = d2['xin3']
             magin = d['magin']
 
-            bmin = np.empty((), np.float64)
-            GEOcoord = np.empty((3,), np.float64)
             irbemlib.find_magequator1(
                 int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                 int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
@@ -921,7 +920,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
 
             # take out all the odd 'bad values' and turn them into NaN
             if np.isclose(bmin, badval):
-                bmin = np.nan
+                bmin[()] = np.nan
             GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
             # Now get Lstar at this location...
             if np.isfinite(GEOcoord[0]):
@@ -961,8 +960,6 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 xin3 = dtest['xin3']
                 magin = d['magin']
 
-                bmin = np.empty((), np.float64)
-                GEOcoord = np.empty((3,), np.float64)
                 irbemlib.find_magequator1(
                     int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
                     int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
@@ -974,7 +971,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
 
                 # take out all the odd 'bad values' and turn them into NaN
                 if np.isclose(bmin, badval):
-                    bmin = np.nan
+                    bmin[()] = np.nan
                 GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
                 # print('bmin, GEOcoord = {0},{1}'.format(bmin, GEOcoord))
                 if not (np.isnan(bmin)):
