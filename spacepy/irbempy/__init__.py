@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-module wrapper for irbem_lib
-Reference for this library
-https://sourceforge.net/projects/irbem/
+module wrapper for the fortran library irbem_lib; Reference for this library https://sourceforge.net/projects/irbem/
+
 D. Boscher, S. Bourdarie, T. P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 
 
