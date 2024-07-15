@@ -5,6 +5,8 @@ and visualizing BATS-R-US and SWMF output.
 For more information on the SWMF, please visit the
 `Center for Space Environment Modeling <http://csem.engin.umich.edu>`_.
 
+For additional documentation :doc:`../pybats`
+
 Copyright ©2010 Los Alamos National Security, LLC.
 
 '''

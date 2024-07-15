@@ -43,6 +43,8 @@ Institution: University of New Hampshire
 
 Contact: Jonathan.Niehof@unh.edu
 
+For additional documentation :doc:`../pycdf`
+
 
 Copyright 2010-2015 Los Alamos National Security, LLC.
 
