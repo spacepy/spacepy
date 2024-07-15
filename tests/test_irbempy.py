@@ -201,6 +201,18 @@ class IRBEMBigTests(unittest.TestCase):
             numpy.testing.assert_allclose(expected_numeric[key], actual[key])
         numpy.testing.assert_array_equal(expected_utc, actual['UTC'])
 
+    def test_find_LCDS_K_multi_K(self):
+        """test find_LCDS_K with multiple K"""
+        expected_numeric = {
+                'LCDS': np.array([[5.06854355, 5.06854355],
+                                  [5.03953823, 5.03953823]]),
+                'AlphaEq': np.array([[90., 90.], [90., 90.]])}
+        # Huge tolerance to speed up the test
+        actual = ib.find_LCDS_K(self.ticks, [1.5e-12, 1.5e-12], extMag='T96',
+                                omnivals=self.omnivals, bracket=[5, 10], tol=10)
+        for key, arr in expected_numeric.items():
+            numpy.testing.assert_allclose(arr, actual[key])
+
     def test_find_magequator(self):
         expected = {'Bmin': array([ 1030.456337,  3444.077016 ])}
         Bmin_loci = array([[ 2.99935449,  0.005511 , -0.032353  ],
