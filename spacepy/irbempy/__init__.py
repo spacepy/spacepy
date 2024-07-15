@@ -801,6 +801,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
     else:
         results['LCDS'] = dm.dmfilled([nTAI, ])
         results['AlphaEq'] = dm.dmfilled([nTAI, ])
+        results['Success'] = dm.dmfilled([nTAI, ], fillval='Success', dtype='|S24')
     results['LCDS'].attrs['DESCRIPTION'] = "Last closed drift shell calculated with SpacePy's irbempy module"
     results['LCDS'].attrs['UNITS'] = "dimensionless"
     results['LCDS'].attrs['DEPEND_0'] = "UTC"
