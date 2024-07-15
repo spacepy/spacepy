@@ -2,151 +2,11 @@
 # -*- coding: utf-8 -*-
 """Time conversion, manipulation and implementation of Ticktock class
 
-Notes
-=====
-The handling of time, in particular the conversions between representations,
-can be more complicated than it seems on the surface. This can result in
-some surprising behavior, particularly when requiring second-level accuracy and
-converting between time systems outside of the period 1972 to present.
-It is strongly recommended to use TAI if transferring times between SpacePy
-and other libraries. TAI has a consistent, unambiguous definition and no
-discontinuities.
-
-Some time systems (e.g. the UTC representation via datetime) cannot represent
-times during a leapsecond. SpacePy represents all these times as the latest
-representable time in the day, e.g.::
-
-    >>> spacepy.time.Ticktock('2008-12-31T23:59:60').UTC[0]
-    datetime.datetime(2008, 12, 31, 23, 59, 59, 999999)
-
-Conversions between continuous time representations (e.g. TAI), leap second
-aware representations (e.g. ISO timestrings), and those that ignore leap
-seconds (e.g. UTC datetime, Unix time) are well-defined between the
-introduction of the leap second system to UTC in 1972 and the present.
-For systems that cannot represent leap seconds, the leap second moment is
-considered not to exist. For example, from 23:59:59 on 2008-12-31 to 00:00:00
-on 2009-01-01 is two seconds, but only represents a one-second increment in
-Unix time. Details are also discussed in the individual time representations.
-
-UTC times more than six months in the future are not well-defined, since
-the schedule of leap second insertion is not known in advance. SpacePy
-performs conversions assuming there are no leapseconds after those which have
-been announced by IERS.
-
-Between 1960 and 1972, UTC was defined by means of fractional leap
-seconds and a varying-length second. From 1958 (when UTC was set equal
-to TAI) and 1972, SpacePy treats UTC time similar to after 1972, with
-a consistent second the same length of the SI second, and applying a
-full leap second before the beginning of January and July if UTC - UT1
-exceeded 0.4s. The difference with other methods of calculating UTC is
-less than half a second.
-
-.. versionchanged:: 0.2.3
-   The application of post-1972 rules to 1958-1927 is new in
-   0.2.3. Before, SpacePy applied leap seconds wherever there was an
-   entry in the USNO record of TAI-UTC, rounding fractional total leap
-   second counts to the integer (0.5 rounds up). The UTC second was still
-   treated as the same length as the SI second (i.e., rate changed were
-   not applied.) This resulted in the application of six leap seconds at
-   the beginning of 1972. The discrepancy with other means of calculating
-   TAI-UTC was as much as five seconds by the end of this period.
-
-.. versionchanged:: 0.2.2
-   Before 0.2.2, SpacePy truncated fractional leapseconds rather than rounding.
-
-Before 1958, UTC is not defined. SpacePy assumes days of constant length
-86400 seconds, equal to the SI second. This is almost guaranteed to be wrong;
-for times well out of the space era, it is strongly recommended to work
-consistently in either a continuous time system (e.g. TAI) or a day-based
-system (e.g. JD).
-
-SpacePy assumes dates including and after 1582-10-15 to be in the Gregorian
-calendar and dates including and before 1582-10-04 to be Julian. 10-05 through
-10-14 do not exist. This change is ignored for continuously-running non leap
-second aware timebases: CDF and RDT.
-
-See the :class:`Ticktock` documentation and its various ``get`` functions for
-more details on the exact definitions of time systems used by SpacePy.
-
-Examples:
-=========
-
->>> import spacepy.time as spt
->>> import datetime as dt
-
-Day of year calculations
-
->>> dts = spt.doy2date([2002]*4, range(186,190), dtobj=True)
->>> dts
-[datetime.datetime(2002, 7, 5, 0, 0),
-datetime.datetime(2002, 7, 6, 0, 0),
-datetime.datetime(2002, 7, 7, 0, 0),
-datetime.datetime(2002, 7, 8, 0, 0)]
-
->>> dts = spt.Ticktock(dts,'UTC')
->>> dts.DOY
-array([ 186.,  187.,  188.,  189.])
-
-Ticktock object creation
-
->>> isodates = ['2009-12-01T12:00:00', '2009-12-04T00:00:00', '2009-12-06T12:00:00']
->>> dts = spt.Ticktock(isodates, 'ISO')
-
-OR
-
->>> dtdates = [dt.datetime(2009,12,1,12), dt.datetime(2009,12,4), dt.datetime(2009,12,6,12)]
->>> dts = spt.Ticktock(dtdates, 'UTC')
-
-ISO time formatting
-
->>> dts = spt.tickrange('2009-12-01T12:00:00','2009-12-06T12:00:00',2.5)
-
-OR
-
->>> dts = spt.tickrange(dt.datetime(2009,12,1,12),dt.datetime(2009,12,6,12), \
-    dt.timedelta(days=2, hours=12))
-
->>> dts
-Ticktock( ['2009-12-01T12:00:00', '2009-12-04T00:00:00', '2009-12-06T12:00:00'] ), dtype=ISO
-
->>> dts.isoformat()
-Current ISO output format is %Y-%m-%dT%H:%M:%S
-Options are: [('seconds', '%Y-%m-%dT%H:%M:%S'), ('microseconds', '%Y-%m-%dT%H:%M:%S.%f')]
-
->>> dts.isoformat('microseconds')
->>> dts.ISO
-['2009-12-01T12:00:00.000000',
- '2009-12-04T00:00:00.000000',
- '2009-12-06T12:00:00.000000']
-
-Time manipulation
-
->>> new_dts = dts + tdelt
->>> new_dts.UTC
-[datetime.datetime(2009, 12, 2, 18, 0),
- datetime.datetime(2009, 12, 5, 6, 0),
- datetime.datetime(2009, 12, 7, 18, 0)]
-
-Other time formats
-
->>> dts.RDT  # Gregorian ordinal time
-array([ 733742.5,  733745. ,  733747.5])
-
->>> dts.GPS # GPS time
-array([  9.43704015e+08,   9.43920015e+08,   9.44136015e+08])
-
->>> dts.JD # Julian day
-array([ 2455167. ,  2455169.5,  2455172. ])
-
-And so on.
-
-.. currentmodule:: spacepy.time
-
-.. NOTE... there is an error with this reference
-
 Authors: Steve Morley, Josef Koller, Brian Larsen, Jon Niehof
 Institution: Los Alamos National Laboratory
 Contact: smorley@lanl.gov,
+
+For additional documentation :doc:`../time`
 
 
 Copyright 2010 Los Alamos National Security, LLC.
@@ -252,14 +112,14 @@ class Ticktock(MutableSequence):
 
     Parameters
     ==========
-    data : array_like (int, datetime, float, string)
+    data - array_like (int, datetime, float, string)
         time stamp
-    dtype : string {`CDF`, `ISO`, `UTC`, `TAI`, 'GPS', `UNX`, `JD`, `MJD`, `RDT`, `APT`} or function
+    dtype - string {`CDF`, `ISO`, `UTC`, `TAI`, 'GPS', `UNX`, `JD`, `MJD`, `RDT`, `APT`} or function
         data type for data, if a function it must convert input time format to Python datetime
 
     Returns
     =======
-    out : Ticktock
+    out - Ticktock
         instance with self.data, self.dtype, self.UTC etc
 
     Notes
@@ -273,7 +133,7 @@ class Ticktock(MutableSequence):
 
     Other Parameters
     ================
-    isoformat : str, optional
+    isoformat - str, optional
 
         .. versionadded:: 0.2.2
 
@@ -394,7 +254,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : string
+        out - string
             string representaion of the class
 
         Examples
@@ -433,12 +293,12 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        idx : int
+        idx - int
             the item index to get
 
         Returns
         =======
-        out : Ticktock
+        out - Ticktock
             Ticktock instance with requested values
 
         Examples
@@ -463,9 +323,9 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        idx : int
+        idx - int
             integer numbers as index
-        vals: {float, string, datetime}
+        vals - {float, string, datetime}
             new values
 
         Examples
@@ -503,7 +363,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : int
+        out - int
             length
 
         Examples
@@ -556,7 +416,7 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        other : Ticktock or datetime.timedelta
+        other - Ticktock or datetime.timedelta
             instance for comparison
 
         Examples
@@ -610,7 +470,7 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        other : datetime.timedelta
+        other - datetime.timedelta
             instance for comparison
 
         Examples
@@ -654,7 +514,7 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        other : datetime.timedelta
+        other - datetime.timedelta
             instance for comparison
 
         Examples
@@ -683,12 +543,12 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-            name : string
+            name - string
                 a string from the list of time systems
                     'UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'DOY', 'eDOY', 'leaps'
         Returns
         =======
-            out: list, array
+            out - list, array
                 requested values as either list/numpy array
 
 
@@ -722,11 +582,11 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        idx : int, slice or sequence of ints
+        idx - int, slice or sequence of ints
             Object that defines the index or indices before which `val` is inserted.
-        val : array_like
+        val - array_like
             values to insert
-        dtype : str (optional)
+        dtype - str (optional)
             must be specified if not CDF, ISO, or UTC
                 
         """
@@ -759,7 +619,7 @@ class Ticktock(MutableSequence):
 
         Other Parameters
         ================
-        kind : str
+        kind - str
             Sort algorithm to use, default 'quicksort'.
 
         See Also
@@ -779,12 +639,12 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : list
+        out - list
             indices that would sort the Ticktock values
 
         Other Parameters
         ================
-        kind : str, optional
+        kind - str, optional
             Sort algorithm to use, default 'quicksort'.
 
             .. versionchanged:: 0.2.2
@@ -807,7 +667,7 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        fmt : string, optional
+        fmt - string, optional
         """
         if fmt is None:
             print('Current ISO output format is %s' % self._isofmt)
@@ -830,7 +690,7 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        attrib : str
+        attrib - str
             attribute that was updated; update others from this
 
         See Also
@@ -890,12 +750,12 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        dtype : string
+        dtype - string
             data type for new system, possible values are {`CDF`, `ISO`, `UTC`, `TAI`, `UNX`, `JD`, `MJD`, `RDT`}
 
         Returns
         =======
-        out : Ticktock
+        out - Ticktock
             Ticktock instance with new time coordinates
 
         Examples
@@ -925,7 +785,7 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        other : Ticktock
+        other - Ticktock
             other (Ticktock instance)
         """
         otherdata = getattr(other, self.data.attrs['dtype'])
@@ -953,7 +813,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : numpy array
+        out - numpy array
             milliseconds since 0000-01-01T00:00:00 assuming no discontinuities.
 
         Examples
@@ -999,7 +859,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : numpy array
+        out - numpy array
             day of the year
 
         Examples
@@ -1039,7 +899,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : numpy array
+        out - numpy array
             days elapsed since midnight bbedJan. 1st
 
         Examples
@@ -1084,7 +944,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : numpy array
+        out - numpy array
             elapsed days since 4713 BCE 01-01T12:00
 
         Notes
@@ -1141,7 +1001,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : numpy array
+        out - numpy array
             elapsed days since 1858-11-17T00:00
             (Julian date of 1858-11-17T12:00 was 2 400 000)
 
@@ -1198,7 +1058,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : numpy array
+        out - numpy array
             elapsed secs since 1970-1-1 (not counting leap secs)
 
         Examples
@@ -1242,7 +1102,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : numpy array
+        out - numpy array
             elapsed days counting 1/1/1 as day 1.
 
         Examples
@@ -1291,7 +1151,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : list of datetime objects
+        out - list of datetime objects
             datetime object in UTC time
 
         Examples
@@ -1361,7 +1221,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-            out : numpy array
+            out - numpy array
                 elapsed secs since 1980-1-6. Leap seconds are counted;
                 i.e. there are no discontinuities.
 
@@ -1399,7 +1259,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-            out : astropy.time.Time
+            out - astropy.time.Time
                 AstroPy Time object
 
         Notes
@@ -1464,7 +1324,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : numpy array
+        out - numpy array
             TAI as seconds since 1958-1-1.
 
         Examples
@@ -1582,7 +1442,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : list of strings
+        out - list of strings
             date in ISO format
 
         Examples
@@ -1636,7 +1496,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : numpy array
+        out - numpy array
             leap seconds
 
         Examples
@@ -1711,7 +1571,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-        out : ticktock
+        out - ticktock
             Ticktock object with the current time, equivalent to datetime.utcnow()
 
         See Also
@@ -1741,7 +1601,7 @@ class Ticktock(MutableSequence):
 
         Returns
         =======
-            out : ticktock
+            out - ticktock
                 Ticktock object with the current UTC day
 
         See Also
@@ -1770,16 +1630,16 @@ def doy2date(year, doy, dtobj=False, flAns=False):
 
     Parameters
     ==========
-    year : int or array of int
+    year - int or array of int
         year
-    doy : int or array of int
+    doy - int or array of int
         day of year
 
     Returns
     =======
-    month : int or array of int
+    month - int or array of int
         month as integer number
-    day : int or array of int
+    day - int or array of int
         as integer number
 
     Examples
@@ -1843,18 +1703,18 @@ def tickrange(start, end, deltadays, dtype=None):
 
     Parameters
     ==========
-    start : string or number
+    start - string or number
         start time (ISO standard string and UTC/datetime do not require a dtype)
-    end : string or number
+    end - string or number
         last possible time in series (excluded unless end=start+n*step for integer n)
-    deltadays : float or timedelta
+    deltadays - float or timedelta
         step in units of days (float); or datetime timedelta object
-    dtype : string (optional)
+    dtype - string (optional)
         data type for start, end; e.g. ISO, UTC, RTD, etc. see Ticktock for all options
 
     Returns
     =======
-    out : Ticktock instance
+    out - Ticktock instance
         ticks
 
     Examples
@@ -1896,22 +1756,22 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
 
     Parameters
     ==========
-    dtstr : sequence of str
+    dtstr - sequence of str
         Date + time representation, format is fairly open.
 
     Returns
     =======
-    isostr : array of str
+    isostr - array of str
         Representation of `dtstr` formatted according to `fmt`.
         Always a new sequence even if contents are identical to `dtstr`.
-    UTC : array of datetime.datetime
+    UTC - array of datetime.datetime
         The closest-possible rendering of UTC time before or equal to `dtstr`.
-    offset : array of int
+    offset - array of int
         Amount (in microseconds) to add to `UTC` to get the real time.
 
     Other Parameters
     ================
-    fmt : str, optional
+    fmt - str, optional
         Format appropriate for :meth:`~datetime.datetime.strftime` for
         rendering the output time.
     """
@@ -2013,21 +1873,21 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
 
     Parameters
     ==========
-    sec : float
+    sec - float
         Seconds of day
 
     Other Parameters
     ================
-    rounding : boolean
+    rounding - boolean
         set for integer seconds
-    days : boolean
+    days - boolean
         set to wrap around day (i.e. modulo 86400)
-    dtobj : boolean
+    dtobj - boolean
         set to return a timedelta object
 
     Returns
     =======
-    out : [hours, minutes, seconds] or datetime.timedelta
+    out - [hours, minutes, seconds] or datetime.timedelta
 
     """
     if rounding:
@@ -2053,12 +1913,12 @@ def no_tzinfo(dt):
 
     Parameters
     ==========
-    dt : iterable
+    dt - iterable
         iterable of datetime.datetime objects
 
     Returns
     =======
-    out : list
+    out - list
         list of datetime.datetime without tzinfo
 
     """
@@ -2084,14 +1944,14 @@ def leapyear(year, numdays=False):
 
     Parameters
     ==========
-    year : array_like
+    year - array_like
         array of years
-    numdays : boolean (optional)
+    numdays - boolean (optional)
         optionally return the number of days in the year
 
     Returns
     =======
-    out : numpy array
+    out - numpy array
         an array of boolean leap year, or array of number of days
 
     Examples
@@ -2121,23 +1981,23 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
 
     Parameters
     ==========
-    dt1 : datetime.datetime
+    dt1 - datetime.datetime
         start date for the the random date
-    dt2 : datetime.datetime
+    dt2 - datetime.datetime
         stop date for the the random date
 
     Other Parameters
     ================
-    N : int (optional)
+    N - int (optional)
         the number of random dates to generate (defualt=1)
-    tzinfo : bool (optional)
+    tzinfo - bool (optional)
         maintain the tzinfo of the input datetimes (default=False)
-    sorted : bool (optional)
+    sorted - bool (optional)
         return the times sorted (default=False)
 
     Returns
     =======
-    out : datetime.datetime or numpy.ndarray of datetime.datetime
+    out - datetime.datetime or numpy.ndarray of datetime.datetime
         the new time for the next call to EventTimer
 
     Examples
@@ -2161,12 +2021,12 @@ def extract_YYYYMMDD(filename):
 
     Parameters
     ==========
-    filename : str
+    filename - str
         string to parse for a YYYYMMDD format
 
     Returns
     =======
-    out : (None, datetime.datetime)
+    out - (None, datetime.datetime)
         the datetime found in the string or None
     """
     # return a datetime if there is one from YYYYMMDD
@@ -2195,11 +2055,11 @@ def _leapsgood(now, filetime, lastleap):
 
     Parameters
     ----------
-    now : datetime.datetime
+    now - datetime.datetime
         Current time (UTC assumed)
-    filetime : datetime.datetime
+    filetime - datetime.datetime
         Timestamp (mtime) of the leapsecond file
-    lastleap : datetime.datetime
+    lastleap - datetime.datetime
         Last leapsecond in the file (really the moment after the leap)
 
     Returns
@@ -2229,7 +2089,7 @@ def _read_leaps(oldstyle=False):
 
     Other Parameters
     ----------------
-    oldstyle : bool
+    oldstyle - bool
 
         .. versionadded:: 0.2.3
 
@@ -2317,10 +2177,10 @@ def _days1958(tai, leaps='rubber', midnight=False):
 
     Parameters
     ==========
-    tai : sequence of float
+    tai - sequence of float
         TAI seconds (i.e. continuous SI seconds relative to 1958-01-01T00:00)
 
-    leaps : str, optional
+    leaps - str, optional
         How to treat days with leapseconds. Since the Julian Date runs
         noon (inclusive) to noon (exclusive), this affects the back
         half of the date with the leapsecond, and the first half of the
@@ -2352,7 +2212,7 @@ def _days1958(tai, leaps='rubber', midnight=False):
 
     Other parameters
     ================
-    midnight : bool, optional
+    midnight - bool, optional
         Start the day at midnight instead of noon. This affects the allocation
         of leap seconds, and of course days are relative to 1958-01-01T00:00
     """
@@ -2426,10 +2286,10 @@ def _days1958totai(days, leaps='rubber', midnight=False):
 
     Parameters
     ==========
-    days : sequence of float
+    days - sequence of float
         Days, including fraction, relative to 1958-01-01T12:00
 
-    leaps : str, optional
+    leaps - str, optional
         How to treat days with leapseconds. Since the Julian Date runs
         noon (inclusive) to noon (exclusive), this affects the back
         half of the date with the leapsecond, and the first half of the
@@ -2460,7 +2320,7 @@ def _days1958totai(days, leaps='rubber', midnight=False):
 
     Other parameters
     ================
-    midnight : bool, optional
+    midnight - bool, optional
         Start the day at midnight instead of noon. This affects the allocation
         of leap seconds, and of course `days` are relative to 1958-01-01T00:00
     """
@@ -2513,9 +2373,9 @@ def _changed_leaps():
 
     Returns
     =======
-    leap_tai : sequence of float
+    leap_tai - sequence of float
         TAI of the start of every leap second.
-    taiutc : sequence of float
+    taiutc - sequence of float
         TAI - UTC at the end of the leap second.
     """
     # Find only those leap seconds that are really changes
@@ -2538,12 +2398,12 @@ def _tai_naive_to_real(tai):
 
     Parameters
     ==========
-    tai : sequence of float
+    tai - sequence of float
         Naive TAI
 
     Returns
     =======
-    tai : sequence of float
+    tai - sequence of float
         TAI
     """
     # This is the ACTUAL TAI and TAI-UTC at the end of that TAI
@@ -2568,12 +2428,12 @@ def _tai_real_to_naive(tai):
 
     Parameters
     ==========
-    tai : sequence of float
+    tai - sequence of float
         TAI
 
     Returns
     =======
-    tai : sequence of float
+    tai - sequence of float
         Naive TAI
     """
     # ACTUAL TAI and TAI-UTC at the end of that TAI

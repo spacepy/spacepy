@@ -106,7 +106,7 @@ module.
 
     pycdf
     pybats
-
+    time
 
 Developer Guide
 ===============
