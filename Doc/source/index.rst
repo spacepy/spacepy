@@ -107,6 +107,9 @@ module.
     pycdf
     pybats
     time
+    coordinates
+    datamodel
+    omni
 
 Developer Guide
 ===============
