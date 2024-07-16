@@ -400,6 +400,25 @@ class IRBEMBigTests(unittest.TestCase):
         self.assertTrue(np.isnan(actual["Bmin"][0]))
         self.assertTrue(np.isnan(actual["loci"].data[0]).all())
 
+    def test_get_Lm(self):
+        """test get_Lm (regression)"""
+        expected = {'Lm': np.array([[3.06568463], [2.05580772]]),
+                    'Bmirr': np.array([[2061.90715087], [6903.89340583]]),
+                    'Bmin': np.array([1030.45633741, 3444.07701556]),
+                    'Xj': np.array([[1.44884221], [0.98442345]]),
+                    'MLT': np.array([11.97159175, 12.13313906])}
+        actual = ib.get_Lm(self.ticks, self.loci, [45], omnivals=self.omnivals)
+        for key, arr in expected.items():
+            numpy.testing.assert_allclose(arr, actual[key])
+
+    def test_get_Lm_bad_intMag(self):
+        with self.assertRaises(ValueError):
+            ib.get_Lm(self.ticks, self.loci, [45], intMag='asdf')
+
+    def test_get_Lm_bad_IGRFset(self):
+        with self.assertRaises(ValueError):
+            ib.get_Lm(self.ticks, self.loci, [45], IGRFset=-1)
+
 
 class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
