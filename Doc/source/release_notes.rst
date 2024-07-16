@@ -47,6 +47,11 @@ Other changes
 Operations on `~spacepy.datamodel.dmarray` which return a scalar value
 will now return a numpy :std:term:`array scalar` rather than the base
 Python type. This is consistent with the behavior of `~numpy.ndarray`.
+`~spacepy.datamodel.dmarray` also supports assigning to its ``dtype``
+and ``shape``. Together these changes should make ``dmarray`` a much
+closer drop-in replacement for `~numpy.ndarray`; in particular, these
+address known issues with conversion to masked arrays and passing to
+`~matplotlib.pyplot.pcolormesh`.
 
 Warnings issued by SpacePy are now associated with the line of the
 calling code, not with the SpacePy code itself. The
