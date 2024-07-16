@@ -593,6 +593,19 @@ class dmarrayTests(unittest.TestCase):
         res = d.max(axis=1)
         self.assertIsInstance(res, dm.dmarray)
 
+    def test_empty_median(self):
+        """median of empty array is nan"""
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', '^(Mean of empty slice|invalid value encountered)',
+                                    RuntimeWarning, '^numpy.*')
+            ans = np.median(dm.dmarray([]))
+        self.assertTrue(np.isnan(ans))
+
+    def test_ufunc_of_ma(self):
+        """Convert dmarray to ma and call scalar ufunc"""
+        ans = np.ma.masked_array(self.dat).min()
+        self.assertEqual(1., ans)
+
         
 class converterTests(unittest.TestCase):
     def setUp(self):
