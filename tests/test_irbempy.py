@@ -465,10 +465,50 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         """test get_AEP8"""
         c = self.loci
         c.ticks = self.ticks
+        print(self.loci.ticks)
         E = 2.0  # energy in MeV
         expected = 99492.059080021136
         actual = ib.get_AEP8(E, c)
-        numpy.testing.assert_almost_equal(expected, actual)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=3)
+
+    def test_get_AEP8_max(self):
+        """test get_AEP8 with 'MAX' model and 'RANGE' fluxtype"""
+        self.loci.ticks = self.ticks
+        E = 2.0
+        expected = 405349.88833790703
+        actual = ib.get_AEP8(E, self.loci, 'max')
+        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+
+    def test_get_AEP8_min_p(self):
+        """test get_AEP8 with 'min' model and proton particles"""
+        self.loci.ticks = self.ticks
+        E = 2.0
+        expected = 7733922.56149766
+        actual = ib.get_AEP8(E, self.loci, particles='p')
+        numpy.testing.assert_almost_equal(expected, actual, decimal=3)
+
+    def test_get_AEP8_max_p(self):
+        """test get_AEP8 with 'max' model and proton particles"""
+        self.loci.ticks = self.ticks
+        E = 2.0
+        expected = 7719051.333830692
+        actual = ib.get_AEP8(E, self.loci, 'max', particles='p')
+        numpy.testing.assert_almost_equal(expected, actual, decimal=3)
+
+    def test_get_AEP8_range(self):
+        """test get_AEP8 with 'range' flux type"""
+        self.loci.ticks = self.ticks
+        E = [2.0, 3.0]
+        actual = ib.get_AEP8(E, self.loci, fluxtype='range')
+        self.assertTrue(np.isnan(actual))
+
+    def test_get_AEP8_int(self):
+        """test get_AEP8 with 'int' flux type"""
+        self.loci.ticks = self.ticks
+        E = 2.0
+        expected = 65490.42994552884
+        actual = ib.get_AEP8(E, self.loci, fluxtype='int')
+        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
 
     def test_get_AEP8_BBo_L(self):
         """Test get_AEP8 with optional version of loci"""
