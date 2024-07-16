@@ -6,6 +6,8 @@ Coordinates - Implementation of Coords class functions for coordinate transforma
     :depth: 2
     :local:
 
+.. currentmodule:: spacepy.coordinates
+
 
 See also the `full API documentation <spacepy.coordinates>`.
 

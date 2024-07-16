@@ -10,6 +10,8 @@ implemented slightly differently.
     :depth: 2
     :local:
 
+.. currentmodule:: spacepy.datamodel
+
 See also the `full API documentation <spacepy.datamodel>`.
 
 Documentation

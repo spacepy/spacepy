@@ -6,6 +6,8 @@ PyBats - SWMF & BATS-R-US Analysis Tools
     :depth: 2
     :local:
 
+.. currentmodule:: spacepy.pybats
+    
 PyBats!  An open source Python-based interface for reading, manipulating,
 and visualizing BATS-R-US and SWMF output.
 For more information on the SWMF, please visit the
