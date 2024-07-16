@@ -895,7 +895,8 @@ class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
     .. versionchanged:: 0.7.0
        Operations on a ``dmarray`` which return a scalar value return a numpy
        :std:term:`array scalar`. Previously they would return the base
-       Python type.
+       Python type. Assignment to ``dtype`` and ``shape`` are also now
+       supported; previously this raised :exc:`TypeError`.
 
     Raises
     ------
@@ -994,8 +995,8 @@ class dmarray(numpy.ndarray, MetaMixin, ISTPArray):
         dmarray_assert took 16.025478 s
         It looks like != is the fastest, but not by much over 10000000 __setattr__
         """
-        #meta is special-handled because it should NOT be pickled
-        if name in ('Allowed_Attributes', 'meta'):
+        # Several attrs special-cased because should NOT be pickled
+        if name in ('Allowed_Attributes', 'dtype', 'meta', 'shape'):
             pass
         elif not name in self.Allowed_Attributes:
             raise TypeError("Only attribute listed in Allowed_Attributes can be set")

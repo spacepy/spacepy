@@ -27,10 +27,11 @@ import spacepy.pycdf
 import spacepy.pycdf.const
 import spacepy.time as spt
 import numpy as np
+import numpy.testing
 
 
 __all__ = ['SpaceDataTests', 'dmarrayTests', 'converterTests', 'JSONTests', 'converterTestsCDF',
-           'VariableTests', 'ISTPPlotTests']
+           'VariableTests', 'ISTPPlotTests', 'dmarrayPlotTests']
 
 
 class SpaceDataTests(unittest.TestCase):
@@ -605,6 +606,27 @@ class dmarrayTests(unittest.TestCase):
         """Convert dmarray to ma and call scalar ufunc"""
         ans = np.ma.masked_array(self.dat).min()
         self.assertEqual(1., ans)
+
+    def test_reshape(self):
+        """Reshape dmarray by assigning to shape"""
+        self.dat.shape = (2, 2)
+        self.assertEqual((2, 2), self.dat.shape)
+        numpy.testing.assert_array_equal(self.dat, [[1, 2], [3, 4]])
+        self.assertEqual(
+            {'a': 'a', 'b': 'b'},
+            self.dat.attrs)
+
+    def test_dtype(self):
+        """Reshape dmarray by assigning to shape"""
+        dat = dm.dmarray([65, 66, 67], dtype=np.int8,
+                         attrs={'a': 'a', 'b': 'b'})
+        self.assertEqual('i', dat.dtype.kind)
+        dat.dtype = '|S1'
+        self.assertEqual('S', dat.dtype.kind)
+        numpy.testing.assert_array_equal(dat, [b'A', b'B', b'C'])
+        self.assertEqual(
+            {'a': 'a', 'b': 'b'},
+            dat.attrs)
 
         
 class converterTests(unittest.TestCase):
@@ -1803,6 +1825,19 @@ class ISTPPlotTests(spacepy_testing.TestPlot):
         d = dm.dmarray.fromQuantity(q, copy=False)
         np.testing.assert_allclose(d, [1, 2, 3])
         self.assertTrue(np.may_share_memory(q.value, d))
+
+
+class dmarrayPlotTests(spacepy_testing.TestPlot):
+    """Test dmarray interaction with plotting / matplotlib"""
+
+    def test_pcolormesh(self):
+        """Pass dmarray to simple pcolormesh"""
+        d = dm.dmarray([[1, 2, 3], [4, 5, 6]])
+        import matplotlib.pyplot
+        qm = matplotlib.pyplot.pcolormesh(d)
+        # get_array is inconsistent about whether it's flattened
+        numpy.testing.assert_array_almost_equal(
+            d.flatten(), qm.get_array().flatten())
 
 
 if __name__ == "__main__":
