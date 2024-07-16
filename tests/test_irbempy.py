@@ -433,6 +433,19 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
             [ 1.91462214,  0.06992421,  0.57387514]])
         numpy.testing.assert_almost_equal(expected, ib.coord_trans(self.loci, 'GSM', 'car'))
 
+    def test_coord_trans_swap(self):
+        """test coord_trans with invalid sysaxesout requiring a carsph swap"""
+        # re-assign ticks so this test can be run in isolation
+        self.loci.ticks = self.ticks
+        expected_swap_car = numpy.array([[1.27354630e+04, 0, 7.79822200e-13],
+                                         [6.36426300e+03, 0, 3.89698716e-13]])
+        actual_swap_car = ib.coord_trans(self.loci, 'GDZ', 'car')
+        numpy.testing.assert_allclose(expected_swap_car, actual_swap_car)
+        expected_swap_sph = numpy.array([[3.00001811, 17.05237491, 1.50312982],
+                                         [2.00001162, 16.33234518, 4.00302456]])
+        actual_swap_sph = ib.coord_trans(self.loci, 'GSE', 'sph')
+        numpy.testing.assert_allclose(expected_swap_sph, actual_swap_sph)
+
     def test_GSM_SM_init(self):
         '''test for initialization error in gsm to sm conversion'''
         real8 = ib.real8
