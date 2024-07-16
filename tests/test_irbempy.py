@@ -213,6 +213,18 @@ class IRBEMBigTests(unittest.TestCase):
         for key, arr in expected_numeric.items():
             numpy.testing.assert_allclose(arr, actual[key])
 
+    def test_find_LCDS_K_badval(self):
+        """test find_LCDS_K hitting badval"""
+        actual_bad_inner = ib.find_LCDS_K(self.ticks, 1.5e-12, extMag='T96',
+                                        omnivals=self.omnivals, bracket=[100, 10], tol=10)
+        self.assertTrue(numpy.isnan(actual_bad_inner['LCDS']).all())
+
+        expected_outer = np.array([5.06854355, 5.03953823])
+        actual_bad_outer = ib.find_LCDS_K(self.ticks, 1.5e-12, extMag='T96',
+                                          omnivals=self.omnivals, bracket=[5, 0], tol=1)
+        numpy.testing.assert_allclose(expected_outer, actual_bad_outer['LCDS'])
+
+
     def test_find_magequator(self):
         expected = {'Bmin': array([ 1030.456337,  3444.077016 ])}
         Bmin_loci = array([[ 2.99935449,  0.005511 , -0.032353  ],
