@@ -354,6 +354,12 @@ class IRBEMBigTests(unittest.TestCase):
         ans = spacepy.irbempy.AlphaOfK(t, loci, 0.11, extMag='T89', omnivals=self.omnivals)
         numpy.testing.assert_almost_equal(ans, 50.625, decimal=5)
 
+    def test_AlphaOfK_badval(self):
+        """test AlphaOfK hitting/handling badval"""
+        loci_noncredible = spacepy.coordinates.Coords([[-1e4, 1e4, 0], [2, 0, 0]], 'GEO', 'car', use_irbem=True)
+        actual = ib.AlphaOfK(self.ticks, loci_noncredible, K=1, omnivals=self.omnivals)
+        self.assertTrue(numpy.isnan(actual).all())
+
     def test_find_footpoint(self):
         '''test computation of field line footpoint location/magnitude (regression)'''
         expected = {'Bfoot': numpy.array([ 47626.93407,  47625.97051])}
