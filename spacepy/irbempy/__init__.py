@@ -1091,9 +1091,8 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
             # print('i= {0}, found alpha = {1}'.format(i, pa0))
             continue
 
-        Done, count = False, 0
         pa_upper, pa_lower, pa_test = pa0, 0, 30
-        while not Done:
+        for _ in range(21):
             # print('Testing PA={0}'.format(pa_test))
             # Now get K for initial alpha at this location...
             LS1 = get_Lstar(ticks[i], pos1, pa_test, extMag=extMag, options=options, omnivals=omnivals)
@@ -1116,9 +1115,6 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
                 # print('Reset upper bound. U,L = {0},{1}'.format(pa_upper, pa_lower))
             pa_test = pa_lower+np.abs((pa_upper-pa_lower))/2.0
             # print('Change alpha to {0}'.format(pa_test))
-            count += 1
-            if count > 20:
-                break
     return outvals
 
 
