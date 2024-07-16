@@ -10,6 +10,8 @@ See also the `full API documentation <spacepy.omni>`.
     :depth: 2
     :local:
 
+.. currentmodule:: spacepy.omni
+
 About omni
 ----------
 The omni module primarily manages the hourly OMNI2 and Qin-Denton data, which

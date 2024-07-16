@@ -9,6 +9,8 @@ Contents
    :depth: 2
    :local:
 
+.. currentmodule:: spacepy.time
+
 See also the `full API documentation <spacepy.time>`.
 
 Introduction

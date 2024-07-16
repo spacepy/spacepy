@@ -9,6 +9,8 @@ Contents
    :depth: 2
    :local:
 
+.. currentmodule:: spacepy.pycdf
+
 See also the `full API documentation <spacepy.pycdf>`.
 
 Create a CDF
