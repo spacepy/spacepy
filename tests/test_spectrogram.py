@@ -233,6 +233,21 @@ class SimpleSpectrogramTests(spacepy_testing.TestPlot):
         self.assertGreater(ylim[1], y[-1])
         self.assertLess(ylim[1], 250)
 
+    def testSimpleXYZDatesdmarray(self):
+        """Simple, three dmarray inputs, inputs, x is time"""
+        x = dm.dmarray(np.linspace(0, np.pi, 12))
+        y = dm.dmarray(np.logspace(0, 2, 6))
+        # Power-law in energy, sin in time
+        z = 1e4 * np.sin(x)[:, None] * (y ** -2)[None, :] + 1
+        dt = dm.dmarray(np.vectorize(lambda d: datetime.datetime(2010, 1, 1)
+                                     + datetime.timedelta(days=d))(x))
+        ax = simpleSpectrogram(dt, y, z)
+        mesh =  [c for c in ax.get_children() if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(mesh))
+        mesh = mesh[0]
+        np.testing.assert_array_almost_equal(
+            z, mesh.get_array().reshape(z.shape[::-1]).transpose())  # mesh swaps row/column
+
     def testLinearZ(self):
         """Linear Z axis"""
         z = np.arange(72).reshape((12, 6))
