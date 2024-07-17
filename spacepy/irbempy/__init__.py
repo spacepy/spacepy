@@ -2374,7 +2374,6 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1, 0
     # calc at given pitch angles 'alpha'?
     degalpha = np.zeros(nalp_max, dtype=float)
     if isinstance(alpha, numbers.Number):
-        nalpha = 1
         alpha = [alpha]
     nalpha = len(alpha)
     if nalpha > d['nalp_max']:
