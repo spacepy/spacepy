@@ -640,7 +640,7 @@ class Stream(Extraction):
 
 class Bats2d(IdlFile):
     '''
-    A child class of :class:`~pybats.IdlFile` tailored to 2D BATS-R-US output.
+    A child class of :class:`~spacepy.pybats.IdlFile` tailored to 2D BATS-R-US output.
     '''
     # Init by calling IdlFile init and then building qotree, etc.
     def __init__(self, filename, *args, blocksize=8, **kwargs):
@@ -662,7 +662,7 @@ class Bats2d(IdlFile):
 
     def switch_frame(self, *args, **kwargs):
         '''
-        For files that have more than one data frame (i.e., `*.outs` files),
+        For files that have more than one data frame (i.e., ``*.outs`` files),
         load data from the *iframe*-th frame into the object replacing what is
         currently loaded.
         '''
@@ -1543,7 +1543,7 @@ class Bats2d(IdlFile):
         evenly but randomly throughout the plot domain.
 
         Lines will be seeded randomly over a given spatial range given by
-        `xlim` and `ylim` **OR** the range of the axes (if `target` is set to
+        ``xlim`` and ``ylim`` **OR** the range of the axes (if ``target`` is set to
         a non-empty axes object) **OR** over the entire object domain (in that
         order).
 
@@ -2589,7 +2589,7 @@ class Mag(PbData):
     in methods :meth:`~spacepy.pybats.bats.Mag.add_comp_plot` and
     :meth:`~spacepy.pybats.bats.Mag.calc_dbdt`.
 
-    Instantiation is best done through :class: `spacepy.pybats.MagFile`
+    Instantiation is best done through :class:`spacepy.pybats.bats.MagFile`
     objects, which load and parse organize many virtual magnetometers from a
     single output file into a single object.  However, they can be created
     manually, though painfully.  Users must instantiate by handing the
@@ -2602,7 +2602,7 @@ class Mag(PbData):
     or by using the :meth:`~spacepy.pybats.bats.Mag.parse_gmline` and
     :meth:`~spacepy.pybats.bats.Mag.parse_ieline` methods to parse lines of
     ascii data from a magnetometer output file.  Finally, the
-    :meth:`~spacepy.pybats.bats.Mag.recalc` method should be called to
+    ``spacepy.pybats.bats.Mag.recalc()`` method should be called to
     calculate total perturbation.
     '''
     def __init__(self, nlines, time, gmvars=(), ievars=(), *args, **kwargs):

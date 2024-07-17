@@ -55,8 +55,8 @@ using the function fromHDF5:
 Functions are also available to directly load data and metadata into a
 SpacePy datamodel from NASA CDF as well as JSON-headed ASCII. Writers also
 exist to output a SpacePy datamodel directly to HDF5 or JSON-headed ASCII.
-See `datamodel.fromCDF`, `datamodel.readJSONheadedASCII`,
-`datamodel.toHDF5`, and `datamodel.toJSONheadedASCII` for more details.
+See :func:`~spacepy.datamodel.fromCDF`, :func:`~spacepy.datamodel.readJSONheadedASCII`,
+:func:`~spacepy.datamodel.toHDF5`, and :func:`~spacepy.datamodel.toJSONheadedASCII` for more details.
 
 
 Examples

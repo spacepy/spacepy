@@ -113,7 +113,7 @@ class Ticktock(MutableSequence):
     ==========
     data : array_like (int, datetime, float, string)
         time stamp
-    dtype : string {`CDF`, `ISO`, `UTC`, `TAI`, 'GPS', `UNX`, `JD`, `MJD`, `RDT`, `APT`} or function
+    dtype : string {``CDF``, ``ISO``, ``UTC``, ``TAI``, ``GPS``, ``UNX``, ``JD``, ``MJD``, ``RDT``, ``APT``} or function
         data type for data, if a function it must convert input time format to Python datetime
 
     Returns
@@ -582,7 +582,7 @@ class Ticktock(MutableSequence):
         Parameters
         ==========
         idx : int, slice or sequence of ints
-            Object that defines the index or indices before which `val` is inserted.
+            Object that defines the index or indices before which ``val`` is inserted.
         val : array_like
             values to insert
         dtype : str (optional)
@@ -614,7 +614,7 @@ class Ticktock(MutableSequence):
         a.sort()
 
         This will sort the Ticktock values in place based on the values
-        in `data`. If you need a stable sort use kind='mergesort'
+        in ``data``. If you need a stable sort use kind='mergesort'
 
         Other Parameters
         ================
@@ -683,20 +683,14 @@ class Ticktock(MutableSequence):
         """
         a.update_items(attrib)
 
-        After changing the self.data attribute by either __setitem__ or __add__ etc
-        this function will update all other attributes. This function is
-        called automatically in __add__, __init__, and __setitem__.
+        After changing ``data``, this function will update all other attributes.
+        Called automatically by methods of `Ticktock` which change the contents.
 
         Parameters
         ==========
         attrib : str
             attribute that was updated; update others from this
 
-        See Also
-        ========
-        spacepy.Ticktock.__setitem__
-        spacepy.Ticktock.__add__
-        spacepy.Ticktock.__sub__
         """
         keylist = dir(self)
         keylist.remove('data')
@@ -750,7 +744,7 @@ class Ticktock(MutableSequence):
         Parameters
         ==========
         dtype : string
-            data type for new system, possible values are {`CDF`, `ISO`, `UTC`, `TAI`, `UNX`, `JD`, `MJD`, `RDT`}
+            data type for new system, possible values are {``CDF``, ``ISO``, ``UTC``, ``TAI``, ``UNX``, ``JD``, ``MJD``, ``RDT``}
 
         Returns
         =======
@@ -768,9 +762,9 @@ class Ticktock(MutableSequence):
 
         See Also
         ========
-        CDF
-        ISO
-        UTC
+        spacepy.time.Ticktock.getCDF
+        spacepy.time.Ticktock.getISO
+        spacepy.time.Ticktock.getUTC
         """
         newdat = getattr(self, dtype)
         return Ticktock(newdat, dtype)
@@ -1761,12 +1755,12 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
     Returns
     =======
     isostr : array of str
-        Representation of `dtstr` formatted according to `fmt`.
-        Always a new sequence even if contents are identical to `dtstr`.
+        Representation of ``dtstr`` formatted according to ``fmt``.
+        Always a new sequence even if contents are identical to ``dtstr``.
     UTC : array of datetime.datetime
-        The closest-possible rendering of UTC time before or equal to `dtstr`.
+        The closest-possible rendering of UTC time before or equal to ``dtstr``.
     offset : array of int
-        Amount (in microseconds) to add to `UTC` to get the real time.
+        Amount (in microseconds) to add to ``UTC`` to get the real time.
 
     Other Parameters
     ================

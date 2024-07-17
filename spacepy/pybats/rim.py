@@ -584,7 +584,7 @@ class OvalDebugFile(PbData):
         not an existing axes object, a new axes object is created and customized
         to be an ionosphere polar plot.
 
-        Extra arguments/kwargs are sent to :meth:`matplotlib.pyplot.plot`.
+        Extra arguments/kwargs are sent to :func:`~matplotlib.pyplot.plot`.
 
         Parameters
         ==========

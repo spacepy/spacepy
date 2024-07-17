@@ -58,7 +58,7 @@ Next we introduce numpy_ and change our list to an array then add one
 This is 6 function calls in 1.959 CPU seconds (~1.3x), better than the for loop but worse
 than the list comprehension
 
-Next we do this the `right` way and just create it in numpy_ and never leave
+Next we do this the ``right`` way and just create it in numpy_ and never leave
 
 >>> data = np.arange(10000000)
 >>> data += 1
@@ -202,10 +202,9 @@ In summary, when working on arrays it's worth taking the time to think about whe
 
 Zip
 ===
-The :py:func:`zip` function is extremely useful, but it is really slow. If you find yourself
+The :func:`zip` function is extremely useful, but it is really slow. If you find yourself
 using it on large amounts of data then significant time-savings might be achieved by re-writing your code
-to make the :py:func:`zip` operation unnecessary. A good alternative, if you do need the functionality 
-of :py:func:`zip`, is in :py:func:`itertools.izip`. This is far more efficient as it builds an interator.
+to make the :func:`zip` operation unnecessary.
 
 This example generates N points, evenly distributed on the unit sphere centered at
 (0,0,0) using the "Golden Spiral" method.
@@ -231,7 +230,7 @@ The original code::
         x0_y0_z0 = np.array(zip(x0,y0,z0))     #combine into 3 column (x,y,z) file
         return (x0_y0_z0)
 
-Profiling this with :py:mod:`cProfile` shows that a lot of time is spent in :py:func:`zip`::
+Profiling this with :mod:`cProfile` shows that a lot of time is spent in :func:`zip`::
 
     Tue Jun 14 09:54:41 2011    PointsOnSphere.prof
 

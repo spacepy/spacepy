@@ -1045,7 +1045,7 @@ class SpaceData(dict, MetaMixin, ISTPContainer):
 
         See Also
         --------
-        toolbox.dictree
+        :class:`~spacepy.toolbox.dictree`
         '''
         from . import toolbox
         return toolbox.dictree(self, **kwargs)

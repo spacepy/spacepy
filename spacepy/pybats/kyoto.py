@@ -5,7 +5,7 @@ kyoto is a tool set for obtaining and handling geomagnetic indices stored at the
 Indices can be loaded from file or fetched from the web.
 
 Instantiation of objects from this module should be done through the constructor
-functions :func:`fetch` and :func:`load`.  Use help on these objects
+functions :func:`fetch` and load().  Use help on these objects
 for more information.
 '''
 
@@ -25,7 +25,7 @@ class KyotoDst(PbData):
     Handle hourly dst index from Kyoto WDC.  
 
     Use the specialized constructor functions :func:`fetch` and 
-    :func:`load` to instantiate from the web or from file.
+    load() to instantiate from the web or from file.
     '''
 
     def __repr__(self):
@@ -80,7 +80,7 @@ class KyotoAe(PbData):
     Handle Ae index from Kyoto WDC.  
 
     Use the specialized constructor functions :func:`fetch` and 
-    :func:`load` to instantiate from the web or from file.
+    load() to instantiate from the web or from file.
     '''
 
     def __repr__(self):
@@ -111,7 +111,7 @@ class KyotoSym(PbData):
     Handle Sym-H and related indices from Kyoto WDC.  
 
     Use the specialized constructor functions :func:`fetch` and 
-    :func:`load()` to instantiate from the web or from file.
+    load() to instantiate from the web or from file.
     '''
 
     def __repr__(self):
@@ -142,7 +142,7 @@ class KyotoKp(PbData):
     Handles global Kp index from Kyoto WDC.
     
     Use the specialized constructor functions :func:`fetch` and 
-    :func:`load` to instantiate from the web or from file.
+    load() to instantiate from the web or from file.
     '''
     def __repr__(self):
         return 'KyotoDst object for handling observations-based global '+\

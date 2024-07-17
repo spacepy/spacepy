@@ -112,9 +112,9 @@ your specific needs, or use this base object to write your own.
 Multi-Frame Files
 -----------------
 Typically, Idl-formatted data has a single *frame*, or a single snapshot
-worth of data (a `*.out` file).  However, it is possible to (externally)
+worth of data (a ``*.out`` file).  However, it is possible to (externally)
 combine many of these files together such that a time series of data frames
-are contained within a single file (`*.outs` files). This class can read
+are contained within a single file (``*.outs`` files). This class can read
 these files, but only one data frame can be made available at a time.  This
 prevents very large memory requirements.
 
@@ -124,7 +124,7 @@ may select which data frame to open with the *iframe* kwarg.  The default
 action is to open the first frame.  The user may learn more about the
 number of frames within the file and their associated epoch/iteration
 information by examining the top level *attrs* (see below.)
-The user may switch to any arbitrary frame using the `switch_frame(iframe)`
+The user may switch to any arbitrary frame using the ``switch_frame(iframe)``
 object method.  This will load the relevant data from disk into the
 object, overwriting the previous contents.
 
@@ -136,7 +136,7 @@ automatically.
 Top Level Attributes
 --------------------
 Critical file information can be found via the top-level object attributes
-(e.g., accessing the dictionary `self.attrs`).  All IdlFile objects and
+(e.g., accessing the dictionary ``self.attrs``).  All IdlFile objects and
 child classes begin with at least these attributes:
 
 .. list-table::
@@ -203,7 +203,7 @@ Upon instantiation, if *filename* is a valid file AND kwarg *load* is set
 to boolean True, the contents of *filename* are loaded into the object
 and no other work needs to be done.
 
-If *filename* is False or *load* is False, a blank :class:`ImfInput file`
+If *filename* is False or *load* is False, a blank :class:`ImfInput` file
 is created for the user to manipulate.
 The user can set the time array and the
 associated data values (see *obj.attrs['var']* for a list) to any values
@@ -227,7 +227,7 @@ and the name for the values:
 >>> obj['u']=u
 
 If new data entries are added as :class:`~spacepy.datamodel.dmarray`
-objects, the `label` and `units` attributes can be set to enhance plotting.
+objects, the ``label`` and ``units`` attributes can be set to enhance plotting.
 
 >>> from spacepy import datamodel
 >>> u = np.sqrt(obj['ux']**2 + obj['uy']**2 + obj['uz']**2)
@@ -282,7 +282,7 @@ Bats Submodule
 
 Bats2d
 ======
-A child class of :class:`~pybats.IdlFile` tailored to 2D BATS-R-US output.
+A child class of :class:`~spacepy.pybats.IdlFile` tailored to 2D BATS-R-US output.
 
 Calculations
 ------------
@@ -298,10 +298,10 @@ Note, however, that if the user switches the data frame in a .outs file
 to access data from a different epoch, these values will need to be
 updated.
 
-An exception to this is built-in `calc_*` methods, which perform common
+An exception to this is built-in ``calc_*`` methods, which perform common
 MHD/fluid dynamic calculations (i.e., Alfven wave speed, vorticity, and
 more.)  These values are updated when the data frame is switched (see the
-`switch_frame` method).
+``switch_frame`` method).
 
 For example, to calculate number density and the fraction of the total
 density for each species in a multi-fluid simulation,
@@ -316,12 +316,12 @@ Plotting
 --------
 While users can employ Matplotlib to plot values, a set of built-in
 methods are available to expedite plotting.  These are the
-`add_<plot type>` methods.  These methods always have the following
+``add_<plot type>`` methods.  These methods always have the following
 keyword arguments that allow users to optionally build more complicated
 plots: *target* and *loc*.  The *target* kwarg tells the plotting method
 where to place the plot and can either be a Matplotlib figure or axes
 object.  If it's an axes object, *loc* sets the subplot location using
-the typical matplotlib syntax (e.g., `loc=121`).  The default behavior is
+the typical matplotlib syntax (e.g., ``loc=121``).  The default behavior is
 to create a new figure and axes object.
 
 This approach allows a user to over-plot contours, field lines, and
@@ -376,11 +376,11 @@ are aided via the use of the following object methods:
       - Integrate stream lines through vector fields
 
 
-Be sure to read the docstring information of :class:`~pybats.IdlFile` to
+Be sure to read the docstring information of :class:`~spacepy.pybats.IdlFile` to
 see how to handle multi-frame files (.outs) and for a list of critical
 attributes.
 
 .. versionchanged:: 0.5.0
 
     Unstructured data are now presented as in the files. See
-    `~pybats.IdlFile` for details.
+    :class:`~spacepy.pybats.IdlFile` for details.

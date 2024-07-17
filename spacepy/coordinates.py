@@ -75,6 +75,7 @@ class __Defaults(object):
                                 itol=itol)
 
 DEFAULTS = __Defaults()
+"""DEFAULTS attribute is a named tuple with default values for coordinates module"""
 
 
 class Coords(object):
@@ -92,7 +93,7 @@ class Coords(object):
     By default, coordinate transforms are based on the SpacePy library's
     high-accuracy coordinates backend.
     The legacy transforms provided by the IRBEM library can also be used
-    by setting the `use_irbem` flag to True; its manual
+    by setting the ``use_irbem`` flag to True; its manual
     <http://svn.code.sf.net/p/irbem/code/trunk/manual/user_guide.html>`_
     may prove useful.
     For a good reference on heliospheric and magnetospheric

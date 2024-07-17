@@ -12,9 +12,9 @@ class QTree(object):
     in a rectangular non-regular layout. QTree works for square blocks
     only (e.g., blocks who have the same number of points in each dimension).
 
-    The `blocksize` kwarg sets the size of the blocks.
+    The ``blocksize`` kwarg sets the size of the blocks.
     As BATS-R-US typically uses a block size of 8 (i.e., blocks are 8x8x8
-    points), the default value of `blocksize` is 8.
+    points), the default value of ``blocksize`` is 8.
     '''
 
     def __init__(self, grid, blocksize=8):

@@ -934,7 +934,7 @@ def shared_ylabel(axes, txt, *args, **kwargs):
         The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
         which should share a single label
     txt : str
-        The label to place in the middle of all the `axes` objects.
+        The label to place in the middle of all the :class:`~matplotlib.axes.Axes` objects.
 
     Other Parameters
     ================

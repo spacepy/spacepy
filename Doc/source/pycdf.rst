@@ -63,7 +63,7 @@ If a master is used, data in the master will be copied to the new CDF.
 
 .. note::
     You cannot create a new CDF with a name that already exists on disk.
-    It will throw a :exc:`~exceptions.NameError`
+    It will throw a :exc:`NameError`
 
 
 To put data into a CDF, assign it directly to an element of the CDF.
@@ -262,7 +262,7 @@ variable may not correspond to the number of characters if data are
 not restricted to the ASCII range.
 
 A different encoding can be specified with the ``encoding`` argument
-to :class:`~spacepy.pycdf.CDF.open` and this encoding will be used on
+to ``spacepy.pycdf.CDF.open()`` and this encoding will be used on
 all reads and writes to that file. Opening a CDF read-write with
 ``encoding`` other than ``utf-8`` or ``ascii`` will issue a warning.
 

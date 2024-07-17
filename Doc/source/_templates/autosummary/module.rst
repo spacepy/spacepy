@@ -29,12 +29,13 @@
    {% endblock %}
 
    {% block classes %}
-   {% if classes %}
+   {% set filtered_classes = classes | reject("in", attributes) | list %}
+   {% if filtered_classes %}
    .. rubric:: Classes
-
+ 
    .. autosummary::
       :toctree:
-   {% for item in classes %}
+   {% for item in filtered_classes %}
       {{ item }}
    {%- endfor %}
    {% endif %}
