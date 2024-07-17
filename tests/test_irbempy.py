@@ -108,6 +108,20 @@ class IRBEMBigTests(unittest.TestCase):
             numpy.testing.assert_almost_equal(expected[key],
                                               actual[key],
                                               decimal=5)
+    def test_prep_irbem_sph_coords(self):
+        """Test prep_irbem with spherical coordinate input"""
+        loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GDZ', 'sph', use_irbem=True)
+        # The rest is captured by previous test
+        expected_xin1 = [3.0, 2.0] + [0] * 99998
+        actual = ib.prep_irbem(self.ticks, loci, omnivals=self.omnivals)
+        numpy.testing.assert_allclose(expected_xin1, actual['xin1'])
+
+    def test_prep_irbem_numeric_alpha(self):
+        expected_nalpha = 1
+        expected_degalpha = [45] + [0] * 24
+        actual = ib.prep_irbem(self.ticks, self.loci, alpha=45, omnivals=self.omnivals)
+        numpy.testing.assert_array_equal(expected_degalpha, actual['degalpha'])
+        numpy.testing.assert_array_equal(expected_nalpha, actual['nalpha'])
 
     def test_prep_irbem_too_many_PA(self):
         """Call prep_irbem with too many pitch angles"""
