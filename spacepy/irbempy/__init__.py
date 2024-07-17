@@ -2249,19 +2249,8 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     return DALL
 
 
-def _multi_get_Lstar(inputs):
-    '''
-    '''
-    ticks = inputs[0]
-    loci = inputs[1]
-    alpha = inputs[2]
-    extMag = inputs[3]
-    options = inputs[4]
-    omnivals = inputs[5]
-    landi2lstar = inputs[6]
-    DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals, landi2lstar)
-
-    return DALL
+def _multi_get_Lstar(args):
+    return _get_Lstar(*args)
 
 
 # -----------------------------------------------
