@@ -197,7 +197,7 @@ class IRBEMBigTests(unittest.TestCase):
         expected_utc = np.array([datetime.datetime(2001, 2, 2, 12, 0),
                                  datetime.datetime(2001, 2, 2, 12, 10)])
         # Huge tolerance because we don't need to spend forever hitting nans
-        actual_bad_outer = ib.find_LCDS(self.ticks, 45, omnivals=self.omnivals, bracket=[5, -100], tol=10)
+        actual_bad_outer = ib.find_LCDS(self.ticks, 45, omnivals=self.omnivals, bracket=[5, -20], tol=1)
         for key, arr in expected_bad_outer.items():
             numpy.testing.assert_allclose(arr, expected_bad_outer[key], rtol=1e-6)
         numpy.testing.assert_array_equal(actual_bad_outer['UTC'], expected_utc)
@@ -218,19 +218,19 @@ class IRBEMBigTests(unittest.TestCase):
     def test_find_LCDS_K_multi_K(self):
         """test find_LCDS_K with multiple K"""
         expected_numeric = {
-                'LCDS': np.array([[5.06854355, 5.06854355],
-                                  [5.03953823, 5.03953823]]),
+                'LCDS': np.array([[7.828144, 7.828144],
+                                  [7.724839, 7.724839]]),
                 'AlphaEq': np.array([[90., 90.], [90., 90.]])}
         # Huge tolerance to speed up the test
         actual = ib.find_LCDS_K(self.ticks, [1.5e-12, 1.5e-12], extMag='T96',
-                                omnivals=self.omnivals, bracket=[5, 10], tol=10)
+                                omnivals=self.omnivals, bracket=[5, 10], tol=1)
         for key, arr in expected_numeric.items():
             numpy.testing.assert_allclose(arr, actual[key])
 
     def test_find_LCDS_K_badval(self):
         """test find_LCDS_K hitting badval"""
         actual_bad_inner = ib.find_LCDS_K(self.ticks, 1.5e-12, extMag='T96',
-                                        omnivals=self.omnivals, bracket=[100, 10], tol=10)
+                                        omnivals=self.omnivals, bracket=[100, 10], tol=1)
         self.assertTrue(numpy.isnan(actual_bad_inner['LCDS']).all())
 
         expected_outer = np.array([5.06854355, 5.03953823])
