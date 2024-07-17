@@ -643,7 +643,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
             else:
                 raise ValueError('Specified inner bracket ({0}) is on an open drift shell'.format(loci_brac1))
             # print('L* at inner bracket: {0}'.format(LS1['Lstar']))
-            LCDS, LCDS_K = LS1['Lstar'][0], LS1['K'][0]
+            LCDS, LCDS_K = LS1['Lstar'][0, 0], LS1['K'][0]
 
             # Set outer bracket (default to R of 12)
             b2x = -1.0*bracket[1]*np.cos(mlt)
@@ -889,7 +889,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 continue
 
             # print('L* at inner bracket: {0}'.format(LS1['Lstar']))
-            LCDS, LCDS_PA = LS1['Lstar'][0], pa
+            LCDS, LCDS_PA = LS1['Lstar'][0, 0], pa[0]
 
             # Set outer bracket (default to R of 12)
             b2x = -1.0*bracket[1]*np.cos(mlt)
