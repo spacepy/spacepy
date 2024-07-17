@@ -41,7 +41,6 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
 autodoc_mock_imports = ["spacepy.data_assimilation",
                         "spacepy.irbempy.libirbem",
                         "spacepy.libspacepy",
-                        "spacepy.radbelt",
                         "spacepy.sandbox",
                         "spacepy.spacepy_EnKF",
                         ]
@@ -94,6 +93,8 @@ exclude_patterns = ['_templates']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 default_role = 'obj'
+
+nitpicky = True
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True

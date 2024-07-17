@@ -259,7 +259,8 @@ hour cadence, and the ESP data is on a continuous one day cadence.
 the data in the array, so it is essentially random junk; use
 :func:`~numpy.zeros` to create an array filled with zeros.
 
-:func:`len` returns the length of an array, and :func:`range` then
+
+:func:`len` returns the length of an array, and :class:`range` then
 iterates over each number from 0 to length minus 1, i.e. the entire
 array. Each element is then set to a 27-day average: from 13 days
 before a day's measurement through 13 days after. (Python slices do
@@ -268,7 +269,8 @@ these slices can happily run off the end of the ``esp_flux`` array,
 but we use :func:`max` to ensure the first index does not go negative.
 (Negative indices have special meaning in Python.)
 
-:func:`~scipy.stats.nanmean` takes the mean of a numpy array,
+
+``scipy.stats.nanmean (deprecated in scipy 0.18.0)`` takes the mean of a numpy array,
 but skips any elements with a value of "not a number" (nan), which is
 often used for fill.  (This is our first exposure to the :mod:`scipy`
 module.)
@@ -532,7 +534,7 @@ Adding a scalar to an array does an element-wise addition.
 >>> ax = fig.add_subplot(211)
 
 When creating the figure this time, we use
-:class:`~matplotlib.figure.SubplotParams` to choose a slightly smaller
+``matplotlib.figure.SubplotParams`` to choose a slightly smaller
 vertical spacing between adjacent subplots. Tweaking ``SubplotParams``
 also provides an alternative to tweaking bounding boxes.
 
@@ -712,9 +714,9 @@ The file happens to contain a mixture of carriage returns and proper newlines, s
 >>> data = data.replace('\r', '\n')
 >>> data = data.replace('\n\n', '\n')
 
-:meth:`~file.read` reads *all* data from the file at once, so this is
+``file.read()`` reads *all* data from the file at once, so this is
 not recommended for large files. In this case it makes things
-easier. Once the data are read, :meth:`~file.close` the file. Calling
+easier. Once the data are read, ``file.close()`` the file. Calling
 the :meth:`~str.replace` method on ``data`` replaces all instances of
 the first parameter (``'\r'``) with the second (``'\n'``). ``\r`` is
 the special code indicating a carriage return; ``\n``, a newline. For
@@ -745,7 +747,7 @@ b
 
 The first element of a Python list is numbered zero.
 
-:func:`range` returns a list of numbers, starting from 0, with the parameter specifying how many elements are in the list:
+:class:`range` returns a list of numbers, starting from 0, with the parameter specifying how many elements are in the list:
 
 >>> print(range(5))
 [0, 1, 2, 3, 4]
@@ -763,7 +765,7 @@ c
 
 Indentation is significant in Python! Normally indents are four spaces and the tab key will do the job. (In the above example, you may need to hit enter twice after the print statement, the second to terminate the indentation.)
 
-`pop <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_ returns one element from a list, and deletes it from the list. Using ``0`` pops off the first element, and :meth:`~file.write` writes a string to a file. ``+`` can be used to concatenate two strings together. Since :meth:`~str.split` removed the newlines, they need to be readded.
+`pop <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_ returns one element from a list, and deletes it from the list. Using ``0`` pops off the first element, and ``file.write()`` writes a string to a file. ``+`` can be used to concatenate two strings together. Since :meth:`~str.split` removed the newlines, they need to be readded.
 
 So this little block of code splits the data into a list on newlines and, repeating fifteen times, takes the first element of that list and writes it, with a newline, to the output. Now ``data`` contains only the actual lines of data.
 
@@ -781,7 +783,7 @@ So this little block of code splits the data into a list on newlines and, repeat
 ``None`` is a special Python value specifically indicating nothing;
 it's used here to mark the first time around the loop.
 
-``line[0:2]`` gets the first two characters in the string `line`, and
+``line[0:2]`` gets the first two characters in the string ``line``, and
 the ``in`` operator compares the resulting string to see if it is
 present in the following list. This will return ``True`` if the line
 begins with ``19`` or ``20``. The `if

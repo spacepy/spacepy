@@ -29,7 +29,6 @@ useful. The following functions are a selection of those implemented:
     * :func:`~spacepy.toolbox.binHisto`: calculate number of bins for a histogram
     * :func:`~spacepy.toolbox.medAbsDev`: find the median absolute deviation of a data series
     * :func:`~spacepy.toolbox.normalize`: normalize a data series
-    * :func:`~spacepy.toolbox.feq`: floating point equals
 
 Import this module as::
 
@@ -342,7 +341,7 @@ The module can then be imported, e.g.::
 
 >>> import spacepy.pycdf as cdf
 
-To open and close a CDF file, we use the :class:`~pycdf.CDF` class::
+To open and close a CDF file, we use the :class:`~spacepy.pycdf.CDF` class::
 
 >>> cdf_file = cdf.CDF('filename.cdf')
 >>> cdf_file.close()
@@ -366,7 +365,7 @@ Each CDF variable acts like a numpy array, where the first dimension is the
 record number. Multidimensional CDF variables can be subscripted using 
 numpy's multidimensional slice notation. Many common list operations are also
 implemented, where each record acts as one element of the list and can be
-independently deleted, inserted, etc. Creating a Python :class:`~pycdf.Var`
+independently deleted, inserted, etc. Creating a Python :class:`~spacepy.pycdf.Var`
 object does not read the data from disc; data are only read as they are
 accessed::
 
@@ -388,10 +387,10 @@ data model easy. The concepts are very similar to those used in standards like H
 NASA CDF.
 
 The basic container type is analogous to a folder (on a filesystem; HDF5 calls this a
-group): Here we implement this as a dictionary-like object, a :class:`datamodel.SpaceData` object, which
+group): Here we implement this as a dictionary-like object, a :class:`~spacepy.datamodel.SpaceData` object, which
 also carries attributes. These attributes can be considered to be global, i.e. relevant for the
 entire folder. The next container type is for storing data and is based on a numpy array, this
-class is :class:`datamodel.dmarray` and also carries attributes. The dmarray class is analogous to an
+class is :class:`~spacepy.datamodel.dmarray` and also carries attributes. The dmarray class is analogous to an
 HDF5 dataset.
 
 
@@ -417,7 +416,7 @@ Each variable will have one attribute (for this example).
 >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
 This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel,
-we can use the :meth:`~spacepy.datamodel.SpaceData.tree` method, which is equivalent to :func:`toolbox.dictree`
+we can use the :meth:`~spacepy.datamodel.SpaceData.tree` method, which is equivalent to :func:`~spacepy.toolbox.dictree`
 (which works for any dictionary-like object, including PyCDF file objects).
 
 >>> mydata.tree(attrs=True)

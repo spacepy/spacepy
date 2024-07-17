@@ -27,8 +27,11 @@ __contact__ = 'Jon Niehof, jniehof@lanl.gov'
 
 #Handy shortcut types
 dptr = ctypes.POINTER(ctypes.c_double)
+"""alias of LP_c_double"""
 ulptr = ctypes.POINTER(ctypes.c_ulong)
+"""alias of LP_c_ulong"""
 lptr = ctypes.POINTER(ctypes.c_long)
+"""alias of LP_c_long"""
 
 #Dictionary of function signatures
 #Key is name of function, value is a list of types

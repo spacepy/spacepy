@@ -1770,7 +1770,7 @@ def bootHisto(data, inter=90., n=1000, seed=None,
     See Also
     --------
     binHisto
-    plot.utils.set_target
+    spacepy.plot.utils.set_target
     numpy.histogram
     matplotlib.pyplot.hist
     """
@@ -1911,7 +1911,7 @@ def geomspace(start, ratio=None, stop=False, num=50):
     ratio : float (optional)
         The ratio between subsequent points
     stop : float (optional)
-        End value, if this is selected `num` is overridden
+        End value, if this is selected ``num`` is overridden
     num : int (optional)
         Number of samples to generate. Default is 50.
 

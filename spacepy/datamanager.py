@@ -820,7 +820,7 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
     Parameters
     ==========
     data : :class:`~numpy.ndarray`
-        N-dimensional array of data to be rebinned. :class:`~numpy.nan`
+        N-dimensional array of data to be rebinned. ``numpy.nan``
         are ignored.
     bindata : :class:`~numpy.ndarray`
         M-dimensional (M<=N) array of values to be compared to the bins.
@@ -833,7 +833,7 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
     Other Parameters
     ================
     axis : int
-        Axis of `data` to rebin. This axis will disappear in the
+        Axis of ``data`` to rebin. This axis will disappear in the
         output and be replaced with an axis of the size of
         ``bins`` less one. (Default -1, last axis)
     bintype : str
@@ -860,7 +860,7 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
         By default, the ``bindata`` are treated as point values. If
         ``bindatadelta`` is specified, it is treated as the half-width of
         the ``bindata``, allowing a single input value to be split between
-        output bins. Must be scalar, or same shape as `bindata`. Note that
+        output bins. Must be scalar, or same shape as ``bindata``. Note that
         input values are not weighted by the bin width, but by number of
         input values or by ``weights``. (Combining ``weights`` with
         ``bindatadelta`` is not comprehensively tested.)

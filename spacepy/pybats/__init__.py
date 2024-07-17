@@ -24,8 +24,8 @@ import numpy as np
 # Pybats-related decorators:
 def calc_wrapper(meth):
     '''
-    This is a decorator for `self.calc_*` object methods.  It establishes
-    `self._calcs`, a list of calcuation functions that have been called, and
+    This is a decorator for ``self.calc_*`` object methods.  It establishes
+    ``self._calcs``, a list of calcuation functions that have been called, and
     adds the called function to that list to keep track of which calculations
     have already been performed for the object.  If a calculation has already
     been performed, it is skipped in order to reduce effort.
@@ -1158,7 +1158,7 @@ class IdlFile(PbData):
 
     def switch_frame(self, iframe):
         '''
-        For files that have more than one data frame (i.e., `*.outs` files),
+        For files that have more than one data frame (i.e., ``*.outs`` files),
         load data from the *iframe*-th frame into the object replacing what is
         currently loaded.
         '''
@@ -1720,7 +1720,7 @@ class ImfInput(PbData):
         angle of zero represents purely northward IMF while 180 represents
         purely southward configuration.
 
-        The resulting value is stored as `self['clock']` in units of degrees.
+        The resulting value is stored as ``self['clock']`` in units of degrees.
 
         Notes
         -----
@@ -1738,7 +1738,7 @@ class ImfInput(PbData):
         to the solar wind clock angle. Thus, it is an energy flux, or,
         equivalently, power-per-unit area.
 
-        The resultant quantity is stored as `self['epsilon']` and has units
+        The resultant quantity is stored as ``self['epsilon']`` and has units
         of $W/m^2$.
 
         For full details, see Perreault and Akasofu(1978),
@@ -2025,16 +2025,16 @@ class ImfInput(PbData):
         SWMF.  Default behavior creates a figure showing the three components
         of IMF, solar wind density, and Earthward velocity. The resulting
         figure will be a paper-sized plot with one axes object per entry in
-        `plotvars`.
+        ``plotvars``.
 
-        The `plotvars` keyword controls the behavior of the resulting plot.
-        For example, `['rho', 'pram', ['bx','by','bz']]` will create three
+        The ``plotvars`` keyword controls the behavior of the resulting plot.
+        For example, ``['rho', 'pram', ['bx','by','bz']]`` will create three
         subplots with the three IMF components on a single axes.
 
-        Additional empty axes can be added by specifying a `plotvar` entry
+        Additional empty axes can be added by specifying a ``plotvar`` entry
         that is not a valid key to the `ImfInput` object. This is useful in
         some circumstances, e.g., cases where the user may want to plot a
-        non-solar wind value, such as Dst, from another source. The `plotvar`
+        non-solar wind value, such as Dst, from another source. The ``plotvar``
         string will be used as the y-axis label.
 
         Other Parameters
@@ -2046,8 +2046,8 @@ class ImfInput(PbData):
         colors : list of strings, optional
             The colors of the resulting lines as a list of Matplotlib color
             compatible strings (e.g., '#000000', 'k', 'lightgrey'). The shape
-            of the list should match that of `plotvars`; if not, `quicklook`
-            will fill in with default colors. Any axes with multiple `plotvars`
+            of the list should match that of ``plotvars``; if not, `quicklook`
+            will fill in with default colors. Any axes with multiple ``plotvars``
             specified but only a single color will have that color repeated for
             each line placed on the axes. Default behavior is to use the
             current Matplotlib color cycle.
@@ -2056,7 +2056,7 @@ class ImfInput(PbData):
             the resulting plot.
         title : str, optional
             Title to place at the top of the figure, defaults to,
-            'Solar Wind Drivers `{self.attrs["coor"]` Coordinates)'
+            'Solar Wind Drivers ``{self.attrs["coor"]`` Coordinates)'
         legloc : str, default='best'
             Location of any legends place on axes with more than one variable.
 

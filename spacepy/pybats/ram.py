@@ -509,7 +509,7 @@ class EfieldFile(PbData):
 
 class WeqFile(EfieldFile):
     '''
-    Slight variation on :class:`weimer` to read weq_***.in files.
+    Slight variation on the weimer class to read weq_***.in files.
     '''
     def _parse_head(self, headlines):
         parts = headlines.split()

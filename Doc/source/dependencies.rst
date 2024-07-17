@@ -91,7 +91,7 @@ modules may have limited functionality or fail entirely:
     * :mod:`~spacepy.plot`
     * :mod:`~spacepy.poppy`
     * :mod:`~spacepy.pybats`
-    * :mod:`~spacepy.radbelt`
+    * :mod:`spacepy.radbelt`
     * :mod:`~spacepy.seapy`
     * :mod:`~spacepy.toolbox`
 
@@ -274,25 +274,24 @@ unaffected by that dependency.
        * :func:`~spacepy.pybats.add_planet`
        * :meth:`~spacepy.pybats.ImfInput.add_pram_bz`
        * :meth:`~spacepy.pybats.ImfInput.quicklook`
-       * :meth:`~spacepy.pybats.bats.BatLog.add_dst_quicklook`
+       * :meth:`~spacepy.pybats.bats.BatsLog.add_dst_quicklook`
        * :meth:`~spacepy.pybats.bats.Bats2d.add_b_magsphere`
-       * :meth:`~spacepy.pybats.bats.Bats2d.add_b_magsphere_legacy`
        * :meth:`~spacepy.pybats.bats.Bats2d.add_body`
-       * :meth:`~spacepy.pybats.bats.Bats2d.add_comp_plot`
+       * :meth:`~spacepy.pybats.bats.Mag.add_comp_plot`
        * :meth:`~spacepy.pybats.bats.Bats2d.add_contour`
-       * :meth:`~spacepy.pybats.bats.Bats2d.add_cont_shell`
+       * :meth:`~spacepy.pybats.bats.ShellSlice.add_cont_shell`
        * :meth:`~spacepy.pybats.bats.Bats2d.add_grid_plot`
        * :meth:`~spacepy.pybats.bats.Bats2d.add_pcolor`
        * :meth:`~spacepy.pybats.bats.Bats2d.add_planet`
-       * :meth:`~spacepy.pybats.bats.Bats2d.add_plot`
+       * :meth:`~spacepy.pybats.bats.Mag.add_plot`
        * :meth:`~spacepy.pybats.bats.Bats2d.add_stream_scatter`
-       * :meth:`~spacepy.pybats.bats.MagGridFile.add_ae_quicklook`
+       * :meth:`~spacepy.pybats.bats.GeoIndexFile.add_ae_quicklook`
        * :meth:`~spacepy.pybats.bats.MagGridFile.add_contour`
-       * :meth:`~spacepy.pybats.bats.MagGridFile.add_kp_quicklook`
-       * :meth:`~spacepy.pybats.bats.MagGridFile.add_orbit_plot`
-       * :meth:`~spacepy.pybats.quotree.QTree.plot_res`
-       * :meth:`~spacepy.pybats.quotree.Branch.plotbox`
-       * :meth:`~spacepy.pybats.quotree.Branch.plot_res`
+       * :meth:`~spacepy.pybats.bats.GeoIndexFile.add_kp_quicklook`
+       * :meth:`~spacepy.pybats.bats.VirtSat.add_orbit_plot`
+       * :meth:`~spacepy.pybats.qotree.QTree.plot_res`
+       * :meth:`~spacepy.pybats.qotree.Branch.plotbox`
+       * :meth:`~spacepy.pybats.qotree.Branch.plot_res`
        * :func:`~spacepy.pybats.trace2d.test_asymtote`
        * :func:`~spacepy.pybats.trace2d.test_dipole`
      -

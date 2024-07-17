@@ -483,7 +483,7 @@ class Library(object):
         ==========
         args : various, see `ctypes`
             Passed directly to the CDF library interface. Useful
-            constants are defined in the `~pycdf.const` module.
+            constants are defined in the :mod:`~spacepy.pycdf.const` module.
 
         Other Parameters
         ================
@@ -1622,7 +1622,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
 
             >>> cdffile = pycdf.CDF('cdf_filename.cdf')
 
-        Be sure to :meth:`pycdf.CDF.close` or :meth:`pycdf.CDF.save`
+        Be sure to :meth:`~spacepy.pycdf.CDF.close` or :meth:`~spacepy.pycdf.CDF.save`
         when done.
         """
         if masterpath is not None: #Looks like we want to create
@@ -1662,8 +1662,8 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
 
         Close CDF file if there is still a valid handle.
         .. note::
-            To avoid data loss, explicitly call :meth:`pycdf.CDF.close` 
-            or :meth:`pycdf.CDF.save`.
+            To avoid data loss, explicitly call :meth:`~spacepy.pycdf.CDF.close` 
+            or :meth:`~spacepy.pycdf.CDF.save`.
         """
         if self._opened:
             self.close()
@@ -1902,8 +1902,9 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             name of the file to create
         sd : spacepy.datamodel.SpaceData
             data to put in the CDF. This structure cannot be nested,
-            i.e., it must contain only `~spacepy.datamodel.dmarray`
-            and no `~spacepy.datamodel.Spacedata` objects.
+            i.e., it must contain only :class:`~spacepy.datamodel.dmarray`
+            and no :class:`~spacepy.datamodel.SpaceData` objects.
+
         """
         with cls(filename, '') as cdffile:
             for k in sd:
@@ -2083,8 +2084,8 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         """
         Closes the CDF file
 
-        Although called on object destruction (:meth:`~CDF.__del__`),
-        to ensure all data are saved, the user should explicitly call
+        Although called on object destruction, to ensure 
+        all data are saved, the user should explicitly call
         :meth:`~CDF.close` or :meth:`~CDF.save`.
 
         Raises
@@ -2166,7 +2167,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             `~spacepy.datamodel.dmarray`), it will be used to
             populate attributes of the new variable. Similarly the CDF
             type, record variance, etc. will, by default, be taken
-            from `data` if it is a
+            from ``data`` if it is a
             `~spacepy.pycdf.VarCopy`. This can be overridden by
             specifying other keywords.
         type : ctypes.c_long
@@ -2614,8 +2615,11 @@ class CDFCopy(spacepy.datamodel.SpaceData):
     def __init__(self, cdf):
         """Copies all data and attributes from a CDF
 
-        @param cdf: CDF to take data from
-        @type cdf: `pycdf.CDF`
+        Parameters
+        ==========
+        cdf : :class:`~spacepy.pycdf.CDF`
+            CDF to take data from
+
         """
         super(CDFCopy, self).__init__(((key, var.copy())
                                       for (key, var) in cdf.items()),
@@ -2729,7 +2733,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
     variable), case 1 takes priority.
     Otherwise, mismatch between the number of dimensions specified in
     the slice and the number of dimensions in the variable will cause
-    an :exc:`~exceptions.IndexError` to be thrown.
+    an :exc:`IndexError` to be thrown.
 
     This all sounds very complicated but it is essentially attempting
     to do the 'right thing' for a range of slices.
@@ -2925,7 +2929,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
 
         Parameters
         ==========
-        cdf_file : `pycdf.CDF`
+        cdf_file : :class:`~spacepy.pycdf.CDF`
             CDF file containing this variable
         var_name : string
             name of this variable
@@ -2933,7 +2937,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         Other Parameters
         ================
         args
-            additional arguments passed to :meth:`_create`. If none,
+            additional arguments passed to the create method. If none,
             opens an existing variable. If provided, creates a
             new one.
 
@@ -3832,7 +3836,7 @@ class VarCopy(spacepy.datamodel.dmarray):
             used to retrieve it (e.g. use ``type`` to set the CDF type, which
             is returned by :meth:`type`).
         value
-            Value to assign to `key`.
+            Value to assign to ``key``.
         """
         if key not in self._cdf_meta:
             raise KeyError('Invalid CDF metadata key {}'.format(key))
@@ -4474,12 +4478,16 @@ class Attr(MutableSequence):
     def __init__(self, cdf_file, attr_name, create=False):
         """Initialize this attribute
 
-        @param cdf_file: CDF file containing this attribute
-        @type cdf_file: `pycdf.CDF`
-        @param attr_name: Name of this attribute
-        @type attr_name: str
-        @param create: True to create attribute, False to look up existing.
-        @type create: bool
+        Parameters
+        ==========
+        cdf_file : :class:`~spacepy.pycdf.CDF`
+            CDF file containing this attribute
+        
+        attr_name : str
+            Name of this attribute
+        
+        create : bool
+            True to create attribute, False to look up existing
         """
         self._cdf_file = cdf_file
         self._raw = False
@@ -5187,7 +5195,7 @@ class gAttr(Attr):
         >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
 
     gEntries are *not* necessarily contiguous; a gAttribute may have an
-    entry 0 and entry 2 without an entry 1. :meth:`~Attr.len` will return the
+    entry 0 and entry 2 without an entry 1. spacepy.pycdf.Attr.__len__() will return the
     *number* of gEntries; use :meth:`~Attr.max_idx` to find the highest defined
     gEntry number and :meth:`~Attr.has_entry` to determine if a particular
     gEntry number exists. Iterating over all entries is also supported::
@@ -5245,12 +5253,15 @@ class AttrList(MutableMapping):
     def __init__(self, cdf_file, special_entry=None):
         """Initialize the attribute collection
 
-        @param cdf_file: CDF these attributes are in
-        @type cdf_file: `pycdf.CDF`
-        @param special_entry: callable which returns a "special" entry number,
-        used to limit results for zAttrs to those which match the zVar
-        (i.e. the var number)
-        @type special_entry: callable
+        Parameters
+        ==========
+        cdf_file : :class:`~spacepy.pycdf.CDF`
+            CDF these attributes are in
+        
+        special_entry : callable
+            callable which returns a "special" entry number,
+            used to limit results for zAttrs to those which match the zVar
+
         """
         self._cdf_file = cdf_file
         self.special_entry = special_entry
@@ -5599,8 +5610,11 @@ class zAttrList(AttrList):
     def __init__(self, zvar):
         """Initialize the attribute collection
 
-        @param zvar: zVariable these attributes are in
-        @param zvar: `pycdf.Var`
+        Parameters
+        ==========
+        zvar : :class:`~spacepy.pycdf.Var`
+            zVariable these attributes are in
+
         """
         super(zAttrList, self).__init__(zvar.cdf_file, zvar._num)
         self._zvar = zvar

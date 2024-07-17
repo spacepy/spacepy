@@ -137,7 +137,7 @@ called ``gnu95``.
 If defined, the ``LDFLAGS`` environment variable is also honored when
 linking irbem. The contents must be valid ``gfortran`` flags.
 
-If irbem compilation fails, SpacePy will install without `irbempy`
+If irbem compilation fails, SpacePy will install without :mod:`~spacepy.irbempy`
 support. This can be forced by e.g. setting ``FC`` to
 ``/usr/bin/false``.
 

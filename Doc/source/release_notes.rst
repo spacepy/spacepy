@@ -178,7 +178,7 @@ and `~.pybats.bats.Bats2d.calc_upar` methods.
 
 `~.pybats.bats.Bats2d` objects and the class that handles quad tree building
 (`~.pybats.qotree.QTree`) now accepts a keyword argument to set the size
-of each block: `blocksize`. Default value is 8.
+of each block: ``blocksize``. Default value is 8.
 
 `~.toolbox.dictree` now supports returning the output instead of printing it.
 
@@ -384,7 +384,7 @@ Colourmaps have been removed from :class:`~spacepy.plot`. The same
 colourmaps (``plasma`` and ``viridis``) have been available in
 matplotlib since at least 1.5. (Deprecated in 0.2.3.)
 
-The old name ``spectrogram`` for :class:`~spacepy.plot.Spectrogram`
+The old name ``spectrogram`` for :class:`~spacepy.plot.spectrogram`
 has been removed. (Deprecated in 0.2.2.)
 
 The ``read_ram_dst`` function has been removed from
@@ -541,18 +541,18 @@ still to make backward-compatible CDFs, but this will change in
 specifying a time type; the default is still to use EPOCH or
 EPOCH16, but this will change to TIME_TT2000 in 0.3.0.
 
-:func:`~spacepy.pybats.rim.fix_format` is now deprecated, as
+``spacepy.pybats.rim.fix_format()`` is now deprecated, as
 :class:`~spacepy.pybats.rim.Iono` can now read these files directly.
 
 Quaternion math functions have been moved to
 :mod:`~spacepy.coordinates`; using the functions in
 :mod:`~spacepy.toolbox` is deprecated.
 
-:func:`~spacepy.toolbox.feq` is deprecated; numpy 1.7 added the equivalent
+``spacepy.toolbox.feq()`` is deprecated; numpy 1.7 added the equivalent
 :func:`~numpy.isclose`.
 
 The :class:`~spacepy.plot.spectrogram` class is now capitalized
-(:class:`~spacepy.plot.Spectrogram`); the old, lower-case variant is
+(:class:`~spacepy.plot.spectrogram`); the old, lower-case variant is
 kept for compatibility but will be removed.
 
 Dependency requirements
