@@ -498,7 +498,6 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         """test get_AEP8"""
         c = self.loci
         c.ticks = self.ticks
-        print(self.loci.ticks)
         E = 2.0  # energy in MeV
         expected = 99492.059080021136
         actual = ib.get_AEP8(E, c)
