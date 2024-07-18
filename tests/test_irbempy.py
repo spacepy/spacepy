@@ -241,6 +241,12 @@ class IRBEMBigTests(unittest.TestCase):
                                           omnivals=self.omnivals, bracket=[5, 0], tol=1)
         numpy.testing.assert_allclose(expected_outer, actual_bad_outer['LCDS'])
 
+    def test_find_LCDS_bad_bracket(self):
+        """test find_LCDS and find_LCDS_K raise ValueError with invalid bracket"""
+        with self.assertRaises(ValueError):
+            ib.find_LCDS(self.ticks, 45, bracket=[1])
+        with self.assertRaises(ValueError):
+            ib.find_LCDS(self.ticks, 1.5e-12, bracket=[1])
 
     def test_find_magequator(self):
         expected = {'Bmin': array([ 1030.456337,  3444.077016 ])}
