@@ -401,7 +401,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     results = dm.SpaceData()
     results['Blocal'] = np.zeros(nTAI)
     results['Bmirr'] = np.zeros(nTAI)
-    results['loci'] = ['']*nTAI
+    results['loci'] = np.zeros((nTAI, 3))
     blocal = np.empty((), np.float64)
     bmirr = np.empty((), np.float64)
     GEOcoord = np.empty((3,), np.float64)
@@ -427,7 +427,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
 
         results['Blocal'][i] = blocal
         results['Bmirr'][i] = bmirr
-        results['loci'][i] = GEOcoord
+        results['loci'][i, :] = GEOcoord
 
     results['loci'] = spc.Coords(results['loci'], 'GEO', 'car', use_irbem=True)
 
