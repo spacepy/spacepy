@@ -775,9 +775,38 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
     mlt = np.deg2rad(mlt)
 
     options = (int4 * 5)(*options)
+    nTtoG = 1.0e-5
 
+    pa = np.nan
     bmin = np.empty((), np.float64)
     GEOcoord = np.empty((3,), np.float64)
+
+    def inner_lcds_k_call(d):
+        badval = d['badval']
+        kext = d['kext']
+        sysaxes = d['sysaxes']
+        iyearsat = d['iyearsat']
+        idoysat = d['idoysat']
+        secs = d['utsat']
+        xin1 = d['xin1']
+        xin2 = d['xin2']
+        xin3 = d['xin3']
+        magin = d['magin']
+
+        irbemlib.find_magequator1(
+            int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
+            int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
+            real8(xin2[0]), real8(xin3[0]),
+            magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+            bmin.ctypes.data_as(ctypes.POINTER(real8)),
+            GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+        )
+
+        # take out all the odd 'bad values' and turn them into NaN
+        if np.isclose(bmin, badval):
+            bmin[()] = np.nan
+        GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
+
 
     for idxt, tt in enumerate(ticks):
         if not omnivals:
@@ -792,32 +821,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 print('Initial inner bracket: {0}'.format(loci_brac1))
 
             d = prep_irbem(tt, loci_brac1, extMag=extMag, options=options, omnivals=omnivals)
-            badval = d['badval']
-            kext = d['kext']
-            sysaxes = d['sysaxes']
-            iyearsat = d['iyearsat']
-            idoysat = d['idoysat']
-            secs = d['utsat']
-            xin1 = d['xin1']
-            xin2 = d['xin2']
-            xin3 = d['xin3']
-            magin = d['magin']
-            nTtoG = 1.0e-5
-            pa = np.nan
-
-            irbemlib.find_magequator1(
-                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
-                int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
-                real8(xin2[0]), real8(xin3[0]),
-                magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
-                bmin.ctypes.data_as(ctypes.POINTER(real8)),
-                GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
-            )
-
-            # take out all the odd 'bad values' and turn them into NaN
-            if np.isclose(bmin, badval):
-                bmin[()] = np.nan
-            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
+            inner_lcds_k_call(d)
             # Now get Lstar at this location...
             if np.isfinite(GEOcoord[0]):
                 pos1 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
@@ -856,30 +860,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 print('Initial outer bracket: {0}'.format(loci_brac2))
 
             d2 = prep_irbem(tt, loci_brac2, extMag=extMag, options=options, omnivals=omnivals)
-            badval = d2['badval']
-            kext = d2['kext']
-            sysaxes = d2['sysaxes']
-            iyearsat = d2['iyearsat']
-            idoysat = d2['idoysat']
-            secs = d2['utsat']
-            xin1 = d2['xin1']
-            xin2 = d2['xin2']
-            xin3 = d2['xin3']
-            magin = d['magin']
-
-            irbemlib.find_magequator1(
-                int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
-                int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
-                real8(xin2[0]), real8(xin3[0]),
-                magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
-                bmin.ctypes.data_as(ctypes.POINTER(real8)),
-                GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
-            )
-
-            # take out all the odd 'bad values' and turn them into NaN
-            if np.isclose(bmin, badval):
-                bmin[()] = np.nan
-            GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
+            inner_lcds_k_call(d2)
             # Now get Lstar at this location...
             if np.isfinite(GEOcoord[0]):
                 pos2 = spc.Coords(GEOcoord, 'GEO', 'car', use_irbem=True)
@@ -907,30 +888,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
                 pos_test = spc.Coords([newx, newy, 0], 'GSM', 'car', use_irbem=True)
 
                 dtest = prep_irbem(tt, pos_test, extMag=extMag, options=options, omnivals=omnivals)
-                badval = dtest['badval']
-                kext = dtest['kext']
-                sysaxes = dtest['sysaxes']
-                iyearsat = dtest['iyearsat']
-                idoysat = dtest['idoysat']
-                secs = dtest['utsat']
-                xin1 = dtest['xin1']
-                xin2 = dtest['xin2']
-                xin3 = dtest['xin3']
-                magin = d['magin']
-
-                irbemlib.find_magequator1(
-                    int4(kext), options, int4(sysaxes), int4(iyearsat[0]),
-                    int4(idoysat[0]), real8(secs[0]), real8(xin1[0]),
-                    real8(xin2[0]), real8(xin3[0]),
-                    magin[:, 0].ctypes.data_as(ctypes.POINTER(real8 * 25)),
-                    bmin.ctypes.data_as(ctypes.POINTER(real8)),
-                    GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
-                )
-
-                # take out all the odd 'bad values' and turn them into NaN
-                if np.isclose(bmin, badval):
-                    bmin[()] = np.nan
-                GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
+                inner_lcds_k_call(dtest)
                 # print('bmin, GEOcoord = {0},{1}'.format(bmin, GEOcoord))
                 if not (np.isnan(bmin)):
                     # Now get Lstar at this location...
