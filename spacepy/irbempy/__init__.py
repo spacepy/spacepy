@@ -393,40 +393,49 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     xin2 = d['xin2']
     xin3 = d['xin3']
     magin = d['magin']
-    # degalpha = d['degalpha']
-    # nalp_max = d['nalp_max']
-    # nalpha = d['nalpha']
+    degalpha = d['degalpha']
+    nalp_max = d['nalp_max']
+    nalpha = d['nalpha']
     options = (int4 * 5)(*options)
 
     results = dm.SpaceData()
     results['Blocal'] = np.zeros(nTAI)
-    results['Bmirr'] = np.zeros(nTAI)
+    if nalpha == 1:
+        results['Bmirr'] = np.zeros(nTAI)
+    else:
+        results['Bmirr'] = np.zeros((nTAI, nalpha))
     results['loci'] = np.zeros((nTAI, 3))
     blocal = np.empty((), np.float64)
     bmirr = np.empty((), np.float64)
     GEOcoord = np.empty((3,), np.float64)
     for i in np.arange(nTAI):
-        irbemlib.find_mirror_point1(
-            int4(kext), options, int4(sysaxes),
-            int4(iyearsat[i]), int4(idoysat[i]),
-            real8(secs[i]), real8(xin1[i]), real8(xin2[i]),
-            real8(xin3[i]),
-            real8(alpha[0]),
-            magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
-            blocal.ctypes.data_as(ctypes.POINTER(real8)),
-            bmirr.ctypes.data_as(ctypes.POINTER(real8)),
-            GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
-        )
+        for idx_pa in np.arange(nalpha):
+            irbemlib.find_mirror_point1(
+                int4(kext), options, int4(sysaxes),
+                int4(iyearsat[i]), int4(idoysat[i]),
+                real8(secs[i]), real8(xin1[i]), real8(xin2[i]),
+                real8(xin3[i]),
+                real8(alpha[idx_pa]),
+                magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+                blocal.ctypes.data_as(ctypes.POINTER(real8)),
+                bmirr.ctypes.data_as(ctypes.POINTER(real8)),
+                GEOcoord.ctypes.data_as(ctypes.POINTER(real8 * 3))
+            )
 
-        # take out all the odd 'bad values' and turn them into NaN
-        if np.isclose(blocal, badval):
-            blocal[()] = np.nan
-        if np.isclose(bmirr, badval):
-            bmirr[()] = np.nan
+            # take out all the odd 'bad values' and turn them into NaN
+            if np.isclose(blocal, badval):
+                blocal[()] = np.nan
+            if np.isclose(bmirr, badval):
+                bmirr[()] = np.nan
+
+            if nalpha == 1:
+                results['Bmirr'][i] = bmirr
+            else:
+                results['Bmirr'][i, idx_pa] = bmirr
+
         GEOcoord[np.where(np.isclose(GEOcoord, badval))] = np.nan
 
         results['Blocal'][i] = blocal
-        results['Bmirr'][i] = bmirr
         results['loci'][i, :] = GEOcoord
 
     results['loci'] = spc.Coords(results['loci'], 'GEO', 'car', use_irbem=True)

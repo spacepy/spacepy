@@ -150,22 +150,15 @@ class IRBEMBigTests(unittest.TestCase):
 
         Undesired behavior, will fail when find_Bmirror bug is fixed.
         """
-        expected = {'Blocal': array([ 1031.008992,  3451.98937]),
-            'Bmirr': array([ 2495.243004,  8354.355467])}
-        got = ib.find_Bmirror(self.ticks, self.loci, [40, 60, 90, 10], omnivals=self.omnivals)
+        expected = {'Blocal': array([1031.00899203, 3451.98937044]),
+                    'Bmirr': array([[1031.00899203, 1374.66281345, 1031.00899203, 34190.92088892],
+                                    [3451.98937044, 4602.52051761, 3451.98937044, np.nan]])}
+        expected_loci = array([[0.6632375457589057, -0.11317939661249253, 0.9116054568290045],
+                               [np.nan, np.nan, np.nan]])
+        got = ib.find_Bmirror(self.ticks, self.loci, [90, 60, 90, 10], omnivals=self.omnivals)
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key], got[key], decimal=6)
-
-    @unittest.expectedFailure
-    def test_find_Bmirror_size(self):
-        """Demonstrate failing desired behavior of find_Bmirror
-
-        Intended size of find_Bmirror output is nTAI * nalpha, instead it is just nTAI.
-        """
-        expected_size = 4
-        actual_results = ib.find_Bmirror(self.ticks, self.loci, [40, 60], omnivals=self.omnivals)
-        actual_size = np.size(actual_results["Bmirr"])
-        self.assertEqual(expected_size, actual_size)
+        numpy.testing.assert_almost_equal(expected_loci, got['loci'].data)
 
     def test_find_LCDS(self):
         """test find_LCDS"""
