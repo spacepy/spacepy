@@ -414,11 +414,15 @@ class IRBEMBigTests(unittest.TestCase):
     def test_find_Bmirror_badval(self):
         """test find_Bmirror hitting badval"""
         loci_noncredible = spacepy.coordinates.Coords([[-1e4, 1e4, 0], [2, 0, 0]], 'GEO', 'car', use_irbem=True)
-        actual = ib.find_Bmirror(self.ticks, loci_noncredible, [0, 45], omnivals=self.omnivals)
+        actual_badloci = ib.find_Bmirror(self.ticks, loci_noncredible, [45], omnivals=self.omnivals)
         # These will need to be changed slightly once find_Bmirror is fixed
-        self.assertTrue(np.isnan(actual["Blocal"][0]))
-        self.assertTrue(np.isnan(actual["Bmirr"]).all())
-        self.assertTrue(np.isnan(actual["loci"].data[0]).all())
+        self.assertTrue(np.isnan(actual_badloci["Blocal"][0]))
+        self.assertTrue(np.isnan(actual_badloci["Bmirr"][0]))
+        self.assertTrue(np.isnan(actual_badloci["loci"].data[0]).all())
+
+        actual_badalpha = ib.find_Bmirror(self.ticks, self.loci, [0], omnivals=self.omnivals)
+        self.assertTrue(np.isnan(actual_badalpha['Bmirr']).all())
+        self.assertTrue(np.isnan(actual_badalpha['loci'].data).all())
 
     def test_find_magequator_badval(self):
         """test find_magequator hitting badval"""
