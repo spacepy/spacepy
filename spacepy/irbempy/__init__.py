@@ -370,10 +370,11 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car', use_irbem=True)
     >>> ib.find_Bmirror(t,y,[90,80,60,10])
-    {'Blocal': array([ 0.,  0.]),
-     'Bmirr': array([ 0.,  0.]),
-     'loci': Coords( [[ nan  nan  nan]
-     [ nan  nan  nan]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
+    {'Blocal': array([978.62167212, 3399.44983792]),
+     'Bmirr': array([[978.62167212, 1009.04166504, 1304.81635975, 32451.54718886],
+                     [3399.44983792, 3505.1329238, 4532.49001884, nan]]),
+     'loci': Coords([[0.6877979690266218, -0.11552153465118173, 0.9162488420030738],
+                    [nan, nan, nan]], 'GEO', 'car')}
 
     See Also
     --------
