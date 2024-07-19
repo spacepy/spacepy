@@ -112,9 +112,13 @@ class IRBEMBigTests(unittest.TestCase):
         """Test prep_irbem with spherical coordinate input"""
         loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GDZ', 'sph', use_irbem=True)
         # The rest is captured by previous test
-        expected_xin1 = [3.0, 2.0] + [0] * 99998
-        actual = ib.prep_irbem(self.ticks, loci, omnivals=self.omnivals)
-        numpy.testing.assert_allclose(expected_xin1, actual['xin1'])
+        expected = {
+            'xin1': [3.0, 2.0] + [0] * 99998,
+            'degalpha': [10, 50] + [0] * 23
+        }
+        actual = ib.prep_irbem(self.ticks, loci, alpha=[10, 50], omnivals=self.omnivals)
+        for key in expected:
+            numpy.testing.assert_allclose(expected[key], actual[key])
 
     def test_prep_irbem_numeric_alpha(self):
         expected_nalpha = 1
