@@ -485,7 +485,6 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
     def test_coord_trans_swap(self):
         """test coord_trans with invalid sysaxesout requiring a carsph swap"""
-        # re-assign ticks so this test can be run in isolation
         self.loci.ticks = self.ticks
         expected_swap_car = numpy.array([[1.27354630e+04, 0, 7.79822200e-13],
                                          [6.36426300e+03, 0, 3.89698716e-13]])
