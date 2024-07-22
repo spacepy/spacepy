@@ -127,6 +127,12 @@ class empFunctionTests(unittest.TestCase):
         ans = em.ShueMP(self.ticks, dbase='Test')
         np.testing.assert_almost_equal(real_ans, ans)
 
+    def test_getMPstandoffScalar(self):
+        """getMPstandoff should cast scalars to singletons (regression)"""
+        real_ans = [9.96096838]
+        ans = em.ShueMP({'P': 2, 'Bz': -2.4})
+        np.testing.assert_almost_equal(real_ans, ans)
+
     def test_getMPstandoffError(self):
         """getMPstandoff should give known exception on bad input"""
         self.assertRaises(TypeError, em.ShueMP, 'bad')
