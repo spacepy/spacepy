@@ -136,6 +136,7 @@ class empFunctionTests(unittest.TestCase):
     def test_getMPstandoffError(self):
         """getMPstandoff should give known exception on bad input"""
         self.assertRaises(TypeError, em.ShueMP, 'bad')
+        self.assertRaises(TypeError, em.ShueMP, {'P': 'bad', 'Bz': 'bad'})
 
     def test_getMPstandoffDict(self):
         """getMPstandoff should give known results (regression)"""
