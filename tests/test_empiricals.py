@@ -177,6 +177,12 @@ class empFunctionTests(unittest.TestCase):
         ans = em.getDststar({'Pdyn': pdyn, 'Dst': dst}, model=(1,0))
         np.testing.assert_almost_equal(real_ans, ans)
 
+    def test_getDststarOmniLists(self):
+        """getDststar should give known result using omnival dict with list values"""
+        real_ans = [-9.26719046, -9.57468886]
+        ans = em.getDststar({'Pdyn': [2, 3], 'Dst': [-10, -8]}, dbase='Test')
+        np.testing.assert_almost_equal(real_ans, ans)
+
     def test_getSolarRotation_Carrington(self):
         """make sure getSolarRotation returns known values"""
         dates = spt.Ticktock([dup.parse(t) for t in ['1853-11-10T00:00:00','1973-08-22T18:00:00','2003-03-19T12:02:45']])
