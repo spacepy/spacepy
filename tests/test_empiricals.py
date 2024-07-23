@@ -212,6 +212,11 @@ class empFunctionTests(unittest.TestCase):
         ans = em.getExpectedSWTemp([400, 500, 600], model='BS06', units='ev')
         np.testing.assert_almost_equal(real_ans, ans)
 
+    def test_getExpectedSWTemp_bad_units(self):
+        """getExpectedSWTemp should raise a ValueError when passed invalid units"""
+        with self.assertRaises(ValueError):
+            em.getExpectedSWTemp([400, 500, 600], units='asdf')
+
     def test_getSolarRotation_Carrington(self):
         """make sure getSolarRotation returns known values"""
         dates = spt.Ticktock([dup.parse(t) for t in ['1853-11-10T00:00:00','1973-08-22T18:00:00','2003-03-19T12:02:45']])
