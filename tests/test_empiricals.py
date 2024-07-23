@@ -289,6 +289,15 @@ class PAmodelTests(unittest.TestCase):
         omniflux = [3000, 4500, 6000]
         self.assertRaises(ValueError, em.vampolaPA, omniflux, order=[2,4], alpha=self.PA)
 
+    def test_vampola_defaults(self):
+        """vampolaPA should use defaults if no order or alpha is passed"""
+        ans = 119.36249766276326
+        omniflux = 3000
+        dnflux, alphas = em.vampolaPA(omniflux)
+        d_sum = em.omniFromDirectionalFlux(dnflux, alphas)
+        # somewhat high tolerance since older numpy results vary slightly
+        np.testing.assert_allclose(d_sum, ans, rtol=1e-4)
+
     def test_getSolarProtonSpectra_regress(self):
         """getSolarProtonSpectra() should return constant values"""
         dat = em.getSolarProtonSpectra()
