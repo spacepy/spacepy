@@ -306,6 +306,12 @@ class PAmodelTests(unittest.TestCase):
                 2.2463193728e08], dtype=float)
         np.testing.assert_almost_equal(dat['Energy'][0:4], Eans)
         np.testing.assert_almost_equal(np.asarray(dat['Fluence'][0:4]), Eflu, decimal=2)
+
+    def test_getVampolaOrder(self):
+        """getVampolaOrder should give known results (regression)"""
+        real_ans = np.array([ 3.095 ,  1.6402])
+        ans = em.getVampolaOrder([4, 6.6])
+        np.testing.assert_almost_equal(real_ans, ans)
         
 
 if __name__ == "__main__":
