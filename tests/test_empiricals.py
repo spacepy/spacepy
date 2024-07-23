@@ -183,6 +183,12 @@ class empFunctionTests(unittest.TestCase):
         ans = em.getDststar({'Pdyn': [2, 3], 'Dst': [-10, -8]}, dbase='Test')
         np.testing.assert_almost_equal(real_ans, ans)
 
+    def test_getExpectedSWTemp_BS06(self):
+        """getExpectedSWTemp should give known results with BS06 formula (regression)"""
+        real_ans = [70671.539589, 137049.406001, 203427.272413]
+        ans = em.getExpectedSWTemp([400, 500, 600], model='BS06')
+        np.testing.assert_almost_equal(real_ans, ans)
+
     def test_getSolarRotation_Carrington(self):
         """make sure getSolarRotation returns known values"""
         dates = spt.Ticktock([dup.parse(t) for t in ['1853-11-10T00:00:00','1973-08-22T18:00:00','2003-03-19T12:02:45']])
