@@ -256,6 +256,13 @@ class empFunctionTests(unittest.TestCase):
         ans = em.getSolarRotation(dates, rtype='bartels')
         np.testing.assert_almost_equal(real_ans, ans)
 
+    def test_getSolarRotation_reverse(self):
+        """getSolarRotation should return a date when reverse==True"""
+        real_ans = dup.parse('2016-11-02 00:00:00')
+        ticks = 2500
+        ans = em.getSolarRotation(ticks, rtype='bartels', reverse=True)
+        self.assertEqual(real_ans, ans)
+
 
 class PAmodelTests(unittest.TestCase):
     def setUp(self):
