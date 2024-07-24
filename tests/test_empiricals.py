@@ -249,6 +249,13 @@ class empFunctionTests(unittest.TestCase):
         """getSolarRotation should raise ValueError with invalid rtype"""
         self.assertRaises(ValueError, em.getSolarRotation, [], rtype='asdf')
 
+    def test_getSolarRotation_datetime_list(self):
+        """getSolarRotation should return known values on list of datetimes"""
+        real_ans = [1,2331,2447]
+        dates = [dup.parse(t) for t in ['1832-02-08T00:00:00','2004-05-06T12:00:00','2012-12-12T00:00:00']]
+        ans = em.getSolarRotation(dates, rtype='bartels')
+        np.testing.assert_almost_equal(real_ans, ans)
+
 
 class PAmodelTests(unittest.TestCase):
     def setUp(self):
