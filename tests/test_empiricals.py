@@ -245,6 +245,11 @@ class empFunctionTests(unittest.TestCase):
             ans = em.getSolarRotation(dd, rtype='bartels')
             np.testing.assert_almost_equal(aa, ans)
 
+    def test_getSolarRotation_bad_rtype(self):
+        """getSolarRotation should raise ValueError with invalid rtype"""
+        self.assertRaises(ValueError, em.getSolarRotation, [], rtype='asdf')
+
+
 class PAmodelTests(unittest.TestCase):
     def setUp(self):
         super(PAmodelTests, self).setUp()
