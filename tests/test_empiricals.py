@@ -312,7 +312,11 @@ class PAmodelTests(unittest.TestCase):
         real_ans = np.array([ 3.095 ,  1.6402])
         ans = em.getVampolaOrder([4, 6.6])
         np.testing.assert_almost_equal(real_ans, ans)
-        
+
+    def test_omniFromDirectionalFlux_scalar_input(self):
+        """omniFromDirectionalFlux should raise TypeError on non-iterable flux"""
+        d_sum = em.omniFromDirectionalFlux(100, self.PA)
+        np.testing.assert_almost_equal(d_sum, 100)
 
 if __name__ == "__main__":
     unittest.main()
