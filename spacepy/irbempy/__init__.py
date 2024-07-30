@@ -365,6 +365,11 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
     results : dictionary
         containing keys: Blocal, Bmirr, GEOcar
 
+    Notes
+    -----
+    The resulting Bmirr is a one-dimensional array in time if alpha is a singleton, otherwise
+    it is two-dimensional
+
     Examples
     --------
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
