@@ -2597,7 +2597,7 @@ class CDFCopy(spacepy.datamodel.SpaceData):
     A dictionary-like copy of all data and attributes in a `CDF`
 
     Data are `VarCopy` objects, keyed by variable name.
-    CDF attributes are in :attr:`attrs`. (I.e.,
+    CDF attributes are in attrs. (I.e.,
     data are accessed much like from a `CDF`).
 
     Do not instantiate this class directly; use :meth:`~CDF.copy`
@@ -3717,7 +3717,7 @@ class VarCopy(spacepy.datamodel.dmarray):
     """A list-like copy of the data and attributes in a `Var`
 
     Data are in the list elements. CDF attributes are in a dict,
-    accessed through :attr:`attrs`. (I.e.,
+    accessed through attrs. (I.e.,
     data and attributes are accessed like in a `Var`.)
 
     Do not instantiate this class directly; use :meth:`~Var.copy`

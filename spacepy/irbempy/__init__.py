@@ -482,7 +482,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omn
 
     See Also
     --------
-    get_Lstar, get_Bfield, find_Bmirr
+    get_Lstar, get_Bfield, find_Bmirror
     """
     # prepare input values for irbem call
     d = prep_irbem(ticks, loci, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
@@ -564,7 +564,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals
 
     See Also
     --------
-    find_LCDS_K, get_Lstar, get_Bfield, find_Bmirr
+    find_LCDS_K, get_Lstar, get_Bfield, find_Bmirror
     """
     # prepare input values for irbem call
     nTAI = len(ticks)
@@ -751,7 +751,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1, 1, 3, 0, 0], omnivals=N
 
     See Also
     --------
-    get_Lstar, get_Bfield, find_Bmirr
+    get_Lstar, get_Bfield, find_Bmirror
     """
     # prepare input values for irbem call
     nTAI = len(ticks)
@@ -965,7 +965,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0, 0, 3, 0, 0], omnival
 
     See Also
     --------
-    find_LCDS_K, get_Lstar, get_Bfield, find_Bmirr
+    find_LCDS_K, get_Lstar, get_Bfield, find_Bmirror
     """
     # prepare input values for irbem call
     d = prep_irbem(ticks, loci, extMag=extMag, options=options, omnivals=omnivals)
@@ -1089,7 +1089,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1, 0, 3, 0, 0],
 
     See Also
     --------
-    get_Lstar, get_Bfield, find_Bmirr, find_magequator
+    get_Lstar, get_Bfield, find_Bmirror, find_magequator
     """
     # prepare input values for irbem call
     d = prep_irbem(ticks, loci, extMag=extMag, options=options, omnivals=omnivals)
@@ -1170,11 +1170,6 @@ def coord_trans(loci, returntype, returncarsph):
     >>> coord_trans(c, 'GSM', 'car')
     array([[ 2.8639301 , -0.01848784,  0.89306361],
     [ 1.9124434 ,  0.07209424,  0.58082929]])
-
-    See Also
-    --------
-    sph2car, car2sph
-
     """
     sysaxesin = spc.SYSAXES_TYPES[loci.dtype][loci.carsph]
     sysaxesout = spc.SYSAXES_TYPES[returntype][returncarsph]
@@ -1230,11 +1225,6 @@ def get_dtype(sysaxes):
     --------
     >>> get_dtype(3)
     ('GSE', 'car')
-
-    See Also
-    --------
-    get_sysaxes
-
     """
 
     for key in spc.SYSAXES_TYPES:
@@ -1504,7 +1494,7 @@ class Shieldose2:
     def get_dose(self, detector=3, nucmeth=1, fluence='NASA'):
         """Calculate dose (given shielding/incident flux)
 
-        Shielding calculation results are stored in `results`.
+        Shielding calculation results are stored in ``results``.
 
         Parameters
         ----------
