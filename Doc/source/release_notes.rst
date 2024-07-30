@@ -42,6 +42,11 @@ The ``spacepy.irbempy.irbempylib`` module has been removed. This was
 the old internal interface to the IRBEM library and was not intended
 for public use.
 
+Major bugfixes
+**************
+`~spacepy.irbempy.find_Bmirror` now correctly returns one ``Bmirr`` per input
+pitch angle instead of ignoring all but the first.
+
 Other changes
 *************
 Operations on `~spacepy.datamodel.dmarray` which return a scalar value
