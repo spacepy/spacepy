@@ -100,6 +100,19 @@ class SpacepyFuncTests(unittest.TestCase):
                                          DeprecationWarning):
             self.assertEqual(2, testfunc(1))
 
+    def testDeprecationOneParagraph(self):
+        """Test the deprecation decorator, docstring is one paragraph"""
+        @spacepy.deprecated(0.1, 'pithy message')
+        def testfunc(x):
+            """test function"""
+            return x + 1
+        self.assertEqual(
+            "test function\n"
+            "\n"
+            ".. deprecated:: 0.1\n"
+            "   pithy message",
+            testfunc.__doc__)
+
 
 class SpacepyDirTests(unittest.TestCase):
     """Tests on the .spacepy directory and related."""
