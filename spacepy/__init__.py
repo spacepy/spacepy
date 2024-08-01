@@ -335,8 +335,8 @@ def _read_config(rcfile):
             config = dict(cp.items('spacepy'))
         except configparser.NoSectionError:
             successful = []
-            config = {}
     if not successful:  # Old or bad file structure, wipe it out
+        config = {}
         cp = configparser.ConfigParser()
         cp.add_section('spacepy')
         with open(rcfile, 'w') as cf:
