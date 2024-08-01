@@ -191,5 +191,28 @@ class SpacepyDirTests(unittest.TestCase):
         spacepy._read_config(spacepy.rcfile)  # Restore the previous config
 
 
+class SpacepyConfigTests(unittest.TestCase):
+    def testWriteDefaultsMultipleSections(self):
+        """Test _write_defaults where the config file has multiple sections"""
+        td = tempfile.mkdtemp()
+        configfile = os.path.join(td, 'spacepy.rc')
+        expected = ['[spacepy]\n',
+                    'some sample text\n',
+                    '#SpacePy UNRELEASED default test entry: value\n',
+                    '#test entry: value\n',
+                    '[test section]\n']
+        try:
+            with open(configfile, 'w') as cf:
+                cf.write('[spacepy]\n')
+                cf.write('some sample text\n')
+                cf.write('[test section]\n')
+            spacepy._write_defaults(configfile, {"test entry": "value"})
+            with open(configfile, 'r') as cf:
+                actual_lines = cf.readlines()
+            self.assertEqual(expected, actual_lines)
+        finally:
+            shutil.rmtree(td)
+
+
 if __name__ == '__main__':
     unittest.main()
