@@ -214,6 +214,20 @@ class SpacepyConfigTests(unittest.TestCase):
         finally:
             shutil.rmtree(td)
 
+    def testReadConfigError(self):
+        """Test generic error cp for _read_config"""
+        td = tempfile.mkdtemp()
+        configfile = os.path.join(td, 'spacepy.rc')
+        try:
+            with open(configfile, 'w') as cf:
+                cf.write("this text is not in a section\n")
+            spacepy._read_config(configfile)
+            self.assertIn('enable_old_data_warning', spacepy.config)
+        finally:
+            shutil.rmtree(td)
+            spacepy._read_config(spacepy.rcfile)  # Restore the previous config
+
+
 
 if __name__ == '__main__':
     unittest.main()
