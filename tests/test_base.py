@@ -165,6 +165,17 @@ class SpacepyDirTests(unittest.TestCase):
         finally:
             os.chdir(wd)
 
+    def testDotflnTilde(self):
+        """Checks DOT_FLN with no available environment variables"""
+        if 'SPACEPY' in os.environ:
+            del os.environ['SPACEPY']
+        if 'HOME' in os.environ:
+            del os.environ['HOME']
+        if 'HOMEDRIVE' in os.environ:
+            del os.environ['HOMEDRIVE']
+        self.assertEqual(os.path.join(os.path.expanduser('~'), '.spacepy'),
+                         spacepy._find_spacepy_dir())
+
     def testNoDotfln(self):
         """Check creating .spacepy"""
         spdir = os.path.join(self.td, 'spacepy')
