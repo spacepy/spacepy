@@ -192,6 +192,7 @@ class SpacepyDirTests(unittest.TestCase):
 
 
 class SpacepyConfigTests(unittest.TestCase):
+    """Tests for _read_config and _write_defaults"""
     def testWriteDefaultsMultipleSections(self):
         """Test _write_defaults where the config file has multiple sections"""
         td = tempfile.mkdtemp()
