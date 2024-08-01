@@ -268,7 +268,7 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
     try:
         startpos = f.tell()
         rclines = f.readlines()
-        writeme = [k for k in defaults.keys()]
+        writeme = list(defaults)
         #Places where sections start
         secidx = [i for i in range(len(rclines))
                   if re.match(r"^\[[^\[\]]*\]\n$", rclines[i])]
@@ -284,7 +284,6 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
             else:
                 nextsec = None
             #Read only this section for lines matching default values
-            present = []
             for l in rclines[thissec:nextsec]:
                 #For each key, does the line match, commented or not?
                 for k in writeme:
@@ -292,23 +291,15 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
                                 l):
                         writeme.remove(k)
                         break
-        f.seek(startpos) #Back to start of file
-        #Scan to just after section header. Text mode, can only seek() to tell()
-        if thissec != -1:
-            while f.readline() != '[{section}]\n'.format(section=section):
-                pass
-        if sys.platform == 'win32':
-            #Tickle the file for read/write switch
-            #https://stackoverflow.com/questions/11176724/python-file-operations
-            f.seek(0, 2)
-        #Write default values for anything not read
-        for k in sorted(writeme):
-            f.write(("#SpacePy {ver} default {key}: {value}\n"
-                     "#{key}: {value}\n").format(
-                         key=k, value=defaults[k], ver=__version__))
-        #And write all the remaining lines from the section header to end
-        if writeme:
-            f.writelines(rclines[thissec+1:])
+        #This is what we'll actually write to the file
+        writeme_verb = (f"#SpacePy {__version__} default {k}: {defaults[k]}\n"
+                        f"#{k}: {defaults[k]}\n"
+                        for k in sorted(writeme))
+        #Add writeme to end of this section
+        rclines[:nextsec] += writeme_verb
+        #Write the new contents
+        f.seek(0)
+        f.writelines(rclines)
     finally:
         f.close()
 
