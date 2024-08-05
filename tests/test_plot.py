@@ -8,6 +8,7 @@ import datetime
 import unittest
 
 import matplotlib.collections
+import matplotlib.pyplot as plt
 import numpy
 import numpy.testing
 
@@ -37,6 +38,15 @@ class PlotFunctionTests(spacepy_testing.TestPlot):
         numpy.testing.assert_allclose(
             pc[2].get_fc(),
             [[0.8627, 0.07843, .235290, 0.75]], rtol=1e-3)
+
+    def test_plot_STT(self):
+        """test STT correctly replaces x tick labels"""
+        time = numpy.array([datetime.datetime(2010, 1, i) for i in range(1, 7)])
+        values = numpy.array([1., 5.1, 2, 3.2, 1, 7])
+        line = spacepy.plot.plot(time, values, smartTimeTicks=True)
+        ax = plt.gca()
+        xticks = ax.get_xticklabels()
+        self.assertEqual('01 Jan', xticks[0].get_text())
 
 
 if __name__ == "__main__":
