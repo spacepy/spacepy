@@ -6,6 +6,7 @@ Test suite for plot
 
 import datetime
 import unittest
+import os
 
 import matplotlib.collections
 import matplotlib.pyplot as plt
@@ -53,6 +54,20 @@ class PlotFunctionTests(spacepy_testing.TestPlot):
         expected = ['default', 'spacepy', 'spacepy_altgrid', 'altgrid',
                     'spacepy_polar', 'polar']
         actual = spacepy.plot.available()
+        self.assertEqual(expected, actual)
+
+    def test_available_retvals(self):
+        """test available returns dict of expected plot styles"""
+        from spacepy import __path__ as basepath
+        expected = {
+            'default': os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle'),
+            'spacepy': os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle'),
+            'spacepy_altgrid': os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle'),
+            'altgrid': os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle'),
+            'spacepy_polar': os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_polar.mplstyle'),
+            'polar': os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_polar.mplstyle')
+        }
+        actual = spacepy.plot.available(returnvals=True)
         self.assertEqual(expected, actual)
 
 
