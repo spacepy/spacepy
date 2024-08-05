@@ -48,6 +48,13 @@ class PlotFunctionTests(spacepy_testing.TestPlot):
         xticks = ax.get_xticklabels()
         self.assertEqual('01 Jan', xticks[0].get_text())
 
+    def test_available(self):
+        """test available returns the expected plot styles"""
+        expected = ['default', 'spacepy', 'spacepy_altgrid', 'altgrid',
+                    'spacepy_polar', 'polar']
+        actual = spacepy.plot.available()
+        self.assertEqual(expected, actual)
+
 
 if __name__ == "__main__":
     unittest.main()
