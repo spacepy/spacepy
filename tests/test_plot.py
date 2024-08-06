@@ -78,6 +78,13 @@ class PlotFunctionTests(spacepy_testing.TestPlot):
         # https://stackoverflow.com/questions/44968099/
         self.assertEqual('plasma', mpl.rcParams['image.cmap'])
 
+    def test_revert_style(self):
+        """test revert_style removes new keys in rcParams"""
+        original = mpl.rcParams.get('image.cmap')
+        spacepy.plot.style(look='spacepy')
+        spacepy.plot.revert_style()
+        self.assertEqual(original, mpl.rcParams.get('image.cmap'))
+
 
 if __name__ == "__main__":
     unittest.main()
