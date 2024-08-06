@@ -8,6 +8,7 @@ import datetime
 import unittest
 import os
 
+import matplotlib as mpl
 import matplotlib.collections
 import matplotlib.pyplot as plt
 import numpy
@@ -69,6 +70,13 @@ class PlotFunctionTests(spacepy_testing.TestPlot):
         }
         actual = spacepy.plot.available(returnvals=True)
         self.assertEqual(expected, actual)
+
+    def test_style(self):
+        """test style updates rcParams"""
+        spacepy.plot.style(look='spacepy')
+        # It seems impossible to test the style:
+        # https://stackoverflow.com/questions/44968099/
+        self.assertEqual('plasma', mpl.rcParams['image.cmap'])
 
 
 if __name__ == "__main__":
