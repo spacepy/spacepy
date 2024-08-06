@@ -104,12 +104,12 @@ module.
 .. toctree::
     :maxdepth: 1
 
-    pycdf
-    pybats
-    time
     coordinates
     datamodel
     omni
+    pybats
+    pycdf
+    time
 
 Developer Guide
 ===============
@@ -147,6 +147,7 @@ Description of all functions within SpacePy, by module.
     ~spacepy.irbempy
     ~spacepy.igrf
     ~spacepy.LANLstar
+    ~spacepy.lib
     ~spacepy.omni
     ~spacepy.plot
     ~spacepy.poppy

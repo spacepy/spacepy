@@ -2,9 +2,7 @@
 Datamodel
 #########
 
-The datamodel classes constitute a data model implementation
-meant to mirror the functionality of the data model output from pycdf, though
-implemented slightly differently.
+The SpacePy datamodel module enables easy implementation of a standard data model, using concepts similar to those of HDF5 and NASA CDF.
 
 .. contents:: Table of Contents
     :depth: 2
