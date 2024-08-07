@@ -85,6 +85,14 @@ class PlotFunctionTests(spacepy_testing.TestPlot):
         spacepy.plot.revert_style()
         self.assertEqual(original, mpl.rcParams.get('image.cmap'))
 
+    def test_dual_half_circle(self):
+        """basic test of dual_half_circle execution and output"""
+        wedges = spacepy.plot.dual_half_circle(colors=('y', 'k'))
+        self.assertEqual((0.75, 0.75, 0.0, 1), wedges[0].get_facecolor())
+        self.assertEqual((0.0, 0.0, 0.0, 1), wedges[1].get_facecolor())
+        self.assertEqual(71, len(wedges[0].properties()['verts']))
+        self.assertEqual(71, len(wedges[1].properties()['verts']))
+
 
 if __name__ == "__main__":
     unittest.main()
