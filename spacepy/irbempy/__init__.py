@@ -2441,4 +2441,3 @@ def _load_lib():
 
 
 irbemlib = _load_lib()
-"""IRBEM shared library"""
