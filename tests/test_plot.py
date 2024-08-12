@@ -47,6 +47,7 @@ class PlotFunctionTests(spacepy_testing.TestPlot):
         values = numpy.array([1., 5.1, 2, 3.2, 1, 7])
         line = spacepy.plot.plot(time, values, smartTimeTicks=True)
         ax = plt.gca()
+        ax.xaxis._update_ticks()
         xticks = ax.get_xticklabels()
         self.assertEqual('01 Jan', xticks[0].get_text())
 
