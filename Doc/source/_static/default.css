@@ -52,10 +52,17 @@ table.highlighttable td {
     padding: 0 0.5em 0 0.5em;
 }
 
-cite, code, tt {
+cite, tt {
     font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
     font-size: 0.95em;
     letter-spacing: 0.01em;
+}
+
+code {
+    font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-size: 0.95em;
+    letter-spacing: 0.01em;
+    font-weight: bold;
 }
 
 hr {
