@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-PyBats!  An open source Python-based interface for reading, manipulating,
-and visualizing BATS-R-US and SWMF output.
+Interface module for reading, manipulating, and visualizing
+BATS-R-US and SWMF output.
 For more information on the SWMF, please visit the
 `Center for Space Environment Modeling <http://csem.engin.umich.edu>`_.
 
