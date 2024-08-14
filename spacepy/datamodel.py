@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-The datamodel classes constitute a data model implementation
-meant to mirror the functionality of the data model output from pycdf, though
-implemented slightly differently.
+Data model implementation meant to mirror the functionality of the data model output from pycdf.
 
 For more documentation :doc:`../datamodel`
 

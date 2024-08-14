@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-The datamanager classes and functions are useful for locating the correct
-data file for a particular day and manipulating data and subsets in a generic
-way.
+Tool for locating the correct data file for a particular day and manipulating data and subsets generically.
 
 Authors: Jon Niehof
 
