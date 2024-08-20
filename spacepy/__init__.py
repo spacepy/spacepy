@@ -266,7 +266,6 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
     """Write configuration defaults out to a file if they aren't there"""
     f = open(rcfile, 'r+t') #Avoid race condition, open for read and write
     try:
-        startpos = f.tell()
         rclines = f.readlines()
         writeme = list(defaults)
         #Places where sections start
