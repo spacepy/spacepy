@@ -291,11 +291,11 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
                         writeme.remove(k)
                         break
         #This is what we'll actually write to the file
-        writeme_verb = (f"#SpacePy {__version__} default {k}: {defaults[k]}\n"
+        writeme_verb = [f"#SpacePy {__version__} default {k}: {defaults[k]}\n"
                         f"#{k}: {defaults[k]}\n"
-                        for k in sorted(writeme))
+                        for k in sorted(writeme)]
         #Add writeme to end of this section
-        rclines[:nextsec] += writeme_verb
+        rclines[nextsec:nextsec] = writeme_verb
         #Write the new contents
         f.seek(0)
         f.writelines(rclines)
