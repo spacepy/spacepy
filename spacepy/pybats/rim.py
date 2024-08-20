@@ -217,8 +217,8 @@ class Iono(PbData):
         # Create 2-D arrays.
         for key in namevar:
             nkey, skey = 'n_'+key, 's_'+key
-            self[nkey] = reshape(self[nkey], (ntheta, nphi), 'F')
-            self[skey] = reshape(self[skey], (ntheta, nphi), 'F')
+            self[nkey] = reshape(self[nkey], (ntheta, nphi), order='F')
+            self[skey] = reshape(self[skey], (ntheta, nphi), order='F')
 
         # Some extra grid info:
         self.dlon = self['n_psi'  ][0,3]-self['n_psi'  ][0,2]
