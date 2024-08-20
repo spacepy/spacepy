@@ -365,7 +365,7 @@ class Iono(PbData):
             that is strictly positive and "Seismic" for diverging data.
             Alternatively, legacy Ridley Ionosphere Model color maps can be
             loaded using "l_wr" (white red) or "l_bwr" (blue-white-red),
-            where the "l\_" prefix indicates legacy and not Matplotlib color maps.
+            where the "l\\_" prefix indicates legacy and not Matplotlib color maps.
         add_cbar : bool
             Add colorbar to plot.  Default is **False** which will
             not add one to the plot.
