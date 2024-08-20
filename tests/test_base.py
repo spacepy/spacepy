@@ -167,14 +167,16 @@ class SpacepyDirTests(unittest.TestCase):
 
     def testDotflnTilde(self):
         """Checks DOT_FLN with no available environment variables"""
-        if 'SPACEPY' in os.environ:
-            del os.environ['SPACEPY']
-        if 'HOME' in os.environ:
-            del os.environ['HOME']
-        if 'HOMEDRIVE' in os.environ:
-            del os.environ['HOMEDRIVE']
-        self.assertEqual(os.path.join(os.path.expanduser('~'), '.spacepy'),
-                         spacepy._find_spacepy_dir())
+        keys = ['SPACEPY', 'HOME', 'HOMEDRIVE']
+        backup = {key: os.environ[key] for key in keys if key in os.environ}
+        try:
+            for key in keys:
+                if key in os.environ:
+                    del os.environ[key]
+            self.assertEqual(os.path.join(os.path.expanduser('~'), '.spacepy'),
+                             spacepy._find_spacepy_dir())
+        finally:
+            os.environ.update(backup)
 
     def testNoDotfln(self):
         """Check creating .spacepy"""
