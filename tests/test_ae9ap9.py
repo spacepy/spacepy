@@ -15,6 +15,7 @@ import shutil
 import tempfile
 import unittest
 
+import matplotlib.collections
 import matplotlib.patches
 import numpy.testing
 
@@ -141,7 +142,7 @@ class ae9ap9PlotTests(spacepy_testing.TestPlot):
     """Test plotting functions of ae9ap9"""
 
     def test_plotOrbit(self):
-        """Plot with all the defaults"""
+        """Simple orbit plot, all the defaults"""
         datafile = sorted(glob.glob(os.path.join(
             spacepy_testing.datadir,
             'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
@@ -156,6 +157,22 @@ class ae9ap9PlotTests(spacepy_testing.TestPlot):
                   if isinstance(c, matplotlib.patches.Wedge)]
         self.assertEqual(2, len(wedges))  # half-lit Earth
         self.assertEqual((0, 0), wedges[0].center)
+
+    def test_plotSpectrogram(self):
+        """Plot simple spectrogram, all defaults"""
+        datafile = sorted(glob.glob(os.path.join(
+            spacepy_testing.datadir,
+            'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
+        ans = ae9ap9.readFile(datafile)
+        ax = ans.plotSpectrogram()
+        qm = [c for c in ax.get_children()
+              if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(qm))
+        data = qm[0].get_array()
+        # default 10 time bins, L 2 to 8 (exclusive) in 1/4 Re bins
+        # exact shape depends on mpl version
+        self.assertEqual(10 * 23, data.size)
+        self.assertTrue((data > 0).any())
 
 
 if __name__ == "__main__":
