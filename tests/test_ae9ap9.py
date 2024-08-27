@@ -15,6 +15,8 @@ import shutil
 import tempfile
 import unittest
 
+import numpy.testing
+
 import spacepy_testing
 from spacepy import ae9ap9
 
@@ -124,6 +126,14 @@ class ae9ap9Tests(unittest.TestCase):
                'delimiter': ','}
         for k in out:
             self.assertEqual(out[k], ans[k])
+
+    def test_Lm(self):
+        """Calculate McIlwain L"""
+        ans = ae9ap9.readFile(self.datafiles[0])
+        ans.getLm()
+        self.assertEqual('T89', ans['Lm'].attrs['MODEL'])
+        self.assertEqual((121,), ans['Lm'].shape)
+        numpy.testing.assert_allclose(6.7, ans['Lm'], atol=.1)
 
 
 if __name__ == "__main__":
