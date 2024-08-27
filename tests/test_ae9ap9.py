@@ -15,12 +15,13 @@ import shutil
 import tempfile
 import unittest
 
+import matplotlib.patches
 import numpy.testing
 
 import spacepy_testing
 from spacepy import ae9ap9
 
-__all__ = ['ae9ap9Tests', ]
+__all__ = ['ae9ap9Tests', 'ae9ap9PlotTests',]
 
 class ae9ap9Tests(unittest.TestCase):
     """
@@ -134,6 +135,27 @@ class ae9ap9Tests(unittest.TestCase):
         self.assertEqual('T89', ans['Lm'].attrs['MODEL'])
         self.assertEqual((121,), ans['Lm'].shape)
         numpy.testing.assert_allclose(6.7, ans['Lm'], atol=.1)
+
+
+class ae9ap9PlotTests(spacepy_testing.TestPlot):
+    """Test plotting functions of ae9ap9"""
+
+    def test_plotOrbit(self):
+        """Plot with all the defaults"""
+        datafile = sorted(glob.glob(os.path.join(
+            spacepy_testing.datadir,
+            'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
+        ans = ae9ap9.readFile(datafile)
+        fig = ans.plotOrbit()
+        ax = fig.get_axes()
+        self.assertEqual(2, len(ax))
+        ax_xy, ax_xz = ax
+        gse_xy = ax_xy.get_lines()[0].get_xydata()
+        numpy.testing.assert_array_equal(gse_xy, ans['Coords'][:, :2])
+        wedges = [c for c in ax_xy.get_children()
+                  if isinstance(c, matplotlib.patches.Wedge)]
+        self.assertEqual(2, len(wedges))  # half-lit Earth
+        self.assertEqual((0, 0), wedges[0].center)
 
 
 if __name__ == "__main__":
