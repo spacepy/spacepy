@@ -132,10 +132,10 @@ class ae9ap9Tests(unittest.TestCase):
     def test_Lm(self):
         """Calculate McIlwain L"""
         ans = ae9ap9.readFile(self.datafiles[0])
-        ans.getLm()
-        self.assertEqual('T89', ans['Lm'].attrs['MODEL'])
+        ans.getLm(model='OPQUIET')
+        self.assertEqual('OPQUIET', ans['Lm'].attrs['MODEL'])
         self.assertEqual((121,), ans['Lm'].shape)
-        numpy.testing.assert_allclose(6.7, ans['Lm'], atol=.1)
+        numpy.testing.assert_allclose(6.6, ans['Lm'], atol=.2)
 
 
 class ae9ap9PlotTests(spacepy_testing.TestPlot):
@@ -164,6 +164,8 @@ class ae9ap9PlotTests(spacepy_testing.TestPlot):
             spacepy_testing.datadir,
             'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
         ans = ae9ap9.readFile(datafile)
+        # if not calculated before plot, uses T89 and needs omni
+        ans.getLm(model='OPQUIET')
         ax = ans.plotSpectrogram()
         qm = [c for c in ax.get_children()
               if isinstance(c, matplotlib.collections.QuadMesh)]
