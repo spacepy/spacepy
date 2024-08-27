@@ -28,9 +28,9 @@ class ae9ap9Tests(unittest.TestCase):
     
     def setUp(self):
         super(ae9ap9Tests, self).setUp()
-        self.datafiles = glob.glob(os.path.join(
+        self.datafiles = sorted(glob.glob(os.path.join(
             spacepy_testing.datadir,
-            'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt'))
+            'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))
         self.orbitfile = os.path.join(
             spacepy_testing.datadir, 'ephem_AE9test.dat')
 
