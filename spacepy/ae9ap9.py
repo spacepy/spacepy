@@ -613,8 +613,6 @@ def combinePercentiles(files, timeframe='all', verbose=True):
     combine files at different percentiles into one file with the spectra at different
     percentiles for easy plotting and analysis
 
-    NOTE: Requires pandas for any timeframe other than 'all'
-
     Parameters
     ==========
     files : str
@@ -623,7 +621,7 @@ def combinePercentiles(files, timeframe='all', verbose=True):
     Other Parameters
     ================
     timeframe : str
-        Timeframe to average the input spectra over (either 'all' or a pandas understoop resample() time
+        Timeframe to average the input spectra over, must be ``all``.
     verbose : boolean
         Print out information while reading the files
     
@@ -662,15 +660,7 @@ def combinePercentiles(files, timeframe='all', verbose=True):
                 d_comp = np.concatenate((d_comp, data[p][varname]))  # full time collapse
         d_comp = d_comp.reshape(len(ps), -1).T
     else:
-        try:
-            import pandas as pd
-        except ImportError:
-            raise (ImportError("panads is required for timeframe other than 'all'"))
-        raise (NotImplementedError("Timeframes other than 'all' not yet implemented"))
-        # make a dataframe
-        # resample to timeframe
-        # join everything
-        # meet up at same place for output
+        raise NotImplementedError("Timeframes other than 'all' not yet implemented")
     # now that we have all the data prep it to a spacedata
     ans = dm.SpaceData()
     ans[varname] = dm.dmarray(d_comp)
