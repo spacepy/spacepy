@@ -275,7 +275,10 @@ class Ae9Data(dm.SpaceData):
             sd['1D_dataset'] = self[varname][goodidx]
         bins = [[],[]]
         if 'tbins' not in kwargs:
-            bins[0] = spt.tickrange(self[epvar][0], self[epvar][-1], 3/24.).UTC
+            delta = (self[epvar][-1] - self[epvar][0]) / 10.
+            if delta.total_seconds() >= 3600:
+                delta = 3. / 24
+            bins[0] = spt.tickrange(self[epvar][0], self[epvar][-1], delta).UTC
         else:
             bins[0] = kwargs['tbins']
             del kwargs['tbins']
@@ -284,7 +287,7 @@ class Ae9Data(dm.SpaceData):
         else:
             bins[1] = kwargs['Lbins']
             del kwargs['Lbins']
-        spec = splot.spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim, bins=bins)
+        spec = splot.Spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim, bins=bins)
 
         if 'zlim' not in kwargs:
             zmax = 10 ** (int(np.log10(max(sd['1D_dataset']))) + 1)
@@ -300,12 +303,9 @@ class Ae9Data(dm.SpaceData):
         if 'title' not in kwargs:
             kwargs['title'] = '{model_type} {varname}: '.format(**self.attrs) + \
                               '{0:5.2f} {1}'.format(self[enname][ecol], self[enname].attrs['UNITS'])
-        reset_shrink = splot.mpl.mathtext.SHRINK_FACTOR
-        splot.mpl.mathtext.SHRINK_FACTOR = 0.85
-        splot.mpl.mathtext.GROW_FACTOR = 1 / 0.85
         ax = spec.plot(cmap='plasma', **kwargs)
-        splot.mpl.mathtext.SHRINK_FACTOR = reset_shrink
-        splot.mpl.mathtext.GROW_FACTOR = 1 / reset_shrink
+        if epvar == 'Epoch':
+            splot.applySmartTimeTicks(ax, self['Epoch'])
         return ax
 
 
