@@ -42,6 +42,21 @@ class ae9ap9Tests(unittest.TestCase):
         ans = ae9ap9.readFile(self.datafiles[0])
         self.assertRaisesRegex(ValueError, '^(Units of FeV)', ans.setUnits, 'FeV')
 
+    def test_setUnits_print(self):
+        """Print out current units"""
+        ans = ae9ap9.readFile(self.datafiles[0])
+        output = io.StringIO()
+        realstdout = sys.stdout
+        try:
+            sys.stdout = output
+            ans.setUnits()
+            result = output.getvalue()
+        finally:
+            output.close()
+            sys.stdout = realstdout
+        self.assertEqual(
+            "Energy units: MeV\nFluence units: #/cm^2/MeV\n", result)
+
     def test_setUnits_convert(self):
         """Conversion correctly changes flux/fluence values, energy values and units"""
         ans = ae9ap9.readFile(self.datafiles[0])
