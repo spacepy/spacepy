@@ -176,6 +176,19 @@ class ae9ap9PlotTests(spacepy_testing.TestPlot):
         self.assertEqual(10 * 23, data.size)
         self.assertTrue((data > 0).any())
 
+    def test_plotSummary(self):
+        """Summary plot, all defaults"""
+        datafile = sorted(glob.glob(os.path.join(
+            spacepy_testing.datadir,
+            'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
+        ans = ae9ap9.readFile(datafile)
+        fig = ans.plotSummary()
+        ax = fig.get_axes()
+        self.assertEqual(3, len(ax))
+        ax_xy, ax_xz, ax_fluence = ax
+        # 21 energies
+        self.assertEqual(21, len(ax_fluence.get_lines()))
+
 
 if __name__ == "__main__":
     unittest.main()
