@@ -351,7 +351,7 @@ def readFile(fname, comments='#'):
         if header['time_format'] == 'eDOY':  # have to massage the data first
             year = data[:, 0].astype(int)
             frac = data[:, 1]
-            time = spt.Ticktock([dt.datetime(y, 1, 1) + relativedelta.relativedelta(days=v)
+            time = spt.Ticktock([dt.datetime(y, 1, 1) + relativedelta.relativedelta(days = v - 1)
                                  for y, v in zip(year, frac)], 'UTC')
             ans[header['time_format']] = dm.dmarray(data[:, 0:2])
             ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
