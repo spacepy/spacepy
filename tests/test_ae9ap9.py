@@ -162,12 +162,15 @@ class ae9ap9Tests(unittest.TestCase):
 class ae9ap9PlotTests(spacepy_testing.TestPlot):
     """Test plotting functions of ae9ap9"""
 
-    def test_plotOrbit(self):
-        """Simple orbit plot, all the defaults"""
-        datafile = sorted(glob.glob(os.path.join(
+    def setUp(self):
+        super().setUp()
+        self.datafile = sorted(glob.glob(os.path.join(
             spacepy_testing.datadir,
             'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
-        ans = ae9ap9.readFile(datafile)
+
+    def test_plotOrbit(self):
+        """Simple orbit plot, all the defaults"""
+        ans = ae9ap9.readFile(self.datafile)
         fig = ans.plotOrbit()
         ax = fig.get_axes()
         self.assertEqual(2, len(ax))
@@ -181,10 +184,7 @@ class ae9ap9PlotTests(spacepy_testing.TestPlot):
 
     def test_plotSpectrogram(self):
         """Plot simple spectrogram, all defaults"""
-        datafile = sorted(glob.glob(os.path.join(
-            spacepy_testing.datadir,
-            'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
-        ans = ae9ap9.readFile(datafile)
+        ans = ae9ap9.readFile(self.datafile)
         # if not calculated before plot, uses T89 and needs omni
         ans.getLm(model='OPQUIET')
         ax = ans.plotSpectrogram()
@@ -199,10 +199,7 @@ class ae9ap9PlotTests(spacepy_testing.TestPlot):
 
     def test_plotSummary(self):
         """Summary plot, all defaults"""
-        datafile = sorted(glob.glob(os.path.join(
-            spacepy_testing.datadir,
-            'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
-        ans = ae9ap9.readFile(datafile)
+        ans = ae9ap9.readFile(self.datafile)
         fig = ans.plotSummary()
         ax = fig.get_axes()
         self.assertEqual(3, len(ax))
@@ -212,10 +209,7 @@ class ae9ap9PlotTests(spacepy_testing.TestPlot):
 
     def test_plotSummaryTimerange(self):
         """Summary plot with a timerange"""
-        datafile = sorted(glob.glob(os.path.join(
-            spacepy_testing.datadir,
-            'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
-        ans = ae9ap9.readFile(datafile)
+        ans = ae9ap9.readFile(self.datafile)
         fig = ans.plotSummary(timerange=[datetime.datetime(2010, 1, 19, 8, 0),
                                          datetime.datetime(2010, 1, 19, 8, 30)])
         ax = fig.get_axes()
