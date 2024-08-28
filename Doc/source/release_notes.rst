@@ -47,6 +47,9 @@ Major bugfixes
 `~spacepy.irbempy.find_Bmirror` now correctly returns one ``Bmirr`` per input
 pitch angle instead of ignoring all but the first.
 
+Several small issues in `~spacepy.ae9ap9` were fixed, relating to
+plotting and reading files with non-MJD timestamps.
+
 Other changes
 *************
 Operations on `~spacepy.datamodel.dmarray` which return a scalar value
