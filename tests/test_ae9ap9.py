@@ -210,6 +210,28 @@ class ae9ap9PlotTests(spacepy_testing.TestPlot):
         # 21 energies
         self.assertEqual(21, len(ax_fluence.get_lines()))
 
+    def test_plotSummaryTimerange(self):
+        """Summary plot with a timerange"""
+        datafile = sorted(glob.glob(os.path.join(
+            spacepy_testing.datadir,
+            'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')))[0]
+        ans = ae9ap9.readFile(datafile)
+        fig = ans.plotSummary(timerange=[datetime.datetime(2010, 1, 19, 8, 0),
+                                         datetime.datetime(2010, 1, 19, 8, 30)])
+        ax = fig.get_axes()
+        self.assertEqual(3, len(ax))
+        ax_xy, ax_xz, ax_fluence = ax
+        l = ax_xy.get_lines()[0]
+        x, y = l.get_data()
+        numpy.testing.assert_array_equal(x, ans['Coords'][60:90, 0])
+        # Is the line on-screen?
+        xlim = ax_xy.get_xlim()
+        self.assertLess(xlim[1], x.min())  # axis inverted
+        self.assertGreater(xlim[0], x.max())
+        ylim = ax_xy.get_ylim()
+        self.assertLess(ylim[1], y.min())
+        self.assertGreater(ylim[0], y.max())
+
 
 if __name__ == "__main__":
     unittest.main()
