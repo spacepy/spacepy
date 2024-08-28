@@ -8,6 +8,16 @@ This document presents user-visible changes in each release of SpacePy.
    :depth: 2
    :local:
 
+0.8 Series
+==========
+0.8.0 (2024-xx-xx)
+------------------
+
+Major bugfixes
+**************
+Several small issues in `~spacepy.ae9ap9` were fixed, relating to
+plotting and reading files with non-MJD timestamps.
+
 0.7 Series
 ==========
 0.7.0 (2024-11-08)
