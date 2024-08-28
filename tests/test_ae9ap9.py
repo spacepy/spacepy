@@ -6,6 +6,7 @@ Test suite for toolbox
 
 Copyright 2010-2012 Los Alamos National Security, LLC.
 """
+import datetime
 import glob
 import gzip
 import io
@@ -136,6 +137,26 @@ class ae9ap9Tests(unittest.TestCase):
         self.assertEqual('OPQUIET', ans['Lm'].attrs['MODEL'])
         self.assertEqual((121,), ans['Lm'].shape)
         numpy.testing.assert_allclose(6.6, ans['Lm'], atol=.2)
+
+    def test_readDOYFrac(self):
+        """Read times in year, DOY, fraction"""
+        infile = glob.glob(os.path.join(
+            spacepy_testing.datadir, 'Run2.AE9*'))[0]
+        ans = ae9ap9.readFile(infile)
+        numpy.testing.assert_array_equal(
+            [datetime.datetime(2015, 1, 1, 0, *ms)
+             for ms in [(0,), (4, 59, 998080), (9, 59, 996160)]],
+            ans['Epoch'])
+
+    def test_readUTC(self):
+        """Read times in ymdhms"""
+        infile = glob.glob(os.path.join(
+            spacepy_testing.datadir, 'Run3.AE9*'))[0]
+        ans = ae9ap9.readFile(infile)
+        numpy.testing.assert_array_equal(
+            [datetime.datetime(2015, 1, 1, 0, minute)
+             for minute in [0, 5, 10]],
+            ans['Epoch'])
 
 
 class ae9ap9PlotTests(spacepy_testing.TestPlot):
