@@ -226,6 +226,19 @@ class ae9ap9PlotTests(spacepy_testing.TestPlot):
         self.assertLess(ylim[1], y.min())
         self.assertGreater(ylim[0], y.max())
 
+    def test_plotSummarySpectrogram(self):
+        """Summary plot with spectrogram output"""
+        ans = ae9ap9.readFile(self.datafile)
+        # if not calculated before plot, uses T89 and needs omni
+        ans.getLm(model='OPQUIET')
+        fig = ans.plotSummary(spec=True)
+        ax = fig.get_axes()
+        self.assertEqual(4, len(ax))
+        ax_xy, ax_xz, ax_spec, ax_cb = ax
+        qm = [c for c in ax_spec.get_children()
+              if isinstance(c, matplotlib.collections.QuadMesh)]
+        self.assertEqual(1, len(qm))
+
 
 if __name__ == "__main__":
     unittest.main()
