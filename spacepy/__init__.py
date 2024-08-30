@@ -63,7 +63,7 @@ def help(keyword=None):
 
 # put modules here that you want to be accessible through 'from spacepy import *'
 __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", 
-           "irbempy", "empiricals", "radbelt", "data_assimilation", "pycdf",
+           "irbempy", "empiricals", "pycdf",
            "datamanager", "datamodel", "ae9ap9"]
 
 # Make sure the Fortran and other runtime libs from binary wheel are findable

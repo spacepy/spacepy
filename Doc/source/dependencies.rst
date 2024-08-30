@@ -91,7 +91,6 @@ modules may have limited functionality or fail entirely:
     * :mod:`~spacepy.plot`
     * :mod:`~spacepy.poppy`
     * :mod:`~spacepy.pybats`
-    * :mod:`spacepy.radbelt`
     * :mod:`~spacepy.seapy`
     * :mod:`~spacepy.toolbox`
 
@@ -302,15 +301,6 @@ unaffected by that dependency.
      -
      -
      -
-     -
-     -
-     -
-   * - :mod:`~spacepy.radbelt`
-     -
-     -
-     -
-     - * :meth:`~spacepy.radbelt.RBmodel.plot`
-       * :meth:`~spacepy.radbelt.RBmodel.plot_obs`
      -
      -
      -
