@@ -42,6 +42,11 @@ The ``spacepy.irbempy.irbempylib`` module has been removed. This was
 the old internal interface to the IRBEM library and was not intended
 for public use.
 
+The ``data_assimilation``, ``radbelt``, and ``spacepy_EnKF`` modules
+have been moved to the "sandbox". These modules were undertested and
+minimally documented. They may be restored in the future with
+appropriate testing and docs.
+
 Major bugfixes
 **************
 `~spacepy.irbempy.find_Bmirror` now correctly returns one ``Bmirr`` per input
