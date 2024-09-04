@@ -7,7 +7,7 @@ name = "spacepy"
 version = "0.7.0a0"
 description = "SpacePy: Tools for Space Science Applications"
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 license = { "file" = "LICENSE.md" }
 authors = [{ "name" = "SpacePy team", "email" = "spacepy@lanl.gov" }]
 maintainers = [
@@ -46,7 +46,7 @@ dependencies = [
 ]
 
 [tool.distutils.bdist_wheel]
-py-limited-api = "cp36"
+py-limited-api = "cp37"
 
 [tool.setuptools]
 packages = ["spacepy", "spacepy.irbempy", "spacepy.pycdf",

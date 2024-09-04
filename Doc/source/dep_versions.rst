@@ -84,14 +84,14 @@ history. The oldest version supported according to this policy is in
      - 3.10.4 (2022/3/24)
      - **3.10.0** (2021/10/4)
      - 3.11.0 (2022/10/24)
-     - 3.6.0 (2016/12/23)
+     - 3.7.0 (2018/6/27)
    * - `AstroPy <https://docs.astropy.org/en/stable/changelog.html#changelog>`_
      - 6.1.1 (2024/6/14)
      - 6.0.0 (2023/11/25)
      - **5.0.2** (2022/3/10)
      - 5.2 (2022/12/12)
      - 5.3 (2023/5/22)
-     - 1.0 (2015/2/18)
+     - 2.0 (2017/7/7)
    * - `CDF <https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/latest-release/unix/CHANGES.txt>`_
      - 3.9.0 (2023/1/22)
      - N/A

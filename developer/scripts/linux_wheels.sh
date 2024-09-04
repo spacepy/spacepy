@@ -5,7 +5,6 @@
 #wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 #bash ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda
 VERSIONS=(
-    "3.6"
     "3.7"
     "3.8"
     "3.9"
@@ -18,11 +17,7 @@ do
     ENVNAME=spacepy${PYVER//.}
     ~/miniconda/bin/conda create -y -n ${ENVNAME} python=${PYVER}
     source ~/miniconda/bin/activate ${ENVNAME}
-    if [ ${PYVER} = "3.6" ]; then
-	conda install -y wheel
-	pip install build
-	BUILD=pyproject-build
-    elif [ ${PYVER} = "3.9" ]; then
+    if [ ${PYVER} = "3.9" ]; then
 	conda install -y python-build wheel
 	BUILD=python-build
     elif [ ${PYVER} = "3.12" ]; then

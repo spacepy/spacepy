@@ -17,8 +17,6 @@ source ${HOME}/cdf/bin/definitions.B
 # coupled with what's the earliest and latest version of each dep
 # which works with that Python.
 TESTS=(
-       "3.6|pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0|numpy~=1.15.1|python-dateutil~=2.5.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1 pandas~=0.18.0|old"
-       "3.6|pip setuptools wheel cython|numpy>=1.19.0,<1.20.0|python-dateutil scipy matplotlib h5py astropy pandas|new"
        "3.7|pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0|numpy>=1.15.1,<1.16.0|python-dateutil~=2.5.0 scipy>=1.0.0,<1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1 pandas~=0.23.0|old"
        "3.7|pip setuptools wheel cython|numpy>=1.21.0|python-dateutil scipy matplotlib h5py astropy pandas|new"
        "3.8|pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0|numpy~=1.18.0|python-dateutil~=2.5.0 scipy~=1.1.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1 pandas~=0.24.0|old"
@@ -49,7 +47,7 @@ do
     pip install --no-build-isolation ${NUMPY}
     # Don't let it grab a different version of numpy later,
     # and always build against the installed numpy
-    if [ "$DEPSTRAT" = "old" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
+    if [ "$DEPSTRAT" = "old" -a \( ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
 	# scipy < 1.5 doesn't build on gcc 10+ without this argument
 	FOPT="-fallow-argument-mismatch" pip install --no-build-isolation ${NUMPY} ${PIPLIST}
     else

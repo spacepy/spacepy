@@ -583,18 +583,18 @@ setup_kwargs = {
         'python_dateutil>=2.5',
         # AstroPy is only required to convert to/from AstroPy, so either
         # user has it or don't care.
-        #'astropy>=1.0',
+        #'astropy>=2.0',
         # Similar for pandas
         #'pandas>=0.18',
     ],
-    'python_requires': '>=3.6',
+    'python_requires': '>=3.7',
     'cmdclass': {'build': build,
                  'build_ext': build_ext,
                  'install': install,
                  'bdist_wheel': bdist_wheel,
           },
     'zip_safe': False,
-    'options': {'bdist_wheel': {'py_limited_api': 'cp36'}},
+    'options': {'bdist_wheel': {'py_limited_api': 'cp37'}},
 }
 
 if has_editable_wheel:
