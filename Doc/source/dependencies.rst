@@ -19,7 +19,7 @@ Without these packages installed, SpacePy will not
 function. Installing via ``pip`` will normally install Python-based
 dependencies automatically.
 
-Python 3.6+
+Python 3.7+
 -----------
 
 `Python <http://www.python.org/>`_ is the core language for SpacePy.
@@ -135,7 +135,7 @@ the ``use_irbem`` option.
 
 .. _dependencies_astropy:
 
-Astropy 1.0+
+Astropy 2.0+
 ------------
 :mod:`~spacepy.time` requires Astropy if conversion to/from
 Astropy :class:`~astropy.time.Time` is desired.

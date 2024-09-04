@@ -11,11 +11,7 @@ do
     ENVNAME=spacepy${PYVER//.}
     ~/opt/miniconda/bin/conda create -y -n ${ENVNAME} python=${PYVER}
     source ~/opt/miniconda/bin/activate ${ENVNAME}
-    if [ ${PYVER} = "3.6" ]; then
-	conda install -y wheel gfortran~=11.2.0
-	pip install build
-	BUILD=pyproject-build
-    elif [ ${PYVER} = "3.9" ]; then
+    if [ ${PYVER} = "3.9" ]; then
 	conda install -y python-build wheel gfortran~=11.2.0 "cython<3"
 	BUILD=python-build
     elif [ ${PYVER} = "3.12" ]; then

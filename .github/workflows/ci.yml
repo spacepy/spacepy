@@ -29,24 +29,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - python-version: "3.6"
-            os: ubuntu-20.04
-            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0"
-            numpy-version: "~=1.15.1"
-            piplist: "python-dateutil~=2.5.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1 pandas~=0.18.0"
-            cflags: "-Wno-error=format-security"
-            cdf-version: "3.5.1"
-            cdf-munged-version: "35_1"
-            dep-strategy: "oldest"
-          - python-version: "3.6"
-            os: ubuntu-20.04
-            build-deps: "pip setuptools wheel cython"
-            numpy-version: ">=1.19.0,<1.20.0"
-            piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
-            cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
-            dep-strategy: "newest"
           - python-version: "3.7"
             os: ubuntu-22.04
             build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0"
@@ -196,7 +178,7 @@ jobs:
         python -m pip install --no-build-isolation ${BUILD_DEPS}
         pip install --no-build-isolation --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
-        if [ "$DEPSTRAT" = "oldest" -a \( ${PYVER} = "3.6" -o ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
+        if [ "$DEPSTRAT" = "oldest" -a \( ${PYVER} = "3.7" -o ${PYVER} = "3.8" \) ]; then
             # scipy < 1.5 doesn't build on gcc 10+ without this argument
             FOPT="-fallow-argument-mismatch" pip install --no-build-isolation --log=install_log.txt numpy${NUMPY_VERSION} ${PIPLIST}
         else
@@ -237,11 +219,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - python-version: "3.6"
-            os: ubuntu-20.04
-            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython"
+          - python-version: "3.7"
+            os: ubuntu-22.04
+            build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0"
             numpy-version: "~=1.15.1"
-            piplist: "python-dateutil~=2.5.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=1.0,<1.1 sphinx~=4.0.0 numpydoc"
+            piplist: "python-dateutil~=2.5.0 scipy~=1.0.0 matplotlib~=3.1.0 h5py~=2.10.0 astropy>=2.0,<2.1 sphinx~=4.0.0 numpydoc"
             cflags: "-Wno-error=format-security"
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"

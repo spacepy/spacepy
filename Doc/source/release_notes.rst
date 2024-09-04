@@ -33,6 +33,10 @@ later on Python 3.12. Numpy is still required to run SpacePy.
 Sphinx 4.0 is now required to build the documentation; this is not
 a concern for most users.
 
+Support for Python 3.6 has been removed due to inability to
+test. Python 3.7 is the oldest supported Python; as a result, Astropy
+2.0 is the oldest supported Astropy (if using Astropy).
+
 Deprecations and removals
 *************************
 `~spacepy.toolbox.timeout_check_call` is deprecated as redundant to using

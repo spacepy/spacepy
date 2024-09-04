@@ -19,7 +19,6 @@ CALL conda create -y -n py310 python=3.10
 CALL conda create -y -n py39 python=3.9
 CALL conda create -y -n py38 python=3.8
 CALL conda create -y -n py37 python=3.7
-CALL conda create -y -n py36 python=3.6
 
 IF "%1"=="build" (
     set ACTION=BUILD
@@ -27,7 +26,7 @@ IF "%1"=="build" (
     set ACTION=TEST
 )
 
-FOR %%P in (36 37 38 39 310 311 312) DO CALL :installs %%P
+FOR %%P in (37 38 39 310 311 312) DO CALL :installs %%P
 
 GOTO :EOF
 
@@ -39,13 +38,7 @@ CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%1
 IF "%ACTION%"=="BUILD" (
     :: Get the compiler
     CALL conda install -y m2w64-gcc-fortran libpython
-    IF "%1"=="36" (
-        :: conda doesn't have build for py3.6
-        CALL pip install build
-	CALL conda install -y wheel
-    ) ELSE (
-        CALL conda install -y python-build wheel
-    )
+    CALL conda install -y python-build wheel
 ) ELSE (
     :: Testing. Get the latest of everything
     CALL conda install -y numpy scipy matplotlib h5py astropy

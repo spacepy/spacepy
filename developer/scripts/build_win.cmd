@@ -16,11 +16,8 @@ GOTO :EOF
 CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%1
 pushd %~dp0\..\..\
 rmdir /s /q build 2> nul
-IF "%1"=="36" (
-    CALL pyproject-build -w -n -x
-) ELSE (
-    CALL python-build -w -n -x
-)
+CALL python-build -w -n -x
+
 popd
 ::This turns off echo!
 CALL conda deactivate
