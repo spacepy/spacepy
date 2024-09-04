@@ -39,7 +39,7 @@ principles:
        which have binary wheels available. Numpy may be tested with earlier
        versions that do not conflict with other dependencies. For this reason,
        the CI configuration is not a reasonable guide of the minimum supported
-       versoin.
+       version.
 
  #. No support will be provided for conflicting versions of
     dependencies. E.g. SciPy 1.9 requires NumPy 1.18. Although SpacePy
@@ -178,3 +178,11 @@ history. The oldest version supported according to this policy is in
      - 0.9.0 (2022/10/27)
      - 1.0.0 (2023/9/1)
      - tested with 0.4.0
+   * - `numpydoc <https://pypi.org/project/numpydoc/#history>`_
+       (only needed for developers to build documentation)
+     - 1.8.0 (2024/8/9)
+     - 1.6.0 (2023/9/25)
+     - **1.2.0** (2022/1/24)
+     - 1.5.0 (2022/10/8)
+     - 1.6.0 (2023/9/25)
+     - 0.8.0 (2018/3/30)

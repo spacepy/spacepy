@@ -39,6 +39,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
 
 # Not actually Python modules, or so beta that we don't want them in docs
 autodoc_mock_imports = ["spacepy.irbempy.libirbem",
+                        "spacepy.libcdf",
                         "spacepy.libspacepy",
                         "spacepy.sandbox",
                         ]
