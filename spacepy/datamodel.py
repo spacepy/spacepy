@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Data model implementation meant to mirror the functionality of the data
-model output from pycdf.
+Data model conceptually similar to HDF5 and CDF.
 
 For more documentation :doc:`../datamodel`
 
