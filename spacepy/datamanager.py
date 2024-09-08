@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Tool for locating the correct data file for a particular day and manipulating
-data and subsets generically.
+Tools for manipulating paths, data, and subsets
 
 Authors: Jon Niehof
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Wrapper for the fortran library irbem_lib;
-Reference: https://sourceforge.net/projects/irbem/
+Wrapper for the fortran library irbem_lib
+
+Reference: https://github.com/PRBEM/IRBEM
 
 D. Boscher, S. Bourdarie, T. P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 

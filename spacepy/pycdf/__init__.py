@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Python interface to the Common Data Format (CDF) library available
-at http://cdf.gsfc.nasa.gov/.
+"""Interface to the Common Data Format (CDF) library
+
+CDF available at http://cdf.gsfc.nasa.gov/.
 
 The interface is intended to be 'pythonic' rather than reproducing the
 C interface. To open or close a CDF and access its variables, see the `CDF`
