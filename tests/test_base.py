@@ -7,6 +7,7 @@ Unit test suite for base spacepy
 Copyright 2012 Los Alamos National Security, LLC.
 """
 
+import inspect
 import os
 import shutil
 import tempfile
@@ -31,15 +32,13 @@ class SpacepyFuncTests(unittest.TestCase):
             """
             return x + 1
         self.assertEqual(
+            "test function\n"
             "\n"
-            "            test function\n"
+            ".. deprecated:: 0.1\n"
+            "   pithy message\n"
             "\n"
-            "            .. deprecated:: 0.1\n"
-            "               pithy message\n"
-            "\n"
-            "            this will test things\n"
-            "            ",
-            testfunc.__doc__)
+            "this will test things",
+            inspect.getdoc(testfunc))
         with spacepy_testing.assertWarns(self, 'always', r'.*pithy message$',
                                          DeprecationWarning):
             self.assertEqual(2, testfunc(1))
@@ -50,10 +49,9 @@ class SpacepyFuncTests(unittest.TestCase):
         def testfunc(x):
             return x + 1
         self.assertEqual(
-            "\n"
-            "    .. deprecated:: 0.1\n"
-            "       pithy message",
-            testfunc.__doc__)
+            ".. deprecated:: 0.1\n"
+            "   pithy message",
+            inspect.getdoc(testfunc))
         with spacepy_testing.assertWarns(self, 'always', r'pithy message$',
                                          DeprecationWarning):
             self.assertEqual(2, testfunc(1))
@@ -70,12 +68,11 @@ class SpacepyFuncTests(unittest.TestCase):
         self.assertEqual(
             "test function\n"
             "\n"
-            "            .. deprecated:: 0.1\n"
-            "               pithy message\n"
+            ".. deprecated:: 0.1\n"
+            "   pithy message\n"
             "\n"
-            "            this will test things\n"
-            "            ",
-            testfunc.__doc__)
+            "this will test things",
+            inspect.getdoc(testfunc))
 
     def testDeprecationDifferentMessage(self):
         """Test the deprecation decorator, docstring different from message"""
@@ -89,13 +86,12 @@ class SpacepyFuncTests(unittest.TestCase):
         self.assertEqual(
             "test function\n"
             "\n"
-            "            .. deprecated:: 0.1\n"
-            "               foo\n"
-            "               bar\n"
+            ".. deprecated:: 0.1\n"
+            "   foo\n"
+            "   bar\n"
             "\n"
-            "            this will test things\n"
-            "            ",
-            testfunc.__doc__)
+            "this will test things",
+            inspect.getdoc(testfunc))
         with spacepy_testing.assertWarns(self, 'always', r'pithy message$',
                                          DeprecationWarning):
             self.assertEqual(2, testfunc(1))
@@ -111,7 +107,7 @@ class SpacepyFuncTests(unittest.TestCase):
             "\n"
             ".. deprecated:: 0.1\n"
             "   pithy message",
-            testfunc.__doc__)
+            inspect.getdoc(testfunc))
 
 
 class SpacepyDirTests(unittest.TestCase):
