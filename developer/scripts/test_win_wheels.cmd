@@ -35,9 +35,9 @@ set CONDA_SUBDIR=win-64
 set CONDA_FORCE_32_BIT=
 
 CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%1
-::CALL pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ --only-binary spacepy "spacepy>0.0d0"
+::CALL pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ --only-binary spacepy "spacepy>=0.0.0dev0"
 :: Installs latest prerelease while keeping deps stable
-CALL pip install --find-links ..\dist --only-binary spacepy "spacepy>0.0d0"
+CALL pip install --find-links ..\dist --only-binary spacepy "spacepy>=0.0.0.dev0"
 CALL python test_all.py > test_output_py%1.txt 2>&1
 CALL conda deactivate
 ::This turns off echo!
