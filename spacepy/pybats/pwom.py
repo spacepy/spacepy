@@ -35,7 +35,7 @@ class Efile(PbData):
 
         # Save time (starttime + run time)
         # Run time must be found in file name.
-        m=search('Time(\d+)\.dat', filename)
+        m=search(r'Time(\d+)\.dat', filename)
         if m:
             self.attrs['runtime']=int(m.group(1))
         else:
@@ -48,7 +48,7 @@ class Efile(PbData):
         
         # Parse header.
         varlist = parse_tecvars(f.readline())
-        m = search('.*I\=\s*(\d+)\,\s*J\=\s*(\d+)',f.readline()).groups()
+        m = search(r'.*I\=\s*(\d+)\,\s*J\=\s*(\d+)',f.readline()).groups()
         nLat, nLon = int(m[0]), int(m[1])
         self.attrs['nLat']=nLat
         self.attrs['nLon']=nLon
