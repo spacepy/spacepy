@@ -1,5 +1,4 @@
 :: Build spacepy on windows
-:: Assume win_build_system_setup.cmd has already been run
 @ECHO OFF
 SETLOCAL EnableDelayedExpansion
 
@@ -7,13 +6,14 @@ SETLOCAL EnableDelayedExpansion
 set PYTHONPATH=
 set PATH=
 
-FOR %%P in (310) DO CALL :build %%P
-
-GOTO :EOF
-
-:build
-
-CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py%1
+start /wait "" "%USERPROFILE%\Downloads\Miniconda3-latest-Windows-x86_64.exe" /InstallationType=JustMe /AddToPath=0 /RegisterPython=0 /NoRegistry=1 /S /D=%SYSTEMDRIVE%\Miniconda3
+:: base environment needs to be activated
+CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate"
+CALL conda update -y conda
+CALL conda create -y -n py310 python=3.10
+CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate" py310
+CALL conda install -y m2w64-gcc-fortran libpython
+CALL conda install -y python-build wheel
 pushd %~dp0\..\..\
 rmdir /s /q build 2> nul
 CALL python-build -w -n -x
@@ -21,4 +21,3 @@ CALL python-build -w -n -x
 popd
 ::This turns off echo!
 CALL conda deactivate
-GOTO :EOF

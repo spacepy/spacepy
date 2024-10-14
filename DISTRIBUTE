@@ -100,24 +100,15 @@ Download latest 64-bit Miniconda from
 https://docs.conda.io/en/latest/miniconda.html and put it in the
 user-default download directory (%USERPROFILE%\Downloads)
 
-MSVC needs to be installed from
-https://visualstudio.microsoft.com/visual-cpp-build-tools/ before
-making the Python 3.12 environment, and should be uninstalled
-after. This can be done before building the entire Windows build
-system (following) or by separating out the 3.12 work.
-
 Run the rest of the process in a command prompt with administrator
 access so that Miniconda can be installed to a reasonable location--if
 it is installed to the user's directory, there's often a space there,
 and that confuses f2py.
 
-Set up conda environments for the build by running
-"win_build_system_setup.cmd build". This will make conda environments
-for each version of Python. Then run
-build_win.cmd to make Windows binaries and wheels, and
-win_build_system_teardown.cmd to remove those environment (and
-miniconda). Windows binaries and wheels will be in the "dist"
-directory of the SpacePy distribution.
+Run build_win.cmd to make the Windows binaries and wheel, and
+win_build_system_teardown.cmd to remove the build environment (and
+miniconda). The Windows wheel will be in the "dist" directory of the
+SpacePy distribution.
 
 There may be a console error "This application has requested the
 Runtime to terminate it in an unusual way" with a popup "python.exe
