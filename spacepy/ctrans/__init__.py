@@ -895,7 +895,7 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
     """
     Convert geocentric geographic (cartesian GEO) to geodetic (spherical GDZ)
 
-    Uses Heikkinen's exact solution [#Heikkinen]_, see Zhu et al. [#Zhu] for
+    Uses Heikkinen's exact solution [#Heikkinen]_, see Zhu et al. [#Zhu]_ for
     details.
 
     Parameters
