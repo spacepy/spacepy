@@ -16,16 +16,16 @@ start /wait "" "%USERPROFILE%\Downloads\Miniconda3-latest-Windows-x86_64.exe" /I
 :: base environment needs to be activated
 CALL "%SYSTEMDRIVE%\Miniconda3\Scripts\activate"
 CALL conda update -y conda
+CALL conda create -y -n py313 python=3.13
 CALL conda create -y -n py312 python=3.12
 CALL conda create -y -n py311 python=3.11
 CALL conda create -y -n py310 python=3.10
 CALL conda create -y -n py39 python=3.9
 CALL conda create -y -n py38 python=3.8
 CALL conda create -y -n py37 python=3.7
-CALL conda create -y -n py36 python=3.6
 
 
-FOR %%P in (36 37 38 39 310 311 312) DO CALL :installs %%P
+FOR %%P in (37 38 39 310 311 312 313) DO CALL :installs %%P
 
 GOTO :EOF
 

@@ -137,6 +137,24 @@ jobs:
             cdf-version: "3.9.1"
             cdf-munged-version: "39_1"
             dep-strategy: "newest"
+          - python-version: "3.13"
+            os: ubuntu-22.04
+            build-deps: "pip~=23.1.0 setuptools~=66.1.0 wheel~=0.34.2 cython~=3.0.0 pkgconfig"
+            numpy-version: "~=2.1.0"
+            piplist: "python-dateutil~=2.8.1 scipy~=1.14.0 matplotlib~=3.6.0 h5py~=3.11.0 astropy~=6.1.0 pandas~=2.2.0"
+            cflags: "-Wno-error=format-security"
+            cdf-version: "3.5.1"
+            cdf-munged-version: "35_1"
+            dep-strategy: "oldest"
+          - python-version: "3.13"
+            os: ubuntu-22.04
+            build-deps: "pip setuptools wheel"
+            numpy-version: ">=2.1.0"
+            piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
+            cflags: ""
+            cdf-version: "3.9.1"
+            cdf-munged-version: "39_1"
+            dep-strategy: "newest"
     steps:
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -228,10 +246,10 @@ jobs:
             cdf-version: "3.5.1"
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
-          - python-version: "3.12"
+          - python-version: "3.13"
             os: ubuntu-22.04
             build-deps: "pip setuptools wheel cython"
-            numpy-version: ">=1.26.0"
+            numpy-version: ">=2.1.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
             cflags: ""
             cdf-version: "3.9.1"
