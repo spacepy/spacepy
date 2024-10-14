@@ -84,9 +84,9 @@ class coordsTestBothCTrans(unittest.TestCase):
         got = cc_km.convert('GDZ', 'sph')
         expected = cc_Re.convert('GDZ', 'sph')
         # same valued output in km regardless of units of input
-        np.testing.assert_approx_equal(expected.radi, got.radi, significant=6)
-        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
-        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
+        np.testing.assert_almost_equal(expected.radi, got.radi, decimal=6)
+        np.testing.assert_almost_equal(expected.lati, got.lati, decimal=6)
+        np.testing.assert_almost_equal(expected.long, got.long, decimal=6)
         self.assertEqual(got.units[0], 'km')
         self.assertEqual(expected.units[0], 'km')
 
@@ -114,12 +114,12 @@ class coordsTestBothCTrans(unittest.TestCase):
                            units=['Re', 'Re', 'Re'], use_irbem=self.use_irbem)
         expected = cc_Re.convert('RLL', 'sph')
         # units should be respected
-        np.testing.assert_approx_equal(expected.radi, got.radi/Re, significant=6)
+        np.testing.assert_almost_equal(expected.radi, got.radi/Re, decimal=6)
         # latitude and longitude should be identical regardles of units of input
         # geodetic lat/lon are altitude dependent, so this will fail if units
         # aren't handled correctly
-        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
-        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
+        np.testing.assert_almost_equal(expected.lati, got.lati, decimal=6)
+        np.testing.assert_almost_equal(expected.long, got.long, decimal=6)
         self.assertEqual(got.units[0], 'km')
         self.assertEqual(expected.units[0], 'Re')
 
