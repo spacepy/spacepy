@@ -109,11 +109,8 @@ import spacepy.toolbox as tb
 
 # check whether TS07_DATA_PATH is set, if not then set to spacepy's installed data directory
 if 'TS07_DATA_PATH' not in os.environ:
-    try:
-        import importlib.resources
-        newstyle = hasattr(importlib.resources, 'files')  # < 3.9
-    except ImportError:  # < 3.7
-        newstyle = False
+    import importlib.resources
+    newstyle = hasattr(importlib.resources, 'files')  # < 3.9
     if newstyle:
         spdatapath = importlib.resources.files(spacepy).joinpath(
             'data', 'TS07D')
@@ -134,9 +131,23 @@ if 'TS07_DATA_PATH' not in os.environ:
                     o.write(f.read_bytes())
             spdatapath = td
     else:
-        import pkg_resources
-        dataTS07D = os.path.join('data', 'TS07D')
-        spdatapath = pkg_resources.resource_filename('spacepy', dataTS07D)
+        isdir = True  # assume importing from normal directory
+        try:
+            with importlib.resources.path(spacepy, "") as datapath:
+                if isinstance(datapath, pathlib.Path) and datapath.exists():
+                    spdatapath = os.path.join(datapath, 'data', 'TS07D')
+                else:
+                    isdir = False
+        except IsADirectoryError:
+            isdir = False
+        if not isdir:  # old importlib doesn't support from zip/egg, fall back
+            import pkg_resources
+            spdatapath = pkg_resources.resource_filename(
+                'spacepy', os.path.join('data', 'TS07D'))
+            warnings.warn(
+                f"Writing TS07 data to {spdatapath}; "
+                "will not automatically clean.",
+                stacklevel=2)
     os.environ['TS07_DATA_PATH'] = spdatapath  # set environment variable here
 
 # Fortran-like types
