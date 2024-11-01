@@ -1,5 +1,5 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3252523.svg)](https://doi.org/10.5281/zenodo.3252523)
-[![Build Status](https://github.com/spacepy/spacepy/workflows/CI/badge.svg?branch=main)](https://github.com/spacepy/spacepy/actions?query=workflow%3ACI)
+[![Build Status](https://github.com/spacepy/spacepy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/spacepy/spacepy/actions?query=workflow%3ACI)
 
 # SpacePy
 
