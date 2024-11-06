@@ -129,32 +129,13 @@ class Line(PbData):
         nAlts =int(lines[2].strip())
         self.attrs['nAlt']=nAlts; self.attrs['nTime']=nTimes
 
-        # Start building time array.
-        self['time']=np.zeros(nTimes, dtype=object)
-
-        # Get variable names; pop radius (altitude).
+        # Get variable names
         var=(lines[4].split())[1:-1]
         self._rawvar=var
 
-        # Get altitude, which is constant at all times.
-        self['r']=dmarray(np.zeros(nAlts),{'units':'km'})
+        self._create_arrays(var)
         for i, l in enumerate(lines[5:nAlts+5]):
             self['r'][i]=float(l.split()[0])
-
-        # Create 2D arrays for data that is time and alt. dependent.
-        # Set as many units as possible.
-        for v in var:
-            self[v]=dmarray(np.zeros((nTimes, nAlts)))
-            if v=='Lat' or v=='Lon':
-                self[v].attrs['units']='deg'
-            elif v[0]=='u':
-                self[v].attrs['units']='km/s'
-            elif v[0:3]=='lgn':
-                self[v].attrs['units']='log(cm-3)'
-            elif v[0]=='T':
-                self[v].attrs['units']='K'
-            else:
-                self[v].attrs['units']=None
 
         # Loop through rest of data to fill arrays.
         for i in range(nTimes):
@@ -221,29 +202,12 @@ class Line(PbData):
         SnapshotLength = NextDataStart + nAlts*dbl_size*(nVars+1) + 164
         #get number of times in the file
         nTimes = int(len(fileContent) / SnapshotLength)
-        # Start building time array.
-        self['time'] = np.zeros(nTimes, dtype=object)
-        self['time'][0] = starttime + dt.timedelta(seconds=t[0])
         #correct length of snapshot due to padding issues
         #SnapshotLength=int(len(fileContent)/nTimes)
         self.attrs['nAlt'] = nAlts; self.attrs['nTime'] = nTimes
-        # Get altitude, which is constant at all times.
-        self['r'] = dmarray(np.zeros(nAlts), {'units':'km'})
 
-        # Create 2D arrays for data that is time and alt. dependent.
-        # Set as many units as possible.
-        for v in var:
-            self[v]=dmarray(np.zeros((nTimes, nAlts)))
-            if v=='Lat' or v=='Lon':
-                self[v].attrs['units']='deg'
-            elif v[0]=='u':
-                self[v].attrs['units']='km/s'
-            elif v[0:3]=='lgn':
-                self[v].attrs['units']='log(cm-3)'
-            elif v[0]=='T':
-                self[v].attrs['units']='K'
-            else:
-                self[v].attrs['units']=None
+        self._create_arrays(var)
+        self['time'][0] = starttime + dt.timedelta(seconds=t[0])
 
         # read in data for the first time
         iTime = 0
@@ -290,6 +254,36 @@ class Line(PbData):
                         struct.unpack('d',
                         fileContent[NextDataStart : NextDataStart+dbl_size])[0]
                     NextDataStart = NextDataStart + dbl_size
+
+    def _create_arrays(self, var):
+        """
+
+        Makes 2D arrays for data that is time and alt. dependent;
+        altitude and time arrays that are always present.
+
+        Set as many units as possible.
+
+        Parameters
+        ----------
+        var : `list` of `str`
+            Names of variables to create
+        """
+        # Altitude is constant at all times.
+        self['r'] = dmarray(np.zeros(self.attrs['nAlt']), {'units': 'km'})
+        # Start building time array.
+        self['time'] = np.zeros(self.attrs['nTime'], dtype=object)
+        for v in var:
+            self[v] = dmarray(np.zeros((self.attrs['nTime'], self.attrs['nAlt'])))
+            if v in ('Lat', 'Lon'):
+                self[v].attrs['units'] = 'deg'
+            elif v[0] == 'u':
+                self[v].attrs['units'] = 'km/s'
+            elif v[:3] == 'lgn':
+                self[v].attrs['units'] = 'log(cm-3)'
+            elif v[0] == 'T':
+                self[v].attrs['units'] = 'K'
+            else:
+                self[v].attrs['units'] = None
 
 
 class Lines(PbData):
