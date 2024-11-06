@@ -83,6 +83,9 @@ class Line(IdlFile):
     the simulation using the starttime kwarg.  If not given, start time
     will default to Jan. 1st, 2000, 00:00UT.
 
+    .. versionchanged:: 0.8.0
+       Added support for binary PWOM field line files.
+
     Parameters
     ----------
     filename : str
