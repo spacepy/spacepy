@@ -13,6 +13,11 @@ This document presents user-visible changes in each release of SpacePy.
 0.8.0 (2025-xx-xx)
 ------------------
 
+New features
+************
+`.pybats.pwom.Line` now support reading binary field line files
+(thanks Alex Glocer).
+
 Major bugfixes
 **************
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to

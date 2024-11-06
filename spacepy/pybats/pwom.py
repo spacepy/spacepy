@@ -81,6 +81,9 @@ class Line(PbData):
     At instantiation time, user may wish to set the start date and time of 
     the simulation using the starttime kwarg.  If not given, start time
     will default to Jan. 1st, 2000, 00:00UT.
+
+    .. versionchanged:: 0.8.0
+       Added support for binary PWOM field line files.
     '''
     def __init__(self, filename, starttime=None, *args, **kwargs):
         super(Line, self).__init__(*args, **kwargs) # Init as PbData.
