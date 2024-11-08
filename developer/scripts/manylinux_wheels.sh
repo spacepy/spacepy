@@ -30,7 +30,7 @@ do
     rm -rf build
     SPACEPY_RELEASE=1 pyproject-build -w -n -x .
     pip install auditwheel
-    auditwheel repair --plat manylinux2014_${ARCH} dist/spacepy-*-cp36-abi3-linux_${ARCH}.whl
+    auditwheel repair --plat manylinux2014_${ARCH} dist/spacepy-*-cp37-abi3-linux_${ARCH}.whl
     PATH=${OLDPATH}
 done
 mkdir -p /io/dist/
