@@ -3,7 +3,7 @@
 # Get miniconda if you need it
 #wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
 #bash ./Miniconda3-latest-MacOSX-x86_64.sh -b -p ~/opt/miniconda
-PYVER=3.10
+PYVER=3.8
 ENVNAME=spacepy${PYVER//.}
 ~/opt/miniconda/bin/conda create -y -n ${ENVNAME} python=${PYVER}
 source ~/opt/miniconda/bin/activate ${ENVNAME}
