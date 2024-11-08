@@ -10,7 +10,7 @@ This document presents user-visible changes in each release of SpacePy.
 
 0.7 Series
 ==========
-0.7.0 (2024-xx-xx)
+0.7.0 (2024-11-08)
 ------------------
 Binary wheels are now provided for Linux on 64-bit ARM, intended for
 Raspberry Pi. Installing :ref:`dependencies from system packages
