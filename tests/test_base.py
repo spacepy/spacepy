@@ -208,7 +208,7 @@ class SpacepyConfigTests(unittest.TestCase):
         configfile = os.path.join(td, 'spacepy.rc')
         expected = ['[spacepy]\n',
                     'some sample text\n',
-                    '#SpacePy UNRELEASED default test entry: value\n',
+                    f'#SpacePy {spacepy.__version__} default test entry: value\n',
                     '#test entry: value\n',
                     '[test section]\n']
         try:
