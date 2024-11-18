@@ -2173,6 +2173,15 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         datetime.datetime(2011, 5, 8)
 
         """
+        if lastupdated is not None:
+            try:
+                yyyymmdd = ctypes.c_long(lastupdated)
+            except TypeError:
+                yyyymmdd = ctypes.c_long(
+                    lastupdated.year * 10000
+                    + lastupdated.month * 100
+                    + lastupdated.day)
+            self._call(const.PUT_, const.CDF_LEAPSECONDLASTUPDATED_, yyyymmdd)
         yyyymmdd = ctypes.c_long(0)
         self._call(const.GET_, const.CDF_LEAPSECONDLASTUPDATED_, ctypes.byref(yyyymmdd))
         yyyymmdd = yyyymmdd.value

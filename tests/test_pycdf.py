@@ -33,7 +33,7 @@ import spacepy.pycdf.const as const
 __all__ = ['NoCDF', 'MakeCDF', 'CDFTestsBase', 'CDFTests', 'ColCDFTests',
            'NewCDFTests', 'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ReadNewCDF',
            'ChangeCDFBase', 'ChangeCDF', 'ChangezVar', 'ChangeAttr',
-           'ChangeColCDF']
+           'ChangeColCDF', 'ChangeNewCDF']
 
 
 class est_tz(datetime.tzinfo):
@@ -3295,6 +3295,13 @@ class ChangeCDF(ChangeCDFBase):
         self.cdf['TestNRVScalar'][...] = 1
         self.assertTrue(self.cdf['TestNRVScalar'])
 
+    def testChangeLeapSecondUpdated(self):
+        """Change the leap second last updated record from a CDF"""
+        dt = self.cdf.leapsecond_lastupdated(datetime.date(2009, 1, 1))
+        self.assertEqual(datetime.date(2009, 1, 1), dt)
+        ymd = self.cdf.leapsecond_lastupdated(20090101, raw=True)
+        self.assertEqual(20090101, ymd)
+
 
 class ChangezVar(ChangeCDFBase):
     """Tests that modify a zVar"""
@@ -3851,6 +3858,39 @@ class ChangeColCDF(ColCDFTests):
             [101.0, 102.0, 103.0, 104.0, 105.0]
         numpy.testing.assert_array_equal(
             expected, self.cdf['SectorRateScalersCounts'][...])
+
+
+class ChangeNewCDF(NewCDFTests):
+    """Tests that modify an existing tt2000 CDF"""
+    def __init__(self, *args):
+        super(ChangeNewCDF, self).__init__(*args)
+    def setUp(self):
+        shutil.copy(self.testmaster, self.testfile)
+        self.cdf = cdf.CDF(self.testfile)
+        self.cdf.readonly(False)
+
+    def tearDown(self):
+        self.cdf.close()
+        del self.cdf
+        os.remove(self.testfile)
+
+    def testChangeLeapSecondUpdatedtt2k(self):
+        """Change the leap second last updated record from a tt2000 CDF"""
+        dt = self.cdf.leapsecond_lastupdated(datetime.date(2009, 1, 1))
+        self.assertEqual(datetime.date(2009, 1, 1), dt)
+        dt = self.cdf.leapsecond_lastupdated(20090101)
+        self.assertEqual(datetime.date(2009, 1, 1), dt)
+        # Not a valid leapsecond
+        with self.assertRaises(cdf.CDFError) as cm:
+            dt = self.cdf.leapsecond_lastupdated(datetime.date(2010, 1, 1))
+        self.assertEqual(
+            'BADDATE_LEAPSECOND_UPDATED: The last leap second updated'
+            ' date is not valid (not in the leap second table).',
+            str(cm.exception))
+        self.assertEqual(datetime.date(2009, 1, 1), dt)
+        # And roll back to "never updated"
+        dt = self.cdf.leapsecond_lastupdated(0)
+        self.assertEqual(datetime.date(9999, 12, 31), dt)
 
 
 if __name__ == '__main__':
