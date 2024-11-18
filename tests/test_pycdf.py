@@ -459,18 +459,10 @@ class NoCDF(unittest.TestCase):
 
     def testVersion(self):
         """Check library's version"""
-        self.assertTrue(cdf.lib.version[0] in (2, 3))
-        self.assertTrue(cdf.lib.version[1] in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+        self.assertEqual(3, cdf.lib.version[0])
+        self.assertTrue(cdf.lib.version[1] in (5, 6, 7, 8, 9))
         self.assertTrue(cdf.lib.version[2] in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
         self.assertTrue(re.match(r'( |a|\d)?', str(cdf.lib.version[3])))
-        if cdf.lib.version == (3, 3, 0, ' '):
-            self.assertTrue(cdf.lib._del_middle_rec_bug)
-        elif cdf.lib.version == (3, 3, 1, ' '):
-            self.assertTrue(cdf.lib._del_middle_rec_bug)
-        elif cdf.lib.version == (3, 4, 0, '0'):
-            self.assertTrue(cdf.lib._del_middle_rec_bug)
-        elif cdf.lib.version == (3, 4, 1, '0'):
-            self.assertFalse(cdf.lib._del_middle_rec_bug)
 
     def testTypeGuessing(self):
         """Guess CDF types based on input data"""
@@ -547,8 +539,6 @@ class NoCDF(unittest.TestCase):
             self.assertEqual(t, cdf._Hyperslice.types(s),
                              msg='Input ' + str(s))
 
-    @unittest.skipIf(cdf.lib.version[0] < 3,
-                     "Not supported with CDF library < 3")
     def testMinMaxTT2000(self):
         """Get min/max values for TT2000 types"""
         minval, maxval = cdf.lib.get_minmax(const.CDF_TIME_TT2000)
@@ -1845,8 +1835,6 @@ class ReadCDF(CDFTests):
         finally:
             shutil.rmtree(testdir)
 
-    @unittest.skipIf(cdf.lib.version[0] < 3,
-                     "Not supported with CDF library < 3")
     def testVarCopyCDFType(self):
         """Assigning from VarCopy preserves CDF type"""
         varcopy = self.cdf['ATC'].copy()
