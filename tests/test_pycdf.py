@@ -2190,6 +2190,8 @@ class ReadCDF(CDFTests):
             self.assertEqual(actual.dtype, dtype, vname)
             numpy.testing.assert_array_equal(actual, expected)
 
+    @unittest.skipIf(cdf.lib.version[:2] < (3, 6),
+                     "Not supported with CDF library < 3.6")
     def testLeapSecondUpdated(self):
         """Read the leap second last updated record from a CDF"""
         dt = self.cdf.leapsecond_lastupdated()
@@ -2371,6 +2373,8 @@ class ReadNewCDF(NewCDFTests):
             os.remove(self.testfile)
         super(ReadNewCDF, self).tearDown()
 
+    @unittest.skipIf(cdf.lib.version[:2] < (3, 6),
+                     "Not supported with CDF library < 3.6")
     def testLeapSecondUpdated(self):
         """Read the leap second last updated record from a CDF"""
         dt = self.cdf.leapsecond_lastupdated()
@@ -3295,6 +3299,8 @@ class ChangeCDF(ChangeCDFBase):
         self.cdf['TestNRVScalar'][...] = 1
         self.assertTrue(self.cdf['TestNRVScalar'])
 
+    @unittest.skipIf(cdf.lib.version[:2] < (3, 6),
+                     "Not supported with CDF library < 3.6")
     def testChangeLeapSecondUpdated(self):
         """Change the leap second last updated record from a CDF"""
         dt = self.cdf.leapsecond_lastupdated(datetime.date(2009, 1, 1))
@@ -3874,6 +3880,8 @@ class ChangeNewCDF(NewCDFTests):
         del self.cdf
         os.remove(self.testfile)
 
+    @unittest.skipIf(cdf.lib.version[:2] < (3, 6),
+                     "Not supported with CDF library < 3.6")
     def testChangeLeapSecondUpdatedtt2k(self):
         """Change the leap second last updated record from a tt2000 CDF"""
         dt = self.cdf.leapsecond_lastupdated(datetime.date(2009, 1, 1))

@@ -2166,6 +2166,8 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         =====
         .. versionadded:: 0.8.0
 
+        Requires CDF library 3.6 or later.
+
         Examples
         ========
 
