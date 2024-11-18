@@ -13,6 +13,11 @@ This document presents user-visible changes in each release of SpacePy.
 0.8.0 (2025-xx-xx)
 ------------------
 
+New features
+************
+`.pycdf.CDF.leapsecond_lastupdated` was added to allow reading the
+last update of the leapsecond table in a CDF.
+
 Major bugfixes
 **************
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
