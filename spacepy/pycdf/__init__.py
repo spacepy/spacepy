@@ -2139,6 +2139,50 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         """
         return _compress(self, comptype, param)
 
+    def leapsecond_lastupdated(self, lastupdated=None, raw=False):
+        """Set or check the date that the last leap second was added.
+
+        This checks the date (not time) from the leap second table
+        that the CDF was based upon, not the current leap second
+        table. See section 2.7 of the CDF user's guide for more
+        information on leap seconds.
+
+        Other Parameters
+        ================
+        lastupdated : `datetime.date` or `int`, optional
+            Set the last updated value. Using this is *not recommended*.
+            This must be a valid entry in the current leapsecond table. If
+            not specified, will not change.
+        raw : `bool`, default `False`
+            Return raw value, integer YYYYMMDD (default converts to datetime).
+
+        Returns
+        =======
+        out : `datetime.date` or `int`
+            Date when leapsecond table in CDF was last updated.
+            ``9999/12/31`` for invalid values (e.g. a version 2 CDF).
+
+        Notes
+        =====
+        .. versionadded:: 0.8.0
+
+        Examples
+        ========
+
+        >>> cdffile.leapsecond_lastupdated()
+        datetime.datetime(2011, 5, 8)
+
+        """
+        yyyymmdd = ctypes.c_long(0)
+        self._call(const.GET_, const.CDF_LEAPSECONDLASTUPDATED_, ctypes.byref(yyyymmdd))
+        yyyymmdd = yyyymmdd.value
+        if raw:
+            return yyyymmdd
+        if yyyymmdd < 20000000:
+            return datetime.date(9999, 12, 31)
+        return datetime.date(
+            yyyymmdd // 10000, yyyymmdd % 10000 // 100, yyyymmdd % 100)
+
     def new(self, name, data=None, type=None, recVary=None, dimVarys=None,
             dims=None, n_elements=None, compress=None, compress_param=None,
             sparse=None, pad=None):

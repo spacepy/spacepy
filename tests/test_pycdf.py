@@ -31,8 +31,9 @@ import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
 
 __all__ = ['NoCDF', 'MakeCDF', 'CDFTestsBase', 'CDFTests', 'ColCDFTests',
-           'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ChangeCDFBase', 'ChangeCDF',
-           'ChangezVar', 'ChangeAttr', 'ChangeColCDF']
+           'NewCDFTests', 'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ReadNewCDF',
+           'ChangeCDFBase', 'ChangeCDF', 'ChangezVar', 'ChangeAttr',
+           'ChangeColCDF']
 
 
 class est_tz(datetime.tzinfo):
@@ -1031,6 +1032,14 @@ class ColCDFTests(CDFTestsBase):
     testmaster = os.path.join(spacepy_testing.testsdir, 'po_l1_cam_testc.cdf')
     testbase = 'testc.cdf'
     expected_digest = '7728439e20bece4c0962a125373345bf'
+
+
+class NewCDFTests(CDFTestsBase):
+    """Tests that involve an existing TT2000 CDF, read or write"""
+    testmaster = os.path.join(spacepy_testing.testsdir, 'data',
+                              'psp_isois-epilo_l2-ic_20190401_v0.0.0.cdf')
+    testbase = 'testtt2k.cdf'
+    expected_digest = '2a3dd81ee5073e92f2ac08b8af1f003a'
 
 
 class OpenCDF(CDFTests):
@@ -2181,6 +2190,13 @@ class ReadCDF(CDFTests):
             self.assertEqual(actual.dtype, dtype, vname)
             numpy.testing.assert_array_equal(actual, expected)
 
+    def testLeapSecondUpdated(self):
+        """Read the leap second last updated record from a CDF"""
+        dt = self.cdf.leapsecond_lastupdated()
+        self.assertEqual(datetime.date(9999, 12, 31), dt)
+        ymd = self.cdf.leapsecond_lastupdated(raw=True)
+        self.assertEqual(-1, ymd)
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
@@ -2326,6 +2342,41 @@ class ReadColCDF(ColCDFTests):
                     'SpinRateScalersCountsSigma': [18, 16]}
         for i in expected:
             self.assertEqual(self.cdf[i]._dim_sizes(), expected[i])
+
+
+class ReadNewCDF(NewCDFTests):
+    """Tests that read a TT2000 CDF, but do not modify it."""
+    testbase = 'testtt2k_ro.cdf'
+
+    def __init__(self, *args, **kwargs):
+        super(ReadNewCDF, self).__init__(*args, **kwargs)
+        #Unittest docs say 'the order in which the various test cases will be
+        #run is determined by sorting the test function names with the built-in
+        #cmp() function'
+        testnames = [name for name in dir(self)
+                     if name[0:4] == 'test' and
+                     isinstance(getattr(self,name), Callable)]
+        self.last_test = max(testnames)
+
+    def setUp(self):
+        super(ReadNewCDF, self).setUp()
+        if not os.path.exists(self.testfile):
+            shutil.copy(self.testmaster, self.testfile)
+        self.cdf = cdf.CDF(self.testfile)
+
+    def tearDown(self):
+        self.cdf.close()
+        del self.cdf
+        if self._testMethodName == self.last_test:
+            os.remove(self.testfile)
+        super(ReadNewCDF, self).tearDown()
+
+    def testLeapSecondUpdated(self):
+        """Read the leap second last updated record from a CDF"""
+        dt = self.cdf.leapsecond_lastupdated()
+        self.assertEqual(datetime.date(2017, 1, 1), dt)
+        ymd = self.cdf.leapsecond_lastupdated(raw=True)
+        self.assertEqual(20170101, ymd)
 
 
 class ChangeCDFBase(CDFTests):
