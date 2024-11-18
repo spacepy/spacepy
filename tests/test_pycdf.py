@@ -1004,6 +1004,28 @@ class MakeCDF(unittest.TestCase):
             f.readonly(False)
         f.close()
 
+    @unittest.skipIf(cdf.lib.version[:2] < (3, 6),
+                     "Not supported with CDF library < 3.6")
+    def testLeapSecondinBackward(self):
+        """Create backward-compatible CDF and set/read leap second updated"""
+        cdf.lib.set_backward(True)
+        newcdf = cdf.CDF(self.testfspec, create=True)
+        try:
+            dt = newcdf.leapsecond_lastupdated()
+            self.assertEqual(datetime.date(9999, 12, 31), dt)
+            ymd = newcdf.leapsecond_lastupdated(raw=True)
+            self.assertEqual(-1, ymd)
+            with self.assertRaises(cdf.CDFError) as cm:
+                dt = newcdf.leapsecond_lastupdated(datetime.date(2009, 1, 1))
+            self.assertEqual(
+                'BAD_FNC_OR_ITEM: The specified function or item is illegal.',
+                str(cm.exception))
+        finally:
+            cdf.lib.set_backward(True)  # Revert to default
+            newcdf.close()
+            os.remove(self.testfspec)
+
+
 
 class CDFTestsBase(unittest.TestCase):
     """Base class for tests involving existing CDF, column or row major"""
