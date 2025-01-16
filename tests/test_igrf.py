@@ -92,8 +92,8 @@ class IgrfClassTests(unittest.TestCase):
 
         In increments of 10 minutes the dipole axis shouldn't change appreciably
         """
-        epochs = [dt.datetime(2019, 12, 31, 23, 50), dt.datetime(2020, 1, 1),
-                  dt.datetime(2020, 1, 1, 0, 10)]
+        epochs = [dt.datetime(2024, 12, 31, 23, 50), dt.datetime(2025, 1, 1),
+                  dt.datetime(2025, 1, 1, 0, 10)]
         ans = []
         for ep in epochs:
             self.IGRF.initialize(ep)

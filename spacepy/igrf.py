@@ -47,8 +47,8 @@ class IGRFCoefficients():
             # TODO: write getter for toolbox.update
             fname = os.path.join(DOT_FLN, 'data', 'igrfcoeffs.txt')
             if not os.path.exists(fname):
-                # Fall back to IGRF13 coefficients
-                fname = os.path.join('{0}'.format(basepath[0]), 'data', 'igrf13coeffs.txt')
+                # Fall back to IGRF14 coefficients
+                fname = os.path.join('{0}'.format(basepath[0]), 'data', 'igrf14coeffs.txt')
         with open(fname) as fh:
             header = [fh.readline() for i in range(4)]
             data = fh.readlines()
