@@ -155,7 +155,7 @@ class build_ext(_build_ext):
         """
         # 64 bit or 32 bit?
         bit = len('%x' % sys.maxsize)*4
-        irbemdir = 'irbem-lib-20220829-dfb9d26'
+        irbemdir = 'irbem-lib-20241214-8279aa9'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'irbempy')

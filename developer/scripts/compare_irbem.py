@@ -32,9 +32,15 @@ for ff in combined_files:
     cand = os.listdir(wrapdir)
     spaceirb = [cc for cc in cand if 'irbem-lib-' in cc][0]
     spacefn = os.path.join(wrapdir, spaceirb, 'source/', local)
-    status = filecmp.cmp(ff, spacefn, shallow=False)
+    try:
+        status = filecmp.cmp(ff, spacefn, shallow=False)
+    except FileNotFoundError:
+        irbsource = os.path.join(opts.irbem_dir, 'source')
+        existdir = irbsource if os.path.isfile(ff) else spaceirb
+        notdir = spaceirb if (existdir == irbsource) else irbsource
+        print(f"File {local} exists in {existdir} but not in {notdir}")
     if not status:
-        print('Compared {}: Files are different'.format(local))
+        print("Compared {}: Files are different".format(local))
         # Test for unicode and flag lines that need characters changing
         # only test if the file differs from the spacepy version as
         # anything in our repo is assumed to be fine with f2py
