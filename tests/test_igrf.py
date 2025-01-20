@@ -67,17 +67,17 @@ class IgrfClassTests(unittest.TestCase):
             numpy.testing.assert_almost_equal(got_lat, la, decimal=2)
 
     def test_IGRF13_SV_LGM(self):
-        """Test projected dipole from IGRF13 calc using SV
+        """Test projected dipole from IGRF14 calc using SV
 
-        Values taken LANLGeoMag (revision f12e8a68)
-        Test will need updating when IGRF14 or later is introduced
+        Values taken LANLGeoMag (revision 06116e71, PR#58)
+        Test will need updating when IGRF15 or later is introduced
         """
-        self.IGRF.initialize(dt.datetime(2025, 1, 1))
-        numpy.testing.assert_allclose(self.IGRF.moment['cd'], 29756.069, rtol=8e-7)
-        self.IGRF.initialize(dt.datetime(2023, 6, 1, 12))
-        numpy.testing.assert_allclose(self.IGRF.moment['cd'], 29771.813, rtol=8e-7)
-        numpy.testing.assert_almost_equal(self.IGRF.dipole['cd_gcolat'], 9.242056, decimal=4)
-        numpy.testing.assert_almost_equal(self.IGRF.dipole['cd_glon'], -72.653261, decimal=4)
+        self.IGRF.initialize(dt.datetime(2027, 1, 19))
+        numpy.testing.assert_allclose(self.IGRF.moment['cd'], 29700.2016, rtol=8e-7)
+        self.IGRF.initialize(dt.datetime(2026, 9, 1, 12))
+        numpy.testing.assert_allclose(self.IGRF.moment['cd'],  29706.3816, rtol=8e-7)
+        numpy.testing.assert_almost_equal(self.IGRF.dipole['cd_gcolat'], 9.14254876, decimal=4)
+        numpy.testing.assert_almost_equal(self.IGRF.dipole['cd_glon'], -72.8271716, decimal=4)
 
     def test_dipMoment_CCMC(self):
         """Another external validation, this time against CCMC Vitmo ModelWeb"""
