@@ -10,13 +10,25 @@ This document presents user-visible changes in each release of SpacePy.
 
 0.8 Series
 ==========
-0.8.0 (2024-xx-xx)
+0.8.0 (2025-xx-xx)
 ------------------
 
 Major bugfixes
 **************
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
 plotting and reading files with non-MJD timestamps.
+
+Other changes
+*************
+The IGRF provided with SpacePy (used in the default spacepy backend for
+coordinate conversion) has been updated to the newly-released IGRF14.
+
+The IRBEM library bundled with SpacePy has been updated to reflect the new
+version of IGRF along with recent updates and bugfixes. This now reflects
+the upstream repository as of 2024-12-14 (commit 8279aa9). This is used
+across spacepy.irbempy as well as in the (non-default) irbem backend for
+coordinate conversion.
+
 
 0.7 Series
 ==========

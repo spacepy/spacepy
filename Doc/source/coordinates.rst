@@ -99,3 +99,15 @@ imported as ``spc``, to set the SpacePy backend as the default and set
 ``itol`` to 5 seconds:
 
     >>> spc.DEFAULTS.set_values(use_irbem=False, itol=5)
+
+Note also that the magnetospheric systems listed above require the
+specification of a centered dipole axis. This is specified using the
+first three coefficients of the IGRF, evaluated at the specified time
+(specifically, the g[1][0], g[1][1], and h[1][1] coefficients).
+For the SpacePy backend, this uses the bundled IGRF coefficients file
+in the standard format. The coefficients from a different version of
+the model can be used by placing them in the ``.spacepy`` directory
+with the name ``igrfcoeffs.txt``. This would be used, for example, if
+the user wishes to reproduce a study using IGRF12. Note that the
+IGRF coefficients are hard-coded in IRBEM thus changing the IGRF
+version is non-trivial.
