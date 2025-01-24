@@ -106,7 +106,10 @@ first three coefficients of the IGRF, evaluated at the specified time
 (specifically, the g[1][0], g[1][1], and h[1][1] coefficients).
 For the SpacePy backend, this uses the bundled IGRF coefficients file
 in the standard format. The coefficients from a different version of
-the model can be used by placing them in the ``.spacepy`` directory
+the model can be used by, for example, downloading the desired model
+version from `<https://www.ngdc.noaa.gov/IAGA/vmod/coeffs/>`_,
+and placing them in the ``data`` subdirectory of the
+:doc:`.spacepy directory <configuration>`
 with the name ``igrfcoeffs.txt``. This would be used, for example, if
 the user wishes to reproduce a study using IGRF12. Note that the
 IGRF coefficients are hard-coded in IRBEM thus changing the IGRF
