@@ -21,13 +21,15 @@ plotting and reading files with non-MJD timestamps.
 Other changes
 *************
 The IGRF provided with SpacePy (used in the default spacepy backend for
-coordinate conversion) has been updated to the newly-released IGRF14.
+:doc:`coordinate <coordinates>` conversion) has been updated to the
+newly-released `IGRF14 <https://www.ngdc.noaa.gov/IAGA/vmod/coeffs/>`_.
 
-The IRBEM library bundled with SpacePy has been updated to reflect the new
-version of IGRF along with recent updates and bugfixes. This now reflects
-the upstream repository as of 2024-12-14 (commit 8279aa9). This is used
-across spacepy.irbempy as well as in the (non-default) irbem backend for
-coordinate conversion.
+The `IRBEM <https://github.com/PRBEM/IRBEM>`_ library bundled with SpacePy
+has been updated to reflect the new version of IGRF along with recent updates
+and bugfixes. This now reflects the upstream repository as of 2024-12-14 (commit
+`8279aa9 <https://github.com/PRBEM/IRBEM/commit/8279aa9fd50c0a32d63efe762454b9ebf3b81ef6>`_).
+This is used across `spacepy.irbempy` as well as in the (non-default)
+irbem backend for coordinate conversion.
 
 
 0.7 Series

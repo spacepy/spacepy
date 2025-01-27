@@ -59,6 +59,11 @@ units will be preserved.
     The default backend for coordinate transformations was changed from IRBEM
     to the CTrans-based SpacePy backend.
 
+    .. versionchanged:: 0.8.0
+
+    The IGRF model for the CTrans-based SpacePy backend was updated to IGRF14;
+    the IRBEM backend was also updated to a version using IGRF14.
+
 Differences between representations
 --------------------------------------------
 IRBEM's coordinate transformations are low-accuracy and were written for
