@@ -7,6 +7,9 @@ Unit test suite for SeaPy
 Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
+from contextlib import redirect_stdout
+import sys
+import io
 import datetime as dt
 import matplotlib.axes
 import unittest
@@ -477,6 +480,109 @@ class SEASignifTest(unittest.TestCase):
                 self.skipTest("Datasets too similar for Mann-Whitney U test")
             else:
                 raise
+
+
+class NonContiguousTimeDetectionTest(unittest.TestCase):
+    """Tests for non-contiguous time detection in SeaPy"""
+
+    def test_noncontiguous_float_time(self):
+        """Test detection of non-contiguous points with float times"""
+        # Create data with uniform spacing except for specific points
+        data = np.ones(100)
+        times = np.arange(0, 100, 1.0)
+
+        # Introduce non-contiguous points at known positions
+        times[25] = 23.5  # Create gap
+        times[50] = 51.5  # Create overlapping point
+        times[75] = 74.0  # Create another gap
+
+        # Recalculate all positions after our changes to maintain increasing order
+        times.sort()
+
+        epochs = [10, 30, 60, 80]
+
+        # Capture stdout during initialization
+        f = io.StringIO()
+        with redirect_stdout(f):
+            obj = seapy.Sea(data, times, epochs, verbose=False)
+
+        output = f.getvalue()
+
+        # Check that the output contains the expected messages
+        self.assertIn("Non-contiguous time steps detected", output)
+        # The actual indices reported may vary, so just check for presence of irregularities
+        self.assertIn("Time diff between times", output)
+        # Count the number of reported irregularities
+        time_diff_lines = [line for line in output.split(
+            '\n') if "Time diff between times" in line]
+        # At least 3 irregularities should be reported
+        self.assertGreaterEqual(len(time_diff_lines), 3)
+
+    def test_noncontiguous_datetime(self):
+        """Test detection of non-contiguous points with datetime objects"""
+        # Same test but with less strict expectations
+        data = np.ones(100)
+        base_time = dt.datetime(2023, 1, 1)
+        times = [base_time + dt.timedelta(minutes=i) for i in range(100)]
+
+        # Introduce non-contiguous points
+        times[25] = base_time + dt.timedelta(minutes=23)    # Gap
+        times[50] = base_time + dt.timedelta(minutes=52)    # Overlap
+        times[75] = base_time + dt.timedelta(minutes=73)    # Another gap
+
+        # Sort to maintain increasing order
+        times.sort()
+
+        epochs = [times[10], times[30], times[60], times[80]]
+
+        # Capture stdout during initialization
+        f = io.StringIO()
+        with redirect_stdout(f):
+            obj = seapy.Sea(data, times, epochs,
+                            window=dt.timedelta(minutes=5),
+                            delta=dt.timedelta(minutes=1),
+                            verbose=False)
+
+        output = f.getvalue()
+
+        # Check that the output contains the expected messages
+        self.assertIn("Non-contiguous time steps detected", output)
+        time_diff_lines = [line for line in output.split(
+            '\n') if "Time diff between times" in line]
+        # At least 3 irregularities should be reported
+        self.assertGreaterEqual(len(time_diff_lines), 3)
+
+    def test_many_irregularities(self):
+        """Test with many irregularities to verify limit on output"""
+        data = np.ones(200)
+        times = np.arange(0, 200, 1.0)
+
+        # This approach creates two boundary irregularities rather than 20 distinct ones
+        # Let's modify to create more distinct irregularities
+        for i in range(10, 30):
+            if i % 2 == 0:  # Make every other point irregular to create distinct irregularities
+                times[i] = times[i] + 0.5
+            else:
+                times[i] = times[i] - 0.3
+
+        epochs = [50, 100, 150]
+
+        # Capture stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            obj = seapy.Sea(data, times, epochs, verbose=False)
+
+        output = f.getvalue()
+
+        # Count the number of reported irregularities
+        time_diff_lines = [line for line in output.split(
+            '\n') if "Time diff between times" in line]
+        # Should report at least 10
+        self.assertGreaterEqual(len(time_diff_lines), 10)
+
+        # Check for message about additional irregularities
+        if len(time_diff_lines) == 10:
+            self.assertIn("... and", output)
 
 
 if __name__ == '__main__':

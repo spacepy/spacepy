@@ -75,14 +75,75 @@ class SeaBase(object):
             self.times = times.UTC
         else:
             self.times = times
+
+        # Check for non-monotonic and non-contiguous time
         td = np.diff(times)
-        noncontig = (not np.isclose(td, td[0]).all()) if np.issubdtype(td.dtype, np.inexact)\
-            else (len(np.unique(td)) > 1)
-        nonmon = ((np.array([t.total_seconds() for t in td])
-                   if isinstance(td[0], dt.timedelta) else td) < 0).any()
+        if isinstance(td[0], dt.timedelta):
+            td_numeric = np.array([t.total_seconds() for t in td])
+            nonmon = (td_numeric < 0).any()
+            # Most common time difference
+            common_diff = np.median(td_numeric)
+            noncontig_indices = np.where(
+                ~np.isclose(td_numeric, common_diff))[0]
+            noncontig = len(noncontig_indices) > 0
+        else:
+            nonmon = (td < 0).any()
+            # Most common time difference
+            common_diff = np.median(td)
+            noncontig_indices = np.where(~np.isclose(td, common_diff))[0]
+            noncontig = len(noncontig_indices) > 0
+
+        # Print details about non-contiguous points if found
+        if noncontig:
+            print(
+                f"Non-contiguous time steps detected. Expected time difference: {common_diff}")
+
+            # Track problem points to avoid duplicates
+            problem_points = set()
+
+            # Process each irregularity, focusing on actual problematic points
+            irregular_count = 0
+            for idx in noncontig_indices:
+                # For each irregular time difference, determine which point is problematic
+                # We need to check both points involved in the irregular difference
+
+                # First convert all to a consistent array view for analysis
+                time_array = np.array([t.timestamp() if isinstance(t, dt.datetime) else t
+                                       for t in times])
+
+                # Calculate expected positions based on surrounding points
+                if idx > 0 and idx < len(time_array) - 2:
+                    # We can check both surrounding points
+                    expected_curr = time_array[idx-1] + common_diff
+                    expected_next = time_array[idx+2] - common_diff
+
+                    # Check which point deviates more from expectation
+                    curr_diff = abs(time_array[idx] - expected_curr)
+                    next_diff = abs(time_array[idx+1] - expected_next)
+
+                    problem_idx = idx if curr_diff > next_diff else idx+1
+                elif idx == 0:
+                    # First point, assume second point is problem
+                    problem_idx = idx+1
+                else:
+                    # Last point, assume current point is problem
+                    problem_idx = idx
+
+                # Only report each problem point once
+                if problem_idx not in problem_points:
+                    irregular_count += 1
+                    if irregular_count <= 5:  # Limit to first 5
+                        print(
+                            f"At index {problem_idx}: Time diff between times[{problem_idx}] and times[{problem_idx+1}] is {td[problem_idx]} (expected {common_diff})")
+                    problem_points.add(problem_idx)
+
+            # Report if there were more than 5 irregularities
+            if len(problem_points) > 5:
+                print(f"... and {len(problem_points)-5} more irregularities")
+
         if nonmon or noncontig:
             warnings.warn('Input time not {}; results are unlikely to be valid.'.format(
-                          ('monotonic or contiguous' if nonmon else 'contiguous')
+                          ('monotonic or contiguous' if nonmon and noncontig else 'contiguous')
                           if noncontig else 'monotonic'), stacklevel=2)
         if len(epochs) > len(times) / 2:
             warnings.warn('Too many epochs; results are unlikely to be valid.',
