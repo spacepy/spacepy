@@ -624,10 +624,10 @@ def _scan_bin_header(f, endchar, inttype, floattype):
     # Stash relevant values into the "info" dict:
     vals = readarray(f, dtype=header_fields_dtype, inttype=inttype)[0]
     for v, x in zip(['iter', 'runtime', 'ndim', 'nparam', 'nvar'], vals):
-        info[v] = x
+        info[v] = np.int64(x)
 
     # Dimensionality may be negative to indicate non-uniform grid:
-    info['ndim'] = abs(info['ndim'])
+    info['ndim'] = np.abs(info['ndim'], dtype=np.int64)
 
     # Get gridsize:
     grid = dmarray(readarray(f, inttype, inttype))
@@ -1018,7 +1018,7 @@ class IdlFile(PbData):
     keep_case : bool
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
-    
+
     Notes
     -----
     PyBats assumes little endian byte ordering because
@@ -1041,7 +1041,7 @@ class IdlFile(PbData):
         :meth:`~spacepy.pybats.bats.Bats2d.extract` and
         :class:`~spacepy.pybats.qotree.QTree` for processing
         adjacent cells. (ASCII data were never sorted.)
-        
+
     '''
 
     def __init__(self, filename, iframe=0, header='units',
