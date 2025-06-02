@@ -6,10 +6,6 @@ Test suite for SpacePy's PyBats subpackage.
 Copyright 2015 University of Michigan
 """
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
 import datetime as dt
 import glob
 import os
@@ -23,6 +19,10 @@ import spacepy.pybats as pb
 import spacepy.pybats.bats as pbs
 import spacepy.pybats.ram as ram
 import spacepy.pybats.gitm as gitm
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 __all__ = ['TestParseFileTime', 'TestIdlFile', 'TestRim', 'TestBats2d',
            'TestMagGrid', 'TestSatOrbit', 'TestVirtSat', 'TestImfInput',
@@ -347,6 +347,20 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
         for v in range(len(self.knownMhdX_unsorted)):
             self.assertEqual(self.knownMhdX_unsorted[v], (mhd['x'])[v])
+
+    def testBinaryLarge(self):
+        '''Test ability to open large (>2Gb) file.'''
+
+        # This single file is 2.4K in size.
+        filebase = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                'mag_grid_binary.out')
+
+        # Concat small file into a large one.
+        with open('testfile.outs', 'wb') as f_out:
+            with open(filebase, 'rb') as f_in:
+                rawbits = f_in.read()
+            for i in range(1000000):
+                f_out.write(rawbits)
 
     def testAscii(self):
         # Open file:
