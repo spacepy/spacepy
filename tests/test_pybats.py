@@ -348,20 +348,6 @@ class TestIdlFile(unittest.TestCase):
         for v in range(len(self.knownMhdX_unsorted)):
             self.assertEqual(self.knownMhdX_unsorted[v], (mhd['x'])[v])
 
-    def testBinaryLarge(self):
-        '''Test ability to open large (>2Gb) file.'''
-
-        # This single file is 2.4K in size.
-        filebase = os.path.join(spacepy_testing.datadir, 'pybats_test',
-                                'mag_grid_binary.out')
-
-        # Concat small file into a large one.
-        with open('testfile.outs', 'wb') as f_out:
-            with open(filebase, 'rb') as f_in:
-                rawbits = f_in.read()
-            for i in range(1000000):
-                f_out.write(rawbits)
-
     def testAscii(self):
         # Open file:
         mhd = pb.IdlFile(os.path.join(
