@@ -15,6 +15,7 @@ import unittest
 import spacepy_testing
 from integration_omni import *
 from integration_toolbox import *
+from integration_pybats import *
 
 
 if __name__ == '__main__':
