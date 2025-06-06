@@ -624,10 +624,10 @@ def _scan_bin_header(f, endchar, inttype, floattype):
     # Stash relevant values into the "info" dict:
     vals = readarray(f, dtype=header_fields_dtype, inttype=inttype)[0]
     for v, x in zip(['iter', 'runtime', 'ndim', 'nparam', 'nvar'], vals):
-        info[v] = np.int64(x)
+        info[v] = x.item()
 
     # Dimensionality may be negative to indicate non-uniform grid:
-    info['ndim'] = np.abs(info['ndim'], dtype=np.int64)
+    info['ndim'] = np.abs(info['ndim'])
 
     # Get gridsize:
     grid = dmarray(readarray(f, inttype, inttype))
