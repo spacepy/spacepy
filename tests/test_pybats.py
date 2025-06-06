@@ -14,15 +14,15 @@ import unittest
 import numpy as np
 import numpy.testing
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 import spacepy_testing
 import spacepy.pybats as pb
 import spacepy.pybats.bats as pbs
 import spacepy.pybats.ram as ram
 import spacepy.pybats.gitm as gitm
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 __all__ = ['TestParseFileTime', 'TestIdlFile', 'TestRim', 'TestBats2d',
            'TestMagGrid', 'TestSatOrbit', 'TestVirtSat', 'TestImfInput',
