@@ -627,7 +627,7 @@ def _scan_bin_header(f, endchar, inttype, floattype):
         info[v] = x.item()
 
     # Dimensionality may be negative to indicate non-uniform grid:
-    info['ndim'] = np.abs(info['ndim'])
+    info['ndim'] = abs(info['ndim'])
 
     # Get gridsize:
     grid = dmarray(readarray(f, inttype, inttype))
