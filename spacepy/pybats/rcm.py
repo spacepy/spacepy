@@ -3,6 +3,20 @@
 '''
 Classes, functions, and methods for reading, writing, and plotting output
 from the version of the Rice Convection Model embedded into the SWMF.
+
+RCM follows *flux tube content*, $\eta_s$, at different *energy invariants*,
+$\lambda_s$, across a grid of energy invariants and for three different species
+(electrons, protons, and oxygen ions). The grid is ionospheric, however, the
+GSM-coordinates of the equatorial crossing of field lines threading each
+ionospheric grid point are given.
+
+The density and energy can be obtained from the content and energy invariants
+using the flux tube volume ($V$):
+
+Energy:  $W_s = \lambda_s / V^{2/3}$
+Density: $n_s = \eta_s / V$
+
+These values are automatically generated upon object instantiation.
 '''
 
 import re
@@ -90,3 +104,20 @@ class Rcm3d(PbData):
             # Parse values:
             for p, v in zip(parts[3:], varnames):
                 self[v][i, j, k] = p
+
+    def calc_E(self):
+        '''
+        Calculate energy using flux tube volume and energy invariant value.
+        '''
+        # Return if already calculated.
+        if 'W' in self:
+            return
+        pass
+
+    def calc_n(self):
+        '''
+        Calculate number density, in units of $cm^-3$, using flux tube content
+        and flux tube volume.
+        '''
+        self['n'] = dmarray(self['EETA'] / self['V'], {'units': 'cm^-3'})
+        pass
