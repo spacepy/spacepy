@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 # from spacepy.plot import set_target
 from spacepy.pybats import PbData, dmarray
 
-filename = 'IM/plots/3d__max_t00000100.dat'
+# e = 1.6022e-19
 
 
 class Rcm3d(PbData):
