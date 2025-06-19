@@ -578,7 +578,10 @@ class NonContiguousTimeDetectionTest(unittest.TestCase):
         time_diff_lines = [line for line in output.split(
             '\n') if "Time diff between times" in line]
         # Should report at least 10
-        self.assertGreaterEqual(len(time_diff_lines), 10)
+        # Should report exactly 5 (the current limit)
+        self.assertEqual(len(time_diff_lines), 5)
+        # Check for message about additional irregularities
+        self.assertIn("... and", output)
 
         # Check for message about additional irregularities
         if len(time_diff_lines) == 10:
