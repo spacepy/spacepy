@@ -373,7 +373,8 @@ class Sea(SeaBase):
         m = int(2*wind + 1)
         n = len(t_epoch)
         y_sea = np.zeros((n, m), dtype=float)
-        t_sea = np.zeros((n, m), float)        # NEW: holds the timestamps
+        if kwargs['storedata']:  # Only create t_sea if we're storing data
+            t_sea = np.zeros((n, m), float)
 
         # Calculate nearest indices and window bounds vectorized
         nearest_idxs = np.array(
@@ -385,29 +386,31 @@ class Sea(SeaBase):
         for i in range(n):
             st = start_idxs[i]
             en = end_idxs[i]
-
             # Initialize with NaNs for consistent padding
             y_slice = np.full(m, np.nan)
-            t_slice = np.full(m, np.nan)
-
+            if kwargs['storedata']:  # Only create t_slice if needed
+                t_slice = np.full(m, np.nan)
             # Handle boundary conditions by computing valid data ranges
             if st < 0:  # Left boundary padding needed
                 pad = abs(st)
                 valid_len = min(m - pad, len(y))
                 if valid_len > 0:
                     y_slice[pad:pad+valid_len] = y[0:valid_len]
-                    t_slice[pad:pad+valid_len] = time[0:valid_len]
+                    if kwargs['storedata']:
+                        t_slice[pad:pad+valid_len] = time[0:valid_len]
             elif en > len(y):  # Right boundary padding needed
                 valid_len = len(y) - st
                 if valid_len > 0:
                     y_slice[:valid_len] = y[st:len(y)]
-                    t_slice[:valid_len] = time[st:len(y)]
+                    if kwargs['storedata']:
+                        t_slice[:valid_len] = time[st:len(y)]
             else:  # Fully inside data bounds
                 y_slice = y[st:en]
-                t_slice = time[st:en]
-
+                if kwargs['storedata']:
+                    t_slice = time[st:en]
             y_sea[i] = y_slice
-            t_sea[i] = t_slice
+            if kwargs['storedata']:  # Only assign t_slice if we created it
+                t_sea[i] = t_slice
 
         # find SEA mean, median and percentiles - exclude NaNs (or badval)
         try:
