@@ -104,37 +104,50 @@ class SeaBase(object):
             # Process each irregularity, focusing on actual problematic points
             irregular_count = 0
             for idx in noncontig_indices:
-                # For each irregular time difference, determine which point is problematic
-                # We need to check both points involved in the irregular difference
+                # For each irregular time difference, the problem is between idx and idx+1
+                # We need to determine which of these two points is actually problematic
 
                 # First convert all to a consistent array view for analysis
                 time_array = np.array([t.timestamp() if isinstance(t, dt.datetime) else t
                                        for t in times])
 
-                # Calculate expected positions based on surrounding points
-                if idx > 0 and idx < len(time_array) - 2:
-                    # We can check both surrounding points
-                    expected_curr = time_array[idx-1] + common_diff
-                    expected_next = time_array[idx+2] - common_diff
+                # The irregular difference is between idx and idx+1
+                actual_diff = time_array[idx+1] - time_array[idx]
 
-                    # Check which point deviates more from expectation
-                    curr_diff = abs(time_array[idx] - expected_curr)
-                    next_diff = abs(time_array[idx+1] - expected_next)
+                # Determine which point is the outlier by looking at surrounding context
+                problem_idx = None
 
-                    problem_idx = idx if curr_diff > next_diff else idx+1
-                elif idx == 0:
-                    # First point, assume second point is problem
-                    problem_idx = idx+1
-                else:
-                    # Last point, assume current point is problem
-                    problem_idx = idx
+                # Check the point before idx (if it exists)
+                if idx > 0:
+                    prev_diff = time_array[idx] - time_array[idx-1]
+                    # If the previous difference is normal, then idx+1 is likely the problem
+                    if abs(prev_diff - common_diff) < abs(actual_diff - common_diff):
+                        problem_idx = idx + 1
+
+                # Check the point after idx+1 (if it exists)
+                if problem_idx is None and idx + 2 < len(time_array):
+                    next_diff = time_array[idx+2] - time_array[idx+1]
+                    # If the next difference is normal, then idx is likely the problem
+                    if abs(next_diff - common_diff) < abs(actual_diff - common_diff):
+                        problem_idx = idx
+
+                # Default to idx+1 if we can't determine from context
+                if problem_idx is None:
+                    problem_idx = idx + 1
 
                 # Only report each problem point once
                 if problem_idx not in problem_points:
                     irregular_count += 1
                     if irregular_count <= 5:  # Limit to first 5
-                        print(
-                            f"At index {problem_idx}: Time diff between times[{problem_idx}] and times[{problem_idx+1}] is {td[problem_idx]} (expected {common_diff})")
+                        if isinstance(times[0], dt.datetime):
+                            # Convert timedelta to seconds for consistent comparison and display
+                            actual_diff_seconds = actual_diff
+                            expected_diff_seconds = common_diff
+                            print(
+                                f"At index {idx}: Time diff between times[{idx}] and times[{idx+1}] is {actual_diff_seconds:.1f} seconds (expected {expected_diff_seconds:.1f} seconds)")
+                        else:
+                            print(
+                                f"At index {idx}: Time diff between times[{idx}] and times[{idx+1}] is {actual_diff} (expected {common_diff})")
                     problem_points.add(problem_idx)
 
             # Report if there were more than 5 irregularities
