@@ -8,6 +8,7 @@ in the SWMF.
 # Global imports:
 import numpy as np
 import datetime as dt
+from struct import unpack
 from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray
 
@@ -89,9 +90,10 @@ class GitmBin(PbData):
             self.attrs['nVars'] = readarray(infile,inttype,inttype)[0]
 
             # Collect variable names; decode into usable strings.
-            var=[]
+            # We need to know variable names & indices
+            var={}
             for i in range(self.attrs['nVars']):
-                var.append(readarray(infile,str,inttype).decode('utf-8'))
+                var[readarray(infile,str,inttype).decode('utf-8')] = i
 
             # Extract time, stored as 7 consecutive integers.
             (yy,mm,dd,hh,mn,ss,ms)=readarray(infile,inttype,inttype)
@@ -99,10 +101,24 @@ class GitmBin(PbData):
 
             # Read the rest of the data.
             nTotal=self.attrs['nLon']*self.attrs['nLat']*self.attrs['nAlt']
-            for val in var:
+            # Header is this length:
+            # Version + start/stop byte
+            # nLons, nLats, nAlts + start/stop byte
+            # nVars + start/stop byte
+            # Variable Names + start/stop byte
+            # time + start/stop byte
+            iHeaderLength = 84 + self.attrs["nVars"] * 48
+            iDataLength = nTotal*8 + 4+4
+
+            for varname, iVar in var.items():
                 # Trim variable names.
-                v=sub(r'\[|\]', '', val).strip()
-                self[v] = readarray(infile,floattype,inttype)
+                v=sub(r'\[|\]', '', varname).strip()
+
+                # Get to the right location in file. Doesn't all have to be read
+                infile.seek(iHeaderLength+iVar*iDataLength)
+                # Pull out the data
+                s=unpack(EndChar+'l', infile.read(4))[0]
+                self[v] = np.array(unpack(EndChar+'%id'%(nTotal), infile.read(s)))
                 # Reshape arrays, note that ordering in file is Fortran-like.
                 self[v]=self[v].reshape( 
                     (self.attrs['nLon'],self.attrs['nLat'],self.attrs['nAlt']),
