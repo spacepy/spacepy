@@ -24,16 +24,38 @@ class GitmBin(PbData):
     altitude dimension removed; the final arrays will be lon X lat only.)
     '''
 
-    def __init__(self, filename, *args, **kwargs):
+    def __init__(self, filename, varlist=None, *args, **kwargs):
+        """
+        Initializes the holder for GITM outputs & reads the data.
+
+        Args:
+            filename (str/os-path): Path to GITM .bin file to read.
+            varlist (list-like): Indices of the variables to read. Must be int's.
+                Default=None, and all variables are read.
+
+        Returns:
+            PbData: This is the dictionary containing the GITM data.
+
+        Examples:
+            (to read all variables):
+            
+            > data = gitm.GitmBin('path/to/file/3DALL_t123_000.bin')
+
+            (to read select variables):
+            
+            > data = gitm.GitmBin('path/to/file/3DALL_t123_000.bin', varlist=[0,1,2,34])
+
+
+        """
         super(GitmBin, self).__init__(*args, **kwargs) # Init as PbData.
         self.attrs['file']=filename
-        self._read()
+        self._read(varlist=varlist)
         self.calc_deg()
 
     def __repr__(self):
         return 'GITM binary output file %s' % (self.attrs['file'])
 
-    def _read(self):
+    def _read(self, varlist: list=None):
         '''
         Read binary file; should only be called upon instantiation.
         '''
@@ -88,12 +110,27 @@ class GitmBin(PbData):
                 
             # Read number of variables:
             self.attrs['nVars'] = readarray(infile,inttype,inttype)[0]
-
+            
+            # Make sure the requested variables are present.
+            if varlist is not None:
+                if self.attrs['nVars'] < max(varlist):
+                    raise IndexError(
+                        f"\n> Invalid variable given in varlist: {max(varlist)}\n"
+                        f">> GITM file only has {self.attrs['nVars']} variables!")
+            
             # Collect variable names; decode into usable strings.
             # We need to know variable names & indices
             var={}
             for i in range(self.attrs['nVars']):
-                var[readarray(infile,str,inttype).decode('utf-8')] = i
+                if varlist is None:
+                    var[readarray(infile,str,inttype).decode('utf-8')] = i
+                elif i in varlist:
+                    var[readarray(infile,str,inttype).decode('utf-8')] = i
+                    # var.append(readarray(infile,str,inttype).decode('utf-8'))
+                else:
+                    # Need to keep track of where we are in the file (if var is
+                    # not going to be read)
+                    _ = readarray(infile,str,inttype).decode('utf-8')
 
             # Extract time, stored as 7 consecutive integers.
             (yy,mm,dd,hh,mn,ss,ms)=readarray(infile,inttype,inttype)
@@ -101,6 +138,7 @@ class GitmBin(PbData):
 
             # Read the rest of the data.
             nTotal=self.attrs['nLon']*self.attrs['nLat']*self.attrs['nAlt']
+
             # Header is this length:
             # Version + start/stop byte
             # nLons, nLats, nAlts + start/stop byte
