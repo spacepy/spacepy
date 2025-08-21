@@ -1040,16 +1040,25 @@ class TestGitm(unittest.TestCase):
         remove unused dimensions.
         '''
         # Open 2D file:
-        f = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
+        f2d = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                       'gitm_2D.bin'))
         # Check some critical attributes/values:
-        self.assertEqual(self.nVars, f.attrs['nVars'])
-        self.assertEqual(self.nLat, f.attrs['nLat'])
-        self.assertEqual(self.vers, f.attrs['version'])
-        self.assertEqual(self.time, f['time'])
-        self.assertEqual(self.shape, f['Longitude'].shape)
-        self.assertAlmostEqual(self.lat1, f['Latitude'][0, -1], 6)
-        self.assertAlmostEqual(-1*self.lat1, f['Latitude'][0, 0], 6)
+        self.assertEqual(self.nVars, f2d.attrs['nVars'])
+        self.assertEqual(self.nLat, f2d.attrs['nLat'])
+        self.assertEqual(self.vers, f2d.attrs['version'])
+        self.assertEqual(self.time, f2d['time'])
+        self.assertEqual(self.shape, f2d['Longitude'].shape)
+        self.assertAlmostEqual(self.lat1, f2d['Latitude'][0, -1], 6)
+        self.assertAlmostEqual(-1*self.lat1, f2d['Latitude'][0, 0], 6)
+
+        # Glob two files. still 2d
+        f2ds = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                      '2DANC*.bin'))
+        self.assertEqual(2, f2ds.attrs['time'])
+
+        # glob one file (3d this time). Different # of altitudes too
+        f3d = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                      '3DALL.bin'))
 
 
 class RamTests(unittest.TestCase):
