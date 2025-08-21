@@ -61,6 +61,10 @@ class GitmBin(PbData):
                 filenames = [filenames]
         self.attrs['files'] = filenames
 
+        # If varlist is just an int, we can handle it
+        if isinstance(varlist, int):
+            varlist = [varlist]
+
         # TODO: add method/escape to just print the variable list (or all attrs).
         # Would need a call to _get_header() and then a print of self.attrs['vars']
         # -> ideally we do not read in any bin data to do this!
@@ -189,14 +193,20 @@ class GitmBin(PbData):
                 # - etc.
 
                 nVarsRead = 0
-                # Only save it if it is in varlist!
-                if varlist is None or i in [0, 1, 2]:
+                # Only save it if it is in varlist, or varlist is None (read all vars)
+                if varlist is None or i in [0, 1, 2] or i in varlist:
                     # NeedsReview, this reads coord info even if user didn't request it.
                     # All 3 coords (lon, lat, alt) are present in all outputs
                     self.attrs['var_idxs'][v.decode('utf-8').replace(" ","")] = i
                     nVarsRead += 1
                 (oldLen, recLen)=unpack(endChar+'2l',file.read(8))
                 self.attrs['nVars'] = nVarsRead
+
+            if varlist is not None and max(varlist) > self.attrs['nVarsTotal']:
+                raise IndexError(
+                    "Variable out of range!\n"
+                    f" -> Only {self.attrs['nVarsTotal']} variables are available\n"
+                    f" --> You provided: varlist={varlist}")
 
             # Extract time. 
             (yy,mm,dd,hh,mn,ss,ms)=unpack(endChar+'lllllll',file.read(recLen))
