@@ -1056,9 +1056,9 @@ class TestGitm(unittest.TestCase):
                                       '2DANC*.bin'))
         self.assertEqual(2, f2ds.attrs['time'])
 
-        # glob one file (3d this time). Different # of altitudes too
-        f3d = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
-                                      '3DALL.bin'))
+        # 3d. and a list of one file, with a varlist of int (not list of ints)
+        f3d = gitm.GitmBin([os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                        '3DALL_t021221_000000.bin')], varlist=3)
 
 
 class RamTests(unittest.TestCase):
