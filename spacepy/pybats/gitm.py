@@ -11,6 +11,7 @@ import datetime as dt
 from struct import unpack
 from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray
+import glob
 
 class GitmBin(PbData):
     '''
@@ -24,17 +25,16 @@ class GitmBin(PbData):
     altitude dimension removed; the final arrays will be lon X lat only.)
     '''
 
-    def __init__(self, filename, varlist=None, *args, **kwargs):
+    def __init__(self, filenames, varlist=None, degrees=False, *args, **kwargs):
         """
         Initializes the holder for GITM outputs & reads the data.
 
         Args:
-            filename (str/os-path): Path to GITM .bin file to read.
+            filenames (str/list-like): Path(s) of GITM files to read. Works for one or
+                multiple. Can also be a globbed path, like
+                '/path/to/run/data/3DALL*.bin'. Cannot mix output types!
             varlist (list-like): Indices of the variables to read. Must be int's.
                 Default=None, and all variables are read.
-
-        Returns:
-            PbData: This is the dictionary containing the GITM data.
 
         Examples:
             (to read all variables):
@@ -43,132 +43,175 @@ class GitmBin(PbData):
 
             (to read select variables):
             
-            > data = gitm.GitmBin('path/to/file/3DALL_t123_000.bin', varlist=[0,1,2,34])
+            > data = gitm.GitmBin('path/to/file/3DALL_*.bin', varlist=[0,1,2,34])
 
 
         """
         super(GitmBin, self).__init__(*args, **kwargs) # Init as PbData.
-        self.attrs['file']=filename
-        self._read(varlist=varlist)
-        self.calc_deg()
+        
+        #TODO: As written, this cannot read multiple output types in one call.
+        # -> Either fix this (desc. how at '^[outputtypes]'), or check inputs
+        # - Inputs can be checked by ensuring f.split('/')[-1][:5] is same for f in filelist
+
+        # Can accept single/multiple files. sanitize this:
+        if isinstance(filenames, str):
+            if '*' in filenames: # We have to glob the path
+                filenames = sorted(glob.glob(filenames))
+            else:
+                filenames = [filenames]
+        self.attrs['files'] = filenames
+
+        # TODO: add method/escape to just print the variable list (or all attrs).
+        # Would need a call to _get_header() and then a print of self.attrs['vars']
+        # -> ideally we do not read in any bin data to do this!
+
+        # Read first header. Puts attrs into self
+        self._read_header(varlist=varlist)
+
+        # read in all the data
+        self._readbin(varlist=varlist)
+        if degrees:
+            self.calc_deg()
 
     def __repr__(self):
         return 'GITM binary output file %s' % (self.attrs['file'])
 
-    def _read(self, varlist: list=None):
+    def _readbin(self, varlist: list=None):
         '''
         Read binary file; should only be called upon instantiation.
         '''
 
-        from re import sub
-        from spacepy.pybats import readarray
+        # pre-allocate the data arrays:
+        # Shape is (nTimes, nLons, nLats, nAlts), these are all present in the header
+        for var in self.attrs['var_idxs'].keys():
+            #TODO: Add a call to the variable parsing function described in _read_header()
+            self[var] = dmarray(np.empty([len(self.attrs['files']),
+                                          self.attrs['nLons'],
+                                          self.attrs['nLats'], 
+                                          self.attrs['nAlts']]), #attrs
+                                          )
+            
         
+        # skip the version, recLen, shape, dimensions, etc. + start/stop byte
+        HeaderLength = 84 + self.attrs["nVarsTotal"] * 48
+        nPtsTotal = self.attrs["nLons"]*self.attrs["nLats"]*self.attrs["nAlts"]
+        iDataLength = nPtsTotal*8 + 4 + 4
+
         # Open, read, and parse the file into numpy arrays.
         # Note that Fortran writes integer buffers around records, so
         # we must parse those as well.
-        with open(self.attrs['file'], 'rb') as infile:
-            # On the first try, we may fail because of wrong-endianess.
-            # If that is the case, swap that endian and try again.
-            endian='little'
+        isFirstTime = True
+        for iFile, filename in enumerate(self.attrs['files']):
+            with open(filename, 'rb') as file:
+                # On the first try, we may fail because of wrong-endianess.
+                # If that is the case, swap that endian and try again.
+                endChar = '>'
+                rawRecLen = file.read(4)
+                rec_len = (unpack(endChar + 'l', rawRecLen))[0]
+                if rec_len > 10000 or rec_len < 0:
+                    # Ridiculous record length implies wrong endian.
+                    endChar='<'
 
-            inttype=np.dtype(np.int32)
-            EndChar='<'
-            inttype.newbyteorder(EndChar)
+                # Only read time if _read_header has not (it reads the 1st time)
+                if not isFirstTime:
+                    # Extract time, stored as 7 consecutive integers.
+                    # time is placed after variable names, so we skip:
+                    # 64(header) + ( 40[nvars] + 8 [head/foot] ) *nVarsTotal
+                    file.seek(64 + 48 * self.attrs['nVarsTotal'])
+                    (yy,mm,dd,hh,mn,ss,ms)=unpack(endChar+'lllllll',file.read(28))
+                    self.attrs['time'][iFile]=dt.datetime(yy,mm,dd,hh,mn,ss,ms//1000)
+                    isFirstTime = False
 
-            # detect double-precision file by checking record length
-            # of version (stored as float). Simultaneously, test for
-            # byte ordering:
-            try:
-                RecLen=np.fromfile(infile,dtype=inttype,count=1)
-            except (ValueError,EOFError):
-                endian='big'
-                EndChar='>'
-                inttype.newbyteorder(EndChar)
-                infile.seek(0)
-                RecLen=np.fromfile(infile,dtype=inttype,count=1)
-            infile.seek(0) # return to beginning of file.
-            self.attrs['endian']  = endian # Store endian order.
-            
-            # Set data types based on record length from above:
-            if RecLen > 4:
-                floattype=np.dtype(np.float64)
-            else:
-                floattype=np.dtype(np.float32)
-            floattype.newbyteorder(EndChar)
+                for varname, iVar in self.attrs['var_idxs'].items():
+                    # Get to the right location in file
+                    file.seek(HeaderLength+iVar*iDataLength)
+                    # Pull out the data
+                    s=unpack(endChar+'l', file.read(4))[0]
+                    self[varname][iFile, ...] = \
+                        np.array(unpack(endChar+'%id'%(nPtsTotal),file.read(s))
+                                 ).reshape((self.attrs['nLons'],
+                                            self.attrs['nLats'],
+                                            self.attrs['nAlts']), order='F')
 
-            # Get code version:
-            self.attrs['version']=readarray(infile,floattype,inttype)[0]
+        # Finally we reduce dimensionality:
+        for v in self.attrs['var_idxs'].keys():
+            self[v] = np.squeeze(self[v])
 
-            # Read grid size information.  Because these three values
-            # are written at the same time, they get "packed" together and
-            # must be read together.
-            header_fields_dtype=np.dtype([
-                ('nLon',np.int32), ('nLat',np.int32), ('nAlt',np.int32)])
-            header_fields_dtype.newbyteorder(EndChar)
-            self.attrs['nLon'], self.attrs['nLat'], self.attrs['nAlt'] = \
-                readarray(infile,header_fields_dtype,inttype)[0]
-                
-            # Read number of variables:
-            self.attrs['nVars'] = readarray(infile,inttype,inttype)[0]
-            
-            # Make sure the requested variables are present.
-            if varlist is not None:
-                if self.attrs['nVars'] < max(varlist):
-                    raise IndexError(
-                        f"\n> Invalid variable given in varlist: {max(varlist)}\n"
-                        f">> GITM file only has {self.attrs['nVars']} variables!")
-            
-            # Collect variable names; decode into usable strings.
-            # We need to know variable names & indices
-            var={}
-            for i in range(self.attrs['nVars']):
-                if varlist is None:
-                    var[readarray(infile,str,inttype).decode('utf-8')] = i
-                elif i in varlist:
-                    var[readarray(infile,str,inttype).decode('utf-8')] = i
-                    # var.append(readarray(infile,str,inttype).decode('utf-8'))
-                else:
-                    # Need to keep track of where we are in the file (if var is
-                    # not going to be read)
-                    _ = readarray(infile,str,inttype).decode('utf-8')
+    
+    def _read_header(self, varlist=None):
+        """
+        This opens up a single GITM output ans extracts some data from the header.
+        Will, by default, only work on the first file in self.attrs['files']
+        
+        This will let us pre-allocate the arrays to hold the data
 
-            # Extract time, stored as 7 consecutive integers.
-            (yy,mm,dd,hh,mn,ss,ms)=readarray(infile,inttype,inttype)
-            self['time']=dt.datetime(yy,mm,dd,hh,mn,ss,ms//1000)
+        Inputs
+        ------
+            varlist (list): list of indices of variables to read. Default=None, 
+                which reads all variables
+        
+        """
+    
+        with open(self.attrs['files'][0], 'rb') as file:
+            # determine endianess 
+            endChar='>'
+            rawRecLen=file.read(4)
+            recLen=(unpack(endChar+'l',rawRecLen))[0]
+            if (recLen>10000)or(recLen<0):
+                # Ridiculous record length implies wrong endian.
+                endChar='<'
+                recLen=(unpack(endChar+'l',rawRecLen))[0]
 
-            # Read the rest of the data.
-            nTotal=self.attrs['nLon']*self.attrs['nLat']*self.attrs['nAlt']
+            # Read version; read fortran footer+header.
+            self.attrs["version"] = unpack(endChar+'d',file.read(recLen))[0]
 
-            # Header is this length:
-            # Version + start/stop byte
-            # nLons, nLats, nAlts + start/stop byte
-            # nVars + start/stop byte
-            # Variable Names + start/stop byte
-            # time + start/stop byte
-            iHeaderLength = 84 + self.attrs["nVars"] * 48
-            iDataLength = nTotal*8 + 4+4
+            (_, recLen)=unpack(endChar+'2l',file.read(8))
 
-            for varname, iVar in var.items():
-                # Trim variable names.
-                v=sub(r'\[|\]', '', varname).strip()
+            # Read grid size information.
+            (self.attrs["nLons"],self.attrs["nLats"],self.attrs["nAlts"]) = \
+                unpack(endChar+'lll',file.read(recLen))
+            (_, recLen)=unpack(endChar+'2l',file.read(8))
 
-                # Get to the right location in file. Doesn't all have to be read
-                infile.seek(iHeaderLength+iVar*iDataLength)
-                # Pull out the data
-                s=unpack(EndChar+'l', infile.read(4))[0]
-                self[v] = np.array(unpack(EndChar+'%id'%(nTotal), infile.read(s)))
-                # Reshape arrays, note that ordering in file is Fortran-like.
-                self[v]=self[v].reshape( 
-                    (self.attrs['nLon'],self.attrs['nLat'],self.attrs['nAlt']),
-                    order='F')
-                # Reduce dimensionality:
-                self[v] = np.squeeze(self[v])
+            # Read number of variables.
+            self.attrs["nVarsTotal"]=unpack(endChar+'l',file.read(recLen))[0]
+            (_, recLen)=unpack(endChar+'2l',file.read(8))
+
+            # Collect variable names & indices:
+            # This is going into a dict of {varname: index}
+            self.attrs['var_idxs'] = {}
+
+            for i in range(self.attrs["nVarsTotal"]):
+                v = unpack(endChar+'%is'%(recLen),file.read(recLen))[0]
+                # TODO: Here we can add a call to a lookup table with variable info
+                # - units!
+                # - pretty name for plots
+                # - user-friendly name
+                # - etc.
+
+                nVarsRead = 0
+                # Only save it if it is in varlist!
+                if varlist is None or i in [0, 1, 2]:
+                    # NeedsReview, this reads coord info even if user didn't request it.
+                    # All 3 coords (lon, lat, alt) are present in all outputs
+                    self.attrs['var_idxs'][v.decode('utf-8').replace(" ","")] = i
+                    nVarsRead += 1
+                (oldLen, recLen)=unpack(endChar+'2l',file.read(8))
+                self.attrs['nVars'] = nVarsRead
+
+            # Extract time. 
+            (yy,mm,dd,hh,mn,ss,ms)=unpack(endChar+'lllllll',file.read(recLen))
+            self.attrs["time"] = dmarray(np.zeros(len(self.attrs['files']), 
+                                                  dtype='object'),
+                                                  dtype='object') # is this necessary?
+            self.attrs['time'][0] = dt.datetime(yy,mm,dd,hh,mn,ss,ms*1000)
+
+        return 
 
     def calc_deg(self):
         '''
-        Gitm defaults to radians for lat and lon, which is sometimes difficult
-        to use.  This method creates *dLat* and *dLon*, which is lat and lon
-        in degrees.
+        Gitm defaults to radians for lat and lon, and m for altitude. This is
+        sometimes difficult to use.  This method creates *dLat* and *dLon*,
+        which is lat and lon in degrees.
         '''
         from numpy import pi
         if 'Latitude' in self:
@@ -177,3 +220,7 @@ class GitmBin(PbData):
         if 'Longitude' in self:
             self['dLon'] = dmarray(self['Longitude']*180.0/pi, 
                                    attrs={'units':'degrees'})
+        if 'Altitude' in self:
+            self['dLon'] = dmarray(self['Altitude']*1000, 
+                                   attrs={'units':'kilometers'})
+            
