@@ -154,7 +154,8 @@ class SeaBase(object):
 
             # Report if there were more than 5 irregularities
             if len(problem_points) > 5:
-                print("... and {0} more irregularities".format(len(problem_points)-5))
+                print("... and {0} more irregularities".format(
+                    len(problem_points)-5))
 
         if nonmon or noncontig:
             warnings.warn('Input time not {}; results are unlikely to be valid.'.format(
