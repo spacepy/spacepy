@@ -661,6 +661,83 @@ def _scan_bin_header(f, endchar, inttype, floattype):
     return info
 
 
+def _scan_ascii_header(f, *args):
+    '''
+    Given an ascii IDL-formmatted file opened as a file object, *f*,
+    and whose file pointer is positioned at the start of the header,
+    gather some header information and return to caller.
+
+    The file object's pointer will be set to the end of the whole entry
+    (header plus data will be skipped.)
+
+    Extra arguments are ignored but accepted for interoperability with
+    the `_scan_bin_header` counterpart.
+
+    Parameters
+    ----------
+    f : ASCII-formated file object
+        The file from which to read the array of values.
+
+    Returns
+    -------
+    info : dict
+        A dictionary with the *start* and *end* bytes of the record, time
+        information including the *iter*ation, *ndim* number of dimensions,
+        *npar* number of parameters, *nvar* number of variables, and
+        simulation *runtime* in seconds.
+    '''
+
+    # Create output containers and track offset.
+    info = {'start': f.tell()}
+    offset = f.tell()
+
+    # LINE 1: Read the top header line. For each line read,
+    # track the offset from start of record using `len`
+    line = f.readline()
+    offset += len(line)
+    info['headline'] = line.strip()
+
+    # LINE 2: Read & convert iters, runtime, etc. from next line:
+    line = f.readline()
+    offset += len(line)
+    parts = line.split()
+
+    info['iter'] = int(parts[0])
+    info['runtime'] = float(parts[1])
+    info['ndim'] = int(parts[2])
+    info['nparam'] = int(parts[3])
+    info['nvar'] = int(parts[4])
+
+    # LINES 3-5/6:
+    # Skip grid (for now):
+    line = f.readline()
+    offset += len(line)
+    grid = [int(x) for x in line.split()]
+    # Skip parameters (for now):
+    if info['nparam'] > 0:
+        line = f.readline()
+        offset += len(line)
+    # Skip var names:
+    line = f.readline()
+    offset += len(line)
+
+    # Calculate the remaining lines:
+    nline = 1
+    for npts in grid:
+        nline *= npts
+
+    # Skip the remainder of the entry and store the final
+    # offset to mark the endpoints of the frame.
+    for i in range(nline):
+        line = f.readline()
+        offset += len(line)
+
+    # Stash the final offset:
+    info['end'] = offset
+
+    return info
+
+
 def _probe_idlfile(filename):
     '''
     For an SWMF IDL-formatted output file, probe the header to determine if the
@@ -1154,12 +1231,49 @@ class IdlFile(PbData):
         fully supported.
         '''
 
-        # Only use top-level frame as of now.
-        self._offsets = np.array([0])
-        self.attrs['nframe'] = 1
-        self.attrs['iters'] = [0, 0]
-        self.attrs['runtimes'] = [0, 0]
-        self.attrs['times'] = [0, 0]
+        from datetime import timedelta as tdelt
+
+        # Create some variables to store information:
+        nframe = 0  # Number of epoch frames in file.
+        iters, runtimes = [], []  # Lists of time information.
+        offset = []  # Byte offset from beginning of file of each frame.
+
+        with open(self.attrs['file'], 'r') as f:
+            f.seek(0, 2)  # Jump to end of file (in Py3, this returns location)
+            file_size = f.tell()  # Get number of bytes in file.
+            f.seek(0)  # Rewind to file start.
+
+            # Loop over all data frames and collect information:
+            while f.tell() < file_size:
+                info = _scan_ascii_header(f)
+                # Stash information into lists:
+                offset.append(info['start'])
+                iters.append(info['iter'])
+                runtimes.append(info['runtime'])
+                nframe += 1
+
+        # Store everything as file-level attrs; convert to numpy arrays.
+        self.attrs['nframe'] = nframe
+        self.attrs['iters'] = np.array(iters)
+        self.attrs['runtimes'] = np.array(runtimes)
+
+        # Use times info to build datetimes and update file-level attributes.
+        if self.attrs['time_range'] != [None]:
+            self.attrs['times'] = np.array(
+                [self.attrs['time_range'][0]+tdelt(seconds=int(x-runtimes[0]))
+                 for x in runtimes])
+        else:
+            self.attrs['times'] = np.array(nframe*[None])
+
+        # Ensure all ranges are two-element arrays and update using
+        # information we gathered from the header.
+        if self.attrs['iter_range'] == [None]:
+            self.attrs['iter_range'] = [iters[0], iters[-1]]
+        if self.attrs['runtime_range'] == [None]:
+            self.attrs['runtime_range'] = [runtimes[0], runtimes[-1]]
+
+        # Stash the offset of frames as a private attribute:
+        self._offsets = np.array(offset)
 
     def switch_frame(self, iframe):
         '''
