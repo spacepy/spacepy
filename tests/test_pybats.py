@@ -1028,6 +1028,7 @@ class TestGitm(unittest.TestCase):
     '''
     nVars = 13
     nLat = 18
+    nLon = 18
     vers = 4.03
     time = dt.datetime(2015, 3, 16, 20, 1, 8, 936000)
     shape = (18, 18)
@@ -1050,6 +1051,8 @@ class TestGitm(unittest.TestCase):
         self.assertEqual(self.shape, f2d['Longitude'].shape)
         self.assertAlmostEqual(self.lat1, f2d['Latitude'][0, -1], 6)
         self.assertAlmostEqual(-1*self.lat1, f2d['Latitude'][0, 0], 6)
+        self.assertNotIn('dLat', f2d)
+        self.assertNotIn('dLon', f2d)
 
         # Glob two files. still 2d
         f2ds = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
@@ -1059,6 +1062,30 @@ class TestGitm(unittest.TestCase):
         # 3d. and a list of one file, with a varlist of int (not list of ints)
         f3d = gitm.GitmBin([os.path.join(spacepy_testing.datadir, 'pybats_test',
                                         '3DALL_t021221_000000.bin')], varlist=3)
+
+    def testBinaryDegrees(self):
+        '''
+        Read gitm binary file and calculate lat/lon in degrees
+        '''
+        # Open 2D file:
+        f2d = gitm.GitmBin(
+            os.path.join(spacepy_testing.datadir, 'pybats_test','gitm_2D.bin'),
+            degrees=True
+        )
+        # Check some critical attributes/values:
+        self.assertEqual(self.nVars, f2d.attrs['nVarsTotal'])
+        self.assertEqual(self.nLat, f2d.attrs['nLat'])
+        self.assertEqual(self.vers, f2d.attrs['version'])
+        self.assertEqual(self.time, f2d.attrs['time'])
+        self.assertEqual(self.shape, f2d['Longitude'].shape)
+        self.assertAlmostEqual(self.lat1, f2d['Latitude'][0, -1], 6)
+        self.assertAlmostEqual(-1 * self.lat1, f2d['Latitude'][0, 0], 6)
+        self.assertIn('dLat', f2d)
+        self.assertIn('dLon', f2d)
+        self.assertEqual(self.nLat, len(f2d['dLat']))
+        self.assertEqual(self.nLon, len(f2d['dLon']))
+        self.assertAlmostEqual(np.rad2deg(self.lat1), f2d['dLat'][0, -1], 6)
+        numpy.testing.assert_allclose(f2d['dLon'], np.rad2deg(f2d['Longitude']))
 
 
 class RamTests(unittest.TestCase):

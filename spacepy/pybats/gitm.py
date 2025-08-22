@@ -220,17 +220,16 @@ class GitmBin(PbData):
     def calc_deg(self):
         '''
         Gitm defaults to radians for lat and lon, and m for altitude. This is
-        sometimes difficult to use.  This method creates *dLat* and *dLon*,
-        which is lat and lon in degrees.
+        sometimes difficult to use. This method creates *dLat* and *dLon*,
+        which is lat and lon in degrees, and converts *Altitude* to km.
         '''
-        from numpy import pi
         if 'Latitude' in self:
-            self['dLat'] = dmarray(self['Latitude']*180.0/pi, 
+            self['dLat'] = dmarray(np.rad2deg(self['Latitude']), 
                                    attrs={'units':'degrees'})
         if 'Longitude' in self:
-            self['dLon'] = dmarray(self['Longitude']*180.0/pi, 
+            self['dLon'] = dmarray(np.rad2deg(self['Longitude']), 
                                    attrs={'units':'degrees'})
         if 'Altitude' in self:
-            self['dLon'] = dmarray(self['Altitude']*1000, 
-                                   attrs={'units':'kilometers'})
+            self['Altitude'] = dmarray(self['Altitude']*1000, 
+                                       attrs={'units':'kilometers'})
             
