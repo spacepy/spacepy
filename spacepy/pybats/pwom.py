@@ -5,10 +5,13 @@ PyBats submodule for handling input/output for the Polar Wind Outflow Model
 '''
 
 # Global imports:
+import re
+
 import numpy as np
 import datetime as dt
+
 from spacepy.plot import set_target
-from spacepy.pybats import PbData
+from spacepy.pybats import PbData, IdlFile
 from spacepy.datamodel import dmarray
 
 
@@ -72,74 +75,39 @@ class Efile(PbData):
         f.close()
 
 
-class Line(PbData):
+class Line(IdlFile):
     '''
     Class for loading a single field line output file.
     At instantiation time, user may wish to set the start date and time of
     the simulation using the starttime kwarg.  If not given, start time
     will default to Jan. 1st, 2000, 00:00UT.
+
+    Parameters
+    ----------
+    filename : str
+        Name of line file to open
+    starttime : datetime.datetime
+        Simulation time corresponding to line file.
     '''
     def __init__(self, filename, starttime=None, *args, **kwargs):
-        super(Line, self).__init__(*args, **kwargs)  # Init as PbData.
-        self.attrs['file'] = filename
+        # Initialize as an IdlFile. Filename handled by parent reader and
+        # stashed as self.attrs['filename']
+        super(Line, self).__init__(filename, header=None, *args, **kwargs)
+
         if not starttime:
             starttime = dt.datetime(2000, 1, 1, 0, 0, 0)
-        self._read(starttime)
+
+        # Parse PWOM's units from variable names.
+        for v in self.keys():
+            if v == 'grid':
+                continue
+            matched = re.match('(\w+)\[(.*)\]', v)
+            if matched:
+                self[matched.groups()[0]] = self.pop(v)
+                self[matched.groups()[0]].attrs['units'] = matched.groups()[1]
 
     def __repr__(self):
-        return 'PWOM single field line output file %s' % (self.attrs['file'])
-
-    def _read(self, starttime):
-        '''
-        Read ascii line file; should only be called upon instantiation.
-        '''
-
-        # Slurp whole file.
-        f = open(self.attrs['file'], 'r')
-        lines = f.readlines()
-        f.close()
-
-        # Determine size of file.
-        nTimes = lines.count(lines[0])
-        nAlts = int(lines[2].strip())
-        self.attrs['nAlt'] = nAlts
-        self.attrs['nTime'] = nTimes
-
-        # Start building time array.
-        self['time'] = np.zeros(nTimes, dtype=object)
-
-        # Get variable names; pop radius (altitude).
-        var = (lines[4].split())[1:-1]
-        self._rawvar = var
-
-        # Get altitude, which is constant at all times.
-        self['r'] = dmarray(np.zeros(nAlts), {'units': 'km'})
-        for i, l in enumerate(lines[5:nAlts+5]):
-            self['r'][i] = float(l.split()[0])
-
-        # Create 2D arrays for data that is time and alt. dependent.
-        # Set as many units as possible.
-        for v in var:
-            self[v] = dmarray(np.zeros((nTimes, nAlts)))
-            if v == 'Lat' or v == 'Lon':
-                self[v].attrs['units'] = 'deg'
-            elif v[0] == 'u':
-                self[v].attrs['units'] = 'km/s'
-            elif v[0:3] == 'lgn':
-                self[v].attrs['units'] = 'log(cm-3)'
-            elif v[0] == 'T':
-                self[v].attrs['units'] = 'K'
-            else:
-                self[v].attrs['units'] = None
-
-        # Loop through rest of data to fill arrays.
-        for i in range(nTimes):
-            t = float((lines[i*(nAlts+5)+1].split())[1])
-            self['time'][i] = starttime+dt.timedelta(seconds=t)
-            for j, l in enumerate(lines[i*(nAlts+5)+5:(i+1)*(nAlts+5)]):
-                parts = l.split()
-                for k, v in enumerate(var):
-                    self[v][i, j] = float(parts[k+1])
+        return f"PWOM single field line output file {self.attrs['file']}"
 
 
 class Lines(PbData):
