@@ -1092,6 +1092,23 @@ class TestGitm(unittest.TestCase):
         self.assertAlmostEqual(np.rad2deg(self.lat1), f2d['dLat'][0, -1], 6)
         numpy.testing.assert_allclose(f2d['dLon'], np.rad2deg(f2d['Longitude']))
 
+    def testVarList(self):
+        '''
+        Test the IndexError 'Variable out of range!'
+        '''
+
+        with self.assertRaises(IndexError) as cm:
+            f2d = gitm.GitmBin(
+                os.path.join(spacepy_testing.datadir,
+                             'pybats_test',
+                             # throw IndexError because of varlist
+                             'gitm_2D.bin'), varlist=[1, 2, 100])
+        self.assertTrue(str(cm.exception).startswith("Variable out of range!"))
+
+
+
+
+
 
 class RamTests(unittest.TestCase):
     '''
