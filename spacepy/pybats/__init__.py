@@ -345,6 +345,9 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     # Open the file:
     infile = open(pbdat.attrs['file'], 'r')
 
+    # Skip to desired entry:
+    infile.seek(start_loc)
+
     # Read the top header line:
     headline = infile.readline().strip()
 
