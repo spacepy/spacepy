@@ -96,8 +96,9 @@ class GitmBin(PbData):
                                           )
             
         
-        # skip the version, recLen, shape, dimensions, etc. + start/stop byte
-        HeaderLength = 84 + self.attrs["nVarsTotal"] * 48
+        # skip the header: grid, nvars, version, variable names, time
+        # all are 8-bytes followed by 4-byte startstop sentinel
+        HeaderLength = 52 + 48 * self.attrs["nVarsTotal"] + 32
         nPtsTotal = self.attrs["nLon"]*self.attrs["nLat"]*self.attrs["nAlt"]
         iDataLength = nPtsTotal*8 + 4 + 4
 
@@ -120,11 +121,11 @@ class GitmBin(PbData):
                 if not isFirstTime:
                     # Extract time, stored as 7 consecutive integers.
                     # time is placed after variable names, so we skip:
-                    # 64(header) + ( 40[nvars] + 8 [head/foot] ) *nVarsTotal
-                    file.seek(64 + 48 * self.attrs['nVarsTotal'])
-                    (yy,mm,dd,hh,mn,ss,ms)=unpack(endChar+'lllllll',file.read(28))
-                    self.attrs['time'][iFile]=dt.datetime(yy,mm,dd,hh,mn,ss,ms//1000)
-                    isFirstTime = False
+                    # 52(grid etc.) + ( 40[nvars] + 8 [head/foot] ) *nVarsTotal
+                    file.seek(52 + 48 * self.attrs['nVarsTotal'])
+                    (yy,mm,dd,hh,mn,ss,ms,startstop)=unpack(endChar+'llllllli',file.read(32))
+                    self.attrs['time'][iFile]=dt.datetime(yy,mm,dd,hh,mn,ss,ms * 1000)
+                isFirstTime = False
 
                 for varname, iVar in self.attrs['var_idxs'].items():
                     # Get to the right location in file

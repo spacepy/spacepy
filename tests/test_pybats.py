@@ -1058,6 +1058,11 @@ class TestGitm(unittest.TestCase):
         f2ds = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                       '2DANC*.bin'))
         self.assertEqual(2, len(f2ds.attrs['time']))
+        numpy.testing.assert_array_equal(
+            f2ds.attrs['time'],
+            [dt.datetime(2024, 5, 10, 15, 30, 1),
+             dt.datetime(2024, 5, 10, 15, 32, 3)],
+        )
 
         # 3d. and a list of one file, with a varlist of int (not list of ints)
         f3d = gitm.GitmBin([os.path.join(spacepy_testing.datadir, 'pybats_test',
