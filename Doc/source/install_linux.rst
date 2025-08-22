@@ -83,7 +83,7 @@ distribution-specific directions above will install curses.)
 
 Install::
 
-    sudo make install
+    sudo make INSTALLDIR=/usr/local/cdf install
 
 This will install the library into the default location ``/usr/local/cdf``, where 
 SpacePy can find it. If you choose to install elsewhere, see the CDF documentation, 
