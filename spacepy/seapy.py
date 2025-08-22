@@ -96,7 +96,7 @@ class SeaBase(object):
         # Print details about non-contiguous points if found
         if noncontig:
             print(
-                f"Non-contiguous time steps detected. Expected time difference: {common_diff}")
+                "Non-contiguous time steps detected. Expected time difference: {0}".format(common_diff))
 
             # Track problem points to avoid duplicates
             problem_points = set()
@@ -144,15 +144,17 @@ class SeaBase(object):
                             actual_diff_seconds = actual_diff
                             expected_diff_seconds = common_diff
                             print(
-                                f"At index {idx}: Time diff between times[{idx}] and times[{idx+1}] is {actual_diff_seconds:.1f} seconds (expected {expected_diff_seconds:.1f} seconds)")
+                                "At index {0}: Time diff between times[{1}] and times[{2}] is {3:.1f} seconds (expected {4:.1f} seconds)".format(
+                                    idx, idx, idx+1, actual_diff_seconds, expected_diff_seconds))
                         else:
                             print(
-                                f"At index {idx}: Time diff between times[{idx}] and times[{idx+1}] is {actual_diff} (expected {common_diff})")
+                                "At index {0}: Time diff between times[{1}] and times[{2}] is {3} (expected {4})".format(
+                                    idx, idx, idx+1, actual_diff, common_diff))
                     problem_points.add(problem_idx)
 
             # Report if there were more than 5 irregularities
             if len(problem_points) > 5:
-                print(f"... and {len(problem_points)-5} more irregularities")
+                print("... and {0} more irregularities".format(len(problem_points)-5))
 
         if nonmon or noncontig:
             warnings.warn('Input time not {}; results are unlikely to be valid.'.format(
@@ -172,15 +174,18 @@ class SeaBase(object):
         else:
             self.delta = kwargs['delta']
         if type(kwargs['window']) == dt.timedelta:
-            self.window = kwargs['window'].days + \
+            original_window = kwargs['window'].days + \
                 kwargs['window'].seconds/86400
+            self.window = original_window
         else:
+            original_window = kwargs['window']
             self.window = kwargs['window']
-        self.window = np.ceil(float(self.window)/float(self.delta))
-        if kwargs['window'] != self.window:
+        new_window = np.ceil(float(self.window)/float(self.delta))
+        if original_window != new_window * self.delta:
             warnings.warn(
                 'Window size changed to {0} (points) to fit resolution ({1})'.format(
-                    self.window, self.delta), stacklevel=2)
+                    new_window, self.delta), stacklevel=2)
+        self.window = new_window
         self.bound_type = None
 
     def __str__(self):
