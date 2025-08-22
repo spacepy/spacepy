@@ -19,6 +19,7 @@ from functools import wraps
 
 from spacepy.datamodel import dmarray, SpaceData
 import numpy as np
+import warnings
 
 
 # Pybats-related decorators:
@@ -398,6 +399,10 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     # the headline and units based on the kwarg *header*:
     pbdat.attrs['header'] = headline
     if header == 'units':
+        # Check that number of headline entries matches nvar+ndim
+        if len(headline.split()) != nvar+ndim:
+            warnings.warn('First line interpreted as units, but does not match the number of vars + dims')
+
         # If headline is just units:
         units = headline.split()
     else:
