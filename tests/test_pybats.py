@@ -1029,7 +1029,7 @@ class TestGitm(unittest.TestCase):
     nVars = 13
     nLat = 18
     vers = 4.03
-    time = dt.datetime(2015, 3, 16, 20, 1, 8)
+    time = dt.datetime(2015, 3, 16, 20, 1, 8, 936000)
     shape = (18, 18)
     lat1 = 1.48352986
 
@@ -1043,10 +1043,10 @@ class TestGitm(unittest.TestCase):
         f2d = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                       'gitm_2D.bin'))
         # Check some critical attributes/values:
-        self.assertEqual(self.nVars, f2d.attrs['nVars'])
+        self.assertEqual(self.nVars, f2d.attrs['nVarsTotal'])
         self.assertEqual(self.nLat, f2d.attrs['nLat'])
         self.assertEqual(self.vers, f2d.attrs['version'])
-        self.assertEqual(self.time, f2d['time'])
+        self.assertEqual(self.time, f2d.attrs['time'])
         self.assertEqual(self.shape, f2d['Longitude'].shape)
         self.assertAlmostEqual(self.lat1, f2d['Latitude'][0, -1], 6)
         self.assertAlmostEqual(-1*self.lat1, f2d['Latitude'][0, 0], 6)
@@ -1054,7 +1054,7 @@ class TestGitm(unittest.TestCase):
         # Glob two files. still 2d
         f2ds = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                       '2DANC*.bin'))
-        self.assertEqual(2, f2ds.attrs['time'])
+        self.assertEqual(2, len(f2ds.attrs['time']))
 
         # 3d. and a list of one file, with a varlist of int (not list of ints)
         f3d = gitm.GitmBin([os.path.join(spacepy_testing.datadir, 'pybats_test',

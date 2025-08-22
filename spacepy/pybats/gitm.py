@@ -90,15 +90,15 @@ class GitmBin(PbData):
         for var in self.attrs['var_idxs'].keys():
             #TODO: Add a call to the variable parsing function described in _read_header()
             self[var] = dmarray(np.empty([len(self.attrs['files']),
-                                          self.attrs['nLons'],
-                                          self.attrs['nLats'], 
-                                          self.attrs['nAlts']]), #attrs
+                                          self.attrs['nLon'],
+                                          self.attrs['nLat'], 
+                                          self.attrs['nAlt']]), #attrs
                                           )
             
         
         # skip the version, recLen, shape, dimensions, etc. + start/stop byte
         HeaderLength = 84 + self.attrs["nVarsTotal"] * 48
-        nPtsTotal = self.attrs["nLons"]*self.attrs["nLats"]*self.attrs["nAlts"]
+        nPtsTotal = self.attrs["nLon"]*self.attrs["nLat"]*self.attrs["nAlt"]
         iDataLength = nPtsTotal*8 + 4 + 4
 
         # Open, read, and parse the file into numpy arrays.
@@ -133,9 +133,9 @@ class GitmBin(PbData):
                     s=unpack(endChar+'l', file.read(4))[0]
                     self[varname][iFile, ...] = \
                         np.array(unpack(endChar+'%id'%(nPtsTotal),file.read(s))
-                                 ).reshape((self.attrs['nLons'],
-                                            self.attrs['nLats'],
-                                            self.attrs['nAlts']), order='F')
+                                 ).reshape((self.attrs['nLon'],
+                                            self.attrs['nLat'],
+                                            self.attrs['nAlt']), order='F')
 
         # Finally we reduce dimensionality:
         for v in self.attrs['var_idxs'].keys():
@@ -172,7 +172,7 @@ class GitmBin(PbData):
             (_, recLen)=unpack(endChar+'2l',file.read(8))
 
             # Read grid size information.
-            (self.attrs["nLons"],self.attrs["nLats"],self.attrs["nAlts"]) = \
+            (self.attrs["nLon"],self.attrs["nLat"],self.attrs["nAlt"]) = \
                 unpack(endChar+'lll',file.read(recLen))
             (_, recLen)=unpack(endChar+'2l',file.read(8))
 
