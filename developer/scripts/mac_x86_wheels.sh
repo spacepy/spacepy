@@ -1,12 +1,13 @@
 #!/usr/bin/env zsh
 
 # Get miniconda if you need it
-#wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-#bash ./Miniconda3-latest-MacOSX-x86_64.sh -b -p ~/opt/miniconda
+#wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
+#bash ./Miniconda3-latest-MacOSX-arm64.sh -b -p ~/opt/miniconda
 PYVER=3.8
 ENVNAME=spacepy${PYVER//.}
-~/opt/miniconda/bin/conda create -y -n ${ENVNAME} python=${PYVER}
+CONDA_SUBDIR=osx-64 ~/opt/miniconda/bin/conda create -y -n ${ENVNAME} python=${PYVER}
 source ~/opt/miniconda/bin/activate ${ENVNAME}
+conda config --env --set subdir osx-64
 conda install -y python-build wheel gfortran~=11.2.0
 BUILD=python-build
 rm -rf build
@@ -18,4 +19,4 @@ unset $(echo $badvars)
 export $(echo $badvars)
 ~/opt/miniconda/bin/conda env remove -y --name ${ENVNAME}
 #rm -rf ~/opt/miniconda
-#rm ./Miniconda3-latest-MacOSX-x86_64.sh
+#rm ./Miniconda3-latest-MacOSX-arm64.sh
