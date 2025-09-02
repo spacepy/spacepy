@@ -1029,6 +1029,7 @@ class TestGitm(unittest.TestCase):
     nVars = 13
     nLat = 18
     nLon = 18
+    nAlt = 50
     vers = 4.03
     time = dt.datetime(2015, 3, 16, 20, 1, 8, 936000)
     shape = (18, 18)
@@ -1093,6 +1094,26 @@ class TestGitm(unittest.TestCase):
         # Read file
         f3d = gitm.GitmBin([os.path.join(spacepy_testing.datadir, 'pybats_test',
                                         '3DALL_t021221_000000.bin')], varlist=3)
+
+        # 3D files include ghost cells; 2 in each +/- direction. So +4 for each dim
+        self.assertEqual(self.nLon + 4, f3d.attrs['nLon'])
+        self.assertEqual(self.nLat + 4, f3d.attrs['nLat'])
+        self.assertEqual(self.nAlt + 4, f3d.attrs['nAlt'])
+
+        # We asked for variable with index 3. This should be Rho: total neutral density
+        self.assertEqual(3, f3d.attrs['var_idxs']['Rho'])
+        # Also check whether we found the correct number of variables
+        self.assertEqual(40, f3d.attrs['nVarsTotal'])
+
+        # Check the shape of Altitude & Rho:
+        self.assertEqual((self.nLon + 4, self.nLat + 4, self.nAlt + 4),
+                         f3d['Rho'].shape)
+        self.assertEqual((self.nLon + 4, self.nLat + 4, self.nAlt + 4),
+                         f3d['Altitude'].shape)
+
+        # First Altitude (excl ghost cells) should be 100km
+        numpy.testing.assert_allclose(np.zeros([self.nLon + 4, self.nLat + 4]) + 100e3,
+                                      f3d['Altitude'][:, :, 2])
 
     def testVarList(self):
         '''
