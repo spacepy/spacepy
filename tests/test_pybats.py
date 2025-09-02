@@ -1036,9 +1036,7 @@ class TestGitm(unittest.TestCase):
 
     def testOneFileBinary2D(self):
         '''
-        This tests the ability to open a file and correctly read the
-        attributes and variables as well as properly reshape the arrays and
-        remove unused dimensions.
+        Read a 2D file, reshape arrays, remove unused dimensions.
         '''
         # Open 2D file:
         f2d = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
