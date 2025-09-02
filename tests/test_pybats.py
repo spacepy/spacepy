@@ -1034,7 +1034,7 @@ class TestGitm(unittest.TestCase):
     shape = (18, 18)
     lat1 = 1.48352986
 
-    def testBinary(self):
+    def testOneFileBinary2D(self):
         '''
         This tests the ability to open a file and correctly read the
         attributes and variables as well as properly reshape the arrays and
@@ -1068,7 +1068,7 @@ class TestGitm(unittest.TestCase):
         f3d = gitm.GitmBin([os.path.join(spacepy_testing.datadir, 'pybats_test',
                                         '3DALL_t021221_000000.bin')], varlist=3)
 
-    def testBinaryDegrees(self):
+    def testBinary2DtoDegrees(self):
         '''
         Read gitm binary file and calculate lat/lon in degrees
         '''
