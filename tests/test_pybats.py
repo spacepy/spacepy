@@ -1053,16 +1053,6 @@ class TestGitm(unittest.TestCase):
         self.assertNotIn('dLat', f2d)
         self.assertNotIn('dLon', f2d)
 
-        # Glob two files. still 2d
-        f2ds = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
-                                      '2DANC*.bin'))
-        self.assertEqual(2, len(f2ds.attrs['time']))
-        numpy.testing.assert_array_equal(
-            f2ds.attrs['time'],
-            [dt.datetime(2024, 5, 10, 15, 30, 1),
-             dt.datetime(2024, 5, 10, 15, 32, 3)],
-        )
-
     def testBinary2DtoDegrees(self):
         '''
         Read gitm binary file and calculate lat/lon in degrees
@@ -1128,8 +1118,19 @@ class TestGitm(unittest.TestCase):
                              'gitm_2D.bin'), varlist=[1, 2, 100])
         self.assertTrue(str(cm.exception).startswith("Variable out of range!"))
 
-
-
+    def test2DGlob(self):
+        '''
+        Glob two 2D GITM files
+        '''
+        
+        f2ds = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                      '2DANC*.bin'))
+        self.assertEqual(2, len(f2ds.attrs['time']))
+        numpy.testing.assert_array_equal(
+            f2ds.attrs['time'],
+            [dt.datetime(2024, 5, 10, 15, 30, 1),
+             dt.datetime(2024, 5, 10, 15, 32, 3)],
+        )
 
 
 
