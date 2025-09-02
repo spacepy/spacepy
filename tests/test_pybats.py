@@ -1062,10 +1062,6 @@ class TestGitm(unittest.TestCase):
              dt.datetime(2024, 5, 10, 15, 32, 3)],
         )
 
-        # 3d. and a list of one file, with a varlist of int (not list of ints)
-        f3d = gitm.GitmBin([os.path.join(spacepy_testing.datadir, 'pybats_test',
-                                        '3DALL_t021221_000000.bin')], varlist=3)
-
     def testBinary2DtoDegrees(self):
         '''
         Read gitm binary file and calculate lat/lon in degrees
@@ -1089,6 +1085,14 @@ class TestGitm(unittest.TestCase):
         self.assertEqual(self.nLon, len(f2d['dLon']))
         self.assertAlmostEqual(np.rad2deg(self.lat1), f2d['dLat'][0, -1], 6)
         numpy.testing.assert_allclose(f2d['dLon'], np.rad2deg(f2d['Longitude']))
+
+    def testBinaryOneVariable3D(self):
+        '''
+        Read a single variable from a 3D file given a full filename
+        '''
+        # Read file
+        f3d = gitm.GitmBin([os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                        '3DALL_t021221_000000.bin')], varlist=3)
 
     def testVarList(self):
         '''
