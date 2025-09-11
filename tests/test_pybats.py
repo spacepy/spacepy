@@ -289,6 +289,85 @@ class TestScanBinHeader(unittest.TestCase):
                     self.assertEqual(info[key], known[key])
 
 
+class TestScanAsciiHeader(unittest.TestCase):
+    '''
+    Test scanning of headers within ASCII-formatted IDL files.
+    '''
+
+    # Files that have a single frame:
+    files_single = [os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                 'y0_ascii.out'),
+                    os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                 'mag_grid_ascii.out')]
+
+    # File that has multiple frames:
+    file_multi = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                              'mag_grid_ascii.outs')
+
+    # Responses from single-frame files:
+    knownSingle = [{'iter': 68, 'runtime': 10., 'ndim': -2,
+                    'nvar': 15, 'end': 786163, 'nparam': 3},
+                   {'iter': 0, 'runtime': 10., 'ndim': 2,
+                    'nvar': 15, 'end': 2975, 'nparam': 0}]
+
+    knownMulti = [{'start': 0, 'iter': 0, 'runtime': 10.0, 'ndim': 2,
+                   'nvar': 15, 'end': 2975, 'nparam': 0},
+                  {'start': 2975, 'iter': 10, 'runtime': 20.0, 'ndim': 2,
+                   'nvar': 15, 'end': 5951, 'nparam': 0},
+                  {'start': 5951, 'iter': 20, 'runtime': 30.0, 'ndim': 2,
+                   'nvar': 15, 'end': 8927, 'nparam': 0}]
+
+    def setUp(self):
+        '''
+        Build multi-entry ascii .outs file from existing single-entry file.
+        '''
+
+        with open(self.files_single[-1], 'r') as f:
+            lines = f.readlines()
+
+        with open(self.file_multi, 'w') as f:
+            # First entry:
+            f.writelines(lines)
+            # Second entry:
+            f.write(lines[0])
+            f.write('      10  2.0000000000E+01  2  0 15\n')
+            f.writelines(lines[2:])
+            # Third entry:
+            f.write(lines[0])
+            f.write('      20  3.0000000000E+01  2  0 15\n')
+            f.writelines(lines[2:])
+
+    def tearDown(self):
+        '''Remove extra files'''
+
+        os.remove(self.file_multi)
+
+    def testOneFrame(self):
+        '''Test files that only have one epoch frame.'''
+
+        # Open files, get file properties, then probe header and test
+        # against known values:
+        for f, known in zip(self.files_single, self.knownSingle):
+            props = pb._probe_idlfile(f)
+            with open(f, 'rb') as data:
+                info = pb._scan_ascii_header(data, *props[1:])
+                for key in known:
+                    self.assertEqual(info[key], known[key])
+
+    def testMultiFrame(self):
+        '''Test files that have more than one epoch frame.'''
+
+        # Test the only two frames in the file.
+        # The ability to scan the number of entries in a file is
+        # located within the IdlBin class.
+        props = pb._probe_idlfile(self.file_multi)
+        with open(self.file_multi, 'rb') as data:
+            for known in self.knownMulti:
+                info = pb._scan_ascii_header(data, *props[1:])
+                for key in known:
+                    self.assertEqual(info[key], known[key])
+
+
 class TestIdlFile(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.IdlFile` for different output
