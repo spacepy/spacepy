@@ -434,9 +434,9 @@ class TestIdlFile(unittest.TestCase):
             f.write('      20  1.2000000000E+02 -2  3 15\n')
             f.writelines(lines[2:])
 
-    #def tearDown(self):
-    #    '''Remove temporary files.'''
-    #    os.remove(self.asciiouts)
+    def tearDown(self):
+        '''Remove temporary files.'''
+        os.remove(self.asciiouts)
 
     def testBinary(self):
         # Open file:
