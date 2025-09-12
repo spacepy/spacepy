@@ -431,8 +431,8 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
         pbdat[v] = dmarray(np.zeros(npts), {'units': u})
 
     # Load grid points and data:
-    for i, line in enumerate(infile.readlines()):
-        parts = line.split()
+    for i in range(npts):
+        parts = infile.readline().split()
         for j, p in enumerate(parts):
             pbdat[names[j]][i] = p
 
