@@ -464,7 +464,7 @@ class EfieldFile(PbData):
                     add_cbar=True, labcolor='lightgray', title='Noon'):
         '''
         Quickly add a potential plot to MPL object *target*.
-        
+
         Parameters
         ==========
         target : object
@@ -1027,6 +1027,7 @@ class BoundaryGroup(PbData):
 
         # Load files and count them!
         files = glob(path+'/bound_plasma*.out')
+        files.sort()
         nfiles = len(files)
         if nfiles == 0:
             raise ValueError('No files found in path=' + indir)
@@ -1037,8 +1038,8 @@ class BoundaryGroup(PbData):
         self['time'] = dm.dmfilled(nfiles, dtype=object)
 
         for name in namevar:
-            self[name] = dm.dmfille((25, nfiles), fillval=0,
-                                    attrs={'units': temp[name].attrs['units']})
+            self[name] = dm.dmfilled((25, nfiles), fillval=0,
+                                     attrs={'units': temp[name].attrs['units']})
 
         for i, f in enumerate(files):
             temp = PlasmaBoundary(f)
@@ -1071,12 +1072,13 @@ class BoundaryGroup(PbData):
         self._y = np.arange(0, 26) - 0.5
         self._lt_labels = ['Dusk', 'Midnight', 'Dawn']
         self._yticks = [6.0, 12.0, 18.0]
-        self._dtime = date2num(self['time'])  # create decimal time.
+        self._dtime = self['time'][-1] - self['time'][-2]  # Time between files
         self._zlims = {'p': [0, 40], 'R': [0, 8], 'r': [0, 60], 'n': [0, 8]}
+        self._ptime = np.append(self['time'], self['time'][-1] + self._dtime)
 
     def add_ltut(self, var, target=None, loc=111, cmap='inferno', zlim=None,
                  add_cbar=True, clabel=None, xlabel='full', title=None,
-                 grid=True, ntick=5):
+                 grid=True, ntick=5, dolog=False):
         '''
         Plot variable *var* as a contour against local time (y-axis) and
         universal time (x-axis) using the PyBats *target* method of other
@@ -1093,16 +1095,17 @@ class BoundaryGroup(PbData):
         cmap       Selects Matplotlib color table.  Defaults to *inferno*.
         zlim       Limits for z-axis.  Defaults to best-guess.
         clabel     Sets colorbar label.  Defaults to *var* units.
-        xlabel     Sets x-axis limits, use 'full', 'ticks', or **None**.
+        xlabel     Sets x-axis labels, use 'full', 'ticks', or **None**.
         title      Sets axis title; defaults to **None**.
         grid       Show white dotted grid?  Defaults to **True**
         ntick      Number of attempted cbar ticks.  Defaults to 5.
+        dolog      Turn on logarithmic normalization.
         ========== =======================================================
 
         '''
 
         import matplotlib.pyplot as plt
-        from matplotlib.ticker import MultipleLocator
+        from matplotlib.ticker import MultipleLocator, LogLocator
 
         fig, ax = set_target(target, loc=loc)
 
@@ -1112,10 +1115,14 @@ class BoundaryGroup(PbData):
                 zlim = self._zlims[var[0]]
             except ValueError:
                 print("No default zlimits for ", var)
-                zlim = None
+                zlim = [0, 10]
+        if dolog and zlim[0] == 0:
+            zlim[0] = 0.01
+
+        norm = 'log' if dolog else None
 
         # Create plot:
-        mesh = ax.pcolormesh(self._dtime, self._y, self[var],
+        mesh = ax.pcolormesh(self._ptime, self._y, self[var], norm=norm,
                              cmap=cmap, vmin=zlim[0], vmax=zlim[-1])
         # Use LT ticks and markers on y-axis:
         ax.set_yticks(self._yticks)
@@ -1127,7 +1134,8 @@ class BoundaryGroup(PbData):
 
         # Grid marks:
         if grid:
-            ax.grid(c='w')
+            ax.grid(ls=':', c='w', lw=1.0)
+            ax.set_axisbelow(False)
         if title:
             ax.set_title(title)
         if xlabel == 'full':
@@ -1142,7 +1150,11 @@ class BoundaryGroup(PbData):
             ax.set_xticklabels('')
         # Add cbar as necessary:
         if add_cbar:
-            lct = MultipleLocator(np.ceil(10*(zlim[1]-zlim[0])/(ntick-1))/10.0)
+            if dolog:
+                lct = LogLocator()
+            else:
+                lct = MultipleLocator(np.ceil(
+                    10*(zlim[1]-zlim[0])/(ntick-1))/10.0)
             cbar = plt.colorbar(mesh, ax=ax, pad=0.01, shrink=0.85, ticks=lct)
             cbar.set_label(clabel)
         else:
@@ -1373,7 +1385,7 @@ class PressureFile(PbData):
             Use to specify the subplot placement of the axis
             (e.g. loc=212, etc.) Used if target is a Figure or None.
             Default 111 (single plot).
-        
+
         Returns
         =======
         fig : matplotlib figure object
