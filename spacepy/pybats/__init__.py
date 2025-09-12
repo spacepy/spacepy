@@ -402,10 +402,6 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     # the headline and units based on the kwarg *header*:
     pbdat.attrs['header'] = headline
     if header == 'units':
-        # Check that number of headline entries matches nvar+ndim
-        if len(headline.split()) != nvar+ndim:
-            warnings.warn('First line interpreted as units, but does not match the number of vars + dims')
-
         # If headline is just units:
         units = headline.split()
     else:
@@ -420,6 +416,11 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     nSkip = len(units)+npar-len(names)
     if nSkip < 0:
         nSkip = 0
+
+    # Check that number of headline entries matches nvar+ndim
+    if len(units[nSkip:]) != nvar+ndim:
+        warnings.warn('First line interpreted as units, ' +
+                      'but does not match the number of vars + dims')
 
     # Save grid names (e.g. 'x' or 'r') and save associated params.
     pbdat['grid'].attrs['dims'] = tuple(names[0:ndim])
