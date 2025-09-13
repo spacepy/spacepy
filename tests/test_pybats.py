@@ -1070,6 +1070,10 @@ class RamTests(unittest.TestCase):
                                        'log_ram_test2.log')
         self.ionopot_nc3 = os.path.join(spacepy_testing.datadir, 'pybats_test',
                                         'ram_iono_pot.nc')
+        self.bplas_test = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                       'bound_plasma_t000030.out')
+        self.bpgroup_test = os.path.join(spacepy_testing.datadir,
+                                         'pybats_test/')
 
     def tearDown(self):
         super(RamTests, self).tearDown()
@@ -1219,6 +1223,57 @@ class RamTests(unittest.TestCase):
         numpy.testing.assert_approx_equal(iono['PhiIono'][-1, -1, -1],
                                           -143.05573)
 
+    def test_plasbound(self):
+        '''Test reading functionality of PlasmaBoundary'''
+
+        ref = {'lt': [1.0, 25.0], 'RhoH': [4.43352, 4.43352],
+               'RhoSw': [7.66794, 7.66794], 'RhoO': [3.40865, 3.40865],
+               'pH': [7.09995, 7.09995], 'pSw': [302.831, 302.831],
+               'pO': [105.483, 105.483]}
+
+        bnd = ram.PlasmaBoundary(self.bplas_test)
+
+        for k in bnd.keys():
+            self.assertAlmostEqual(bnd[k][0], ref[k][0], places=5)
+            self.assertAlmostEqual(bnd[k][-1], ref[k][-1], places=5)
+
+        self.assertEqual(bnd.attrs['elapsed'], 1800.0)
+        self.assertEqual(bnd.attrs['time'], dt.datetime(2000, 1, 1, 0, 30))
+
+    def test_boundplasgroup(self):
+        '''Test reading/plotting functionality of PlasmaBoundaryGroup'''
+
+        # Create a "group" of plasma boundary files:
+        tstart = dt.datetime(2000, 1, 1, 0, 30)
+        with open(self.bplas_test, 'r') as f:
+            lines = f.readlines()
+        for i in range(3):
+            filename = os.path.join(spacepy_testing.datadir, 'pybats_test/'
+                                    f"bound_plasma_t{30*(i+2):06d}.out")
+            with open(filename, 'w') as f:
+                tnow = tstart + dt.timedelta(minutes=30*(i+2))
+                f.write(f"  {1800+30*(i+2):11.5E} {tnow:%Y %m %d %H %M %S}\n")
+                f.writelines(lines[1:])
+
+        # Open file group:
+        bnd = ram.BoundaryGroup(self.bpgroup_test)
+
+        # Test values:
+        self.assertEqual(bnd['time'][0], dt.datetime(2000, 1, 1, 0, 30))
+        self.assertEqual(bnd['time'][-1], dt.datetime(2000, 1, 1, 2, 30))
+
+        # Test plotting:
+        result = bnd.add_ltut('RhoH')
+        self.assertTrue(isinstance(result[0], plt.Figure))
+        self.assertTrue(isinstance(result[1], plt.Axes))
+        self.assertTrue(isinstance(result[2], matplotlib.collections.QuadMesh))
+        self.assertTrue(isinstance(result[3], matplotlib.colorbar.Colorbar))
+
+        # Remove extra boundary files.
+        for i in range(3):
+            filename = os.path.join(spacepy_testing.datadir, 'pybats_test/'
+                                    f"bound_plasma_t{30*(i+2):06d}.out")
+            os.remove(filename)
 
 if __name__ == '__main__':
     unittest.main()
