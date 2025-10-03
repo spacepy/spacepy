@@ -290,7 +290,7 @@ class Lines(PbData):
                 clabel = "%s (%s)" % (var, self[var].attrs['units'])
             cbar.set_label(clabel)
         else:
-            cbar = None  # Need to return something, even if none.
+            cbar = None # Need to return something, even if none.
 
         # Set title, labels, axis ranges (use defaults where applicable.)
         if title:
