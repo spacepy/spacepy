@@ -18,6 +18,7 @@ import os.path
 from functools import wraps
 
 from spacepy.datamodel import dmarray, SpaceData
+import datetime as dt
 import numpy as np
 import warnings
 
@@ -1180,8 +1181,6 @@ class IdlFile(PbData):
         Results are stored within *self*.
         '''
 
-        from datetime import timedelta as tdelt
-
         # Create some variables to store information:
         nframe = 0  # Number of epoch frames in file.
         iters, runtimes = [], []  # Lists of time information.
@@ -1210,7 +1209,7 @@ class IdlFile(PbData):
         # Use times info to build datetimes and update file-level attributes.
         if self.attrs['time_range'] != [None]:
             self.attrs['times'] = np.array(
-                [self.attrs['time_range'][0]+tdelt(seconds=int(x-runtimes[0]))
+                [self.attrs['time_range'][0]+dt.timedelta(seconds=int(x-runtimes[0]))
                  for x in runtimes])
         else:
             self.attrs['times'] = np.array(nframe*[None])
@@ -1393,9 +1392,6 @@ class LogFile(PbData):
     >>> plt.plot(file1['time'], file1['dst'])
 
     '''
-
-    import datetime as dt
-
     def __init__(self, filename, starttime=(2000, 1, 1, 0, 0, 0),
                  keep_case=True, *args, **kwargs):
         super(LogFile, self).__init__(*args, **kwargs)
@@ -1407,9 +1403,6 @@ class LogFile(PbData):
         Load the ascii logfile located at self.filename.
         This method is automatically called upon instantiation.
         '''
-        import numpy as np
-        import datetime as dt
-
         # Convert starttime from tuple to datetime object.
         if type(starttime) != dt.datetime:
             if len(starttime) != 6:
@@ -1687,8 +1680,6 @@ class ImfInput(PbData):
     """
 
     def __init__(self, filename=False, load=True, npoints=0, *args, **kwargs):
-        from numpy import zeros
-
         # Initialize data object and required attributes.
         super(ImfInput, self).__init__(*args, **kwargs)
         self.attrs['var'] = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'n', 't']
@@ -1700,7 +1691,7 @@ class ImfInput(PbData):
         self.attrs['delay'] = None
         self.attrs['plane'] = [None, None]
         self.attrs['header'] = []
-        self['time'] = dmarray(zeros(npoints, dtype=object))
+        self['time'] = dmarray(np.zeros(npoints, dtype=object))
 
         # Store standard variable set:
         self.__stdvar = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'n', 't']
@@ -1717,7 +1708,7 @@ class ImfInput(PbData):
         else:
             units = ['nT', 'nT', 'nT', 'km/s', 'km/s', 'km/s', 'cm^-3', 'K']
             for i, key in enumerate(self.attrs['var']):
-                self[key] = dmarray(zeros(npoints), attrs={'units': units[i]})
+                self[key] = dmarray(np.zeros(npoints), attrs={'units': units[i]})
 
         # Determine the density variable, which can either be "n" or "rho".
         if "n" in self.attrs['var']:
@@ -1926,8 +1917,6 @@ class ImfInput(PbData):
         Read an SWMF IMF/solar wind input file into a newly
         instantiated imfinput object.
         '''
-        import datetime as dt
-
         in_header = True
         with open(infile, 'r') as f:
             while True:
@@ -1996,9 +1985,6 @@ class ImfInput(PbData):
         *self.attrs['file']* is used.  If this is not set, default to
         "imfinput.dat".
         '''
-
-        import datetime as dt
-
         # Check that the var attribute agrees with the data dictionary.
         if not self.varcheck():
             raise Exception('Number of variables does ' +
@@ -2394,8 +2380,6 @@ class SatOrbit(PbData):
         empty satorbit object is instantiated for the user to fill
         with values of their own creation.
         '''
-        import numpy as np
-
         super(SatOrbit, self).__init__(*args, **kwargs)
 
         self.attrs['file'] = filename
@@ -2417,8 +2401,6 @@ class SatOrbit(PbData):
         '''
         Read and parse a satellite orbit input file into the satorbit object.
         '''
-        import numpy as np
-        import datetime as dt
         # Try to open the file.  If we fail, pass the exception
         # to the caller.
         infile = open(self.attrs['file'], 'r')
