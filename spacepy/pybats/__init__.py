@@ -1224,6 +1224,19 @@ class IdlFile(PbData):
         # Stash the offset of frames as a private attribute:
         self._offsets = np.array(offset)
 
+    def _scan_ascii_headers(self):
+        '''
+        Generator function to scan all headers in an ascii IDL-formatted file
+        '''
+        with open(self.attrs['file'], 'r') as f:
+            nframe = 0 # Number of epoch frames in file.
+            f.seek(0, 2)  # Jump to end of file (in Py3, this returns location)
+            file_size = f.tell()  # Get number of bytes in file.
+            f.seek(0)  # Rewind to file start.
+            while f.tell() < file_size:
+                yield _scan_ascii_header(f)
+                nframe += 1
+
     def _scan_asc_frames(self):
         '''
         Open the ascii-formatted file associated with *self* and scan all
@@ -1234,49 +1247,32 @@ class IdlFile(PbData):
         fully supported.
         '''
 
-        from datetime import timedelta as tdelt
-
-        # Create some variables to store information:
-        nframe = 0  # Number of epoch frames in file.
-        iters, runtimes = [], []  # Lists of time information.
-        offset = []  # Byte offset from beginning of file of each frame.
-
-        with open(self.attrs['file'], 'r') as f:
-            f.seek(0, 2)  # Jump to end of file (in Py3, this returns location)
-            file_size = f.tell()  # Get number of bytes in file.
-            f.seek(0)  # Rewind to file start.
-
-            # Loop over all data frames and collect information:
-            while f.tell() < file_size:
-                info = _scan_ascii_header(f)
-                # Stash information into lists:
-                offset.append(info['start'])
-                iters.append(info['iter'])
-                runtimes.append(info['runtime'])
-                nframe += 1
+        # Iterate through headers in file and collect information
+        headers = list(self._scan_ascii_headers())
 
         # Store everything as file-level attrs; convert to numpy arrays.
+        nframe = len(headers)
         self.attrs['nframe'] = nframe
-        self.attrs['iters'] = np.array(iters)
-        self.attrs['runtimes'] = np.array(runtimes)
+        self.attrs['iters'] = np.array([h['iter'] for h in headers])
+        self.attrs['runtimes'] = np.array([h['runtime'] for h in headers])
 
         # Use times info to build datetimes and update file-level attributes.
         if self.attrs['time_range'] != [None]:
             self.attrs['times'] = np.array(
-                [self.attrs['time_range'][0]+tdelt(seconds=int(x-runtimes[0]))
-                 for x in runtimes])
+                [self.attrs['time_range'][0]+dt.timedelta(seconds=int(x['runtime']-headers[0]['runtime']))
+                 for x in headers])
         else:
             self.attrs['times'] = np.array(nframe*[None])
 
         # Ensure all ranges are two-element arrays and update using
         # information we gathered from the header.
         if self.attrs['iter_range'] == [None]:
-            self.attrs['iter_range'] = [iters[0], iters[-1]]
+            self.attrs['iter_range'] = [headers[0]['iter'], headers[-1]['iter']]
         if self.attrs['runtime_range'] == [None]:
-            self.attrs['runtime_range'] = [runtimes[0], runtimes[-1]]
+            self.attrs['runtime_range'] = [headers[0]['runtime'], headers[-1]['runtime']]
 
         # Stash the offset of frames as a private attribute:
-        self._offsets = np.array(offset)
+        self._offsets = np.array([h['start'] for h in headers])
 
     def switch_frame(self, iframe):
         '''
