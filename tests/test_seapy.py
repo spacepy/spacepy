@@ -504,7 +504,9 @@ class NonContiguousTimeDetectionTest(unittest.TestCase):
         # Capture stdout during initialization
         f = io.StringIO()
         with redirect_stdout(f):
-            obj = seapy.Sea(data, times, epochs, verbose=False)
+            with spacepy_testing.assertWarns(self, message='Input time not contiguous;'
+                                         ' results are unlikely to be valid.'):
+                obj = seapy.Sea(data, times, epochs, verbose=False)
 
         output = f.getvalue()
 
@@ -538,10 +540,13 @@ class NonContiguousTimeDetectionTest(unittest.TestCase):
         # Capture stdout during initialization
         f = io.StringIO()
         with redirect_stdout(f):
-            obj = seapy.Sea(data, times, epochs,
-                            window=dt.timedelta(minutes=5),
-                            delta=dt.timedelta(minutes=1),
-                            verbose=False)
+            with spacepy_testing.assertWarns(self, message='Input time not contiguous;'
+                                         ' results are unlikely to be valid.'):
+                with spacepy_testing.assertWarns(self, message='Window size changed to'):
+                    obj = seapy.Sea(data, times, epochs,
+                                    window=dt.timedelta(minutes=5),
+                                    delta=dt.timedelta(minutes=1),
+                                    verbose=False)
 
         output = f.getvalue()
 
@@ -570,7 +575,9 @@ class NonContiguousTimeDetectionTest(unittest.TestCase):
         # Capture stdout
         f = io.StringIO()
         with redirect_stdout(f):
-            obj = seapy.Sea(data, times, epochs, verbose=False)
+            with spacepy_testing.assertWarns(self, message='Input time not contiguous;'
+                                         ' results are unlikely to be valid.'):
+                obj = seapy.Sea(data, times, epochs, verbose=False)
 
         output = f.getvalue()
 
