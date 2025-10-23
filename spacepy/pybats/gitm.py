@@ -29,14 +29,16 @@ class GitmBin(PbData):
         """
         Initializes the holder for GITM outputs & reads the data.
 
-        Args:
+        Parameters
+        ==========
             filenames (str/list-like): Path(s) of GITM files to read. Works for one or
                 multiple. Can also be a globbed path, like
                 '/path/to/run/data/3DALL*.bin'. Cannot mix output types!
             varlist (list-like): Indices of the variables to read. Must be int's.
                 Default=None, and all variables are read.
 
-        Examples:
+        Examples
+        ========
             (to read all variables):
             
             > data = gitm.GitmBin('path/to/file/3DALL_t123_000.bin')
