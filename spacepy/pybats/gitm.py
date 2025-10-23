@@ -73,7 +73,7 @@ class GitmBin(PbData):
     def __repr__(self):
         return 'GITM binary output file %s' % (self.attrs['file'])
 
-    def _readbin(self, varlist: list=None):
+    def _readbin(self, varlist: list[int]=None):
         '''
         Read binary file; should only be called upon instantiation.
         '''
