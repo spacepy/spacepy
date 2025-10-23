@@ -51,10 +51,6 @@ class GitmBin(PbData):
 
         """
         super(GitmBin, self).__init__(*args, **kwargs) # Init as PbData.
-        
-        #TODO: As written, this cannot read multiple output types in one call.
-        # -> Either fix this (desc. how at '^[outputtypes]'), or check inputs
-        # - Inputs can be checked by ensuring f.split('/')[-1][:5] is same for f in filelist
 
         # Can accept single/multiple files. sanitize this:
         if isinstance(filenames, str):
@@ -67,10 +63,6 @@ class GitmBin(PbData):
         # If varlist is just an int, we can handle it
         if isinstance(varlist, int):
             varlist = [varlist]
-
-        # TODO: add method/escape to just print the variable list (or all attrs).
-        # Would need a call to _get_header() and then a print of self.attrs['vars']
-        # -> ideally we do not read in any bin data to do this!
 
         # Read first header. Puts attrs into self
         self._read_header(varlist=varlist)
@@ -91,7 +83,6 @@ class GitmBin(PbData):
         # pre-allocate the data arrays:
         # Shape is (nTimes, nLons, nLats, nAlts), these are all present in the header
         for var in self.attrs['var_idxs'].keys():
-            #TODO: Add a call to the variable parsing function described in _read_header()
             self[var] = dmarray(np.empty([len(self.attrs['files']),
                                           self.attrs['nLon'],
                                           self.attrs['nLat'], 
@@ -190,16 +181,10 @@ class GitmBin(PbData):
 
             for i in range(self.attrs["nVarsTotal"]):
                 v = struct.unpack(endChar+'%is'%(recLen),file.read(recLen))[0]
-                # TODO: Here we can add a call to a lookup table with variable info
-                # - units!
-                # - pretty name for plots
-                # - user-friendly name
-                # - etc.
 
                 nVarsRead = 0
                 # Only save it if it is in varlist, or varlist is None (read all vars)
                 if varlist is None or i in [0, 1, 2] or i in varlist:
-                    # NeedsReview, this reads coord info even if user didn't request it.
                     # All 3 coords (lon, lat, alt) are present in all outputs
                     self.attrs['var_idxs'][v.decode('utf-8').replace(" ","")] = i
                     nVarsRead += 1
