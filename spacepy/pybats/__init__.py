@@ -18,7 +18,9 @@ import os.path
 from functools import wraps
 
 from spacepy.datamodel import dmarray, SpaceData
+import datetime as dt
 import numpy as np
+import warnings
 
 
 # Pybats-related decorators:
@@ -344,6 +346,9 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     # Open the file:
     infile = open(pbdat.attrs['file'], 'r')
 
+    # Skip to desired entry:
+    infile.seek(start_loc)
+
     # Read the top header line:
     headline = infile.readline().strip()
 
@@ -413,6 +418,11 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     if nSkip < 0:
         nSkip = 0
 
+    # Check that number of headline entries matches nvar+ndim
+    if len(units[nSkip:]) != nvar+ndim:
+        warnings.warn('First line interpreted as units, ' +
+                      'but does not match the number of vars + dims')
+
     # Save grid names (e.g. 'x' or 'r') and save associated params.
     pbdat['grid'].attrs['dims'] = tuple(names[0:ndim])
     for name, para in zip(names[(nvar+ndim):], para):
@@ -423,8 +433,8 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
         pbdat[v] = dmarray(np.zeros(npts), {'units': u})
 
     # Load grid points and data:
-    for i, line in enumerate(infile.readlines()):
-        parts = line.split()
+    for i in range(npts):
+        parts = infile.readline().split()
         for j, p in enumerate(parts):
             pbdat[names[j]][i] = p
 
@@ -652,6 +662,83 @@ def _scan_bin_header(f, endchar, inttype, floattype):
 
     # Jump to end of current data frame:
     f.seek(info['end'], 0)
+
+    return info
+
+
+def _scan_ascii_header(f, *args):
+    '''
+    Given an ascii IDL-formmatted file opened as a file object, *f*,
+    and whose file pointer is positioned at the start of the header,
+    gather some header information and return to caller.
+
+    The file object's pointer will be set to the end of the whole entry
+    (header plus data will be skipped.)
+
+    Extra arguments are ignored but accepted for interoperability with
+    the `_scan_bin_header` counterpart.
+
+    Parameters
+    ----------
+    f : ASCII-formated file object
+        The file from which to read the array of values.
+
+    Returns
+    -------
+    info : dict
+        A dictionary with the *start* and *end* bytes of the record, time
+        information including the *iter*ation, *ndim* number of dimensions,
+        *npar* number of parameters, *nvar* number of variables, and
+        simulation *runtime* in seconds.
+    '''
+
+    # Create output containers and track offset.
+    info = {'start': f.tell()}
+    offset = f.tell()
+
+    # LINE 1: Read the top header line. For each line read,
+    # track the offset from start of record using `len`
+    line = f.readline()
+    offset += len(line)
+    info['headline'] = line.strip()
+
+    # LINE 2: Read & convert iters, runtime, etc. from next line:
+    line = f.readline()
+    offset += len(line)
+    parts = line.split()
+
+    info['iter'] = int(parts[0])
+    info['runtime'] = float(parts[1])
+    info['ndim'] = int(parts[2])
+    info['nparam'] = int(parts[3])
+    info['nvar'] = int(parts[4])
+
+    # LINES 3-5/6:
+    # Skip grid (for now):
+    line = f.readline()
+    offset += len(line)
+    grid = [int(x) for x in line.split()]
+    # Skip parameters (for now):
+    if info['nparam'] > 0:
+        line = f.readline()
+        offset += len(line)
+    # Skip var names:
+    line = f.readline()
+    offset += len(line)
+
+    # Calculate the remaining lines:
+    nline = 1
+    for npts in grid:
+        nline *= npts
+
+    # Skip the remainder of the entry and store the final
+    # offset to mark the endpoints of the frame.
+    for i in range(nline):
+        line = f.readline()
+        offset += len(line)
+
+    # Stash the final offset:
+    info['end'] = offset
 
     return info
 
@@ -1094,8 +1181,6 @@ class IdlFile(PbData):
         Results are stored within *self*.
         '''
 
-        from datetime import timedelta as tdelt
-
         # Create some variables to store information:
         nframe = 0  # Number of epoch frames in file.
         iters, runtimes = [], []  # Lists of time information.
@@ -1124,7 +1209,7 @@ class IdlFile(PbData):
         # Use times info to build datetimes and update file-level attributes.
         if self.attrs['time_range'] != [None]:
             self.attrs['times'] = np.array(
-                [self.attrs['time_range'][0]+tdelt(seconds=int(x-runtimes[0]))
+                [self.attrs['time_range'][0]+dt.timedelta(seconds=int(x-runtimes[0]))
                  for x in runtimes])
         else:
             self.attrs['times'] = np.array(nframe*[None])
@@ -1139,6 +1224,19 @@ class IdlFile(PbData):
         # Stash the offset of frames as a private attribute:
         self._offsets = np.array(offset)
 
+    def _scan_ascii_headers(self):
+        '''
+        Generator function to scan all headers in an ascii IDL-formatted file
+        '''
+        with open(self.attrs['file'], 'r') as f:
+            nframe = 0 # Number of epoch frames in file.
+            f.seek(0, 2)  # Jump to end of file (in Py3, this returns location)
+            file_size = f.tell()  # Get number of bytes in file.
+            f.seek(0)  # Rewind to file start.
+            while f.tell() < file_size:
+                yield _scan_ascii_header(f)
+                nframe += 1
+
     def _scan_asc_frames(self):
         '''
         Open the ascii-formatted file associated with *self* and scan all
@@ -1149,12 +1247,32 @@ class IdlFile(PbData):
         fully supported.
         '''
 
-        # Only use top-level frame as of now.
-        self._offsets = np.array([0])
-        self.attrs['nframe'] = 1
-        self.attrs['iters'] = [0, 0]
-        self.attrs['runtimes'] = [0, 0]
-        self.attrs['times'] = [0, 0]
+        # Iterate through headers in file and collect information
+        headers = list(self._scan_ascii_headers())
+
+        # Store everything as file-level attrs; convert to numpy arrays.
+        nframe = len(headers)
+        self.attrs['nframe'] = nframe
+        self.attrs['iters'] = np.array([h['iter'] for h in headers])
+        self.attrs['runtimes'] = np.array([h['runtime'] for h in headers])
+
+        # Use times info to build datetimes and update file-level attributes.
+        if self.attrs['time_range'] != [None]:
+            self.attrs['times'] = np.array(
+                [self.attrs['time_range'][0]+dt.timedelta(seconds=int(x['runtime']-headers[0]['runtime']))
+                 for x in headers])
+        else:
+            self.attrs['times'] = np.array(nframe*[None])
+
+        # Ensure all ranges are two-element arrays and update using
+        # information we gathered from the header.
+        if self.attrs['iter_range'] == [None]:
+            self.attrs['iter_range'] = [headers[0]['iter'], headers[-1]['iter']]
+        if self.attrs['runtime_range'] == [None]:
+            self.attrs['runtime_range'] = [headers[0]['runtime'], headers[-1]['runtime']]
+
+        # Stash the offset of frames as a private attribute:
+        self._offsets = np.array([h['start'] for h in headers])
 
     def switch_frame(self, iframe):
         '''
@@ -1270,9 +1388,6 @@ class LogFile(PbData):
     >>> plt.plot(file1['time'], file1['dst'])
 
     '''
-
-    import datetime as dt
-
     def __init__(self, filename, starttime=(2000, 1, 1, 0, 0, 0),
                  keep_case=True, *args, **kwargs):
         super(LogFile, self).__init__(*args, **kwargs)
@@ -1284,9 +1399,6 @@ class LogFile(PbData):
         Load the ascii logfile located at self.filename.
         This method is automatically called upon instantiation.
         '''
-        import numpy as np
-        import datetime as dt
-
         # Convert starttime from tuple to datetime object.
         if type(starttime) != dt.datetime:
             if len(starttime) != 6:
@@ -1564,8 +1676,6 @@ class ImfInput(PbData):
     """
 
     def __init__(self, filename=False, load=True, npoints=0, *args, **kwargs):
-        from numpy import zeros
-
         # Initialize data object and required attributes.
         super(ImfInput, self).__init__(*args, **kwargs)
         self.attrs['var'] = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'n', 't']
@@ -1577,7 +1687,7 @@ class ImfInput(PbData):
         self.attrs['delay'] = None
         self.attrs['plane'] = [None, None]
         self.attrs['header'] = []
-        self['time'] = dmarray(zeros(npoints, dtype=object))
+        self['time'] = dmarray(np.zeros(npoints, dtype=object))
 
         # Store standard variable set:
         self.__stdvar = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'n', 't']
@@ -1594,7 +1704,7 @@ class ImfInput(PbData):
         else:
             units = ['nT', 'nT', 'nT', 'km/s', 'km/s', 'km/s', 'cm^-3', 'K']
             for i, key in enumerate(self.attrs['var']):
-                self[key] = dmarray(zeros(npoints), attrs={'units': units[i]})
+                self[key] = dmarray(np.zeros(npoints), attrs={'units': units[i]})
 
         # Determine the density variable, which can either be "n" or "rho".
         if "n" in self.attrs['var']:
@@ -1803,8 +1913,6 @@ class ImfInput(PbData):
         Read an SWMF IMF/solar wind input file into a newly
         instantiated imfinput object.
         '''
-        import datetime as dt
-
         in_header = True
         with open(infile, 'r') as f:
             while True:
@@ -1873,9 +1981,6 @@ class ImfInput(PbData):
         *self.attrs['file']* is used.  If this is not set, default to
         "imfinput.dat".
         '''
-
-        import datetime as dt
-
         # Check that the var attribute agrees with the data dictionary.
         if not self.varcheck():
             raise Exception('Number of variables does ' +
@@ -2271,8 +2376,6 @@ class SatOrbit(PbData):
         empty satorbit object is instantiated for the user to fill
         with values of their own creation.
         '''
-        import numpy as np
-
         super(SatOrbit, self).__init__(*args, **kwargs)
 
         self.attrs['file'] = filename
@@ -2294,8 +2397,6 @@ class SatOrbit(PbData):
         '''
         Read and parse a satellite orbit input file into the satorbit object.
         '''
-        import numpy as np
-        import datetime as dt
         # Try to open the file.  If we fail, pass the exception
         # to the caller.
         infile = open(self.attrs['file'], 'r')

@@ -289,11 +289,94 @@ class TestScanBinHeader(unittest.TestCase):
                     self.assertEqual(info[key], known[key])
 
 
+class TestScanAsciiHeader(unittest.TestCase):
+    '''
+    Test scanning of headers within ASCII-formatted IDL files.
+    '''
+
+    # Files that have a single frame:
+    files_single = [os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                 'y0_ascii.out'),
+                    os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                 'mag_grid_ascii.out')]
+
+    # File that has multiple frames:
+    file_multi = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                              'mag_grid_ascii.outs')
+
+    # Responses from single-frame files:
+    knownSingle = [{'iter': 68, 'runtime': 10., 'ndim': -2,
+                    'nvar': 15, 'end': 786163, 'nparam': 3},
+                   {'iter': 0, 'runtime': 10., 'ndim': 2,
+                    'nvar': 15, 'end': 2975, 'nparam': 0}]
+
+    knownMulti = [{'start': 0, 'iter': 0, 'runtime': 10.0, 'ndim': 2,
+                   'nvar': 15, 'end': 2975, 'nparam': 0},
+                  {'start': 2975, 'iter': 10, 'runtime': 20.0, 'ndim': 2,
+                   'nvar': 15, 'end': 5951, 'nparam': 0},
+                  {'start': 5951, 'iter': 20, 'runtime': 30.0, 'ndim': 2,
+                   'nvar': 15, 'end': 8927, 'nparam': 0}]
+
+    def setUp(self):
+        '''
+        Build multi-entry ascii .outs file from existing single-entry file.
+        '''
+
+        with open(self.files_single[-1], 'r') as f:
+            lines = f.readlines()
+
+        with open(self.file_multi, 'w') as f:
+            # First entry:
+            f.writelines(lines)
+            # Second entry:
+            f.write(lines[0])
+            f.write('      10  2.0000000000E+01  2  0 15\n')
+            f.writelines(lines[2:])
+            # Third entry:
+            f.write(lines[0])
+            f.write('      20  3.0000000000E+01  2  0 15\n')
+            f.writelines(lines[2:])
+
+    def tearDown(self):
+        '''Remove extra files'''
+
+        os.remove(self.file_multi)
+
+    def testOneFrame(self):
+        '''Test files that only have one epoch frame.'''
+
+        # Open files, get file properties, then probe header and test
+        # against known values:
+        for f, known in zip(self.files_single, self.knownSingle):
+            props = pb._probe_idlfile(f)
+            with open(f, 'rb') as data:
+                info = pb._scan_ascii_header(data, *props[1:])
+                for key in known:
+                    self.assertEqual(info[key], known[key])
+
+    def testMultiFrame(self):
+        '''Test files that have more than one epoch frame.'''
+
+        # Test the only two frames in the file.
+        # The ability to scan the number of entries in a file is
+        # located within the IdlBin class.
+        props = pb._probe_idlfile(self.file_multi)
+        with open(self.file_multi, 'rb') as data:
+            for known in self.knownMulti:
+                info = pb._scan_ascii_header(data, *props[1:])
+                for key in known:
+                    self.assertEqual(info[key], known[key])
+
+
 class TestIdlFile(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.IdlFile` for different output
     file types and formats (ascii and binary).
     '''
+
+    # Name for our temporary ASCII .outs file:
+    asciiouts = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                             'y0_ascii.outs')
 
     # Known values for single-frame *.out files:
     varnames = 'x z rho ux uy uz bx by bz p b1x b1y b1z e jx jy jz'
@@ -311,8 +394,10 @@ class TestIdlFile(unittest.TestCase):
     # Time/iteration range covered by files:
     knownIterRng1 = [2500, 2512]
     knownIterRng2 = [2500, 2512]
+    knownIterRng3 = [0, 10, 20]
     knownRtimeRng1 = [0.0, 120.0]
     knownRtimeRng2 = [0.0, 120.0]
+    knownRtimeRng3 = [10., 60., 120.]
     knownTimeRng1 = [dt.datetime(2014, 4, 10, 0, 0),
                      dt.datetime(2014, 4, 10, 0, 2)]
     knownTimeRng2 = [dt.datetime(2014, 4, 10, 0, 0),
@@ -324,6 +409,34 @@ class TestIdlFile(unittest.TestCase):
     knownMax2 = {"Rho": 14.71767520904541, "Ux": -1107.3873291015625,
                  "Bz": 4.878035068511963, "P": 2.2604243755340576,
                  "jy": 0.0007115363841876388}
+    knownMax3 = {"Rho": 28.0, "Ux": 7.8484486461,
+                 "Bz": 655.48081199, "P": 0.16305741424,
+                 "jy": 0.001981114211}
+
+    def setUp(self):
+        '''Build multi-frame ASCII .outs file'''
+
+        filename = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                'y0_ascii.out')
+
+        with open(filename, 'r') as f:
+            lines = f.readlines()
+
+        with open(self.asciiouts, 'w') as f:
+            # First entry:
+            f.writelines(lines)
+            # Second entry:
+            f.write(lines[0])
+            f.write('      10  6.0000000000E+02 -2  3 15\n')
+            f.writelines(lines[2:])
+            # Third entry:
+            f.write(lines[0])
+            f.write('      20  1.2000000000E+02 -2  3 15\n')
+            f.writelines(lines[2:])
+
+    def tearDown(self):
+        '''Remove temporary files.'''
+        os.remove(self.asciiouts)
 
     def testBinary(self):
         # Open file:
@@ -377,8 +490,10 @@ class TestIdlFile(unittest.TestCase):
             self.assertEqual(self.knownRtimeRng1[i], mhd.attrs['runtime_range'][i])
             self.assertEqual(self.knownTimeRng1[i], mhd.attrs['time_range'][i])
 
-    def testSwitchFrame(self):
-        '''Test our ability to open on arbitrary frame and change frame'''
+    def testSwitchFrameBin(self):
+        '''
+        Test our ability to open on arbitrary frame and change frame - Binary
+        '''
 
         # Start with y=0 slice MHD outs file, but start on 2nd frame:
         f = os.path.join(spacepy_testing.datadir, 'pybats_test',
@@ -403,6 +518,32 @@ class TestIdlFile(unittest.TestCase):
         # Check against 1st frame data:
         for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
             self.assertAlmostEqual(self.knownMax1[v], mhd[v].max(), places=14)
+
+    def testSwitchFrameAscii(self):
+        '''
+        Test our ability to open on arbitrary frame and change frame - ASCII
+        '''
+
+        # Start with y=0 slice MHD outs file, but start on 2nd frame:
+        mhd = pb.IdlFile(self.asciiouts, iframe=2)
+
+        # Check against 2nd frame info:
+        self.assertEqual(self.knownIterRng3[2], mhd.attrs['iter'])
+        self.assertEqual(self.knownRtimeRng3[2], mhd.attrs['runtime'])
+
+        # Check against 2nd frame data:
+        for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
+            self.assertAlmostEqual(self.knownMax3[v], mhd[v.lower()].max(),
+                                   places=9)
+
+        # Switch frames, check for successful update of attributes:
+        mhd.switch_frame(1)
+        self.assertEqual(self.knownIterRng3[1], mhd.attrs['iter'])
+
+        # Check against 1st frame data:
+        for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
+            self.assertAlmostEqual(self.knownMax3[v], mhd[v.lower()].max(),
+                                   places=9)
 
 
 class TestLogFile(unittest.TestCase):
