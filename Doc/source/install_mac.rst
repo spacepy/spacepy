@@ -13,9 +13,10 @@ possibility.
 Binary wheels are provided for both x86_64 (Intel) and 64-bit ARM
 (Apple Silicon, e.g. M1/M2/M3). They will install in any of these
 environments; most of the details below are to compile from
-source. x86_64 binaries are built on MacOS 11 (Big Sur) on x86_64 and
-compiled to work on 10.9 (Mavericks). ARM binaries are built on MacOS
-12 (Monterey) on M2 and compiled to work on 11 (Big Sur).
+source. ARM binaries are built on MacOS 12 (Monterey) on M2 and
+compiled to work on 11 (Big Sur). x86_64 binaries are also built and
+tested on MacOS 12 (Monterey) on M2, using Rosetta, and compiled to
+work on 10.9 (Mavericks).
 
 It is *not* recommended to mix environments if building from source,
 e.g. do not use Python from conda and gcc from Homebrew.
