@@ -142,7 +142,7 @@ class GitmBin(PbData):
                                             self.attrs['nAlt']), order='F')
 
         # Finally we reduce dimensionality:
-        for v in self.attrs['var_idxs'].keys():
+        for v in self.attrs['var_idxs']:
             self[v] = np.squeeze(self[v])
 
     
@@ -153,8 +153,8 @@ class GitmBin(PbData):
         
         This will let us pre-allocate the arrays to hold the data
 
-        Inputs
-        ------
+        Parameters
+        ==========
             varlist (list): list of indices of variables to read. Default=None, 
                 which reads all variables
         
