@@ -1028,28 +1028,110 @@ class TestGitm(unittest.TestCase):
     '''
     nVars = 13
     nLat = 18
+    nLon = 18
+    nAlt = 50
     vers = 4.03
-    time = dt.datetime(2015, 3, 16, 20, 1, 8)
+    time = dt.datetime(2015, 3, 16, 20, 1, 8, 936000)
     shape = (18, 18)
     lat1 = 1.48352986
 
-    def testBinary(self):
+    def testOneFileBinary2D(self):
         '''
-        This tests the ability to open a file and correctly read the
-        attributes and variables as well as properly reshape the arrays and
-        remove unused dimensions.
+        Read a 2D file, reshape arrays, remove unused dimensions.
         '''
         # Open 2D file:
-        f = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
+        f2d = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                       'gitm_2D.bin'))
         # Check some critical attributes/values:
-        self.assertEqual(self.nVars, f.attrs['nVars'])
-        self.assertEqual(self.nLat, f.attrs['nLat'])
-        self.assertEqual(self.vers, f.attrs['version'])
-        self.assertEqual(self.time, f['time'])
-        self.assertEqual(self.shape, f['Longitude'].shape)
-        self.assertAlmostEqual(self.lat1, f['Latitude'][0, -1], 6)
-        self.assertAlmostEqual(-1*self.lat1, f['Latitude'][0, 0], 6)
+        self.assertEqual(self.nVars, f2d.attrs['nVarsTotal'])
+        self.assertEqual(self.nLat, f2d.attrs['nLat'])
+        self.assertEqual(self.vers, f2d.attrs['version'])
+        self.assertEqual(self.time, f2d.attrs['time'])
+        self.assertEqual(self.shape, f2d['Longitude'].shape)
+        self.assertAlmostEqual(self.lat1, f2d['Latitude'][0, -1], 6)
+        self.assertAlmostEqual(-1*self.lat1, f2d['Latitude'][0, 0], 6)
+        self.assertNotIn('dLat', f2d)
+        self.assertNotIn('dLon', f2d)
+
+    def testBinary2DtoDegrees(self):
+        '''
+        Read gitm binary file and calculate lat/lon in degrees
+        '''
+        # Open 2D file:
+        f2d = gitm.GitmBin(
+            os.path.join(spacepy_testing.datadir, 'pybats_test','gitm_2D.bin'),
+            degrees=True
+        )
+        # Check some critical attributes/values:
+        self.assertEqual(self.nVars, f2d.attrs['nVarsTotal'])
+        self.assertEqual(self.nLat, f2d.attrs['nLat'])
+        self.assertEqual(self.vers, f2d.attrs['version'])
+        self.assertEqual(self.time, f2d.attrs['time'])
+        self.assertEqual(self.shape, f2d['Longitude'].shape)
+        self.assertAlmostEqual(self.lat1, f2d['Latitude'][0, -1], 6)
+        self.assertAlmostEqual(-1 * self.lat1, f2d['Latitude'][0, 0], 6)
+        self.assertIn('dLat', f2d)
+        self.assertIn('dLon', f2d)
+        self.assertEqual(self.nLat, len(f2d['dLat']))
+        self.assertEqual(self.nLon, len(f2d['dLon']))
+        self.assertAlmostEqual(np.rad2deg(self.lat1), f2d['dLat'][0, -1], 6)
+        numpy.testing.assert_allclose(f2d['dLon'], np.rad2deg(f2d['Longitude']))
+
+    def testBinaryOneVariable3D(self):
+        '''
+        Read a single variable from a 3D file given a full filename
+        '''
+        # Read file
+        f3d = gitm.GitmBin([os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                        '3DALL_t021221_000000.bin')], varlist=3)
+
+        # 3D files include ghost cells; 2 in each +/- direction. So +4 for each dim
+        self.assertEqual(self.nLon + 4, f3d.attrs['nLon'])
+        self.assertEqual(self.nLat + 4, f3d.attrs['nLat'])
+        self.assertEqual(self.nAlt + 4, f3d.attrs['nAlt'])
+
+        # We asked for variable with index 3. This should be Rho: total neutral density
+        self.assertEqual(3, f3d.attrs['var_idxs']['Rho'])
+        # Also check whether we found the correct number of variables
+        self.assertEqual(40, f3d.attrs['nVarsTotal'])
+
+        # Check the shape of Altitude & Rho:
+        self.assertEqual((self.nLon + 4, self.nLat + 4, self.nAlt + 4),
+                         f3d['Rho'].shape)
+        self.assertEqual((self.nLon + 4, self.nLat + 4, self.nAlt + 4),
+                         f3d['Altitude'].shape)
+
+        # First Altitude (excl ghost cells) should be 100km
+        numpy.testing.assert_allclose(np.zeros([self.nLon + 4, self.nLat + 4]) + 100e3,
+                                      f3d['Altitude'][:, :, 2])
+
+    def testVarList(self):
+        '''
+        Test the IndexError 'Variable out of range!'
+        '''
+
+        with self.assertRaises(IndexError) as cm:
+            f2d = gitm.GitmBin(
+                os.path.join(spacepy_testing.datadir,
+                             'pybats_test',
+                             # throw IndexError because of varlist
+                             'gitm_2D.bin'), varlist=[1, 2, 100])
+        self.assertTrue(str(cm.exception).startswith("Variable out of range!"))
+
+    def test2DGlob(self):
+        '''
+        Glob two 2D GITM files
+        '''
+        
+        f2ds = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                      '2DANC*.bin'))
+        self.assertEqual(2, len(f2ds.attrs['time']))
+        numpy.testing.assert_array_equal(
+            f2ds.attrs['time'],
+            [dt.datetime(2024, 5, 10, 15, 30, 1),
+             dt.datetime(2024, 5, 10, 15, 32, 3)],
+        )
+
 
 
 class RamTests(unittest.TestCase):
