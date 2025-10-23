@@ -6,12 +6,13 @@ in the SWMF.
 '''
 
 # Global imports:
+import datetime
+import glob
 import numpy as np
-import datetime as dt
-from struct import unpack
+import struct
+
 from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray
-import glob
 
 class GitmBin(PbData):
     '''
@@ -114,7 +115,7 @@ class GitmBin(PbData):
                 # If that is the case, swap that endian and try again.
                 endChar = '>'
                 rawRecLen = file.read(4)
-                rec_len = (unpack(endChar + 'l', rawRecLen))[0]
+                rec_len = (struct.unpack(endChar + 'l', rawRecLen))[0]
                 if rec_len > 10000 or rec_len < 0:
                     # Ridiculous record length implies wrong endian.
                     endChar='<'
@@ -125,17 +126,17 @@ class GitmBin(PbData):
                     # time is placed after variable names, so we skip:
                     # 52(grid etc.) + ( 40[nvars] + 8 [head/foot] ) *nVarsTotal
                     file.seek(52 + 48 * self.attrs['nVarsTotal'])
-                    (yy,mm,dd,hh,mn,ss,ms,startstop)=unpack(endChar+'llllllli',file.read(32))
-                    self.attrs['time'][iFile]=dt.datetime(yy,mm,dd,hh,mn,ss,ms * 1000)
+                    (yy,mm,dd,hh,mn,ss,ms,startstop) = struct.unpack(endChar+'llllllli',file.read(32))
+                    self.attrs['time'][iFile]=datetime.datetime(yy,mm,dd,hh,mn,ss,ms*1000)
                 isFirstTime = False
 
                 for varname, iVar in self.attrs['var_idxs'].items():
                     # Get to the right location in file
                     file.seek(HeaderLength+iVar*iDataLength)
                     # Pull out the data
-                    s=unpack(endChar+'l', file.read(4))[0]
+                    s=struct.unpack(endChar+'l', file.read(4))[0]
                     self[varname][iFile, ...] = \
-                        np.array(unpack(endChar+'%id'%(nPtsTotal),file.read(s))
+                        np.array(struct.unpack(endChar+'%id'%(nPtsTotal),file.read(s))
                                  ).reshape((self.attrs['nLon'],
                                             self.attrs['nLat'],
                                             self.attrs['nAlt']), order='F')
@@ -163,32 +164,32 @@ class GitmBin(PbData):
             # determine endianess 
             endChar='>'
             rawRecLen=file.read(4)
-            recLen=(unpack(endChar+'l',rawRecLen))[0]
+            recLen=(struct.unpack(endChar+'l',rawRecLen))[0]
             if (recLen>10000)or(recLen<0):
                 # Ridiculous record length implies wrong endian.
                 endChar='<'
-                recLen=(unpack(endChar+'l',rawRecLen))[0]
+                recLen=(struct.unpack(endChar+'l',rawRecLen))[0]
 
             # Read version; read fortran footer+header.
-            self.attrs["version"] = unpack(endChar+'d',file.read(recLen))[0]
+            self.attrs["version"] = struct.unpack(endChar+'d',file.read(recLen))[0]
 
-            (_, recLen)=unpack(endChar+'2l',file.read(8))
+            (_, recLen)=struct.unpack(endChar+'2l',file.read(8))
 
             # Read grid size information.
             (self.attrs["nLon"],self.attrs["nLat"],self.attrs["nAlt"]) = \
-                unpack(endChar+'lll',file.read(recLen))
-            (_, recLen)=unpack(endChar+'2l',file.read(8))
+                struct.unpack(endChar+'lll',file.read(recLen))
+            (_, recLen)=struct.unpack(endChar+'2l',file.read(8))
 
             # Read number of variables.
-            self.attrs["nVarsTotal"]=unpack(endChar+'l',file.read(recLen))[0]
-            (_, recLen)=unpack(endChar+'2l',file.read(8))
+            self.attrs["nVarsTotal"]=struct.unpack(endChar+'l',file.read(recLen))[0]
+            (_, recLen)=struct.unpack(endChar+'2l',file.read(8))
 
             # Collect variable names & indices:
             # This is going into a dict of {varname: index}
             self.attrs['var_idxs'] = {}
 
             for i in range(self.attrs["nVarsTotal"]):
-                v = unpack(endChar+'%is'%(recLen),file.read(recLen))[0]
+                v = struct.unpack(endChar+'%is'%(recLen),file.read(recLen))[0]
                 # TODO: Here we can add a call to a lookup table with variable info
                 # - units!
                 # - pretty name for plots
@@ -202,7 +203,7 @@ class GitmBin(PbData):
                     # All 3 coords (lon, lat, alt) are present in all outputs
                     self.attrs['var_idxs'][v.decode('utf-8').replace(" ","")] = i
                     nVarsRead += 1
-                (oldLen, recLen)=unpack(endChar+'2l',file.read(8))
+                (oldLen, recLen)=struct.unpack(endChar+'2l',file.read(8))
                 self.attrs['nVars'] = nVarsRead
 
             if varlist is not None and max(varlist) > self.attrs['nVarsTotal']:
@@ -212,11 +213,11 @@ class GitmBin(PbData):
                     f" --> You provided: varlist={varlist}")
 
             # Extract time. 
-            (yy,mm,dd,hh,mn,ss,ms)=unpack(endChar+'lllllll',file.read(recLen))
+            (yy,mm,dd,hh,mn,ss,ms) = struct.unpack(endChar+'lllllll',file.read(recLen))
             self.attrs["time"] = dmarray(np.zeros(len(self.attrs['files']), 
                                                   dtype='object'),
                                                   dtype='object') # is this necessary?
-            self.attrs['time'][0] = dt.datetime(yy,mm,dd,hh,mn,ss,ms*1000)
+            self.attrs['time'][0] = datetime.datetime(yy,mm,dd,hh,mn,ss,ms*1000)
 
         return 
 
