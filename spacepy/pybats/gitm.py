@@ -54,10 +54,8 @@ class GitmBin(PbData):
 
         # Can accept single/multiple files. sanitize this:
         if isinstance(filenames, str):
-            if '*' in filenames: # We have to glob the path
-                filenames = sorted(glob.glob(filenames))
-            else:
-                filenames = [filenames]
+            filenames = sorted(glob.glob(filenames))
+
         self.attrs['files'] = filenames
 
         # If varlist is just an int, we can handle it
