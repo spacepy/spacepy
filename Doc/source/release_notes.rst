@@ -23,6 +23,8 @@ Major bugfixes
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
 plotting and reading files with non-MJD timestamps.
 
+Fixed errors when trying to load `.pybats.ram.PlasmaBoundary` files.
+
 Other changes
 *************
 The IGRF provided with SpacePy (used in the default spacepy backend for
