@@ -1225,18 +1225,21 @@ class IdlFile(PbData):
         # Stash the offset of frames as a private attribute:
         self._offsets = np.array(offset)
 
-    def _scan_ascii_headers(self):
+    def _scan_all_ascii_headers(self):
         '''
-        Generator function to scan all headers in an ascii IDL-formatted file
+        Scan all headers in an ascii IDL-formatted file
         '''
+        headers = []
         with open(self.attrs['file'], 'r') as f:
             nframe = 0 # Number of epoch frames in file.
             f.seek(0, 2)  # Jump to end of file (in Py3, this returns location)
             file_size = f.tell()  # Get number of bytes in file.
             f.seek(0)  # Rewind to file start.
             while f.tell() < file_size:
-                yield _scan_ascii_header(f)
+                headers.append(_scan_ascii_header(f))
                 nframe += 1
+
+        return headers
 
     def _scan_asc_frames(self):
         '''
@@ -1249,7 +1252,7 @@ class IdlFile(PbData):
         '''
 
         # Iterate through headers in file and collect information
-        headers = list(self._scan_ascii_headers())
+        headers = self._scan_all_ascii_headers()
 
         # Store everything as file-level attrs; convert to numpy arrays.
         nframe = len(headers)
