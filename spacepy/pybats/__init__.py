@@ -1130,6 +1130,11 @@ class IdlFile(PbData):
         :class:`~spacepy.pybats.qotree.QTree` for processing
         adjacent cells. (ASCII data were never sorted.)
 
+    .. versionchanged:: 0.8.0
+
+        Added support for ASCII-formatted IDL files, including if
+        they contain multiple frames.
+
     '''
 
     def __init__(self, filename, iframe=0, header='units',
