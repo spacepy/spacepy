@@ -5,10 +5,10 @@ PyBats submodule for handling input/output for the Polar Wind Outflow Model
 '''
 
 # Global imports:
+import datetime as dt
 import re
 
 import numpy as np
-import datetime as dt
 
 from spacepy.plot import set_target
 from spacepy.pybats import PbData, IdlFile
