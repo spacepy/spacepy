@@ -484,6 +484,7 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdXmin, mhd['x'].min())
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
+        self.assertIsNone(mhd.attrs['time']) 
         for v in range(len(self.knownMhdX_unsorted)):
             self.assertEqual(self.knownMhdX_unsorted[v], (mhd['x'])[v])
 
@@ -496,7 +497,7 @@ class TestIdlFile(unittest.TestCase):
             if v not in self.varnames:
                 continue
             self.assertEqual(self.knownFluxUnits[v], flux[v].attrs['units'])
-
+        self.assertIsNone(flux.attrs['time']) 
         self.assertEqual(0, np.sum(flux['Omni[cm-3eV-1s-1]'] != 0)) # all zero
 
         # test warning if you try to interpret units from a non-standard header
