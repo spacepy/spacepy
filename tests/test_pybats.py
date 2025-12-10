@@ -10,6 +10,7 @@ import datetime as dt
 import glob
 import os
 import unittest
+import warnings
 
 import numpy as np
 import numpy.testing
@@ -296,7 +297,9 @@ class TestScanAsciiHeader(unittest.TestCase):
 
     # Files that have a single frame:
     files_single = [os.path.join(spacepy_testing.datadir, 'pybats_test',
-                                 'y0_ascii.out'),
+                                 'y0_ascii.out'),                    
+                    os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                 'units_in_fifth_row.out'),
                     os.path.join(spacepy_testing.datadir, 'pybats_test',
                                  'mag_grid_ascii.out')]
 
@@ -307,6 +310,8 @@ class TestScanAsciiHeader(unittest.TestCase):
     # Responses from single-frame files:
     knownSingle = [{'iter': 68, 'runtime': 10., 'ndim': -2,
                     'nvar': 15, 'end': 786163, 'nparam': 3},
+                   {'iter': 5, 'runtime': 4.32e4, 'ndim': 2,
+                     'nvar': 3, 'end': 1909},
                    {'iter': 0, 'runtime': 10., 'ndim': 2,
                     'nvar': 15, 'end': 2975, 'nparam': 0}]
 
@@ -412,6 +417,8 @@ class TestIdlFile(unittest.TestCase):
     knownMax3 = {"Rho": 28.0, "Ux": 7.8484486461,
                  "Bz": 655.48081199, "P": 0.16305741424,
                  "jy": 0.001981114211}
+    
+    knownFluxUnits = ['eV', 'km', 'cm-3eV-1s-1', 'cm-3eV-1s-1', 'cm-3eV-1s-1']
 
     def setUp(self):
         '''Build multi-frame ASCII .outs file'''
@@ -479,6 +486,32 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
         for v in range(len(self.knownMhdX_unsorted)):
             self.assertEqual(self.knownMhdX_unsorted[v], (mhd['x'])[v])
+
+
+        # Test file with different units in different part of header. 
+        #  header=None option needed to avoid unit parsing errors.
+        flux = pb.IdlFile(os.path.join(
+            spacepy_testing.datadir, 'pybats_test', 'units_in_fifth_row.out'), header=None)
+        for v in flux:
+            if v not in self.varnames:
+                continue
+            self.assertEqual(self.knownFluxUnits[v], flux[v].attrs['units'])
+
+        self.assertEqual(0, np.sum(flux['Omni[cm-3eV-1s-1]'] != 0)) # all zero
+
+        # test warning if you try to interpret units from a non-standard header
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            
+            with self.assertRaises(KeyError):
+                 flux = pb.IdlFile(os.path.join(
+                            spacepy_testing.datadir, 'pybats_test', 'units_in_fifth_row.out'))
+            
+            # After the exception is caught, verify the warning
+            self.assertEqual(len(w), 2)
+            self.assertTrue(issubclass(w[0].category, UserWarning))
+            self.assertIn('First line interpreted as units, ' +'but does not match the number of vars + dims', 
+                          str(w[0].message))           
 
     def testReadOuts(self):
         # Start with y=0 slice MHD outs file:
