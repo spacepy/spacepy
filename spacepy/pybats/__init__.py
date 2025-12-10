@@ -693,8 +693,8 @@ def _scan_ascii_header(f, *args):
     '''
 
     # Create output containers and track offset.
-    info = {'start': f.tell()}
     offset = f.tell()
+    info = {'start': offset}
 
     # LINE 1: Read the top header line. For each line read,
     # track the offset from start of record using `len`
