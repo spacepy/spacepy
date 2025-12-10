@@ -594,8 +594,8 @@ def _scan_bin_header(f, endchar, inttype, floattype):
 
     Parameters
     ----------
-    f : Binary file object
-        The file from which to read the array of values.
+    f : file
+        Binary file from which to read the array of values.
     endchar : str
         Endian character-'<' or '>'
     inttype : Numpy integer type
@@ -680,8 +680,8 @@ def _scan_ascii_header(f, *args):
 
     Parameters
     ----------
-    f : ASCII-formated file object
-        The file from which to read the array of values.
+    f : file
+        ASCII-formated file from which to read the array of values.
 
     Returns
     -------
