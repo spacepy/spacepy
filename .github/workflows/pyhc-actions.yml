@@ -1,4 +1,4 @@
-name: PyHC Environment Compatibility
+name: PyHC Actions
 
 on:
   push:
@@ -11,7 +11,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
+  phep3-compliance:
+    name: PHEP 3 Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PHEP 3 Compliance
+        uses: heliophysicsPy/pyhc-actions/phep3-compliance@v1
+
+  pyhc-env-compat:
+    name: PyHC Environment Compatibility
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
