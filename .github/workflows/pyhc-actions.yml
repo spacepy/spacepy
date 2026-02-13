@@ -1,13 +1,15 @@
 name: PyHC Actions
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
+    paths:
+      - .github/workflows/pyhc-actions.yml
+      - pyproject.toml
+      - setup.py
   schedule:
-    # Run quarterly: Jan 1, Apr 1, Jul 1, Oct 1 at 3pm UTC (8am Mountain Time)
-    - cron: '0 15 1 1,4,7,10 *'
+    # Run monthly on 1st at 1500 UTC (8am Mountain Time)
+    - cron: '0 15 1 * *'
   workflow_dispatch:
 
 permissions: {}
