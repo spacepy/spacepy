@@ -10,7 +10,10 @@ on:
     - cron: '0 15 1 1,4,7,10 *'
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
+  # See https://github.com/heliophysicsPy/pyhc-actions for actions
   phep3-compliance:
     name: PHEP 3 Compliance
     runs-on: ubuntu-latest
