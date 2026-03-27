@@ -80,3 +80,8 @@ For acknowledging SpacePy, please provide the URL to our github repository: [git
 
 ## Changes
 Changes in the released version of SpacePy are provided in the [release notes](https://spacepy.github.io/release_notes.html). For changes since the latest release, see the [repository version](https://github.com/spacepy/spacepy/blob/main/Doc/source/release_notes.rst).
+
+## The Python in Heliophysics Community
+[![PyHC Actions](https://github.com/spacepy/spacepy/actions/workflows/pyhc-actions.yml/badge.svg)](https://github.com/spacepy/spacepy/actions/workflows/pyhc-actions.yml)
+
+SpacePy is a core package of the [Python in Heliophysics Community (PyHC)](https://heliopython.org/), "promoting and facilitating the use and development of Python for Heliophysics".

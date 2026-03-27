@@ -1,0 +1,35 @@
+name: PyHC Actions
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/pyhc-actions.yml
+      - pyproject.toml
+      - setup.py
+  schedule:
+    # Run monthly on 1st at 1500 UTC (8am Mountain Time)
+    - cron: '0 15 1 * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  # See https://github.com/heliophysicsPy/pyhc-actions for actions
+  phep3-compliance:
+    name: PHEP 3 Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PHEP 3 Compliance
+        uses: heliophysicsPy/pyhc-actions/phep3-compliance@v1
+
+  pyhc-env-compat:
+    name: PyHC Environment Compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PyHC Environment Compatibility
+        uses: heliophysicsPy/pyhc-actions/pyhc-env-compat@v1
