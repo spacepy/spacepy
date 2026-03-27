@@ -134,8 +134,15 @@ sed -i '' 's/LDLIB=-L\$(XCODEDir)/LDLIB?=-L\$(XCODEDir)/' Makefile
 # pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
 # For Apple Silicon
 SDKROOT=/opt/MacOSX11.0.sdk make XCODEVERSION=10.2 LDLIB=-L/opt/MacOSX11.0.sdk/usr/lib OS=macosx ENV=arm64 SHARED=yes CURSES=no FORTRAN=no all
-# For Intel
+# For Intel, built on Intel
 SDKROOT=/opt/MacOSX10.9.sdk make XCODEVERSION=10.2 LDLIB="-L/opt/MacOSX10.9.sdk/usr/lib -L/opt/MacOSX10.9.sdk/usr/lib/system" OS=macosx ENV=x86_64 SHARED=yes CURSES=no FORTRAN=no all
+# To build Intel *on Apple Silicon*
+SDKROOT=/opt/MacOSX10.9.sdk arch -x86_64 make XCODEVERSION=10.2 LDLIB="-L/opt/MacOSX10.9.sdk/usr/lib -L/opt/MacOSX10.9.sdk/usr/lib/system" OS=macosx ENV=x86_64 SHARED=yes CURSES=no FORTRAN=no all
+
+The assumption of the build scripts now is that both the x86 and ARM
+builds will be done on ARM, so the mac_x86_wheels.sh script will call
+Rosetta appropriately. This means both 11.0 and 10.9 SDK must be
+present.
 
 Unzip the spacepy source distribution made above into another directory. Copy
 over the developer/scripts/mac_x86_wheels.sh script into that directory

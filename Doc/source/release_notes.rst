@@ -12,6 +12,10 @@ This document presents user-visible changes in each release of SpacePy.
 ==========
 0.8.0 (2025-xx-xx)
 ------------------
+Mac binaries for x86_64 (Intel) are now built on ARM (Apple Silicon)
+under Rosetta; please `open a discussion
+<https://github.com/spacepy/spacepy/discussions/new?category=support-and-q-a>`_
+for any difficulties running on Intel Mac.
 
 New features
 ************
