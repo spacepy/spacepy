@@ -18,6 +18,9 @@ New features
 `.pycdf.CDF.leapsecond_lastupdated` was added to allow reading and
 setting the last update of the leapsecond table in a CDF.
 
+`.pybats.IdlFile` now reads ascii-formated .outs files and can switch between
+frames identically to binary counterparts.
+
 Major bugfixes
 **************
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
