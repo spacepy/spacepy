@@ -2,7 +2,7 @@
 
 # Run unit tests on all the wheels, mac version
 
-VERSIONS="3.7 3.8 3.9 3.10 3.11 3.12 3.13"
+VERSIONS="3.7 3.8 3.9 3.10 3.11 3.12 3.13 3.14"
 
 for PYVER in ${=VERSIONS}
 do
