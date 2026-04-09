@@ -81,19 +81,19 @@ class SeaBase(object):
         if isinstance(td[0], dt.timedelta):
             td_numeric = np.array([t.total_seconds() for t in td])
             nonmon = (td_numeric < 0).any()
-            # Most common time difference (mode via histogram)
-            hist_counts, hist_edges = np.histogram(td_numeric, bins='auto')
-            peak_bin = np.argmax(hist_counts)
-            common_diff = 0.5 * (hist_edges[peak_bin] + hist_edges[peak_bin + 1])
+            # Most common time difference (mode via unique-counts)
+            rounded = np.round(td_numeric, decimals=6)
+            vals, counts = np.unique(rounded, return_counts=True)
+            common_diff = vals[counts.argmax()]
             noncontig_indices = np.where(
                 ~np.isclose(td_numeric, common_diff))[0]
             noncontig = len(noncontig_indices) > 0
         else:
             nonmon = (td < 0).any()
-            # Most common time difference (mode via histogram)
-            hist_counts, hist_edges = np.histogram(td, bins='auto')
-            peak_bin = np.argmax(hist_counts)
-            common_diff = 0.5 * (hist_edges[peak_bin] + hist_edges[peak_bin + 1])
+            # Most common time difference (mode via unique-counts)
+            rounded = np.round(td, decimals=6)
+            vals, counts = np.unique(rounded, return_counts=True)
+            common_diff = vals[counts.argmax()]
             noncontig_indices = np.where(~np.isclose(td, common_diff))[0]
             noncontig = len(noncontig_indices) > 0
 
