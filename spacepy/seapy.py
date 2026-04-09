@@ -81,15 +81,19 @@ class SeaBase(object):
         if isinstance(td[0], dt.timedelta):
             td_numeric = np.array([t.total_seconds() for t in td])
             nonmon = (td_numeric < 0).any()
-            # Most common time difference
-            common_diff = np.median(td_numeric)
+            # Most common time difference (mode via histogram)
+            hist_counts, hist_edges = np.histogram(td_numeric, bins='auto')
+            peak_bin = np.argmax(hist_counts)
+            common_diff = 0.5 * (hist_edges[peak_bin] + hist_edges[peak_bin + 1])
             noncontig_indices = np.where(
                 ~np.isclose(td_numeric, common_diff))[0]
             noncontig = len(noncontig_indices) > 0
         else:
             nonmon = (td < 0).any()
-            # Most common time difference
-            common_diff = np.median(td)
+            # Most common time difference (mode via histogram)
+            hist_counts, hist_edges = np.histogram(td, bins='auto')
+            peak_bin = np.argmax(hist_counts)
+            common_diff = 0.5 * (hist_edges[peak_bin] + hist_edges[peak_bin + 1])
             noncontig_indices = np.where(~np.isclose(td, common_diff))[0]
             noncontig = len(noncontig_indices) > 0
 
@@ -337,7 +341,7 @@ class Sea(SeaBase):
         super(Sea, self).__init__(data, times, epochs,
                                   window=window, delta=delta, verbose=verbose)
 
-    def sea(self, **kwargs):
+    def sea(self, force=False, **kwargs):
         """Method called to perform superposed epoch analysis on data in object.
 
         Uses object attributes obj.data, obj.times, obj.epochs, obj.delta,
@@ -345,6 +349,13 @@ class Sea(SeaBase):
 
         Other Parameters
         ================
+        force : boolean
+            If True, allow re-running the analysis on an object that
+            already has results, clearing previous outputs first.
+            (default = False)
+
+            .. versionadded:: 0.7.0
+
         storedata : boolean
             saves matrix of epoch windows as obj.datacube (default = False)
         quartiles : list
@@ -360,7 +371,14 @@ class Sea(SeaBase):
         =====
         A basic plot can be raised with :meth:`plot`
         """
-        # Allow safe re-runs: wipe any previous SEA results
+        has_results = hasattr(self, 'semean') or hasattr(self, 'semedian')
+        if has_results and not force:
+            warnings.warn(
+                'sea() results already exist; pass force=True to recompute.'
+                ' Returning existing results without recomputing.')
+            return
+
+        # Clear any previous SEA results before re-running
         for attr in ('semean', 'semedian', 'datacube', 'timecube',
                      'bound_low', 'bound_high', 'bound_type'):
             if hasattr(self, attr):

@@ -363,7 +363,17 @@ class SEARerunTests(unittest.TestCase):
                              window=3, delta=1, verbose=False)
 
         self.obj.sea(storedata=True)
-        self.obj.sea(storedata=True)        # run it twice in a row
+        self.obj.sea(storedata=True, force=True)  # run it twice in a row
+
+    def test_rerun_requires_force(self):
+        """calling sea() again without force=True should warn and noop"""
+        old_median = self.obj.semedian.copy()
+        old_mean = self.obj.semean.copy()
+        with self.assertWarns(UserWarning):
+            self.obj.sea(storedata=True)
+        # Results should be unchanged (no recompute)
+        ntest.assert_array_equal(self.obj.semedian, old_median)
+        ntest.assert_array_equal(self.obj.semean, old_mean)
 
     def test_rerun_with_new_window(self):
         """second call to sea() rebuilds all arrays with new size"""
@@ -372,7 +382,7 @@ class SEARerunTests(unittest.TestCase):
 
         # change parameter and re-run
         self.obj.window = 5                       # new half-window
-        self.obj.sea(storedata=True)              # re-run with new window
+        self.obj.sea(storedata=True, force=True)  # re-run with new window
 
         new_len = len(self.obj.semedian)          # expect 11
         new_shape = self.obj.datacube.shape
