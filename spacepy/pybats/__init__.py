@@ -133,8 +133,9 @@ def parse_filename_time(filename):
         runtime = None
 
     # Look for file iteration:
-    if '_n' in filename:
-        subname = re.search(r'_n((\d+\_?)+)', filename).groups()[0]
+    _iter_match = re.search(r'_n((\d+_?)+)', filename)
+    if _iter_match:
+        subname = _iter_match.groups()[0]
         i_iter = [int(x) for x in re.findall(r'\d+', subname)]
         # Reduce to scalar if necessary.
         if len(i_iter) == 1:
