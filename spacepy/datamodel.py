@@ -923,7 +923,7 @@ def dmfilled(shape, fillval=0, dtype=None, order='C', attrs=None):
     >>> dm.dmfilled(5, attrs={'units': 'nT'})
     dmarray([ 0.,  0.,  0.,  0.,  0.])
 
-    >>> dm.dmfilled((5,), fillval=1, dtype=np.int)
+    >>> dm.dmfilled((5,), fillval=1, dtype=int)
     dmarray([1, 1, 1, 1, 1])
 
     >>> dm.dmfilled((2, 1), fillval=np.nan)
