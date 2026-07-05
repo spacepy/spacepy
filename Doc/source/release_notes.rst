@@ -23,6 +23,9 @@ Major bugfixes
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
 plotting and reading files with non-MJD timestamps.
 
+`~spacepy.irbempy.Shieldose2` no longer requires the trapped and solar
+(untrapped) proton spectra to have the same number of energy points.
+
 Other changes
 *************
 The IGRF provided with SpacePy (used in the default spacepy backend for
