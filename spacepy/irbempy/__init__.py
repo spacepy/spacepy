@@ -1571,7 +1571,9 @@ class Shieldose2:
             argdict['emine'] = argdict['energy_e'].min()
             argdict['emaxe'] = argdict['energy_e'].max()
             argdict['len_p'] = len(argdict['energy_p_un'])
-            argdict['jpmax'] = len(argdict['energy_p_un'])
+            # jpmax sizes the trapped proton spectrum, jsmax the solar
+            # (untrapped) one; they may differ in length
+            argdict['jpmax'] = len(argdict['energy_p_tr'])
             argdict['jsmax'] = len(argdict['energy_p_un'])
             argdict['eminpun'] = argdict['energy_p_un'].min()
             argdict['emaxpun'] = argdict['energy_p_un'].max()
