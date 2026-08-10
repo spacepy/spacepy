@@ -5,14 +5,43 @@ PyBats submodule for handling input/output for the CIMI Model
 '''
 
 # Global imports:
+import os
+import re
 import numpy as np
 import datetime as dt
+from glob import glob
 import spacepy.plot.apionly
 from spacepy.plot import set_target
 from spacepy.pybats import PbData, IdlFile
 from spacepy.datamodel import dmarray
 
 
+def auto_extend_dir(data, zlim):
+    '''
+    Work out which direction(s) a contourf/colorbar should be "extended" in,
+    based on whether *data* actually goes beyond the plotted *zlim*.
+
+    Without this, contourf leaves any point outside the plotted z-range
+    completely unfilled -- for a dial plot (grey axis background, see
+    _adjust_dialplot) or any other plot with a non-white background, those
+    points show up as grey/blank patches instead of being clipped to the
+    nearest color. Passing the returned string straight through to
+    contourf/contour's `extend` kwarg fixes that and adds the matching
+    triangle arrow(s) to the colorbar, so it's clear the color was clipped
+    rather than the data being missing.
+
+    Returns 'neither', 'min', 'max', or 'both'.
+    '''
+    data = np.asarray(data)
+    below = np.nanmin(data) < zlim[0]
+    above = np.nanmax(data) > zlim[1]
+    if below and above:
+        return 'both'
+    if below:
+        return 'min'
+    if above:
+        return 'max'
+    return 'neither'
 
 
 class CimiEq(PbData):
@@ -95,11 +124,11 @@ class CimiEq(PbData):
     def m3_to_cc(self):
         """
         This function transforms density data from m3 to cm3.
-        It does this by searching for self[VAR].attrs['units'] == '/m3'.
+        It does this by searching for self[VAR].attrs['units'] == '/m3' or == 'm3'.
         If you're desnity values are not saved with this unit exactly it won't work!
         """
         for var in self.keys():
-            if var.attrs['units'] == '/m3':
+            if self[var].attrs['units'] == '/m3' or self[var].attrs['units'] == 'm3':
                 self[var] = self[var] / 1e6
                 self[var].attrs['units'] = '/cc'
 
@@ -211,6 +240,7 @@ class CimiEq(PbData):
                       target=None, loc=111, title=None,
                       add_cbar=True, clabel=None,
                       dolog=False, add_body=True, filled=True,
+                      extend='auto',
                       *args, **kwargs):
         '''
         Create an equatorial "dial plot" of variable *var*: a polar contour
@@ -232,7 +262,7 @@ class CimiEq(PbData):
         (defaults to *None* if not used.)
 
         Unlike :meth:`add_slice`, there is no *time* kwarg here -- a
-        CimiEq object represents a single snapshot, so add_dialplot just
+        CimiEq*.out object represents a single snapshot, so add_dialplot just
         plots whatever is currently stored on it (if the object somehow
         holds more than one time, the most recent is used).
 
@@ -240,7 +270,7 @@ class CimiEq(PbData):
         Kwarg       Description
         =========== ==========================================================
         var         The variable to be plotted. (string)
-        rmax        Maximum L-shell/radius shown on the dial. Defaults to 10.
+        rmax        Maximum L-shell/radius shown on the dial. Defaults to 12.
         lon         Longitude/MLT grid, in radians, to plot against.
                     Defaults to the longitudes calculated from **x** and
                     **y**, which handles CIMI's grid shifting from one
@@ -258,6 +288,13 @@ class CimiEq(PbData):
                     Defaults to *True*.
         filled      Use filled contours instead of contour lines. Defaults
                     to *True*.
+        extend      Which end(s) of the colorbar to "extend" (draw a
+                    triangle arrow and clip out-of-range values into it,
+                    instead of leaving them unfilled/grey). One of
+                    'auto', 'neither', 'min', 'max', 'both', or a falsy
+                    value (None/False) to disable. Defaults to *'auto'*,
+                    which calls :func:`auto_extend_dir` to pick the right
+                    direction from *var*'s actual data range vs. *zlim*.
         =========== ==========================================================
 
         Extra args and kwargs (e.g. *cmap*) are handed to the matplotlib
@@ -322,6 +359,16 @@ class CimiEq(PbData):
         lon = np.concatenate([lon, lon[:, [0]] + 2*np.pi], axis=1)
         r = np.concatenate([r, r[:, [0]]], axis=1)
         z = np.concatenate([z, z[:, [0]]], axis=1)
+
+        # Figure out the colorbar/contour "extend" direction.  'auto'
+        # (the default) checks the raw data against zlim so out-of-range
+        # values get clipped into a triangle arrow instead of leaving a
+        # grey gap on the dial; pass an explicit direction to override,
+        # or None/False to turn this off entirely.
+        if extend == 'auto':
+            extend = auto_extend_dir(value, zlim)
+        if extend:
+            kwargs['extend'] = extend
 
         # Plot contour.
         contour = ax.contourf if filled else ax.contour
@@ -614,3 +661,156 @@ class CimiLog(PbData):
 
 
         return fig, ax
+
+
+###############################################################################
+#########################  CIMI *.outs SPLITTING UTILITY  ###################
+###############################################################################
+# CIMI writes each session's output as one big *.outs file containing many
+# concatenated 'CIMI output' blocks (one per saved timestep). CimiSplit()
+# below breaks a *.outs file back apart into individual *.out files (one per
+# timestep) so they can be read one at a time with CimiEq. It is a plain
+# module-level function -- call it as cimi.CimiSplit(), not through CimiEq.
+
+def _find_outs_files():
+    '''
+    Search the standard SWMF/IM run layout for CIMI *.outs files:
+    ./IM/*.outs, ./IM/*/*.outs, ../IM/*.outs, and ../IM/*/*.outs.
+    Returns a sorted, de-duplicated list of the paths found.
+    '''
+    patterns = ('./IM/*.outs', './IM/*/*.outs', '../IM/*.outs', '../IM/*/*.outs')
+    found = []
+    seen = set()
+    for pattern in patterns:
+        for f in sorted(glob(pattern)):
+            key = os.path.realpath(f)
+            if key not in seen:
+                seen.add(key)
+                found.append(f)
+    return found
+
+
+def _strip_one_entry(data):
+    '''
+    Pull the lines belonging to the first 'CIMI output' entry off the front
+    of *data* (a list of lines, as from readlines()). Returns a 2-tuple of
+    (remaining_lines, entry_lines) -- remaining_lines starts with the next
+    'CIMI output' marker (or is empty if *data* held only one entry).
+    '''
+    entry = [data[0]]
+    for i, line in enumerate(data[1:], start=1):
+        if line == 'CIMI output\n':
+            return data[i:], entry
+        entry.append(line)
+    return [], entry
+
+
+def _write_cimi_file(entry_lines, out_dir, prefix, origin_tag):
+    '''
+    Write one stripped-out CIMI entry to its own file, named
+    '{prefix}_t{elapsed_seconds:08d}_{origin_tag}.out'. The elapsed-seconds
+    value is pulled from the entry's own header line (entry_lines[1]) and is
+    the time since *that .outs session* began, not necessarily the absolute
+    simulation time -- see CimiSplit's docstring. Returns the path written.
+    '''
+    time_stamp = entry_lines[1].split()[1]
+    filename = '{}_t{:08d}_{}.out'.format(prefix, int(float(time_stamp)), origin_tag)
+    path = os.path.join(out_dir, filename) if out_dir else filename
+    with open(path, 'w') as f:
+        f.writelines(entry_lines)
+    return path
+
+
+def _split_one_file(infile):
+    '''
+    Split a single CIMI *.outs file (e.g. CIMIeq_n00002706.outs) into one
+    *.out file per 'CIMI output' entry, written alongside *infile*. Returns
+    the list of paths written (empty if *infile* couldn't be read or doesn't
+    match the expected '..._nXXXXXXXX.outs' naming convention).
+    '''
+    try:
+        with open(infile, 'r') as f:
+            data = f.readlines()
+    except OSError as exc:
+        print('CimiSplit: could not read {}: {} -- skipping.'.format(infile, exc))
+        return []
+
+    basename = os.path.basename(infile)
+    match = re.match(r'^(?P<prefix>.+)_n(?P<origin>\d+)\.outs$', basename)
+    if not match:
+        print("CimiSplit: {} doesn't look like a '..._nXXXXXXXX.outs' file "
+              '-- skipping.'.format(basename))
+        return []
+    prefix = match.group('prefix')
+    origin_tag = 'n' + match.group('origin')
+    out_dir = os.path.dirname(infile)
+
+    written = []
+    while data:
+        data, entry = _strip_one_entry(data)
+        if len(entry) < 2:
+            continue  # stray/empty trailing block; nothing usable to write.
+        written.append(_write_cimi_file(entry, out_dir, prefix, origin_tag))
+    return written
+
+
+def CimiSplit(pattern=None, confirm=True):
+    '''
+    Split CIMI *.outs files into individual per-timestep *.out files.
+
+    Each *.outs file concatenates many timestamped 'CIMI output' blocks
+    written during a single simulation session. This splits each block out
+    into its own file, named e.g. 'CIMIeq_t00027060_n00002706.out':
+    the 't########' piece is the elapsed seconds *since that session began*
+    (not necessarily the absolute simulation time -- a restart begins a new
+    session with its own elapsed-time counter), and the 'nXXXXXXXX' origin
+    tag records which source *.outs file/session the entry came from, so
+    that restarted runs re-covering some of the same timestamps don't
+    collide or get overwritten.
+
+    If *pattern* is left as None (the default), CimiSplit searches the
+    current directory and its immediate subdirectories, plus the parent
+    directory and its immediate subdirectories, using the layout SWMF/IM
+    runs normally use:
+
+        ./IM/*.outs   ./IM/*/*.outs   ../IM/*.outs   ../IM/*/*.outs
+
+    *pattern* can instead be given as a single glob pattern, a specific
+    file path, or a list of file paths, to split something other than
+    what the default search would find.
+
+    Before splitting anything, the files that were found are printed and
+    the user is asked to confirm before continuing. Pass confirm=False to
+    skip that prompt (e.g. for scripted/non-interactive use).
+
+    Returns the list of *.out files written.
+    '''
+    if pattern is None:
+        files = _find_outs_files()
+    elif isinstance(pattern, str):
+        files = sorted(glob(pattern)) or [pattern]
+    else:
+        files = list(pattern)
+
+    if not files:
+        print('CimiSplit: no *.outs files found in ./IM, ./IM/*, ../IM, or '
+              '../IM/* -- nothing to do.')
+        return []
+
+    print('CimiSplit found {} file(s) to split:'.format(len(files)))
+    for f in files:
+        print('    {}'.format(f))
+
+    if confirm:
+        answer = input('Continue with the split? [y/N] ').strip().lower()
+        if answer not in ('y', 'yes'):
+            print('CimiSplit: aborted -- no files were split.')
+            return []
+
+    written = []
+    for index, file in enumerate(files):
+        print('Working on file: {} / {}  ({})'.format(index + 1, len(files), file))
+        written.extend(_split_one_file(file))
+
+    print('CimiSplit: wrote {} file(s).'.format(len(written)))
+    return written
