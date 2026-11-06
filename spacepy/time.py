@@ -2137,21 +2137,6 @@ def _read_leaps(oldstyle=False):
         mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
         day[i] = int(line.split()[2])
 
-    # Check for out of date. The leap second bulletin comes every
-    # six months, and that contains information through the following
-    # leap second (end of June/Dec)
-    try:
-        utcnow = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
-    except AttributeError:
-        utcnow = datetime.datetime.utcnow()
-    if mtime is not None and spacepy.config['enable_old_data_warning'] \
-       and not _leapsgood(
-           utcnow, mtime,
-           datetime.datetime(int(year[-1]), int(mon[-1]), int(day[-1]))):
-            warnings.warn('Leapseconds may be out of date.'
-                          ' Use spacepy.toolbox.update(leapsecs=True)',
-                          stacklevel=2)
-
     TAIleaps = np.zeros(len(secs))
     TAItup = [''] * len(secs)
     TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
