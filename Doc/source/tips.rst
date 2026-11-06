@@ -42,7 +42,7 @@ The most C-like way is just a straight up for loop
 >>> for i in range(len(data)):
 >>>     data[i] += 1
 
-This is 6 function calls in 2.590 CPU seconds (from :py:mod:`cProfile`)
+This is 6 function calls in 2.590 CPU seconds (from :py:mod:`profile`)
 
 The next, more Pythonic, way is with a list comprehension
 
@@ -101,7 +101,7 @@ points to drop::
         Shell_x0_y0_z0 = np.take(Shell_x0_y0_z0, ARG, axis = 0)  # sort based on index order
         return Shell_x0_y0_z0[:-Num_Pts_Removed,:]   #remove last points that have the "anomalously" high flux
 
-A cProfile of this yields a lot of time spent just in the function itself; this
+A profile of this yields a lot of time spent just in the function itself; this
 is the for loop (list comprehension is a little faster but not much in this case)::
 
     Tue Jun 14 10:10:56 2011    SortRemove_HighFluxPts_.prof
@@ -230,7 +230,7 @@ The original code::
         x0_y0_z0 = np.array(zip(x0,y0,z0))     #combine into 3 column (x,y,z) file
         return (x0_y0_z0)
 
-Profiling this with :mod:`cProfile` shows that a lot of time is spent in :func:`zip`::
+Profiling this with :mod:`profile` shows that a lot of time is spent in :func:`zip`::
 
     Tue Jun 14 09:54:41 2011    PointsOnSphere.prof
 
@@ -268,7 +268,7 @@ the array from the elements made by :py:func:`zip` to just concatenating the arr
         x0_y0_z0 = np.vstack((x0, y0, z0)).transpose()
         return (x0_y0_z0)
 
-Profiling this with :py:mod:`cProfile` one can see that this is now fast enough for me,
+Profiling this with :py:mod:`profile` one can see that this is now fast enough for me,
 no more work to do.  We picked up a 48x speed increase, I'm sure this can still
 be made better and let the SpacePy team know if you rewrite it and it will be
 included::
