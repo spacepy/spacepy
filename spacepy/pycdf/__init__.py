@@ -4121,8 +4121,10 @@ class _Hyperslice(object):
             if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
                 dt = numpy.dtype('U{0}'.format(result.dtype.itemsize))
                 result = numpy.require(
-                    numpy.char.array(result).decode(
-                        encoding=self.zvar.cdf_file.encoding, errors='replace'),
+                    numpy.char.decode(
+                        numpy.array(result, dtype=numpy.bytes_),
+                        encoding=self.zvar.cdf_file.encoding,
+                        errors='replace'),
                     dtype=dt)
             elif cdftype == const.CDF_EPOCH.value:
                 result = lib.v_epoch_to_datetime(result)
@@ -5076,8 +5078,10 @@ class Attr(MutableSequence):
             if self._raw:
                 result = bytes(buff)
             else:  # Make unicode
-                result = str(numpy.char.array(buff).decode(
-                    encoding=self._cdf_file.encoding, errors='replace'))
+                result = str(numpy.char.decode(
+                    numpy.array(buff, dtype=numpy.bytes_),
+                    encoding=self._cdf_file.encoding,
+                    errors='replace'))
         else:
             if not self._raw:
                 if cdftype == const.CDF_EPOCH.value:
