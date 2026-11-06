@@ -521,12 +521,18 @@ class ISTPContainer(collections.abc.Mapping):
             cmap = matplotlib.cm.get_cmap()
         cmap = copy.copy(cmap)
         if cmap(-1.)[:3] == cmap(0.)[:3]:  # Underflow to black if not specified
-            cmap = cmap.with_extremes(under='k')
+            try:
+                cmap = cmap.with_extremes(under='k')
+            except AttributeError:  # mpl < 3.4
+                cmap.set_under('k')
         # Fill to grey or white
         if cmap(numpy.nan)[:3] == cmap(0.)[:3] and cmap(numpy.nan)[-1] > 0.:
             bad = (.5, .5, .5, 0.) if cmap(1.)[:3] == (1., 1., 1.) \
                 else (1., 1., 1., 0.)
-            cmap = cmap.with_extremes(bad=bad)
+            try:
+                cmap = cmap.with_extremes(bad=bad)
+            except AttributeError:  # mpl < 3.4
+                cmap.set_bad(bad)
         ax = spacepy.plot.simpleSpectrogram(numpy.array(x), numpy.array(y), data, cbtitle=zlabel,
                                             ax=ax, zero_valid=True, cmap=cmap)
         ylabel = y.attrs.get('LABLAXIS', '')
