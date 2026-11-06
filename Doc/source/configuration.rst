@@ -59,11 +59,10 @@ data, which can be updated with :func:`~spacepy.toolbox.update`.
 Available configuration options
 ===============================
 enable_old_data_warning
-  SpacePy maintains certain databases from external sources, notably the
-  leapsecond database used by :py:mod:`~spacepy.time`. By default
-  :exc:`UserWarning` is issued if the leap second database
-  is out of date. Set this option to False to suppress this warning (and
-  warnings about out-of-date data which may be added in the future.)
+  SpacePy maintains certain databases from external sources. SpacePy
+  may in the future issue :exc:`UserWarning` if any data are detected
+  to be out of date.  Set this option to False to suppress these
+  warnings. (Not currently used).
 
 keepalive
   True to attempt to use HTTP keepalives when downloading data in
