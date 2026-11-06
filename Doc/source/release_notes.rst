@@ -36,6 +36,10 @@ and bugfixes. This now reflects the upstream repository as of 2024-12-14 (commit
 This is used across `spacepy.irbempy` as well as in the (non-default)
 irbem backend for coordinate conversion.
 
+The check for out-of-date leapseconds in :mod:`~spacepy.time` has been
+removed, as leapseconds are not expected to be updated for at least a
+century.
+
 
 0.7 Series
 ==========
