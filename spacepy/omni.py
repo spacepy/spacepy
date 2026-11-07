@@ -32,7 +32,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
     returning the OMNI values as a SpaceData (dict-like) with
     Kp, Dst, dens, velo, Pdyn, ByIMF, BzIMF, G1, G2, G3, etc.
     (see also http://www.dartmouth.edu/~rdenton/magpar/index.html and
-    http://www.agu.org/pubs/crossref/2007/2006SW000296.shtml )
+    https://doi.org/10.1029/2006SW000296 )
 
     Parameters
     ==========

@@ -28,7 +28,7 @@ Required to install SpacePy.
 
 NumPy 1.15.1+
 -------------
-`NumPy <http://numpy.scipy.org/>`_ provides the
+`NumPy <http://numpy.org/>`_ provides the
 high-performance array data structure used throughout SpacePy. Version
 1.15.1 or later is required. Due to a numpy bug, numpy 1.15.0 is not supported.
 
@@ -83,7 +83,7 @@ without SciPy:
 
 matplotlib 3.1+
 ---------------
-`matplotlib <http://matplotlib.sourceforge.net/>`_ is the preferred
+`matplotlib <https://matplotlib.org/>`_ is the preferred
 plotting package for Python. It is highly recommended. Without it, you
 will not be able to effectively visualize data, and the following
 modules may have limited functionality or fail entirely:
@@ -98,7 +98,7 @@ modules may have limited functionality or fail entirely:
 
 h5py 2.10+
 ----------
-`h5py <http://code.google.com/p/h5py/>`_ provides a Python interface to
+`h5py <https://www.h5py.org/>`_ provides a Python interface to
 HDF5 files. It is required for the HDF import/export capability of
 :mod:`~spacepy.datamodel` and for use of the :mod:`~spacepy.omni` module.
 

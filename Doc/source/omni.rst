@@ -15,18 +15,18 @@ See also the `full API documentation <spacepy.omni>`.
 About omni
 ----------
 The omni module primarily manages the hourly OMNI2 and Qin-Denton data, which
-are sourced from the Virtual Radiation Belt Observatory (`ViRBO <http://virbo.org>`_), 
+are sourced from the Virtual Radiation Belt Observatory (`ViRBO <https://virbo.org>`_), 
 who maintain these data sources. The data can be kept up-to-date in SpacePy 
 using the :func:`~spacepy.toolbox.update` function in the :mod:`spacepy.toolbox` module.
 
 The OMNI2 data combines data from a variety of satellites that sample the solar
 wind (notably ACE and Wind), and propagates the data to Earth's bow shock nose.
-The `Qin-Denton <http://virbo.org/QinDenton>`_ data is derived from the OMNI2 
+The `Qin-Denton <https://virbo.org/QinDenton>`_ data is derived from the OMNI2 
 data and is designed for providing input to the Tsyganenko magnetic field 
 models. The later Tsyganenko magnetic field models require subsidiary parameters
 (G- and W-parameters) that are pre-calculated in the Qin-Denton data. Further,
 the Qin-Denton data contains no data gaps -- all gaps are filled (for details on
-the gap filling, see the paper by `Qin et al. <http://dx.doi.org/10.1029/2006SW000296>`_.)
+the gap filling, see the paper by `Qin et al. <https://doi.org/10.1029/2006SW000296>`_.)
 
 
 Advanced features

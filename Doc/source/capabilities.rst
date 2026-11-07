@@ -34,7 +34,7 @@ with additional functionality for those with ISTP-compliant metadata.
 :mod:`~spacepy.datamodel` provides easy reading and writing of HDF5
 and most netCDF files. It also supports reading and writing ASCII-based
 data files with rich JSON metadata, supported by tools such as
-`Autoplot <http://autoplot.org>`_.
+`Autoplot <https://autoplot.org>`_.
 
 :func:`numpy.loadtxt` and related functions are helpful for reading
 various "plain-text" files into numerical arrays.

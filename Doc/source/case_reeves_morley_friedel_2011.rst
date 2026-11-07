@@ -5,7 +5,7 @@ Paulikas and Blake revisited (Reeves et al. 2011)
 This case study reproduces the figures of Reeves et al. (2011),
 "On the relationship between relativistic electron flux and solar wind
 velocity: Paulikas and Blake revisited"
-(`doi:10.1029/2010JA015735 <http://dx.doi.org/10.1029/2010JA015735>`_).
+(`doi:10.1029/2010JA015735 <https://doi.org/10.1029/2010JA015735>`_).
 
 Setup
 =====
@@ -13,12 +13,12 @@ Create a directory to hold files for this case study. Within this
 directory, create subdirectories ``code``, ``data``, and
 ``plots``. (Using version control on the code directory is
 recommended; the SpacePy team uses `git
-<http://git-scm.com/documentation>`_.)
+<https://git-scm.com/>`_.)
 
 Obtaining energetic particle data
 =================================
 We require the 1.8-3.5 MeV electron flux from the LANL-GEO ESP
-detector, available in the paper's auxiliary material (scroll down to "Supporting information" on the `paper's page <http://dx.doi.org/10.1029/2010JA015735>`_. The
+detector, available in the paper's auxiliary material (scroll down to "Supporting information" on the `paper's page <https://doi.org/10.1029/2010JA015735>`_. The
 ESP data are in Data Set S1. Save this file to the ``data`` directory;
 the filename is assumed to be ``jgra20797-sup-0003-ds01.txt``.
 
@@ -77,7 +77,7 @@ looks like ``In [1]``.
 
 The first line imports the :py:mod:`os.path` module from the Python
 standard library. Python has a huge `standard library
-<http://docs.python.org/library/index.html>`_. To keep this code
+<https://docs.python.org/3/library/index.html>`_. To keep this code
 organized, it is divided into many modules, and a module must be
 imported before it can be used. (The `Python module of the week
 <http://www.doughellmann.com/PyMOTW/>`_ is a great way to explore the
@@ -142,7 +142,7 @@ This line sets up a converter to be used later. :meth:`~datetime.datetime.strpti
 2010-01-02 00:00:00
 
 `lambda
-<http://docs.python.org/tutorial/controlflow.html#lambda-forms>`_ is a
+<https://docs.python.org/3/tutorial/controlflow.html#lambda-expressions>`_ is a
 simple shortcut for a one-liner function; wherever ``convert(x)`` is
 used after the definition, it functions like
 ``datetime.datetime.strptime(x, '%Y-%m-%d')``. This makes it easier to
@@ -481,7 +481,7 @@ the body of the paper better (assuming the paper is in LaTeX). The
 larger font means tweaking the bounding box. ``unicode_minus`` fixes a
 problem where negative numbers on the axis don't render properly in
 TeX. Matplotlib has many more options for `customization
-<http://matplotlib.sourceforge.net/users/customizing.html>`_.
+<https://matplotlib.org/stable/users/explain/customizing.html>`_.
 
 The end result is a nice figure that can be printed full-size, put in
 a PDF, or included directly in a paper.
@@ -518,7 +518,7 @@ from then on (specifying a start index without a stop index in Python
 means "from start to end of the list.") Note that, although ``bisect``
 is meant to work on lists, it also works fine on numpy arrays; this is a
 common feature of Python known as
-`duck typing <http://en.wikipedia.org/wiki/Duck_typing#In_Python>`_.
+`duck typing <http://en.wikipedia.org/wiki/Duck_typing>`_.
 
 We then use :func:`~numpy.asarray`
 to convert the ``ssn`` and ``smooth_ssn`` columns to float arrays. Note
@@ -565,7 +565,7 @@ Then we move on to adding the solar wind:
 This adds another subplot, the second in the 2x1 array. Its x axis is
 shared with the existing ``ax``. (This is poorly documented; see this
 `example
-<http://matplotlib.sourceforge.net/examples/pylab_examples/shared_axis_demo.html>`_)
+<https://matplotlib.org/stable/gallery/subplots_axes_and_figures/shared_axis_demo.html>`_)
 
 >>> plt.setp(ax.get_xticklabels(), visible=False)
 >>> plt.setp(ax2.get_xticklabels(), visible=False)

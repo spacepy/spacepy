@@ -945,8 +945,8 @@ class Ticktock(MutableSequence):
         This is based on the UTC day, defined as JD(UTC),
         per the recommendation
         of `IAU General Assembly XXIII resolution B1
-        <https://www.iers.org/IERS/EN/Science/Recommendations/
-        resolutionB1.html>`_.
+        <https://www.iers.org/fileadmin/SharedDocs/Publikationen/
+        EN/IERS/resolutions/IAU/IAU1997_Resolutions.pdf>`_.
         Julian days with leapseconds are 86401 seconds long and each second
         is a smaller fraction of the day. Note this "stretching" is across
         the *Julian* Day, noon to noon.
@@ -1003,8 +1003,8 @@ class Ticktock(MutableSequence):
         This is based on the UTC day, defined as JD(UTC) - 2 400 000.5,
         per the recommendation
         of `IAU General Assembly XXIII resolution B1
-        <https://www.iers.org/IERS/EN/Science/Recommendations/
-        resolutionB1.html>`_.
+        <https://www.iers.org/fileadmin/SharedDocs/Publikationen/
+        EN/IERS/resolutions/IAU/IAU1997_Resolutions.pdf>`_.
         Julian days with leapseconds are 86401 seconds long and each second
         is a smaller fraction of the day. Note this "stretching" is across
         the *Julian* Day not the MJD, so it will affect the last half of
@@ -1619,7 +1619,7 @@ class Ticktock(MutableSequence):
 def doy2date(year, doy, dtobj=False, flAns=False):
     """
     convert integer day-of-year doy into a month and day
-    after http://pleac.sourceforge.net/pleac_python/datesandtimes.html
+    after https://pleac.sourceforge.net/pleac_python/datesandtimes.html
 
     Parameters
     ==========

@@ -3,7 +3,7 @@
 Module for reading, manipulating, and visualizing BATS-R-US and SWMF output.
 
 For more information on the SWMF, please visit the
-`Center for Space Environment Modeling <http://csem.engin.umich.edu>`_.
+`Center for Space Environment Modeling <https://csem-home.engin.umich.edu/>`_.
 
 For additional documentation :doc:`../pybats`
 
@@ -66,7 +66,7 @@ def parse_filename_time(filename):
 
     Information on the format of time strings contained within SWMF output
     file names can be found in the `SWMF User Manual
-    <http://herot.engin.umich.edu/~gtoth/SWMF/doc/HTML/SWMF/node225.html>`_.
+    <https://csem.engin.umich.edu/SWMFTESTS/SWMF/doc/>`_.
 
     Parameters
     ==========
@@ -1410,7 +1410,7 @@ class NgdcIndex(PbData):
     Center (NGDC) provided index files (especially F10.7 and Kp).  These
     files, albeit simple ascii, have a unique format and expansive header
     that can be cumbersome to handle.  Data files can be obtained from
-    http://spidr.ngdc.noaa.gov .
+    https://www.ncei.noaa.gov/products/geomagnetic-indices .
 
     NgdcIndex objects aid in reading, creating, and visualizing these files.
 
