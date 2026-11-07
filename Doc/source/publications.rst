@@ -28,22 +28,22 @@ Peer-reviewed papers
 * Niehof, J. T., S. K. Morley, and R. H. W. Friedel (2012), Association of
   cusp energetic ions with geomagnetic storms and substorms, Ann. Geophys.,
   30 (12), 1633-1643, `doi:10.5194/angeo-30-1633-2012
-  <http://dx.doi.org/10.5194/angeo-30-1633-2012>`_.
+  <https://doi.org/10.5194/angeo-30-1633-2012>`_.
 
 * Turner, D. L., V. Angelopoulos, Y. Shprits, A. Kellerman, P. Cruce and 
   D. Larson (2012), Radial distributions of equatorial phase space density 
   for outer radiation belt electrons, Geophys. Res. Lett., 39, L09101, 
-  `doi:10.1029/2012GL051722 <http://dx.doi.org/10.1029/2012GL051722>`_.
+  `doi:10.1029/2012GL051722 <https://doi.org/10.1029/2012GL051722>`_.
 
 * Welling, D. T. and A. J. Ridley (2010), Exploring sources of magnetospheric 
   plasma using multispecies MHD, Journal of Geophysical Research, 115,
-  4201, `doi:10.1029/2009JA014596 <http://dx.doi.org/10.1029/2009JA014596>`_.
+  4201, `doi:10.1029/2009JA014596 <https://doi.org/10.1029/2009JA014596>`_.
 
 * Morley, S. K., R. H. W. Friedel, E. L. Spanswick, G. D. Reeves, J. T. Steinberg, 
   J. Koller, T. Cayton and E. Noveroske (2010), Dropouts of the outer electron 
   radiation belt in response to solar wind stream interfaces: Global 
   Positioning System observations, Proceedings of the Royal Society A,
-  `doi:10.1098/rspa.2010.0078 <http://dx.doi.org/10.1098/rspa.2010.0078>`_.
+  `doi:10.1098/rspa.2010.0078 <https://doi.org/10.1098/rspa.2010.0078>`_.
 
 Other publications and presentations
 ------------------------------------
@@ -51,7 +51,7 @@ Other publications and presentations
 * Niehof, J. T. and S. K. Morley (2012), Determining the significance of
   associations between two series of discrete events: bootstrap methods,
   Tech Report LA-14453, Los Alamos National Laboratory, Los Alamos, NM,
-  `doi:10.2172/1035497 <http://dx.doi.org/10.2172/1035497>`_.
+  `doi:10.2172/1035497 <https://doi.org/10.2172/1035497>`_.
 
 
 
@@ -65,8 +65,8 @@ Peer-reviewed papers
   SpacePy - A Python-based library of tools for the space sciences, Proceedings of 
   the 9th Python in Science Conference (SciPy 2010), presented in Austin, TX, 
   June 30 - July 1, 2010
-  `pdf <http://conference.scipy.org/proceedings/scipy2010/pdfs/morley.pdf>`__.
-  `full proceedings <http://conference.scipy.org/proceedings/scipy2010/>`_
+  `pdf <https://doi.org/10.25080/Majora-92bf1922-00c>`__.
+  `full proceedings <https://doi.org/10.25080/Majora-92bf1922-012>`__
         
 Other publications and presentations
 ------------------------------------

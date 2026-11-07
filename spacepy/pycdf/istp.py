@@ -2,7 +2,7 @@
 
 """Support for ISTP-compliant CDFs
 
-The `ISTP metadata standard <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+The `ISTP metadata standard <https://istp-metadata.readthedocs.io/>`_
 specifies the interpretation of the attributes in a CDF to describe
 relationships between the variables and their physical interpretation.
 
@@ -94,12 +94,12 @@ class VariableChecks(object):
         """Checks that DELTA, DEPEND, and LABL_PTR variables exist
 
         Check that variables specified in the variable attributes for
-        `DELTA
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DELTA>`_,
-        `DEPEND
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DEPEND_0>`_,
-        and `LABL_PTR
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#LABL_PTR_1>`_
+        `DELTA <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#delta-plus-var-delta-minus-var>`_,
+        `DEPEND <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#depend-0>`_,
+        and `LABL_PTR <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#labl-ptr-i>`_
         exist in the CDF.
 
         Parameters
@@ -124,8 +124,8 @@ class VariableChecks(object):
         """Check DELTA variables
 
         Check that variables specified in the variable attributes for
-        `DELTA
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DELTA>`_
+        `DELTA <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#delta-plus-var-delta-minus-var>`_
         match the type, size, and units of this variable.
 
         Parameters
@@ -182,7 +182,8 @@ class VariableChecks(object):
 
         Compares the size of variables specified in the variable
         attributes for `DEPEND
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DEPEND_0>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#depend-0>`_
         and compares to the size of the corresponding dimension in
         this variable.
 
@@ -296,7 +297,8 @@ class VariableChecks(object):
         """Check for FILLVAL presence, type, value
 
         Checks variable for existence of `FILLVAL
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FILLVAL>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#fillval>`_
         attribute and makes sure it is the same type as variable and matches
         ISTP value.
 
@@ -363,7 +365,8 @@ class VariableChecks(object):
 
         Checks the record count of the variable specified in the
         variable attribute for `DEPEND_0
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DEPEND_0>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#depend-0>`_
         and compares to the record count for this variable.
 
         Parameters
@@ -505,10 +508,12 @@ class VariableChecks(object):
         """Check that all values are within VALIDMIN/VALIDMAX, or FILLVAL
 
         Compare all values of this variable to `VALIDMIN
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#VALIDMIN>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#validmin-validmax>`_
         and ``VALIDMAX``; fails validation if any values are below
         VALIDMIN or above ``VALIDMAX`` unless equal to `FILLVAL
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FILLVAL>`_.
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#fillval>`_.
 
         Parameters
         ----------
@@ -528,7 +533,8 @@ class VariableChecks(object):
         """Check SCALEMIN<=SCALEMAX, and both in range for CDF datatype.
 
         Compares `SCALEMIN
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#SCALEMIN>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#scalemin-scalemax>`_
         to ``SCALEMAX`` to make sure it isn't larger and both are
         within range of the variable CDF datatype.
 
@@ -549,8 +555,9 @@ class VariableChecks(object):
     def validdisplaytype(cls, v):
         """Check that plottype matches dimensions.
 
-        Check `DISPLAYTYPE
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DISPLAY_TYPE>`_
+        Check `DISPLAY_TYPE
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#display-type>`_
         of this variable and makes sure it is reasonable for the
         variable dimensions.
 
@@ -582,7 +589,8 @@ class VariableChecks(object):
         """Check that FIELDNAM attribute matches variable name.
 
         Compare `FIELDNAM
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FIELDNAM>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        05_metadata-variable-attributes.html#fieldnam>`_
         attribute to the variable name; fail validation if they don't
         match.
 
@@ -709,9 +717,11 @@ class FileChecks(object):
         """Compare filename to global attributes
 
         Check global attribute `Logical_file_id
-        <https://spdf.gsfc.nasa.gov/istp_guide/gattributes.html#Logical_file_id>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        03_metadata-global-attributes.html#logical-file-id>`_
         and `Logical_source
-        <https://spdf.gsfc.nasa.gov/istp_guide/gattributes.html#Logical_source>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        03_metadata-global-attributes.html#logical-source>`_
         for consistency with CDF filename.
 
         Parameters
@@ -746,7 +756,8 @@ class FileChecks(object):
         """Checks that times are monotonic
 
         Check that all `Epoch
-        <https://spdf.gsfc.nasa.gov/istp_guide/variables.html#support_data_eg1>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+        04_metadata-variables.html#epoch>`_
         variables are monotonically increasing.
 
         Parameters
@@ -779,7 +790,7 @@ class FileChecks(object):
         """Compare filename to times
 
         Check that all `Epoch
-        <https://spdf.gsfc.nasa.gov/istp_guide/variables.html#support_data_eg1>`_
+        <https://istp-metadata.readthedocs.io/en/v1.0.0/source/04_metadata-variables.html#epoch>`_
         variables only contain times matching filename.
 
         Parameters
@@ -826,7 +837,8 @@ def fillval(v, ret=False):
     """Set ISTP-compliant FILLVAL on a variable
 
     Sets or returns a CDF variable's `FILLVAL
-    <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FILLVAL>`_
+    <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+    05_metadata-variable-attributes.html#fillval>`_
     attribute to the value required by ISTP (based on variable type).
 
     Parameters
@@ -892,7 +904,8 @@ def format(v, use_scaleminmax=False, dryrun=False):
     """Set ISTP-compliant FORMAT on a variable
 
     Sets a CDF variable's `FORMAT
-    <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FORMAT>`_
+    <https://istp-metadata.readthedocs.io/en/v1.0.0/source/
+    05_metadata-variable-attributes.html#format>`_
     attribute, which provides a Fortran-like format string that should
     be useable for printing any valid value in the variable. Sets
     according to the VALIDMIN/VALIDMAX attributes (or, optionally,
@@ -1137,7 +1150,7 @@ class VarBundle(object):
     -----
     If using :class:`~.datamodel.SpaceData` input, the contents are
     assumed to be `ISTP compliant
-    <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_. In particular,
+    <https://istp-metadata.readthedocs.io/>`_. In particular,
     the following attributes of the enclosed
     :class:`~.datamodel.dmarray` are used (*italics* denotes required):
 

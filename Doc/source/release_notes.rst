@@ -412,12 +412,12 @@ be downloaded from SpacePy's `releases on GitHub
 <https://github.com/spacepy/spacepy/releases>`_; the source can also
 be found on `PyPI <https://pypi.org/project/spacepy/#files>`_.
 
-``LANLstar`` requires `ffnet <http://ffnet.sourceforge.net/>`_, which
+``LANLstar`` requires `ffnet <https://ffnet.sourceforge.net/>`_, which
 does not install properly with current `setuptools
 <https://github.com/pypa/setuptools>`_ (version 58).  The SpacePy team
 is working on replacing this dependency, but in the meantime
 ``LANLstar`` is unsupported and will require manually installing
-``ffnet`` and `networkx <http://networkx.lanl.gov/>`_.
+``ffnet`` and `networkx <https://networkx.org/>`_.
 
 As mentioned above, :mod:`~spacepy.ae9ap9` support for the old ephem
 model file format is deprecated.

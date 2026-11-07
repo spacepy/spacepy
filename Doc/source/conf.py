@@ -300,3 +300,16 @@ intersphinx_mapping = {
     'pip': ('https://pip.pypa.io/en/stable/', None),
     'pandas': ('https://pandas.pydata.org/docs/', None),
 }
+linkcheck_ignore = [
+    r'https://csem-home.engin.umich.edu/',  # 403
+    r'https://doi.org/',  # most redirects to journals 403
+    r'https://github.com/organizations/spacepy/settings/billing',  # internal
+    r'https://www.iers.org/',  # always times out
+    r'https://www.mathworks.com/',  # 403
+    r'https://pypi.org/project/',  # 403
+    r'https://.*.sourceforge.net/',  # 403
+    r'https://.*.sourceforge.org/',  # 403
+    r'http://spacepy.lanl.gov/',  # is no more, move these resources later
+    r'https://stackoverflow.com/',  # 403
+    r'https://web.archive.org/',  # rate limited
+]

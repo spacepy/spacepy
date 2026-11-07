@@ -3,7 +3,7 @@
 
 """Interface to the Common Data Format (CDF) library
 
-CDF available at http://cdf.gsfc.nasa.gov/.
+CDF available at https://cdf.gsfc.nasa.gov/.
 
 The interface is intended to be 'pythonic' rather than reproducing the
 C interface. To open or close a CDF and access its variables, see the `CDF`
@@ -2762,7 +2762,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
     representing the record number. If the CDF is column major,
     the data are reordered to row major. Each dimension is specified
     by standard Python
-    `slice <http://docs.python.org/tutorial/introduction.html#strings>`_
+    `slice <https://docs.python.org/3/tutorial/introduction.html#text>`_
     notation, with dimensions separated by commas. The ellipsis fills in
     any missing dimensions with full slices. The returned data are
     lists; Python represents multidimensional arrays as nested lists.
@@ -2885,12 +2885,12 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
 
     Potentially useful list methods and related functions:
       - `count <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
-      - `in <http://docs.python.org/reference/expressions.html#in>`_
+      - `in <https://docs.python.org/3/reference/expressions.html#in>`_
       - `index <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
-      - `len <http://docs.python.org/library/functions.html#len>`_
+      - `len <https://docs.python.org/3/builtins/functions.html#len>`_
       - `list comprehensions
-        <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>`_
-      - `sorted <http://docs.python.org/library/functions.html#sorted>`_
+        <https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions>`_
+      - `sorted <https://docs.python.org/3/builtins/functions.html#sorted>`_
 
     The topic of array majority can be very confusing; good background material
     is available at `IDL Array Storage and Indexing

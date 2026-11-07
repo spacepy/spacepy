@@ -196,8 +196,8 @@ The answer is exactly the same and comparing to the initial version of this code
 
 In summary, when working on arrays it's worth taking the time to think about whether you can get the results you need without for-loops or list comprehensions. The small amount of development time will likely be recouped very quickly.
 
-.. _IDL: http://www.ittvis.com/language/en-us/productsservices/idl.aspx
-.. _Matlab: http://www.mathworks.com/products/matlab/
+.. _IDL: https://www.nv5geospatialsoftware.com/Products/IDL
+.. _Matlab: https://www.mathworks.com/products/matlab.html
 
 
 Zip
@@ -311,10 +311,10 @@ Here is a collection of links that serve as a decent reference for Python and sp
 
 
 .. _numpy: http://docs.scipy.org/doc/numpy/reference/
-.. _`NumPy for MatLab users`: http://www.scipy.org/NumPy_for_Matlab_Users
-.. _`Mathesaurus`: http://mathesaurus.sourceforge.net/
+.. _`NumPy for MatLab users`: https://numpy.org/doc/stable/user/numpy-for-matlab-users.html
+.. _`Mathesaurus`: https://mathesaurus.sourceforge.net/
 .. _`PythonSpeed PerformanceTips`: http://wiki.python.org/moin/PythonSpeed/PerformanceTips
-.. _`scipy array tip sheet`: http://pages.physics.cornell.edu/~myers/teaching/ComputationalMethods/python/arrays.html
+.. _`scipy array tip sheet`: https://cac.cornell.edu/myers/teaching/ComputationalMethods/python/arrays.html
 .. _`Python Tips, Tricks, and Hacks`: http://www.siafoo.net/article/52
 
 --------------------------

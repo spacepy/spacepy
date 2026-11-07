@@ -532,7 +532,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
 
 def human_sort( l ):
     """ Sort the given list in the way that humans expect.
-    http://www.codinghorror.com/blog/2007/12/sorting-for-humans-natural-sort-order.html
+    https://blog.codinghorror.com/sorting-for-humans-natural-sort-order/
 
     Parameters
     ----------

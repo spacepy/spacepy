@@ -40,7 +40,7 @@ def listToTable(data, header='', title=''):
     based loosly on
     http://stackoverflow.com/questions/11347505/what-are-some-approaches-to-outputting-a-python-data-structure-to-restructuredte
     see
-    http://thomas-cokelaer.info/tutorials/sphinx/rest_syntax.html#tables
+    https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#tables
     """
     numcolumns = len(data[0])
     colsizes = [str(max(len(str(r[i])) for r in data)) for i in range(numcolumns)]

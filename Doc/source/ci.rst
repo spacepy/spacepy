@@ -20,8 +20,9 @@ Initial run
 ===========
 
 A workflow cannot be run `until it has been run once against the
-default branch <https://github.community/t/
-workflow-dispatch-event-not-working/128856/2>`_ (``main``). This makes
+default branch <https://web.archive.org/web/20200927074713/
+https://github.community/t/workflow-dispatch-event-not-working/128856>`_
+(``main``). This makes
 it somewhat hard to test the workflow before merging; in SpacePy this was
 handled by merging a tiny workflow first (PR `496 <https://github.com/
 spacepy/spacepy/pull/496>`_).
@@ -29,18 +30,19 @@ spacepy/spacepy/pull/496>`_).
 Once this first run has been made, updated versions of the workflow
 can be run from topic branches. It will show up under the ``Actions``
 tab of a repository and the branch to use can be selected. It is also
-possible to specify a branch `by using the REST API <https://
-github.community/t/workflow-dispatch-workflow-not-showing-in-actions-tab/
-130088/15>`_; you will need `an access token <https://docs.github.com/en
-github/authenticating-to-github/creating-a-personal-access-token>`_ with
-``workflow`` scope.
+possible to specify a branch `by using the REST API
+<https://docs.github.com/en/rest/actions/workflows?apiVersion=2026-03-10
+#create-a-workflow-dispatch-event>`_; you will need `an access token <https://docs.github.com/en/
+authentication/keeping-your-account-and-data-secure/
+managing-your-personal-access-tokens>`_ with ``workflow`` scope.
 
 Merging rules
 =============
 
 PRs require CI to pass before merging; this is managed with a `branch
-protection rule <https://docs.github.com/en/github/
-administering-a-repository/managing-a-branch-protection-rule>`_
+protection rule <https://docs.github.com/en/repositories/
+configuring-branches-and-merges-in-your-repository/
+managing-protected-branches/managing-a-branch-protection-rule>`_
 (``Settings`` from the tab at the top of a repository, ``Branches`` from
 the left menu.) The relevant choices is "Require status checks to pass
 before merging." Every variant of the unit testing job (``test (2.7,
@@ -55,9 +57,10 @@ Rerunning CI on a PR
 ====================
 
 There is no way to manually trigger a workflow run on a pull request.
-SpacePy's CI workflow is set up to `trigger the workflow <https://
-docs.github.com/en/actions/reference/events-that-trigger-workflows
-#pull_request>`_ when a PR is marked ready for review, so one way to
+SpacePy's CI workflow is set up to `trigger the workflow
+<https://docs.github.com/en/actions/reference/workflows-and-actions/
+events-that-trigger-workflows#pull_request>`_ when a PR is marked ready
+for review, so one way to
 force a run is to mark the PR as a draft, and then as ready again.
 
 Note that a PR will not trigger the CI `if there is a merge conflict
