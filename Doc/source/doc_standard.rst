@@ -13,10 +13,10 @@ documentation.
 
 In addition to Sphinx, SpacePy uses the following extensions:
  * 'sphinx.ext.autodoc'
- * 'sphinx.ext.doctest''
+ * 'sphinx.ext.doctest'
  * 'sphinx.ext.intersphinx'
  * 'sphinx.ext.todo'
- * 'sphinx.ext.imgmath' (falls back to 'sphinx.ext.pngmath' if imgmath is not available)
+ * 'sphinx.ext.imgmath'
  * 'sphinx.ext.ifconfig'
  * 'sphinx.ext.viewcode'
  * 'numpydoc'
@@ -24,7 +24,7 @@ In addition to Sphinx, SpacePy uses the following extensions:
  * 'sphinx.ext.autosummary'
  * 'sphinx.ext.extlinks'
 
-.. _Sphinx: http://sphinx.pocoo.org/
+.. _Sphinx: https://www.sphinx-doc.org/
 
 So what do I need to do in my code?
 -----------------------------------
