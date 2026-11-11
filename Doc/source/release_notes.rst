@@ -18,6 +18,11 @@ New features
 `.pycdf.CDF.leapsecond_lastupdated` was added to allow reading and
 setting the last update of the leapsecond table in a CDF.
 
+Deprecations and removals
+*************************
+`.pybats.NgdcIndex` was deprecated, as SWMF models no longer routinely
+use NGDC-style products.
+
 Major bugfixes
 **************
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
