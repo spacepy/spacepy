@@ -2894,7 +2894,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
 
     The topic of array majority can be very confusing; good background material
     is available at `IDL Array Storage and Indexing
-    <http://www.idlcoyote.com/misc_tips/colrow_major.html>`_. In brief,
+    <https://www.idlcoyote.com/misc_tips/colrow_major.html>`_. In brief,
     *regardless of the majority stored in the CDF*, pycdf will always present
     the data in the native Python majority, row-major order, also known as
     C order. This is the default order in `NumPy

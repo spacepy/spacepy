@@ -304,6 +304,7 @@ linkcheck_ignore = [
     r'https://csem-home.engin.umich.edu/',  # 403
     r'https://doi.org/',  # most redirects to journals 403
     r'https://github.com/organizations/spacepy/settings/billing',  # internal
+    r'https://www.idlcoyote.com/',  # bad certificate
     r'https://www.iers.org/',  # always times out
     r'https://www.mathworks.com/',  # 403
     r'https://pypi.org/project/',  # 403
