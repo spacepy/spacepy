@@ -16,6 +16,7 @@ __contact__ = 'Dan Welling, daniel.welling@uta.edu'
 # Global imports (used ubiquitously throughout this module.
 import os.path
 from functools import wraps
+import warnings
 
 from spacepy.datamodel import dmarray, SpaceData
 import numpy as np
@@ -1414,6 +1415,9 @@ class NgdcIndex(PbData):
 
     NgdcIndex objects aid in reading, creating, and visualizing these files.
 
+    .. deprecated:: 0.8.0
+        SWMF models now use different sources and formats for these indices.
+
     Creating an :class:`NgdcIndex` object is simple:
 
     >>> from spacepy import pybats
@@ -1446,6 +1450,8 @@ class NgdcIndex(PbData):
 
     def __init__(self, filename=None, load=True, *args, **kwargs):
 
+        warnings.warn("NgdcIndex was deprecated in 0.8.0 and will be removed.",
+            DeprecationWarning)
         super(NgdcIndex, self).__init__(*args, **kwargs)
         # Set key information.
         self.attrs['file'] = filename
