@@ -312,13 +312,22 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
     - name: Build spacepy and docs
+      env:
+        DEPSTRAT: ${{ matrix.dep-strategy }}
       working-directory: ${{ github.workspace }}
       run: |
         pip install --no-build-isolation --no-deps .
         cd Doc
         . ${HOME}/cdf/bin/definitions.B
         make html | tee doc_log.txt
-        (! tail -n 20 doc_log.txt | grep -E -q 'build succeeded, [0-9]+ warnings' )
+        if ( tail -n 20 doc_log.txt | grep -E -q 'build succeeded, [0-9]+ warnings' ); then
+            exit 1
+        fi
+        # only do the link checks once
+        if [ "$DEPSTRAT" = "oldest" ]; then
+            exit 0
+        fi
+        make linkcheck
       shell: bash
 
 # See https://github.community/t/status-check-for-a-matrix-jobs/127354/7
