@@ -11,7 +11,7 @@ Basic familiarity with programming and general computing tasks in your
 chosen environment is assumed, including editing text files, copying
 and deleting files, etc. No Python-specific knowledge is assumed,
 although it is recommended to at least skim the excellent `Python
-tutorial <http://docs.python.org/tutorial/index.html>`_.
+tutorial <https://docs.python.org/3/tutorial/index.html>`_.
 
 .. toctree::
     :maxdepth: 1

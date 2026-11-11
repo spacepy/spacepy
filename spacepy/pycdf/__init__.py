@@ -1439,7 +1439,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         :meth:`readonly` to change.
 
     CDF supports the `with
-    <http://docs.python.org/tutorial/inputoutput.html#methods-of-file-objects>`_
+    <https://docs.python.org/3/tutorial/inputoutput.html#methods-of-file-objects>`_
     keyword, like other file objects, so:
 
         >>> with pycdf.CDF('cdf_filename.cdf') as cdffile:
@@ -1447,15 +1447,15 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
 
     will open the CDF, execute the indented statements, and close the CDF when
     finished or when an error occurs. The `python docs
-    <http://docs.python.org/reference/compound_stmts.html#with>`_ include more
-    detail on this 'context manager' ability.
+    <https://docs.python.org/3/reference/compound_stmts.html#with>`_ include
+    more detail on this 'context manager' ability.
 
     CDF objects behave like a python `dictionary
-    <http://docs.python.org/tutorial/datastructures.html#dictionaries>`_,
+    <https://docs.python.org/3/tutorial/datastructures.html#dictionaries>`_,
     where the keys are names of variables in the CDF, and the values,
     `Var` objects. As a dictionary, they are also `iterable
-    <http://docs.python.org/tutorial/classes.html#iterators>`_ and it is easy
-    to loop over all of the variables in a file. Some examples:
+    <https://docs.python.org/3/tutorial/classes.html#iterators>`_ and it is
+    easy to loop over all of the variables in a file. Some examples:
 
         #. List the names of all variables in the open CDF ``cdffile``:
 
@@ -1501,11 +1501,11 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
 
     Potentially useful dictionary methods and related functions:
 
-      - `in <http://docs.python.org/reference/expressions.html#in>`_
-      - `keys <http://docs.python.org/tutorial/datastructures.html#dictionaries>`_
+      - `in <https://docs.python.org/3/reference/expressions.html#in>`_
+      - `keys <https://docs.python.org/3/tutorial/datastructures.html#dictionaries>`_
       - `len`
       - `list comprehensions
-        <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>`_
+        <https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions>`_
       - `sorted`
       - `~spacepy.toolbox.dictree`
 
@@ -2739,9 +2739,9 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
     it provides access to the data in a format that much like a Python
     list or numpy `~numpy.ndarray`.
     General list information is available in the python docs:
-    `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
-    `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
-    `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
+    `1 <https://docs.python.org/3/tutorial/introduction.html#lists>`_,
+    `2 <https://docs.python.org/3/tutorial/datastructures.html#more-on-lists>`_,
+    `3 <https://docs.python.org/3/builtins/stdtypes.html#typesseq>`_.
 
     The CDF user's guide, section 2.3, provides background on variables.
 
@@ -2825,7 +2825,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
     >>>     # do things that require data to exist
 
     As a list type, variables are also `iterable
-    <http://docs.python.org/tutorial/classes.html#iterators>`_; iterating
+    <https://docs.python.org/3/tutorial/classes.html#iterators>`_; iterating
     over a variable returns a single complete record at a time.
 
     This is all clearer with examples. Consider a variable ``B_GSM``, with
@@ -2884,9 +2884,9 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         to 59.999999 (59 seconds, 999 milliseconds, 999 microseconds).
 
     Potentially useful list methods and related functions:
-      - `count <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
+      - `count <https://docs.python.org/3/tutorial/datastructures.html#more-on-lists>`_
       - `in <https://docs.python.org/3/reference/expressions.html#in>`_
-      - `index <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
+      - `index <https://docs.python.org/3/tutorial/datastructures.html#more-on-lists>`_
       - `len <https://docs.python.org/3/builtins/functions.html#len>`_
       - `list comprehensions
         <https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions>`_
@@ -2898,7 +2898,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
     *regardless of the majority stored in the CDF*, pycdf will always present
     the data in the native Python majority, row-major order, also known as
     C order. This is the default order in `NumPy
-    <http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
+    <https://numpy.org/doc/stable/reference/arrays.ndarray.html
     #internal-memory-layout-of-an-ndarray>`_.
     However, packages that render image data may expect it in column-major
     order. If the axes seem 'swapped' this is likely the reason.
@@ -4515,9 +4515,9 @@ class Attr(MutableSequence):
     Represents a CDF attribute, providing access to the Entries in a format
     that looks like a Python
     list. General list information is available in the python docs:
-    `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
-    `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
-    `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
+    `1 <https://docs.python.org/3/tutorial/introduction.html#lists>`_,
+    `2 <https://docs.python.org/3/tutorial/datastructures.html#more-on-lists>`_,
+    `3 <https://docs.python.org/3/builtins/stdtypes.html#typesseq>`_.
 
     An introduction to CDF attributes can be found in section 2.4 of
     the CDF user's guide.
@@ -5228,9 +5228,9 @@ class gAttr(Attr):
     Represents a CDF attribute, providing access to the gEntries in a format
     that looks like a Python list. General list information is available in
     the python docs:
-    `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
-    `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
-    `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
+    `1 <https://docs.python.org/3/tutorial/introduction.html#lists>`_,
+    `2 <https://docs.python.org/3/tutorial/datastructures.html#more-on-lists>`_,
+    `3 <https://docs.python.org/3/builtins/stdtypes.html#typesseq>`_.
 
     Normally accessed by providing a key to a `gAttrList`:
 

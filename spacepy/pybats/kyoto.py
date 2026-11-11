@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''
 kyoto is a tool set for obtaining and handling geomagnetic indices stored at the
-`Kyoto World Data Center (WDC) website <http://wdc.kugi.kyoto-u.ac.jp/wdc/Sec3.html>`_.  
+`Kyoto World Data Center (WDC) website <https://wdc.kugi.kyoto-u.ac.jp/wdc/Sec3.html>`_.  
 Indices can be loaded from file or fetched from the web.
 
 Instantiation of objects from this module should be done through the constructor

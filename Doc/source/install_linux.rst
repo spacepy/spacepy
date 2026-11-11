@@ -72,7 +72,7 @@ It is recommended to install the ncurses library; on Ubuntu and Debian::
 
     sudo apt-get install ncurses-dev
 
-Download the latest `CDF library <http://cdf.gsfc.nasa.gov/>`_. Choose
+Download the latest `CDF library <https://cdf.gsfc.nasa.gov/>`_. Choose
 the file ending in ``-dist-all.tar.gz`` from the ``linux``
 directory. Untar and cd into the resulting directory. Then build::
 

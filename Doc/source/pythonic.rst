@@ -76,7 +76,7 @@ A web search for "pythonic" will give a wealth of opinions. These references are
 
     * `Python Style Guide (PEP 8) <https://peps.python.org/pep-0008/>`_
     * `Zen of Python (PEP 20) <https://peps.python.org/pep-0020/>`_
-    * `What is Pythonic? <https://blog.startifact.com/posts/older/what-is-pythonic.html>`_
+    * `What is Pythonic? <https://blog.startifact.com/posts/what-is-pythonic/>`_
     * `Examples of idiomatic and nonidiomatic Python <https://medium.com/the-andela-way/idiomatic-python-coding-the-smart-way-cc560fa5f1d6>`_
     * `Idomatic Python from Wikibooks <https://en.wikibooks.org/wiki/Python_Programming/Idioms>`_
 
