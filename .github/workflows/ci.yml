@@ -295,7 +295,7 @@ jobs:
       run: |
         sudo apt-get update -qq
         # Needed for scipy versions without binary wheels
-        sudo apt-get install libhdf5-serial-dev gcc gfortran xvfb libblas-dev liblapack-dev texlive-latex-base texlive-latex-extra
+        sudo apt-get install libhdf5-serial-dev gcc gfortran xvfb libblas-dev liblapack-dev texlive-latex-base texlive-latex-extra dvipng
         python -m pip install --no-build-isolation ${BUILD_DEPS}
         pip install --no-build-isolation --force-reinstall "numpy${NUMPY_VERSION}"
         # Make sure new packages don't override numpy version
