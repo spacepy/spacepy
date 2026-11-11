@@ -31,7 +31,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
     and this function accesses that and interpolates to the given times,
     returning the OMNI values as a SpaceData (dict-like) with
     Kp, Dst, dens, velo, Pdyn, ByIMF, BzIMF, G1, G2, G3, etc.
-    (see also http://www.dartmouth.edu/~rdenton/magpar/index.html and
+    (see also https://rdenton.host.dartmouth.edu/magpar/index.html and
     https://doi.org/10.1029/2006SW000296 )
 
     Parameters

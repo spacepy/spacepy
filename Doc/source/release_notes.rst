@@ -525,7 +525,7 @@ The handling of library paths on Windows has been updated. This should
 fix situations where :mod:`~spacepy.irbempy` would not import on
 Windows with Python 3.8 or later. This did not seem to be a problem
 with Anaconda, but would sometimes manifest with Python from the app
-store or from `<http://python.org/>`_ (`#507
+store or from `<https://www.python.org/>`_ (`#507
 <https://github.com/spacepy/spacepy/issues/507>`_)
 
 Other changes

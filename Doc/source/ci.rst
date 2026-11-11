@@ -64,8 +64,7 @@ for review, so one way to
 force a run is to mark the PR as a draft, and then as ready again.
 
 Note that a PR will not trigger the CI `if there is a merge conflict
-<https://github.community/t/run-actions-on-pull-requests-with-merge-conflicts/
-17104>`_.
+<https://github.com/orgs/community/discussions/26304>`_.
 
 Cacheing
 ========

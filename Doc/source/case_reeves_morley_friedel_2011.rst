@@ -64,7 +64,7 @@ directory.
 
 File fixed, we can load and begin examining the data.  Change to the
 ``code`` directory and start your Python interpreter. (`IPython
-<http://ipython.org/>`_ is recommended, but not required.)
+<https://ipython.org/>`_ is recommended, but not required.)
 
 In the following examples, do not type the leading ``>>>``; this is
 the Python interpreter prompt. IPython has a different prompt that
@@ -80,7 +80,7 @@ standard library. Python has a huge `standard library
 <https://docs.python.org/3/library/index.html>`_. To keep this code
 organized, it is divided into many modules, and a module must be
 imported before it can be used. (The `Python module of the week
-<http://www.doughellmann.com/PyMOTW/>`_ is a great way to explore the
+<https://pymotw.com/3/>`_ is a great way to explore the
 standard library.)
 
 The second line makes a variable, ``datadir``, which will contain the
@@ -118,7 +118,7 @@ creates a variable holding the full path to the fixed file.
 
 >>> import numpy
 
-The import statement imports any installed `module <http://docs.python.org/tutorial/modules.html>`_, just as if it were in the standard library. Here we import the very useful :mod:`numpy` module, which is a prerequisite for SpacePy and useful in its own right.
+The import statement imports any installed `module <https://docs.python.org/3/tutorial/modules.html>`_, just as if it were in the standard library. Here we import the very useful :mod:`numpy` module, which is a prerequisite for SpacePy and useful in its own right.
 
 >>> esp_fluxes = numpy.loadtxt(fname, skiprows=14, usecols=[1])
 
@@ -156,9 +156,9 @@ This converter can be used with :func:`~numpy.loadtxt`:
 ...                           converters={0: convert}, dtype=numpy.object)
 
 The ``converters`` option takes a Python `dictionary
-<http://docs.python.org/tutorial/datastructures.html#dictionaries>`_. The
+<https://docs.python.org/3/tutorial/datastructures.html#dictionaries>`_. The
 default `dtype
-<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_ is
+<https://numpy.org/doc/stable/reference/arrays.dtypes.html>`_ is
 float, which cannot store datetimes; using ``numpy.object``
 allows storage of any Python object.
 
@@ -191,10 +191,10 @@ the function (but notice that it is available to the ``load_esp``
 function.)
 
 The rest of the file defines a `function
-<http://docs.python.org/tutorial/controlflow.html#defining-functions>`_
+<https://docs.python.org/3/tutorial/controlflow.html#defining-functions>`_
 which returns the dates and fluxes in a `tuple
-<http://docs.python.org/tutorial/datastructures.html#tuples-and-sequences>`_. The
-next section shows how to use this function.
+<https://docs.python.org/3/tutorial/datastructures.html#tuples-and-sequences>`_.
+The next section shows how to use this function.
 
 Solar Wind data and averaging
 =============================
@@ -224,7 +224,7 @@ Even though we have not installed ``common.py``, the ``import``
 statement finds it because it is in the current directory.
 
 ``load_esp`` returns a `tuple
-<http://docs.python.org/tutorial/datastructures.html#tuples-and-sequences>`_,
+<https://docs.python.org/3/tutorial/datastructures.html#tuples-and-sequences>`_,
 which can be *unpacked* into separate variables.
 
 Now we need to produce 27-day running averages of both the flux and
@@ -284,7 +284,7 @@ more efficient way than using an explicit loop:
 ...			    count=len(vsw), dtype=vsw.dtype)
 
 :func:`~numpy.fromiter` makes a numpy array from an `iterator
-<http://docs.python.org/library/stdtypes.html#iterator-types>`_, which
+<https://docs.python.org/3/builtins/stdtypes.html#iterator-types>`_, which
 is like a list except that it holds information on generating each
 element in a sequence rather than creating the entire
 sequence. ``count`` provides numpy with the number of elements in the
@@ -292,9 +292,9 @@ output (so it can make the entire array at once); ``dtype`` here is
 just copied from the input.
 
 The type of iterator used here is a `generator expression
-<http://www.python.org/dev/peps/pep-0289/>`_, closely related to a
+<https://peps.python.org/pep-0289/>`_, closely related to a
 `list comprehension
-<http://docs.python.org/tutorial/datastructures.html#list-comprehensions>`_.
+<https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions>`_.
 These are among the most powerful and most difficult to understand
 concepts in Python. An illustrative, although not useful, example:
 
@@ -487,7 +487,7 @@ The end result is a nice figure that can be printed full-size, put in
 a PDF, or included directly in a paper.
 
 Now we need the bottom half of Figure 1. From
-`SIDC <http://www.sidc.be/silso/versionarchive>`_, download the "Monthly mean total sunspot number" (``monthssn.dat``). Put it in the ``data``
+`SIDC <https://www.sidc.be/SILSO/versionarchive>`_, download the "Monthly mean total sunspot number" (``monthssn.dat``). Put it in the ``data``
 directory.
 
 >>> import bisect
@@ -518,7 +518,7 @@ from then on (specifying a start index without a stop index in Python
 means "from start to end of the list.") Note that, although ``bisect``
 is meant to work on lists, it also works fine on numpy arrays; this is a
 common feature of Python known as
-`duck typing <http://en.wikipedia.org/wiki/Duck_typing>`_.
+`duck typing <https://en.wikipedia.org/wiki/Duck_typing>`_.
 
 We then use :func:`~numpy.asarray`
 to convert the ``ssn`` and ``smooth_ssn`` columns to float arrays. Note
@@ -731,7 +731,7 @@ Now that the line endings have been cleaned up, it's time to rejoin the erroneou
 ...     outfile.write(data.pop(0) + '\n')
 
 :meth:`~str.split` splits a string into a `list
-<http://docs.python.org/tutorial/introduction.html#lists>`_, with the
+<https://docs.python.org/3/tutorial/introduction.html#lists>`_, with the
 split between elements happening wherever the provided parameter
 occurs. A simple example:
 
@@ -755,7 +755,7 @@ The first element of a Python list is numbered zero.
 The last number is 4 (not 5 as might be expected), but there are 5
 elements in the list.
 
-The `for <http://docs.python.org/tutorial/controlflow.html#for-statements>`_ executes the following indented statement once for every element in the ``in`` list:
+The `for <https://docs.python.org/3/tutorial/controlflow.html#for-statements>`_ executes the following indented statement once for every element in the ``in`` list:
 
 >>> for i in ['a', 'b', 'c']:
 ...     print i
@@ -765,7 +765,7 @@ c
 
 Indentation is significant in Python! Normally indents are four spaces and the tab key will do the job. (In the above example, you may need to hit enter twice after the print statement, the second to terminate the indentation.)
 
-`pop <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_ returns one element from a list, and deletes it from the list. Using ``0`` pops off the first element, and ``file.write()`` writes a string to a file. ``+`` can be used to concatenate two strings together. Since :meth:`~str.split` removed the newlines, they need to be readded.
+`pop <https://docs.python.org/3/tutorial/datastructures.html#more-on-lists>`_ returns one element from a list, and deletes it from the list. Using ``0`` pops off the first element, and ``file.write()`` writes a string to a file. ``+`` can be used to concatenate two strings together. Since :meth:`~str.split` removed the newlines, they need to be readded.
 
 So this little block of code splits the data into a list on newlines and, repeating fifteen times, takes the first element of that list and writes it, with a newline, to the output. Now ``data`` contains only the actual lines of data.
 
@@ -787,7 +787,7 @@ it's used here to mark the first time around the loop.
 the ``in`` operator compares the resulting string to see if it is
 present in the following list. This will return ``True`` if the line
 begins with ``19`` or ``20``. The `if
-<http://docs.python.org/tutorial/controlflow.html#if-statements>`_
+<https://docs.python.org/3/tutorial/controlflow.html#if-statements>`_
 statement executes the following indented block if the condition is
 True. So, if this is True, the previous line probably ended properly
 and it can be written out. First there is an additional check that

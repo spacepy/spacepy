@@ -310,12 +310,12 @@ Here is a collection of links that serve as a decent reference for Python and sp
 
 
 
-.. _numpy: http://docs.scipy.org/doc/numpy/reference/
+.. _numpy: https://numpy.org/doc/stable/reference/
 .. _`NumPy for MatLab users`: https://numpy.org/doc/stable/user/numpy-for-matlab-users.html
 .. _`Mathesaurus`: https://mathesaurus.sourceforge.net/
-.. _`PythonSpeed PerformanceTips`: http://wiki.python.org/moin/PythonSpeed/PerformanceTips
+.. _`PythonSpeed PerformanceTips`: https://wiki.python.org/python/performance/PythonSpeed/PerformanceTips.html
 .. _`scipy array tip sheet`: https://cac.cornell.edu/myers/teaching/ComputationalMethods/python/arrays.html
-.. _`Python Tips, Tricks, and Hacks`: http://www.siafoo.net/article/52
+.. _`Python Tips, Tricks, and Hacks`: https://web.archive.org/web/20200926023249/http://www.siafoo.net/article/52
 
 --------------------------
 

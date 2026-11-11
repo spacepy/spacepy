@@ -22,13 +22,13 @@ dependencies automatically.
 Python 3.7+
 -----------
 
-`Python <http://www.python.org/>`_ is the core language for SpacePy.
+`Python <https://www.python.org/>`_ is the core language for SpacePy.
 
 Required to install SpacePy.
 
 NumPy 1.15.1+
 -------------
-`NumPy <http://numpy.org/>`_ provides the
+`NumPy <https://numpy.org/>`_ provides the
 high-performance array data structure used throughout SpacePy. Version
 1.15.1 or later is required. Due to a numpy bug, numpy 1.15.0 is not supported.
 
@@ -67,7 +67,7 @@ methods such as pip.
 
 SciPy 1.0+
 ----------
-`SciPy <http://www.scipy.org/>`_ provides several useful scientific
+`SciPy <https://scipy.org/>`_ provides several useful scientific
 and numerical functions build on top of NumPy.  It is highly
 recommended. The following modules may have limited functionality
 without SciPy:
@@ -106,7 +106,7 @@ HDF5 files. It is required for the HDF import/export capability of
 
 CDF 3.5+
 --------
-NASA's `CDF <http://cdf.gsfc.nasa.gov/>`_ library provides access to
+NASA's `CDF <https://cdf.gsfc.nasa.gov/>`_ library provides access to
 Common Data Format files. It is required for :mod:`~spacepy.pycdf`,
 and thus for the CDF import/export capability of
 :mod:`~spacepy.datamodel`. The library is included with SpacePy binary
