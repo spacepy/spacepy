@@ -43,16 +43,6 @@ Classes
     assertWarns
     assertDoesntWarn
 
-Functions
----------
-
-|
-
-.. autosummary::
-    :toctree: autosummary
-
-    add_build_to_path
-
 Data
 ----
 
