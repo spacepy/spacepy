@@ -59,7 +59,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot',
-           'do_with_timeout', 'TimeoutError', 'timeout_check_call',
+           'do_with_timeout', 'TimeoutError',
            'poisson_fit', 'unique_columns']
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
@@ -2855,68 +2855,6 @@ def do_with_timeout(timeout, target, *args, **kwargs):
     if t.is_alive():
         raise TimeoutError()
     return retval
-
-
-def timeout_check_call(timeout, *args, **kwargs):
-    """
-    Call a subprocess with a timeout.
-
-    .. deprecated:: 0.7.0
-        Use ``timeout`` argument of :func:`subprocess.check_call`, added
-        in Python 3.3.
-
-    Like :func:`subprocess.check_call`, but will terminate the process and
-    raise :exc:`TimeoutError` if it runs for too long.
-
-    This will only terminate the single process started; any child processes
-    will remain running (this has implications for, say, spawing shells.)
-
-    Examples
-    --------
-    >>> import spacepy.toolbox as tb
-    >>> tb.timeout_check_call(1, 'sleep 30', shell=True) #raises TimeoutError
-
-    Parameters
-    ----------
-    timeout : float
-        Timeout, in seconds. Fractions are acceptable but the resolution is of
-        order 100ms.
-    args : sequence
-        Arguments passed through to :class:`subprocess.Popen`
-    kwargs : dict
-        keyword arguments to pass to :class:`subprocess.Popen`
-
-    Raises
-    ------
-    TimeoutError
-        If subprocess does not return in ``timeout`` seconds.
-    CalledProcessError
-        If command has non-zero exit status
-
-    Returns
-    -------
-    out : int
-        0 on successful completion
-    """
-    warnings.warn("timeout_check_call was deprecated in 0.7.0"
-                  " and will be removed.",
-                  DeprecationWarning, stacklevel=2)
-    resolution = 0.1
-    pro = subprocess.Popen(*args, **kwargs)
-    starttime = time.time()
-    while pro.poll() is None:
-        time.sleep(resolution)
-        if time.time() - starttime > timeout:
-            to = time.time() - starttime
-            pro.terminate()
-            time.sleep(resolution)
-            if pro.poll() is None:
-                pro.kill()
-            raise TimeoutError('Timed out after {0:.1f} seconds'.format(to))
-    if pro.returncode:
-        raise subprocess.CalledProcessError(
-            pro.returncode, kwargs['args'] if 'args' in kwargs else args[0])
-    return 0
 
 
 def poisson_fit(data, initial=None, method='Powell'):

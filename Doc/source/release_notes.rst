@@ -23,6 +23,9 @@ Deprecations and removals
 `.pybats.NgdcIndex` was deprecated, as SWMF models no longer routinely
 use NGDC-style products.
 
+``toolbox.timeout_check_call`` was removed (deprecated in 0.7.0). Use
+`subprocess.check_call` with the ``timeout`` argument.
+
 Major bugfixes
 **************
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
@@ -77,7 +80,7 @@ test. Python 3.7 is the oldest supported Python; as a result, Astropy
 
 Deprecations and removals
 *************************
-`~spacepy.toolbox.timeout_check_call` is deprecated as redundant to using
+``timeout_check_call`` is deprecated as redundant to using
 `subprocess.check_call` with the ``timeout`` argument.
 
 The ``spacepy.irbempy.irbempylib`` module has been removed. This was
