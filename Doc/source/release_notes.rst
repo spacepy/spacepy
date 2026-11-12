@@ -26,6 +26,8 @@ use NGDC-style products.
 ``toolbox.timeout_check_call`` was removed (deprecated in 0.7.0). Use
 `subprocess.check_call` with the ``timeout`` argument.
 
+``spacepy_testing.add_build_to_path`` was removed (deprecated in 0.5.0).
+
 Major bugfixes
 **************
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
@@ -238,7 +240,7 @@ Since plot styles are no longer applied on import, importing
 ``spacepy.plot.apionly`` has no effect and is deprecated.
 
 The new pip-based install method does not support a separate ``build``
-step so `~spacepy_testing.add_build_to_path` is deprecated. Alternatives
+step so ``spacepy_testing.add_build_to_path`` is deprecated. Alternatives
 include using an :ref:`editable install <install_--editable>` or installing
 in a custom location using :ref:`\\\\\\-\\\\\\-prefix <install_--prefix>` and manually editing :envvar:`PYTHONPATH`.
 
