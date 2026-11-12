@@ -28,6 +28,9 @@ use NGDC-style products.
 
 ``spacepy_testing.add_build_to_path`` was removed (deprecated in 0.5.0).
 
+``spacepy.plot.apionly`` was removed (deprecated in 0.5.0 and has no
+effect).
+
 Major bugfixes
 **************
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
