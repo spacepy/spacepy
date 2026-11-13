@@ -623,6 +623,19 @@ class IRBEMShieldoseTests(spacepy_testing.TestPlot):
         self.assertRaises(ValueError, self.sd_default.set_flux,
                           jarr, earr, 'e')
 
+    def test_p_tr_un_different_length(self):
+        """Trapped and solar proton spectra may differ in length (regression #808)
+        """
+        sd = self.sd_default
+        en_tr = np.logspace(-1, np.log10(2000), 200)
+        en_un = np.logspace(-1, np.log10(2000), 50)
+        sd.set_flux(1e-9 * np.exp(-en_tr / 20), en_tr, 'p_tr')
+        sd.set_flux(1e-15 * np.exp(-en_un / 20), en_un, 'p_un')
+        sd.get_dose()
+        self.assertEqual(len(en_tr), sd.settings['jpmax'])
+        self.assertEqual(len(en_un), sd.settings['jsmax'])
+        self.assertTrue(sd.results)
+
     def test_plot_e(self):
         """Check for expected outputs in electron dose plot"""
         self.sd_default.get_dose()
