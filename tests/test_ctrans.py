@@ -16,7 +16,8 @@ import spacepy_testing
 from spacepy import ctrans
 import spacepy.time
 
-__all__ = ['CTransClassTests', 'CTransRegressionTests', 'ModuleTests']
+__all__ = ['CTransClassTests', 'CTransRegressionTests', 'ModuleTests',
+           'CTransReuseTests']
 
 
 class CTransClassTests(unittest.TestCase):
@@ -476,6 +477,54 @@ class ModuleTests(unittest.TestCase):
         stage1 = ctrans.rll_to_geo(rll)
         got = ctrans.geo_to_rll(stage1)
         numpy.testing.assert_allclose(got, rll, atol=1e-9, rtol=0)
+
+
+class CTransReuseTests(unittest.TestCase):
+    """Reuse decisions of ctrans.convert_multitime (itol cache)."""
+
+    def _run(self, offsets, itol):
+        times = [dt.datetime(2020, 1, 1) + dt.timedelta(seconds=s)
+                 for s in offsets]
+        pos = numpy.tile([10000., 2000., 3000.], (len(times), 1))
+        counter = {'n': 0}
+        # NOTE: count on the class __init__ (not by replacing the module
+        # global) because CTrans.__init__ uses `super(CTrans, self)`, which
+        # resolves the name from module globals.
+        real_init = ctrans.CTrans.__init__
+
+        def counting_init(self, *args, **kwargs):
+            counter['n'] += 1
+            real_init(self, *args, **kwargs)
+
+        ctrans.CTrans.__init__ = counting_init
+        try:
+            out = ctrans.convert_multitime(
+                pos, spacepy.time.Ticktock(times, 'UTC'), 'ECIMOD', 'GEO',
+                itol=itol)
+        finally:
+            ctrans.CTrans.__init__ = real_init
+        return numpy.asarray(out), counter['n']
+
+    def test_itol0_builds_one_per_unique_time(self):
+        """itol=0 builds one CTrans per unique time"""
+        out, n = self._run([0, 1, 2, 3], 0)
+        self.assertEqual(n, 4)
+
+    def test_itol_reuses_within_tolerance(self):
+        """times within itol reuse the closest fresh CTrans"""
+        # 0 fresh; 10, 20 reuse 0; 30 fresh (30 !< 30); 40 reuses 30; 100 fresh
+        out, n = self._run([0, 10, 20, 30, 40, 100], 30)
+        self.assertEqual(n, 3)
+        numpy.testing.assert_array_equal(out[0], out[1])
+        numpy.testing.assert_array_equal(out[1], out[2])
+        numpy.testing.assert_array_equal(out[3], out[4])
+        self.assertTrue(numpy.any(out[2] != out[3]))
+
+    def test_duplicate_times_share_one_ctrans(self):
+        """duplicate times share a single CTrans"""
+        out, n = self._run([0, 0, 0], 0)
+        self.assertEqual(n, 1)
+        numpy.testing.assert_array_equal(out[0], out[2])
 
 
 if __name__ == "__main__":

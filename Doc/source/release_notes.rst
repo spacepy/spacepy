@@ -36,6 +36,10 @@ Major bugfixes
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
 plotting and reading files with non-MJD timestamps.
 
+``spacepy.ctrans.convert_multitime`` no longer matches each time against
+all previously computed transforms, which scaled quadratically with the
+number of times; with ``itol=0`` the scaling is now linear.
+
 Other changes
 *************
 The IGRF provided with SpacePy (used in the default spacepy backend for
