@@ -91,6 +91,7 @@ here) use a centered dipole axis.
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
 
+import bisect
 import datetime as dt
 import collections
 from math import fmod
@@ -1127,27 +1128,37 @@ def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
     itol = itol if defaults is None else defaults.itol
     # Calculate a CTrans for each unique time
     ctdict = dict()
-    ttused = set()
+    # Times with freshly calculated transforms, kept sorted so the closest
+    # one can be found by bisection in O(log n); reuse only needs that
+    # closest time. With itol <= 0 reuse never triggers, so no search
+    # structure is needed at all.
+    fresh = [] if itol > 0 else None
     tais = ticks.TAI
     for idx, tt in enumerate(tais):
         if tt not in ctdict:
             # for speed, let's not recalculate transforms
             # for times very close to each other (defined
             # by the itol kwarg)
-            if ttused:
-                usedlist = list(ttused)
-                closest = np.argmin(np.abs(tt - usedlist))
-                tdiff = np.abs(tt - usedlist[closest])
+            if fresh:
+                pos = bisect.bisect_left(fresh, tt)
+                closest, tdiff = None, None
+                for cand in (fresh[pos - 1] if pos > 0 else None,
+                             fresh[pos] if pos < len(fresh) else None):
+                    if cand is not None:
+                        d = abs(tt - cand)
+                        if tdiff is None or d < tdiff:
+                            closest, tdiff = cand, d
             else:
                 tdiff = itol + 1
             if tdiff < itol and ctdict:
-                ctdict[tt] = ctdict[usedlist[closest]]
+                ctdict[tt] = ctdict[closest]
             else:
                 ctdict[tt] = CTrans(ticks[idx])
                 ctdict[tt].calcCoreTransforms()
                 if sys_in in magsys or sys_out in magsys:
                     ctdict[tt].calcMagTransforms()
-                ttused.add(tt)
+                if fresh is not None:
+                    bisect.insort(fresh, tt)
     # Unless speed becomes an issue, let's just loop over each value
     # except the spacial case of only 1 unique time
     loopover = np.atleast_2d(coords)
