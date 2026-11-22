@@ -480,30 +480,38 @@ class ModuleTests(unittest.TestCase):
 
 
 class CTransReuseTests(unittest.TestCase):
-    """Reuse decisions of ctrans.convert_multitime (itol cache)."""
+    """When convert_multitime reuses one CTrans for several times"""
 
     def _run(self, offsets, itol):
+        """Convert a fixed position at several times, count CTrans built.
+
+        Times are seconds from 2020-01-01; the same position is converted
+        at each time. Returns the converted positions and the number of
+        CTrans built from scratch (reused transforms are not counted).
+        """
         times = [dt.datetime(2020, 1, 1) + dt.timedelta(seconds=s)
                  for s in offsets]
         pos = numpy.tile([10000., 2000., 3000.], (len(times), 1))
-        counter = {'n': 0}
-        # NOTE: count on the class __init__ (not by replacing the module
-        # global) because CTrans.__init__ uses `super(CTrans, self)`, which
-        # resolves the name from module globals.
-        real_init = ctrans.CTrans.__init__
+        # convert_multitime calls calcCoreTransforms exactly once per
+        # freshly-built CTrans; reused times are dict references. Counting
+        # these calls avoids patching __init__, whose old-style
+        # super(CTrans, self) breaks if the module-global CTrans is
+        # replaced.
+        real_calc = ctrans.CTrans.calcCoreTransforms
+        fresh = []
 
-        def counting_init(self, *args, **kwargs):
-            counter['n'] += 1
-            real_init(self, *args, **kwargs)
+        def counting_calc(self):
+            fresh.append(1)
+            real_calc(self)
 
-        ctrans.CTrans.__init__ = counting_init
+        ctrans.CTrans.calcCoreTransforms = counting_calc
         try:
             out = ctrans.convert_multitime(
                 pos, spacepy.time.Ticktock(times, 'UTC'), 'ECIMOD', 'GEO',
                 itol=itol)
         finally:
-            ctrans.CTrans.__init__ = real_init
-        return numpy.asarray(out), counter['n']
+            ctrans.CTrans.calcCoreTransforms = real_calc
+        return numpy.asarray(out), len(fresh)
 
     def test_itol0_builds_one_per_unique_time(self):
         """itol=0 builds one CTrans per unique time"""
@@ -511,20 +519,21 @@ class CTransReuseTests(unittest.TestCase):
         self.assertEqual(n, 4)
 
     def test_itol_reuses_within_tolerance(self):
-        """times within itol reuse the closest fresh CTrans"""
-        # 0 fresh; 10, 20 reuse 0; 30 fresh (30 !< 30); 40 reuses 30; 100 fresh
+        """times within itol reuse the closest existing transform"""
+        # 0 fresh; 10, 20, 30 reuse 0 (30 <= itol); 40, 100 fresh
         out, n = self._run([0, 10, 20, 30, 40, 100], 30)
         self.assertEqual(n, 3)
         numpy.testing.assert_array_equal(out[0], out[1])
-        numpy.testing.assert_array_equal(out[1], out[2])
-        numpy.testing.assert_array_equal(out[3], out[4])
-        self.assertTrue(numpy.any(out[2] != out[3]))
+        numpy.testing.assert_array_equal(out[1], out[3])
+        self.assertTrue(numpy.any(out[3] != out[4]))
 
     def test_duplicate_times_share_one_ctrans(self):
         """duplicate times share a single CTrans"""
-        out, n = self._run([0, 0, 0], 0)
-        self.assertEqual(n, 1)
-        numpy.testing.assert_array_equal(out[0], out[2])
+        for itol in (0, 1):
+            with self.subTest(itol=itol):
+                out, n = self._run([0, 0, 0], itol)
+                self.assertEqual(n, 1)
+                numpy.testing.assert_array_equal(out[0], out[2])
 
 
 if __name__ == "__main__":
