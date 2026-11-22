@@ -1139,10 +1139,12 @@ def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
             # by the itol kwarg)
             if ttused:
                 pos = bisect.bisect_left(ttused, tt)
-                prev = ttused[max(pos - 1, 0)]
-                nxt = ttused[min(pos, len(ttused) - 1)]
-                closest = prev if tt - prev <= nxt - tt else nxt
-                tdiff = min(abs(tt - prev), abs(tt - nxt))
+                cand1 = ttused[max(pos - 1, 0)]
+                cand2 = ttused[min(pos, len(ttused) - 1)]
+                diff1, diff2 = abs(tt - cand1), abs(tt - cand2)
+                closest, tdiff = cand2, diff2
+                if diff1 < diff2:
+                    closest, tdiff = cand1, diff1
             else:
                 tdiff = itol + 1
             if tdiff <= itol and ctdict:
