@@ -8,6 +8,7 @@ Test suite for ctrans module
 import copy
 import datetime as dt
 import unittest
+import unittest.mock
 
 import numpy
 from scipy.constants import arcsec
@@ -485,33 +486,29 @@ class CTransReuseTests(unittest.TestCase):
     def _run(self, offsets, itol):
         """Convert a fixed position at several times, count CTrans built.
 
-        Times are seconds from 2020-01-01; the same position is converted
-        at each time. Returns the converted positions and the number of
-        CTrans built from scratch (reused transforms are not counted).
+        Parameters
+        ----------
+        offsets : sequence
+            Seconds from 2020-01-01; the same position is converted
+            at each time
+        itol : float
+            Tolerance passed through to convert_multitime
+
+        Returns
+        -------
+        pos, n_calls
+           Tuple of converted positions and the number of CTrans built
+           from scratch (reused transforms are not counted).
         """
         times = [dt.datetime(2020, 1, 1) + dt.timedelta(seconds=s)
                  for s in offsets]
         pos = numpy.tile([10000., 2000., 3000.], (len(times), 1))
-        # convert_multitime calls calcCoreTransforms exactly once per
-        # freshly-built CTrans; reused times are dict references. Counting
-        # these calls avoids patching __init__, whose old-style
-        # super(CTrans, self) breaks if the module-global CTrans is
-        # replaced.
-        real_calc = ctrans.CTrans.calcCoreTransforms
-        fresh = []
 
-        def counting_calc(self):
-            fresh.append(1)
-            real_calc(self)
-
-        ctrans.CTrans.calcCoreTransforms = counting_calc
-        try:
+        with unittest.mock.patch("spacepy.ctrans.CTrans", wraps=ctrans.CTrans) as WrappedCTrans:
             out = ctrans.convert_multitime(
                 pos, spacepy.time.Ticktock(times, 'UTC'), 'ECIMOD', 'GEO',
                 itol=itol)
-        finally:
-            ctrans.CTrans.calcCoreTransforms = real_calc
-        return numpy.asarray(out), len(fresh)
+            return (numpy.asarray(out), WrappedCTrans.call_count)
 
     def test_itol0_builds_one_per_unique_time(self):
         """itol=0 builds one CTrans per unique time"""

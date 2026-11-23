@@ -187,7 +187,7 @@ class CTrans(dm.SpaceData):
     .. versionadded:: 0.3.0
     """
     def __init__(self, ctime, ephmodel=None, pnmodel=None, eop=False):
-        super(CTrans, self).__init__()
+        super().__init__()
         if ephmodel is not None:
             self._raiseErr(NotImplementedError, 'ephmodel')
         else:
