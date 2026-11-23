@@ -662,10 +662,9 @@ def omniFromDirectionalFlux(fluxarr, alphas, norm=True):
     except TypeError:
         fluxarr = np.array([fluxarr])
         flen = 1
-    finally:
-        if flen==1:
-            #assume isotropy
-            return fluxarr
+    if flen==1:
+        #assume isotropy
+        return fluxarr
     if norm:
        fac = 1
        denomina = integ.quad(np.sin, 0, np.pi)[0]
