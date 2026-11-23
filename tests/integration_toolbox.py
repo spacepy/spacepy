@@ -178,6 +178,7 @@ class WebGettingIntegration(unittest.TestCase):
             spacepy.toolbox.get_url('http://localhost:{}/doesnotexist.txt'.format(self.port))
         self.assertEqual('HTTP Error 404: File not found',
                          str(cm.exception))
+        cm.exception.close()
     
     def testGetUrlSpecifyConnNoKeepAlive(self):
         """Call get_url specifying connection but no keepalive"""
