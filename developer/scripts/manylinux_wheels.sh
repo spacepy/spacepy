@@ -6,10 +6,10 @@
 # docker run -i -t --rm -v `pwd`:/io --platform linux/arm64 quay.io/pypa/manylinux2014_aarch64 /bin/bash /io/developer/scripts/manylinux_wheels.sh
 cd /tmp
 cp -a /io spacepy
-/usr/bin/curl https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_1/linux/cdf39_1-dist-cdf.tar.gz --output cdf39_1-dist-cdf.tar.gz
-tar -zxvf cdf39_1-dist-cdf.tar.gz
-cd cdf39_1-dist
-make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all
+/usr/bin/curl https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_2/linux/cdf39_2-dist-cdf.tar.gz --output cdf39_2-dist-cdf.tar.gz
+tar -zxvf cdf39_2-dist-cdf.tar.gz
+cd cdf39_2-dist-main
+make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no -f Makefile-classic all
 cp -a src/lib/libcdf.so /tmp/spacepy/libcdf.so
 cd /tmp/spacepy
 

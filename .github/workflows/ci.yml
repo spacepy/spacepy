@@ -44,8 +44,8 @@ jobs:
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
+            cdf-version: "3.9.2"
+            cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.8"
             os: ubuntu-22.04
@@ -62,8 +62,8 @@ jobs:
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
+            cdf-version: "3.9.2"
+            cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.9"
             os: ubuntu-22.04
@@ -80,8 +80,8 @@ jobs:
             numpy-version: ">=1.21.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
+            cdf-version: "3.9.2"
+            cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.10"
             os: ubuntu-22.04
@@ -98,8 +98,8 @@ jobs:
             numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
+            cdf-version: "3.9.2"
+            cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.11"
             os: ubuntu-22.04
@@ -116,8 +116,8 @@ jobs:
             numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
+            cdf-version: "3.9.2"
+            cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.12"
             os: ubuntu-22.04
@@ -134,8 +134,8 @@ jobs:
             numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
+            cdf-version: "3.9.2"
+            cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.13"
             os: ubuntu-22.04
@@ -152,8 +152,8 @@ jobs:
             numpy-version: ">=2.1.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
+            cdf-version: "3.9.2"
+            cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.14"
             os: ubuntu-22.04
@@ -170,8 +170,8 @@ jobs:
             numpy-version: ">=2.3.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
+            cdf-version: "3.9.2"
+            cdf-munged-version: "39_2"
             dep-strategy: "newest"
     steps:
     - name: Set up Python ${{ matrix.python-version }}
@@ -221,7 +221,14 @@ jobs:
             pip install --no-build-isolation numpy${NUMPY_VERSION} ${PIPLIST}
         fi
         pip freeze --all
-        if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd cdf${CDF_VER}-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
+        if [ "${CDF_VER}" = "39_2" ]; then
+            CDF_DIST="cdf${CDF_VER}-dist-main"
+            MAKEFILE="Makefile-classic"
+        else
+            CDF_DIST="cdf${CDF_VER}-dist"
+            MAKEFILE="Makefile"
+        fi
+        if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd ${CDF_DIST}; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no -f ${MAKEFILE} all; make INSTALLDIR=$HOME/cdf/ -f ${MAKEFILE} install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
 # commit of the PR, not just the tip of the PR.
     - name: checkout
@@ -270,8 +277,8 @@ jobs:
             numpy-version: ">=2.3.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
             cflags: ""
-            cdf-version: "3.9.1"
-            cdf-munged-version: "39_1"
+            cdf-version: "3.9.2"
+            cdf-munged-version: "39_2"
             dep-strategy: "newest"
     steps:
     - name: Set up Python ${{ matrix.python-version }}
@@ -324,7 +331,14 @@ jobs:
             pip install --no-build-isolation numpy${NUMPY_VERSION} ${PIPLIST}
         fi
         pip freeze --all
-        if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd cdf${CDF_VER}-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
+        if [ "${CDF_VER}" = "39_2" ]; then
+            CDF_DIST="cdf${CDF_VER}-dist-main"
+            MAKEFILE="Makefile-classic"
+        else
+            CDF_DIST="cdf${CDF_VER}-dist"
+            MAKEFILE="Makefile"
+        fi
+        if [ ! -d ${HOME}/cdf ]; then wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf${CDF_VER}/linux/cdf${CDF_VER}-dist-cdf.tar.gz; tar xzf cdf${CDF_VER}-dist-cdf.tar.gz; cd ${CDF_DIST}; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no -f ${MAKEFILE} all; make INSTALLDIR=$HOME/cdf/  -f ${MAKEFILE} install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
 # commit of the PR, not just the tip of the PR.
     - name: checkout
