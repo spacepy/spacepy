@@ -1143,9 +1143,9 @@ def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
                 cand1 = ttused[max(pos - 1, 0)]
                 cand2 = ttused[min(pos, len(ttused) - 1)]
                 diff1, diff2 = abs(tt - cand1), abs(tt - cand2)
-                closest, tdiff = cand2, diff2
-                if diff1 < diff2:
-                    closest, tdiff = cand1, diff1
+                closest, tdiff = cand1, diff1
+                if diff2 < diff1:
+                    closest, tdiff = cand2, diff2
             else:
                 tdiff = itol + 1
             if tdiff < itol and ctdict:

@@ -537,6 +537,13 @@ class CTransReuseTests(unittest.TestCase):
                 self.assertEqual(n, 1)
                 numpy.testing.assert_array_equal(out[0], out[2])
 
+    def test_tie_goes_to_earlier(self):
+        """use earlier time if two match"""
+        out, n = self._run([0, 6, 3], 5)
+        self.assertEqual(n, 2)
+        self.assertTrue(numpy.not_equal(out[0], out[1]).all())
+        numpy.testing.assert_array_equal(out[0], out[2])
+
 
 if __name__ == "__main__":
     unittest.main()
