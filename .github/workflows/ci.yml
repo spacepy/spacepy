@@ -84,7 +84,7 @@ jobs:
             cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.10"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0"
             numpy-version: ">=1.21.0,<1.22.0"
             piplist: "python-dateutil~=2.7.0 scipy>=1.7.2,<1.8.0 matplotlib~=3.1.0 h5py>=3.6,<3.7 astropy>=4.0,<4.1 pandas~=1.2.0"
@@ -93,7 +93,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.10"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
@@ -102,7 +102,7 @@ jobs:
             cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.11"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip~=20.0.0 setuptools~=44.1.0 wheel~=0.34.2 cython<3.0"
             numpy-version: "~=1.23.0"
             piplist: "python-dateutil~=2.8.1 scipy~=1.9.0 matplotlib~=3.1.0 h5py~=3.8.0 astropy~=5.0.0 pandas~=1.5.0"
@@ -111,7 +111,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.11"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip setuptools wheel cython"
             numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
@@ -120,7 +120,7 @@ jobs:
             cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.12"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip~=23.1.0 setuptools~=66.1.0 wheel~=0.34.2 cython<3.0"
             numpy-version: "~=1.24.0"
             piplist: "python-dateutil~=2.8.1 scipy~=1.11.0 matplotlib~=3.5.0 h5py~=3.10.0 astropy~=5.3.0 pandas~=1.5.0"
@@ -129,7 +129,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.12"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip setuptools wheel"
             numpy-version: ">=1.26.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
@@ -138,7 +138,7 @@ jobs:
             cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.13"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip~=23.1.0 setuptools~=66.1.0 wheel~=0.34.2 cython~=3.0.0 pkgconfig"
             numpy-version: "~=2.1.0"
             piplist: "python-dateutil~=2.8.1 scipy~=1.14.0 matplotlib~=3.6.0 h5py~=3.11.0 astropy~=6.1.0 pandas~=2.2.0"
@@ -147,7 +147,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.13"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip setuptools wheel"
             numpy-version: ">=2.1.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
@@ -156,7 +156,7 @@ jobs:
             cdf-munged-version: "39_2"
             dep-strategy: "newest"
           - python-version: "3.14"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip~=23.1.0 setuptools~=66.1.0 wheel~=0.34.2 cython~=3.0.0 pkgconfig"
             numpy-version: "~=2.3.0"
             piplist: "python-dateutil~=2.8.1 scipy~=1.16.0 matplotlib~=3.10.0 h5py~=3.13.0 astropy~=7.1.0 pandas~=2.3.0"
@@ -165,7 +165,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.14"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip setuptools wheel"
             numpy-version: ">=2.3.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
@@ -246,7 +246,7 @@ jobs:
 
   irbem-unicode:
     name: Check for Unicode in IRBEM source
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout
         uses: actions/checkout@v7
@@ -272,7 +272,7 @@ jobs:
             cdf-munged-version: "35_1"
             dep-strategy: "oldest"
           - python-version: "3.14"
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             build-deps: "pip setuptools wheel cython"
             numpy-version: ">=2.3.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy sphinx numpydoc"
@@ -366,7 +366,7 @@ jobs:
   all-tests:
     name: All tests
     if: ${{ always() }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [test, irbem-unicode, docs]
     steps:
       - name: Check test matrix status
