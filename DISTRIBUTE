@@ -32,7 +32,7 @@ bash ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda
 
 If CDF library isn't installed, download/install CDF, so that the pycdf
 library will import and the docs build:
-wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; pushd cdf38_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME/cdf install; popd
+wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_2/linux/cdf39_2-dist-cdf.tar.gz; tar xzf cdf39_2-dist-cdf.tar.gz; pushd cdf39_2-dist-main; make OS=linux ENV=gnu -f Makefile-classic all; make INSTALLDIR=$HOME/cdf -f Makefile-classic install; popd
 source ${HOME}/cdf/bin/definitions.B
 
 Make a clean isolated environment just for SpacePy build:
@@ -93,8 +93,8 @@ SpacePy. Yes this could be improved.
 Download the CDF library and extract the DLL. This is easiest done on
 the Unix side and then transferred over--it just needs to be in the
 top-level directory with setup.py.
-    wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_1/windows/cdf3.9.1_64bit_WinZip_Installer.zip
-    unzip -j cdf3.9.1_64bit_WinZip_Installer.zip bin/dllcdf.dll
+    wget https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_2/windows/cdf39_2-dist.zip
+    unzip -j cdf39_2-dist.zip cdf39_2-dist/bin/dllcdf.dll
 
 Download latest 64-bit Miniconda from
 https://docs.conda.io/en/latest/miniconda.html and put it in the
@@ -125,19 +125,19 @@ conda only has gfortran 11.2 and 11.3. 11.2 installs libgfortran-5.0.0, so may h
 Download the CDF library; need to build from source since they compile against a new SDK. You can check this at https://stackoverflow.com/questions/17143373/determine-minimum-osx-version-a-binary-was-compiled-for
 Do this build WITHOUT having conda loaded (so we don't get the wrong ld)
 
-curl https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_1/macosx/src_distribution/cdf39_1-dist-cdf.tar.gz --output cdf39_1-dist-cdf.tar.gz
-tar -zxvf cdf39_1-dist-cdf.tar.gz
-cd cdf39_1-dist
+curl https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf39_2/macosx/src_distribution/cdf39_2-dist-cdf.tar.gz --output cdf39_2-dist-cdf.tar.gz
+tar -zxvf cdf39_2-dist-cdf.tar.gz
+cd cdf39_2-dist-main
 # So we can override this later
 sed -i '' 's/LDLIB=-L\$(XCODEDir)/LDLIB?=-L\$(XCODEDir)/' Makefile
 # if you need real xcodeversion, use this, but "10.2" gets the new codepath
 # pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
 # For Apple Silicon
-SDKROOT=/opt/MacOSX11.0.sdk make XCODEVERSION=10.2 LDLIB=-L/opt/MacOSX11.0.sdk/usr/lib OS=macosx ENV=arm64 SHARED=yes CURSES=no FORTRAN=no all
+SDKROOT=/opt/MacOSX11.0.sdk make XCODEVERSION=10.2 LDLIB=-L/opt/MacOSX11.0.sdk/usr/lib OS=macosx ENV=arm64 SHARED=yes CURSES=no FORTRAN=no -f Makefile-classic all
 # For Intel, built on Intel
-SDKROOT=/opt/MacOSX10.9.sdk make XCODEVERSION=10.2 LDLIB="-L/opt/MacOSX10.9.sdk/usr/lib -L/opt/MacOSX10.9.sdk/usr/lib/system" OS=macosx ENV=x86_64 SHARED=yes CURSES=no FORTRAN=no all
+SDKROOT=/opt/MacOSX10.9.sdk make XCODEVERSION=10.2 LDLIB="-L/opt/MacOSX10.9.sdk/usr/lib -L/opt/MacOSX10.9.sdk/usr/lib/system" OS=macosx ENV=x86_64 SHARED=yes CURSES=no FORTRAN=no -f Makefile-classic all
 # To build Intel *on Apple Silicon*
-SDKROOT=/opt/MacOSX10.9.sdk arch -x86_64 make XCODEVERSION=10.2 LDLIB="-L/opt/MacOSX10.9.sdk/usr/lib -L/opt/MacOSX10.9.sdk/usr/lib/system" OS=macosx ENV=x86_64 SHARED=yes CURSES=no FORTRAN=no all
+SDKROOT=/opt/MacOSX10.9.sdk arch -x86_64 make XCODEVERSION=10.2 LDLIB="-L/opt/MacOSX10.9.sdk/usr/lib -L/opt/MacOSX10.9.sdk/usr/lib/system" OS=macosx ENV=x86_64 SHARED=yes CURSES=no FORTRAN=no -f Makefile-classic all
 
 The assumption of the build scripts now is that both the x86 and ARM
 builds will be done on ARM, so the mac_x86_wheels.sh script will call
