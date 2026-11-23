@@ -1127,17 +1127,11 @@ def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
         :meth:`~.coordinates.Coords.convert`) will override this value.
     '''
     itol = itol if defaults is None else defaults.itol
-    # Calculate a CTrans for each unique time
-    ctdict = dict()
-    # Times with freshly calculated transforms, kept sorted so the
-    # closest one can be found by bisection
-    ttused = []
+    ctdict = {}  # CTrans for each unique time
+    ttused = []  # times with directly calculated CTrans, sorted
     tais = ticks.TAI
     for idx, tt in enumerate(tais):
         if tt not in ctdict:
-            # for speed, let's not recalculate transforms
-            # for times very close to each other (defined
-            # by the itol kwarg)
             if ttused:
                 pos = bisect.bisect_left(ttused, tt)
                 cand1 = ttused[max(pos - 1, 0)]
@@ -1156,8 +1150,6 @@ def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
                 if sys_in in magsys or sys_out in magsys:
                     ctdict[tt].calcMagTransforms()
                 bisect.insort(ttused, tt)
-    # Unless speed becomes an issue, let's just loop over each value
-    # except the spacial case of only 1 unique time
     loopover = np.atleast_2d(coords)
     if len(ctdict) == 1:
         newcoords = ctdict[tais[0]].convert(loopover, sys_in, sys_out, defaults=defaults)
