@@ -520,12 +520,14 @@ class CTransReuseTests(unittest.TestCase):
 
     def test_itol_reuses_within_tolerance(self):
         """times within itol reuse the closest existing transform"""
-        # 0 fresh; 10, 20, 30 reuse 0 (30 <= itol); 40, 100 fresh
+        # 0 fresh; 10, 20 reuse 0 (20 < itol); 30 fresh; 40 reuses 30; 100 fresh
         out, n = self._run([0, 10, 20, 30, 40, 100], 30)
         self.assertEqual(n, 3)
         numpy.testing.assert_array_equal(out[0], out[1])
-        numpy.testing.assert_array_equal(out[1], out[3])
-        self.assertTrue(numpy.any(out[3] != out[4]))
+        numpy.testing.assert_array_equal(out[1], out[2])
+        self.assertTrue(numpy.not_equal(out[2], out[3]).all())
+        numpy.testing.assert_array_equal(out[3], out[4])
+        self.assertTrue(numpy.not_equal(out[4], out[5]).all())
 
     def test_duplicate_times_share_one_ctrans(self):
         """duplicate times share a single CTrans"""

@@ -1120,10 +1120,11 @@ def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
     ----------------
     defaults : namedtuple or None
         Named tuple with parameters from coordinates module
-    itol : float
-        Time tolerance, in seconds, for using a unique set of conversions.
-        Default is 1. Supplying a defaults namedtuple (i.e., if routine is called
-        by spacepy.cooordinates.Coords.convert) will override this value.
+    itol : float, default 1.0
+        Time tolerance, in seconds, for using a unique set of conversions;
+        times closer to each other than this value will share a conversion.
+        Supplying a ``defaults`` namedtuple (i.e., if routine is called by
+        :meth:`~.coordinates.Coords.convert`) will override this value.
     '''
     itol = itol if defaults is None else defaults.itol
     # Calculate a CTrans for each unique time
@@ -1147,7 +1148,7 @@ def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
                     closest, tdiff = cand1, diff1
             else:
                 tdiff = itol + 1
-            if tdiff <= itol and ctdict:
+            if tdiff < itol and ctdict:
                 ctdict[tt] = ctdict[closest]
             else:
                 ctdict[tt] = CTrans(ticks[idx])
