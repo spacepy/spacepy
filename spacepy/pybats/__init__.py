@@ -422,7 +422,8 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     # Check that number of headline entries matches nvar+ndim
     if len(units[nSkip:]) != nvar+ndim:
         warnings.warn('First line interpreted as units, ' +
-                      'but does not match the number of vars + dims')
+                      'but does not match the number of vars + dims',
+                      stacklevel=2)
 
     # Save grid names (e.g. 'x' or 'r') and save associated params.
     pbdat['grid'].attrs['dims'] = tuple(names[0:ndim])
