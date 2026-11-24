@@ -1236,13 +1236,11 @@ class IdlFile(PbData):
         '''
         headers = []
         with open(self.attrs['file'], 'r') as f:
-            nframe = 0 # Number of epoch frames in file.
             f.seek(0, 2)  # Jump to end of file (in Py3, this returns location)
             file_size = f.tell()  # Get number of bytes in file.
             f.seek(0)  # Rewind to file start.
             while f.tell() < file_size:
                 headers.append(_scan_ascii_header(f))
-                nframe += 1
 
         return headers
 
