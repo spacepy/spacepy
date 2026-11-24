@@ -235,7 +235,7 @@ class Lines(PbData):
         if time is self['time'][0]:
             if time not in self['time']:
                 raise ValueError('Time not in object')
-            time = np.arange(self.attrs['nTime'])[self['time'] == time][0]
+            time = np.nonzero([self['time'] == time])[0]
 
         fig, ax = set_target(target, loc=loc, figsize=figsize)
         ax.set_aspect('equal')
