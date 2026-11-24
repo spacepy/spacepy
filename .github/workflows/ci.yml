@@ -184,7 +184,7 @@ jobs:
             dep-strategy: "oldest"
           - python-version: "3.15"
             os: ubuntu-24.04
-            build-deps: "pip setuptools wheel"
+            build-deps: "pip setuptools wheel cython pkgconfig"
             numpy-version: ">=2.3.0"
             piplist: "python-dateutil scipy matplotlib h5py astropy pandas"
             cflags: ""
