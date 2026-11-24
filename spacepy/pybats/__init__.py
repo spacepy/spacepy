@@ -1250,9 +1250,6 @@ class IdlFile(PbData):
         Open the ascii-formatted file associated with *self* and scan all
         headers to count the number of epoch frames and details of each.
         Results are stored within *self*.
-
-        This is a placeholder only until ascii-formatted .outs files are
-        fully supported.
         '''
 
         # Iterate through headers in file and collect information
