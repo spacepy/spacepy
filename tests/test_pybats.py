@@ -382,7 +382,7 @@ class TestIdlFile(unittest.TestCase):
 
     # Name for our temporary ASCII .outs file:
     asciiouts = os.path.join(spacepy_testing.datadir, 'pybats_test',
-                             'y0_ascii.outs')
+                             'y0_ascii_e20140410-000010-000_20140410-000200-000.outs')
 
     # Known values for single-frame *.out files:
     varnames = 'x z rho ux uy uz bx by bz p b1x b1y b1z e jx jy jz'
@@ -407,6 +407,8 @@ class TestIdlFile(unittest.TestCase):
     knownTimeRng1 = [dt.datetime(2014, 4, 10, 0, 0),
                      dt.datetime(2014, 4, 10, 0, 2)]
     knownTimeRng2 = [dt.datetime(2014, 4, 10, 0, 0),
+                     dt.datetime(2014, 4, 10, 0, 2)]
+    knownTimeRng3 = [dt.datetime(2014, 4, 10, 0, 0, 10),
                      dt.datetime(2014, 4, 10, 0, 2)]
 
     knownMax1 = {"Rho": 14.871581077575684, "Ux": -1093.626953125,
@@ -435,7 +437,7 @@ class TestIdlFile(unittest.TestCase):
             f.writelines(lines)
             # Second entry:
             f.write(lines[0])
-            f.write('      10  6.0000000000E+02 -2  3 15\n')
+            f.write('      10  6.0000000000E+01 -2  3 15\n')
             f.writelines(lines[2:])
             # Third entry:
             f.write(lines[0])
@@ -565,6 +567,7 @@ class TestIdlFile(unittest.TestCase):
         # Check against 2nd frame info:
         self.assertEqual(self.knownIterRng3[2], mhd.attrs['iter'])
         self.assertEqual(self.knownRtimeRng3[2], mhd.attrs['runtime'])
+        self.assertEqual(self.knownTimeRng3[1], mhd.attrs['time'])
 
         # Check against 2nd frame data:
         for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
@@ -572,6 +575,8 @@ class TestIdlFile(unittest.TestCase):
                                    places=9)
 
         # Switch frames, check for successful update of attributes:
+        mhd.switch_frame(0)
+        self.assertEqual(self.knownTimeRng3[0], mhd.attrs['time'])
         mhd.switch_frame(1)
         self.assertEqual(self.knownIterRng3[1], mhd.attrs['iter'])
 
