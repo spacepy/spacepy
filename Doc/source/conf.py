@@ -307,6 +307,7 @@ linkcheck_ignore = [
     r'https://www.idlcoyote.com/',  # bad certificate
     r'https://www.iers.org/',  # always times out
     r'https://www.mathworks.com/',  # 403
+    r'https://medium.com/',  # 403
     r'https://pypi.org/project/',  # 403
     r'https://.*.sourceforge.net/',  # 403
     r'https://.*.sourceforge.org/',  # 403
