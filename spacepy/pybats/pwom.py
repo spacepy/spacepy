@@ -88,6 +88,13 @@ class Line(IdlFile):
         Name of line file to open
     starttime : datetime.datetime
         Simulation time corresponding to line file.
+
+    Notes
+    -----
+    .. versionchanged:: 0.8.0
+
+        Base class changed to `~.pybats.IdlFile` instead of
+        `~.pybats.PbData`, adding support for binary field line files.
     '''
     def __init__(self, filename, starttime=None, *args, **kwargs):
         # Initialize as an IdlFile. Filename handled by parent reader and
