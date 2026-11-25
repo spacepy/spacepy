@@ -38,6 +38,11 @@ use NGDC-style products.
 ``spacepy.plot.apionly`` was removed (deprecated in 0.5.0 and has no
 effect).
 
+New features
+************
+`.pybats.pwom.Line` now support reading binary field line files
+(thanks Alex Glocer).
+
 Major bugfixes
 **************
 Several small issues in `~spacepy.ae9ap9` were fixed, relating to
