@@ -23,7 +23,8 @@ New features
 setting the last update of the leapsecond table in a CDF.
 
 `.pybats.IdlFile` now reads ascii-formated .outs files and can switch between
-frames identically to binary counterparts.
+frames identically to binary counterparts. This support affects all subclasses.
+`.pybats.pwom.Line` is now a subclass of ``IdlFile``.
 
 Deprecations and removals
 *************************
