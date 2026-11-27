@@ -492,7 +492,7 @@ def trace_fieldline(ticks, loci, rad=1.0, extMag='T01STORM', options=[1, 0, 0, 0
         One element per element of ``ticks``. Each result contains keys:
            - ``loci``: GEO coordinates of the fieldline trace
            - ``Blocal``: local B field for each element of ``loci``
-           - ``Bmin``, ``Lm``, and ``XJ`` parameters of the field line
+           - ``Bmin``, ``Lm``, and ``Xj`` parameters of the field line
     """
 
     # prepare input values for irbem call
@@ -516,7 +516,7 @@ def trace_fieldline(ticks, loci, rad=1.0, extMag='T01STORM', options=[1, 0, 0, 0
         bmin = np.empty((), np.float64)
         blocal = np.empty((3000), np.float64)
         GEOcoord = np.empty((3,3000), np.float64, order='F')
-        XJ = np.empty((), np.float64)
+        Xj = np.empty((), np.float64)
         Lm = np.empty((), np.float64)
         ind = np.empty((), np.int32)
         irbemlib.trace_field_line2_1(
@@ -527,13 +527,13 @@ def trace_fieldline(ticks, loci, rad=1.0, extMag='T01STORM', options=[1, 0, 0, 0
             real8(rad), Lm.ctypes.data_as(ctypes.POINTER(real8)),
             blocal.ctypes.data_as(ctypes.POINTER(real8 * 3000)),
             bmin.ctypes.data_as(ctypes.POINTER(real8)),
-            XJ.ctypes.data_as(ctypes.POINTER(real8)),
+            Xj.ctypes.data_as(ctypes.POINTER(real8)),
             GEOcoord.ctypes.data_as(ctypes.POINTER((real8 * 3) * 3000)),
             ind.ctypes.data_as(ctypes.POINTER(int4))
             )
         results[i]['Bmin'] = bmin
         results[i]['Lm'] = Lm
-        results[i]['XJ'] = XJ
+        results[i]['Xj'] = Xj
         results[i]['loci'] = GEOcoord[:,:ind]
         results[i]['Blocal'] = blocal[:ind]
         
