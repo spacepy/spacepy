@@ -462,27 +462,37 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
 
 # -----------------------------------------------
 def trace_fieldline(ticks, loci, rad=1.0, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals=None):
-    """
-    call find_magequator from irbem library and return a dictionary with values for
-    Bmin and the GEO (cartesian) coordinates of the magnetic equator
+    """Trace field lines; return field line properties and coordinates of trace
+
+    Calls ``trace_field_line2_1`` from IRBEM.
+
+    .. versionadded:: 0.8.0
 
     Parameters
     ----------
-        - ticks (Ticktock class) : containing time information
-        - loci (Coords class) : containing spatial information
-        - rad (float) : radius in Re to trace to
-        - extMag (string) : optional; will choose the external magnetic field model
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89',
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM',
-                            'T05', 'ALEX', 'TS07']
-        - options (optional list or array of integers length=5) : explained in Lstar
-        - omni values as dictionary (optional) : if not provided, will use lookup table
-        - (see Lstar documentation for further explanation)
+    ticks : `~.time.Ticktock`
+        Times for the trace
+    loci : `~.coordinates.Coords`
+        Starting location of the trace; one for each element of ``ticks``
+    rad : float
+        radius in Re to trace to
+    extMag : str, default ``'T01STORM'``
+        External magnetic field model; possible values ``['0', 'MEAD',
+        'T87SHORT', 'T87LONG', 'T89', 'OPQUIET', 'OPDYN', 'T96',
+        'OSTA', 'T01QUIET', 'T01STORM', 'T05', 'ALEX', 'TS07']``.
+    options : `~collections.abc.Sequence`, optional
+        list or array of integers (length=5);  explained in `get_Lstar`
+    omnivals : dict, optional
+        OMNI values. If not provided, will use lookup table. See
+        `get_Lstar` for further explanation.
 
     Returns
     -------
-        - results (dictionary) : containing keys: Bmin, Blocal, Lm, XJ, Coords instance with 
-            GEO coordinates of the fieldline
+    list of dict
+        One element per element of ``ticks``. Each result contains keys:
+           - ``loci``: GEO coordinates of the fieldline trace
+           - ``Blocal``: local B field for each element of ``loci``
+           - ``Bmin``, ``Lm``, and ``XJ`` parameters of the field line
     """
 
     # prepare input values for irbem call
@@ -500,9 +510,9 @@ def trace_fieldline(ticks, loci, rad=1.0, extMag='T01STORM', options=[1, 0, 0, 0
     magin = d['magin']
     options = (int4 * 5)(*options)
 
-    results = {}
+    results = []
     for i in np.arange(nTAI):
-        results[i] = {}
+        results.append({})
         bmin = np.empty((), np.float64)
         blocal = np.empty((3000), np.float64)
         GEOcoord = np.empty((3,3000), np.float64, order='F')
@@ -524,7 +534,6 @@ def trace_fieldline(ticks, loci, rad=1.0, extMag='T01STORM', options=[1, 0, 0, 0
         results[i]['Bmin'] = bmin
         results[i]['Lm'] = Lm
         results[i]['XJ'] = XJ
-        results[i]['npoints'] = ind
         results[i]['loci'] = GEOcoord[:,:ind]
         results[i]['Blocal'] = blocal[:ind]
         
