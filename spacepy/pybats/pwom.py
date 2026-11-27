@@ -108,7 +108,7 @@ class Line(IdlFile):
         for v in self.keys():
             if v == 'grid':
                 continue
-            matched = re.match('(\w+)\[(.*)\]', v)
+            matched = re.match(r'(\w+)\[(.*)\]', v)
             if matched:
                 self[matched.groups()[0]] = self.pop(v)
                 self[matched.groups()[0]].attrs['units'] = matched.groups()[1]
