@@ -460,6 +460,86 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1, 0, 0, 0, 0],
 
     return results
 
+# -----------------------------------------------
+def trace_fieldline(ticks, loci, rad=1.0, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals=None):
+    """Trace field lines; return field line properties and coordinates of trace
+
+    Calls ``trace_field_line2_1`` from IRBEM.
+
+    .. versionadded:: 0.8.0
+
+    Parameters
+    ----------
+    ticks : `~.time.Ticktock`
+        Times for the trace
+    loci : `~.coordinates.Coords`
+        Starting location of the trace; one for each element of ``ticks``
+    rad : float
+        radius in Re to trace to
+    extMag : str, default ``'T01STORM'``
+        External magnetic field model; possible values ``['0', 'MEAD',
+        'T87SHORT', 'T87LONG', 'T89', 'OPQUIET', 'OPDYN', 'T96',
+        'OSTA', 'T01QUIET', 'T01STORM', 'T05', 'ALEX', 'TS07']``.
+    options : `~collections.abc.Sequence`, optional
+        list or array of integers (length=5);  explained in `get_Lstar`
+    omnivals : dict, optional
+        OMNI values. If not provided, will use lookup table. See
+        `get_Lstar` for further explanation.
+
+    Returns
+    -------
+    list of dict
+        One element per element of ``ticks``. Each result contains keys:
+           - ``loci``: GEO coordinates of the fieldline trace
+           - ``Blocal``: local B field for each element of ``loci``
+           - ``Bmin``, ``Lm``, and ``Xj`` parameters of the field line
+    """
+
+    # prepare input values for irbem call
+    d = prep_irbem(ticks, loci, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
+    nTAI = len(ticks)
+    badval = d['badval']
+    kext = d['kext']
+    sysaxes = d['sysaxes']
+    iyearsat = d['iyearsat']
+    idoysat = d['idoysat']
+    secs = d['utsat']
+    xin1 = d['xin1']
+    xin2 = d['xin2']
+    xin3 = d['xin3']
+    magin = d['magin']
+    options = (int4 * 5)(*options)
+
+    results = []
+    for i in np.arange(nTAI):
+        results.append({})
+        bmin = np.empty((), np.float64)
+        blocal = np.empty((3000), np.float64)
+        GEOcoord = np.empty((3,3000), np.float64, order='F')
+        Xj = np.empty((), np.float64)
+        Lm = np.empty((), np.float64)
+        ind = np.empty((), np.int32)
+        irbemlib.trace_field_line2_1(
+            int4(kext), options, int4(sysaxes), int4(iyearsat[i]),
+            int4(idoysat[i]), real8(secs[i]), real8(xin1[i]),
+            real8(xin2[i]), real8(xin3[i]),
+            magin[:, i].ctypes.data_as(ctypes.POINTER(real8 * 25)),
+            real8(rad), Lm.ctypes.data_as(ctypes.POINTER(real8)),
+            blocal.ctypes.data_as(ctypes.POINTER(real8 * 3000)),
+            bmin.ctypes.data_as(ctypes.POINTER(real8)),
+            Xj.ctypes.data_as(ctypes.POINTER(real8)),
+            GEOcoord.ctypes.data_as(ctypes.POINTER((real8 * 3) * 3000)),
+            ind.ctypes.data_as(ctypes.POINTER(int4))
+            )
+        results[i]['Bmin'] = bmin
+        results[i]['Lm'] = Lm
+        results[i]['Xj'] = Xj
+        results[i]['loci'] = GEOcoord[:,:ind]
+        results[i]['Blocal'] = blocal[:ind]
+        
+        results[i]['loci'] = spc.Coords(results[i]['loci'].T, 'GEO', 'car', use_irbem=True)
+    return results
+
 
 # -----------------------------------------------
 def find_magequator(ticks, loci, extMag='T01STORM', options=[1, 0, 0, 0, 0], omnivals=None):
@@ -2402,6 +2482,9 @@ def _load_lib():
         'find_foot_point1': (int4, int4 * 5, int4, int4, int4, real8, real8,
                              real8, real8, real8, int4, real8 * 25, real8 * 3,
                              real8 * 3, real8),
+        'trace_field_line2_1': (int4, int4 * 5, int4, int4, int4, real8, real8,
+                                real8, real8, real8 * 25, real8, real8, real8 * 3000,
+                                real8, real8, (real8 * 3) * 3000, int4),
         'coord_trans1': (int4, int4, int4, int4, real8, real8 * 3, real8 * 3),
         'fly_in_nasa_aeap1': (int4, int4, int4, int4, int4, (real8 * 2) * nene_max,
                               int4 * ntime_max, int4 * ntime_max, real8 * ntime_max,

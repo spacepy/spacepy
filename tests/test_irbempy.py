@@ -443,6 +443,26 @@ class IRBEMBigTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ib.get_Lm(self.ticks, self.loci, [45], IGRFset=-1)
 
+    def test_trace_fieldline(self):
+        """test trace_fieldline"""
+        expected = {
+            'Lm': np.array([3.08587003, 2.06101048]),
+            'Bmin': np.array([1024.00593365, 3436.92498034]),
+            'Xj': np.array([0.0011497827, 0.0032246782]),
+        }
+        actual = ib.trace_fieldline(
+            self.ticks, self.loci, extMag="T96", omnivals=self.omnivals)
+        for key, arr in expected.items():
+            with self.subTest(key=key):
+                numpy.testing.assert_allclose(
+                    np.array([value[key] for value in actual]), arr)
+        for i, result in enumerate(actual):
+            with self.subTest(i=i):
+                numpy.testing.assert_array_equal(result["Blocal"] >= result["Bmin"], True)
+                r = np.sqrt((result["loci"].data ** 2).sum(axis=-1))
+                numpy.testing.assert_array_equal(r[:-1] >= 1.0, True)
+                self.assertTrue(r[-1] <= 1.0)
+
 
 class IRBEMTestsWithoutOMNI(unittest.TestCase):
 

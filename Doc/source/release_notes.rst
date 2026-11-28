@@ -26,6 +26,8 @@ setting the last update of the leapsecond table in a CDF.
 frames identically to binary counterparts. This support affects all subclasses.
 `.pybats.pwom.Line` is now a subclass of ``IdlFile``.
 
+Added `.irbempy.trace_fieldline`. Thanks Miles Engel.
+
 Deprecations and removals
 *************************
 `.pybats.NgdcIndex` was deprecated, as SWMF models no longer routinely
