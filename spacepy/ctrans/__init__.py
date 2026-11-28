@@ -91,6 +91,7 @@ here) use a centered dipole axis.
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
 
+import bisect
 import datetime as dt
 import collections
 from math import fmod
@@ -186,7 +187,7 @@ class CTrans(dm.SpaceData):
     .. versionadded:: 0.3.0
     """
     def __init__(self, ctime, ephmodel=None, pnmodel=None, eop=False):
-        super(CTrans, self).__init__()
+        super().__init__()
         if ephmodel is not None:
             self._raiseErr(NotImplementedError, 'ephmodel')
         else:
@@ -1119,37 +1120,36 @@ def convert_multitime(coords, ticks, sys_in, sys_out, defaults=None, itol=None):
     ----------------
     defaults : namedtuple or None
         Named tuple with parameters from coordinates module
-    itol : float
-        Time tolerance, in seconds, for using a unique set of conversions.
-        Default is 1. Supplying a defaults namedtuple (i.e., if routine is called
-        by spacepy.cooordinates.Coords.convert) will override this value.
+    itol : float, default 1.0
+        Time tolerance, in seconds, for using a unique set of conversions;
+        times closer to each other than this value will share a conversion.
+        Supplying a ``defaults`` namedtuple (i.e., if routine is called by
+        :meth:`~.coordinates.Coords.convert`) will override this value.
     '''
     itol = itol if defaults is None else defaults.itol
-    # Calculate a CTrans for each unique time
-    ctdict = dict()
-    ttused = set()
+    ctdict = {}  # CTrans for each unique time
+    ttused = []  # times with directly calculated CTrans, sorted
     tais = ticks.TAI
     for idx, tt in enumerate(tais):
         if tt not in ctdict:
-            # for speed, let's not recalculate transforms
-            # for times very close to each other (defined
-            # by the itol kwarg)
             if ttused:
-                usedlist = list(ttused)
-                closest = np.argmin(np.abs(tt - usedlist))
-                tdiff = np.abs(tt - usedlist[closest])
+                pos = bisect.bisect_left(ttused, tt)
+                cand1 = ttused[max(pos - 1, 0)]
+                cand2 = ttused[min(pos, len(ttused) - 1)]
+                diff1, diff2 = abs(tt - cand1), abs(tt - cand2)
+                closest, tdiff = cand1, diff1
+                if diff2 < diff1:
+                    closest, tdiff = cand2, diff2
             else:
                 tdiff = itol + 1
             if tdiff < itol and ctdict:
-                ctdict[tt] = ctdict[usedlist[closest]]
+                ctdict[tt] = ctdict[closest]
             else:
                 ctdict[tt] = CTrans(ticks[idx])
                 ctdict[tt].calcCoreTransforms()
                 if sys_in in magsys or sys_out in magsys:
                     ctdict[tt].calcMagTransforms()
-                ttused.add(tt)
-    # Unless speed becomes an issue, let's just loop over each value
-    # except the spacial case of only 1 unique time
+                bisect.insort(ttused, tt)
     loopover = np.atleast_2d(coords)
     if len(ctdict) == 1:
         newcoords = ctdict[tais[0]].convert(loopover, sys_in, sys_out, defaults=defaults)

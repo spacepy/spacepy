@@ -8,6 +8,7 @@ Test suite for ctrans module
 import copy
 import datetime as dt
 import unittest
+import unittest.mock
 
 import numpy
 from scipy.constants import arcsec
@@ -16,7 +17,8 @@ import spacepy_testing
 from spacepy import ctrans
 import spacepy.time
 
-__all__ = ['CTransClassTests', 'CTransRegressionTests', 'ModuleTests']
+__all__ = ['CTransClassTests', 'CTransRegressionTests', 'ModuleTests',
+           'CTransReuseTests']
 
 
 class CTransClassTests(unittest.TestCase):
@@ -476,6 +478,68 @@ class ModuleTests(unittest.TestCase):
         stage1 = ctrans.rll_to_geo(rll)
         got = ctrans.geo_to_rll(stage1)
         numpy.testing.assert_allclose(got, rll, atol=1e-9, rtol=0)
+
+
+class CTransReuseTests(unittest.TestCase):
+    """When convert_multitime reuses one CTrans for several times"""
+
+    def _run(self, offsets, itol):
+        """Convert a fixed position at several times, count CTrans built.
+
+        Parameters
+        ----------
+        offsets : sequence
+            Seconds from 2020-01-01; the same position is converted
+            at each time
+        itol : float
+            Tolerance passed through to convert_multitime
+
+        Returns
+        -------
+        pos, n_calls
+           Tuple of converted positions and the number of CTrans built
+           from scratch (reused transforms are not counted).
+        """
+        times = [dt.datetime(2020, 1, 1) + dt.timedelta(seconds=s)
+                 for s in offsets]
+        pos = numpy.tile([10000., 2000., 3000.], (len(times), 1))
+
+        with unittest.mock.patch("spacepy.ctrans.CTrans", wraps=ctrans.CTrans) as WrappedCTrans:
+            out = ctrans.convert_multitime(
+                pos, spacepy.time.Ticktock(times, 'UTC'), 'ECIMOD', 'GEO',
+                itol=itol)
+            return (numpy.asarray(out), WrappedCTrans.call_count)
+
+    def test_itol0_builds_one_per_unique_time(self):
+        """itol=0 builds one CTrans per unique time"""
+        out, n = self._run([0, 1, 2, 3], 0)
+        self.assertEqual(n, 4)
+
+    def test_itol_reuses_within_tolerance(self):
+        """times within itol reuse the closest existing transform"""
+        # 0 fresh; 10, 20 reuse 0 (20 < itol); 30 fresh; 40 reuses 30; 100 fresh
+        out, n = self._run([0, 10, 20, 30, 40, 100], 30)
+        self.assertEqual(n, 3)
+        numpy.testing.assert_array_equal(out[0], out[1])
+        numpy.testing.assert_array_equal(out[1], out[2])
+        self.assertTrue(numpy.not_equal(out[2], out[3]).all())
+        numpy.testing.assert_array_equal(out[3], out[4])
+        self.assertTrue(numpy.not_equal(out[4], out[5]).all())
+
+    def test_duplicate_times_share_one_ctrans(self):
+        """duplicate times share a single CTrans"""
+        for itol in (0, 1):
+            with self.subTest(itol=itol):
+                out, n = self._run([0, 0, 0], itol)
+                self.assertEqual(n, 1)
+                numpy.testing.assert_array_equal(out[0], out[2])
+
+    def test_tie_goes_to_earlier(self):
+        """use earlier time if two match"""
+        out, n = self._run([0, 6, 3], 5)
+        self.assertEqual(n, 2)
+        self.assertTrue(numpy.not_equal(out[0], out[1]).all())
+        numpy.testing.assert_array_equal(out[0], out[2])
 
 
 if __name__ == "__main__":
