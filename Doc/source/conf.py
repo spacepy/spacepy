@@ -302,6 +302,7 @@ intersphinx_mapping = {
 }
 linkcheck_ignore = [
     r'https://csem-home.engin.umich.edu/',  # 403
+    r'https://.*.dartmouth.edu/',  # 403 about half the time
     r'https://doi.org/',  # most redirects to journals 403
     r'https://github.com/organizations/spacepy/settings/billing',  # internal
     r'https://www.idlcoyote.com/',  # bad certificate
